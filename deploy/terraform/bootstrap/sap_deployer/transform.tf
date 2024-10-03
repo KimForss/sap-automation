@@ -26,12 +26,8 @@ locals {
                                               ""
                                             )
                                           }
-    tags                               = try(
-                                          coalesce(
-                                            var.resourcegroup_tags,
-                                            try(var.infrastructure.tags, {})
-                                          ),
-                                          {}
+      tags                               = merge(
+                                            var.tags, var.resourcegroup_tags
                                         )
 
     vnets                              = {
@@ -130,10 +126,7 @@ locals {
                                               }
                                             }
                                           }
-  deploy_monitoring_extension      = var.deploy_monitoring_extension
-  deploy_defender_extension        = var.deploy_defender_extension
-
-                                         }
+                                        }
   deployer                             = {
                                            size = try(
                                              coalesce(
@@ -231,9 +224,11 @@ locals {
   dns_settings                         = {
                                            use_custom_dns_a_registration = var.use_custom_dns_a_registration
                                            dns_zone_names = var.dns_zone_names
+
                                            management_dns_resourcegroup_name = trimspace(var.management_dns_resourcegroup_name)
                                            management_dns_subscription_id = trimspace(var.management_dns_subscription_id)
-                                           privatelink_dns_subscription_id = trimspace(coalesce(var.management_dns_subscription_id,var.privatelink_dns_subscription_id, " "))
+
+                                           privatelink_dns_subscription_id = trimspace(coalesce(var.privatelink_dns_subscription_id,var.management_dns_subscription_id, " "))
                                            privatelink_dns_resourcegroup_name = trimspace(coalesce(var.management_dns_resourcegroup_name, var.privatelink_dns_resourcegroup_name, " "))
                                          }
 
