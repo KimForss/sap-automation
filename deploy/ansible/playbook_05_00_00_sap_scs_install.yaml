@@ -239,7 +239,7 @@
                   - "scs_instance_number != db_instance_number"
                 fail_msg:              "Please ensure that the scs_instance_number is different from the db_instance_number"
           when:
-            - (ansible_play_hosts_all | length) == 1
+            - single_server
             - platform == "HANA"
 
         - name:                        "SCS Installation Playbook: - Set 'scs' tier facts"
@@ -298,7 +298,7 @@
                     name:              roles-sap/7.0.0-post-install
                   vars:
                     suffix:            "_SCS"
-                    prefix:            "{{ product_id.replace('.', '/').replace('/ABAP', '').split(':')[1] }}"
+                    prefix:            "{{ bom.product_ids.scs.replace('.', '/').replace('/ABAP', '').split(':')[1] }}"
                     path:              'INSTALL/DISTRIBUTED/{{ scs_bom_instance_type }}/{{ instance_type }}'
                     tier:              'scs'
                     this_sid:          "{{ sid_to_be_deployed.sid | upper }}"

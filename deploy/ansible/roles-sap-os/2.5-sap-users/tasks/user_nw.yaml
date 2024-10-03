@@ -10,7 +10,7 @@
 
 - name:                                "User Creation: Set BOM facts"
   ansible.builtin.set_fact:
-    sap_inifile_template:              "generic-inifile-param.j2"
+    sap_inifile_template:              "{{ bom_base_name }}{{ bom_suffix }}-generic-inifile-param.j2"
     sap_inifile:                       "{{ bom_base_name }}-generic-{{ sid_to_be_deployed.sid | lower }}-{{ ansible_hostname }}.params"
     dir_params:                        "{{ tmp_directory }}/.{{ sid_to_be_deployed.sid | lower }}-params"
 
@@ -50,17 +50,15 @@
     sa_enabled:                        true
     always_upload_jinja_templates:     false
 
-- name:                                "User Creation: Get Product ID"
-  ansible.builtin.set_fact:
-    create_users_product_id:           "{% if bom.product_ids.CREATEUSERS is defined  %}{{ bom.product_ids.CREATEUSERS }}{% else %}{{ bom.product_ids.generic }}{% endif %}"
-
-- name:                                "User Creation: Template processing - Create ini file {{ sap_inifile }} from {{ sap_inifile_template }}"
-  ansible.builtin.template:
-    src:                               "{{ sap_inifile_template }}"
-    dest:                              "{{ dir_params }}/{{ sap_inifile }}"
-    mode:                              0644
-    force:                             true
+- name:                                "User Creation: Include roles-sap/3.3.1-bom-utility role"
+  ansible.builtin.include_role:
+    name:                              roles-sap/3.3.1-bom-utility
+    tasks_from:                        bom-template
   vars:
+    always_upload_jinja_templates:     false
+    task_prefix:                       "GENERIC: "
+    bom_name:                          "{{ bom_base_name }}{{ bom_suffix }}"
+    param_directory:                   "{{ dir_params }}"
     sap_sid:                           "{{ sid_to_be_deployed.sid }}"
     sidadm_uid:                        "{{ sid_to_be_deployed.sidadm_uid }}"
 
@@ -69,15 +67,14 @@
     msg:
       - "INSTALLED:  {{ users_created.stat.exists }}"
       - "INIFILE:    {{ sap_inifile }}"
-      - "PRODUCT ID: {{ create_users_product_id }}"
-      - "BOM:        {{ bom_base_name }}"
+      - "PRODUCT ID: {{ bom.product_ids.generic }}"
     verbosity:                         2
 
 - name:                                "User Creation"
   block:
     - name:                            "User Creation: check media exists"
       ansible.builtin.stat:
-        path:                          "{{ sapinst_path }}/sapinst"
+        path:                          "{{ target_media_location }}/SWPM/sapinst"
       register:                        sapinst_found
 
     - name:                            "ErrorHandling"
@@ -105,11 +102,11 @@
       ansible.builtin.shell: |
                                        umask {{ custom_umask | default('022') }} ;
                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }} \
-                                                 SAPINST_EXECUTE_PRODUCT_ID={{ create_users_product_id }}                     \
+                                                 SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.generic }}        \
                                                  SAPINST_SKIP_DIALOGS=true                                       \
                                                  SAPINST_START_GUISERVER=false
       args:
-        chdir:                         "{{ sapinst_path }}"
+        chdir:                         "{{ target_media_location }}/SWPM"
         creates:                       "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/user_created.txt"
       environment:
         SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"

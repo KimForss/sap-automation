@@ -204,7 +204,6 @@
         state:                         present
         disable_gpg_check:             true
 
-
     # STEP2 Configure and init ORACLEASM
     # The loop has to be run per host as the sap-parameters file has all the disks.
 
