@@ -169,6 +169,12 @@
         dest:                          "{{ dir_params }}/{{ sap_inifile }}"
         mode:                          0644
         force:                         true
+    - name:                            "PAS Install: Template processing - Create ini file {{ sap_inifile }} from {{ sap_inifile_template }}"
+      ansible.builtin.template:
+        src:                           "{{ sap_inifile_template }}"
+        dest:                          "{{ dir_params }}/{{ sap_inifile }}"
+        mode:                          0644
+        force:                         true
       vars:
         sap_ciInstanceNumber:          "{{ instance_number }}"
         sap_ciDialogWPNumber:          12
@@ -177,13 +183,14 @@
         sap_profile_dir:               /sapmnt/{{ sid_to_be_deployed.sid | upper }}/profile
         sap_scs_hostname:              "{{ custom_scs_virtual_hostname | default(scs_server, true) }}"
         sap_db_hostname:               "{{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }}"
+        sap_db_hostname:               "{{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }}"
         sap_ciVirtualHostname:         "{{ pas_virtual_hostname | default(virtual_host, true) }}"
         param_directory:               "{{ dir_params }}"
         sap_sid:                       "{{ sid_to_be_deployed.sid }}"
         scs_instance_number:           "{{ sid_to_be_deployed.ascs_inst_no }}"
         sidadm_uid:                    "{{ sid_to_be_deployed.sidadm_uid }}"
         virt_do_not_resolve_hostname:  "{{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }}"
-        db_schema:                     "{% if platform == 'HANA' %}{{ schema_name }}{% endif %}"
+        hana_schema:                   "{% if platform == 'HANA' %}{{ schema_name }}{% endif %}"
 
     - name:                            "PAS Install: register variables"
       ansible.builtin.set_fact:
