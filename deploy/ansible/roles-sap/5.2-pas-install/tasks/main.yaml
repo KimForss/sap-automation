@@ -163,18 +163,10 @@
         msg:                           "INSTALL:0006:Unable to find sapinst, please check that the installation media is mounted"
       when: not sapinst_found.stat.exists
 
-    - name:                            "PAS Install: Template processing - Create ini file {{ sap_inifile }} from {{ sap_inifile_template }}"
-      ansible.builtin.template:
-        src:                           "{{ sap_inifile_template }}"
-        dest:                          "{{ dir_params }}/{{ sap_inifile }}"
-        mode:                          0644
-        force:                         true
-    - name:                            "PAS Install: Template processing - Create ini file {{ sap_inifile }} from {{ sap_inifile_template }}"
-      ansible.builtin.template:
-        src:                           "{{ sap_inifile_template }}"
-        dest:                          "{{ dir_params }}/{{ sap_inifile }}"
-        mode:                          0644
-        force:                         true
+    - name:                            "PAS Install: Include roles-sap/3.3.1-bom-utility role"
+      ansible.builtin.include_role:
+        name:                          roles-sap/3.3.1-bom-utility
+        tasks_from:                    bom-template
       vars:
         sap_ciInstanceNumber:          "{{ instance_number }}"
         sap_ciDialogWPNumber:          12
@@ -182,7 +174,6 @@
         sap_installSAPHostAgent:       "false"
         sap_profile_dir:               /sapmnt/{{ sid_to_be_deployed.sid | upper }}/profile
         sap_scs_hostname:              "{{ custom_scs_virtual_hostname | default(scs_server, true) }}"
-        sap_db_hostname:               "{{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }}"
         sap_db_hostname:               "{{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }}"
         sap_ciVirtualHostname:         "{{ pas_virtual_hostname | default(virtual_host, true) }}"
         param_directory:               "{{ dir_params }}"
