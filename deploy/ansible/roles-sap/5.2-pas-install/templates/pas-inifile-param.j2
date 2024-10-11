@@ -14,21 +14,9 @@ NW_Unpack.sapExeSar                                                   = {{ targe
 
 archives.downloadBasket                                               = {{ target_media_location }}/download_basket
 
-{% if platform | upper == 'HANA' %}
-HDB_Schema_Check_Dialogs.schemaName                                   = {{ db_schema }}
+HDB_Schema_Check_Dialogs.schemaName                                   = {{ hana_schema }}
 HDB_Schema_Check_Dialogs.schemaPassword                               = {{ main_password }}
-HDB_Userstore.doNotResolveHostnames                                   = {{ virt_do_not_resolve_hostname }}
-NW_HDB_DB.abapSchemaName                                              = {{ db_schema }}
-NW_HDB_DB.abapSchemaPassword                                          = {{ main_password }}
-NW_HDB_DBClient.clientPathStrategy                                    = SAPCPE
-NW_HDB_getDBInfo.dbhost                                               = {{ sap_db_hostname }}
-NW_HDB_getDBInfo.dbsid                                                = {{ db_sid | upper }}
-NW_HDB_getDBInfo.instanceNumber                                       = {{ db_instance_number }}
-NW_HDB_getDBInfo.systemDbPassword                                     = {{ main_password }}
-NW_HDB_getDBInfo.systemid                                             = {{ db_sid | upper }}
-NW_HDB_getDBInfo.systemPassword                                       = {{ main_password }}
-NW_HDB_getDBInfo.usingSSL                                             = true
-{% endif %}
+HDB_Userstore.doNotResolveHostnames                                   =  {{ virt_do_not_resolve_hostname }}
 
 NW_CI_Instance.ascsVirtualHostname                                    = {{ sap_scs_hostname }}
 NW_CI_Instance.ciInstanceNumber                                       = {{ sap_ciInstanceNumber }}
@@ -51,11 +39,23 @@ NW_GetMasterPassword.masterPwd                                        = {{ main_
 NW_GetSidNoProfiles.sid                                               = {{ sap_sid | upper }}
 NW_getUnicode.isUnicode                                               = true
 
+NW_HDB_DB.abapSchemaName                                              = {{ hana_schema }}
+NW_HDB_DB.abapSchemaPassword                                          = {{ main_password }}
+NW_HDB_DBClient.clientPathStrategy                                    = SAPCPE
+NW_HDB_getDBInfo.dbhost                                               = {{ sap_db_hostname }}
+NW_HDB_getDBInfo.dbsid                                                = {{ db_sid | upper }}
+NW_HDB_getDBInfo.instanceNumber                                       = {{ db_instance_number }}
+NW_HDB_getDBInfo.systemDbPassword                                     = {{ main_password }}
+NW_HDB_getDBInfo.systemid                                             = {{ db_sid | upper }}
+NW_HDB_getDBInfo.systemPassword                                       = {{ main_password }}
+NW_HDB_getDBInfo.usingSSL                                             = true
 NW_Recovery_Install_HDB.extractLocation                               = /usr/sap/{{ db_sid | upper }}/{{ db_sid | upper }}{{ db_instance_number }}/backup/data/DB_HDB
 NW_Recovery_Install_HDB.extractParallelJobs                           = 24
 NW_Recovery_Install_HDB.sidAdmName                                    = {{ db_sid | lower }}adm
 NW_Recovery_Install_HDB.sidAdmPassword                                = {{ main_password }}
 
+NW_DB6_DB.db6.abap.connect.user                                       = sap{{ db_sid | lower }}
+NW_DB6_DB.db6.abap.schema                                             = sap{{ db_sid | lower }}
 NW_CI_Instance_ABAP_Reports.executeReportsForDepooling                = true
 
 NW_getDBInfoGeneric.dbhost                                            = {{ sap_db_hostname }}
@@ -80,8 +80,6 @@ NW_Delete_Sapinst_Users.removeUsers                                   = true
 storageBasedCopy.hdb.instanceNumber                                   = {{ db_instance_number }}
 storageBasedCopy.hdb.systemPassword                                   = {{ main_password }}
 
-NW_DB6_DB.db6.abap.connect.user                                       = sap{{ db_sid | lower }}
-NW_DB6_DB.db6.abap.schema                                             = sap{{ db_sid | lower }}
 NW_DB6_DB.db6.abap.connect.user                                       = sap{{ db_sid | lower }}
 NW_DB6_DB.db6.abap.schema                                             = sap{{ db_sid | lower }}
 
@@ -116,7 +114,7 @@ SAPINST.CD.PACKAGE.CD3                                                = {{ targe
 {% if platform | upper == 'ORACLE' %}
 # Oracle parameters
 
-ora.dbhome                                                           = /oracle/{{ db_sid | upper }}/{{ ora_release }}
+ora.dbhome                                                            = /oracle/{{ db_sid | upper }}/{{ ora_release }}
 ora.multitenant.installMT                                            = FALSE
 ora.multitenant.pdbsid                                               = {{ db_sid }}
 ora.multitenant.installMT                                            = FALSE
@@ -140,3 +138,9 @@ SAPINST.CD.PACKAGE.CD1                                                = {{ targe
 SAPINST.CD.PACKAGE.CD2                                                = {{ target_media_location }}/EXPORT/DATA_UNITS/EXP2
 SAPINST.CD.PACKAGE.CD3                                                = {{ target_media_location }}/EXPORT/DATA_UNITS/EXP3
 {% endif %}
+
+
+
+
+
+
