@@ -77,6 +77,13 @@
     path:                              "{{ db_load_path }}"
   register:                            dbload_performed
 
+- name:                                "DBLoad Install: Set Schema Name"
+  when:
+    - platform == "HANA"
+  ansible.builtin.include_role:
+    name:                              "roles-db/4.0.4-hdb-schema"
+    public:                            true
+
 - name:                                "DBLoad: Check if install is performed"
   block:
     - name:                            "DBLoad: Find the installationSuccesfullyFinished.dat (SAPINST)"
@@ -440,13 +447,6 @@
       when:
         - db_high_availability is defined
         - database_high_availability is not defined
-
-    - name:                           "DBLoad Install: Set Schema Name"
-      when:
-        - platform == "HANA"
-      ansible.builtin.include_role:
-        name:                         "roles-db/4.0.4-hdb-schema"
-        public:                       true
 
     - name:                            "DBLoad: Get hdbuserstore path"
       become:                          true
