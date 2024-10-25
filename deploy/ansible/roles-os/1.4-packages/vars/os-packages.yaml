@@ -530,6 +530,7 @@ packages:
     - { tier: 'os',     package: 'unixODBC',                                     node_tier: 'all',     state: 'present' }
     - { tier: 'os',     package: 'libnsl2',                                      node_tier: 'all',     state: 'present' }
     - { tier: 'sybase', package: 'libnsl',                                       node_tier: 'all',     state: 'present' }
+    - { tier: 'db2',    package: 'libnsl',                                       node_tier: 'all',     state: 'present' }
     - { tier: 'os',     package: 'make',                                         node_tier: 'all',     state: 'present' }
     - { tier: 'os',     package: 'targetcli',                                    node_tier: 'all',     state: 'present' }
     - { tier: 'os',     package: 'smartmontools',                                node_tier: 'all',     state: 'present' }
