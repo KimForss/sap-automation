@@ -21,15 +21,13 @@
         bom_name:                      "{{ bom_base_name }}"
         task_prefix:                   "SYBASE Install: "
 
-    - name:                            "SYBASE Install - Include roles-sap/3.3.1-bom-utility role"
-      ansible.builtin.include_role:
-        name:                          roles-sap/3.3.1-bom-utility
-        tasks_from:                    bom-template
+    - name:                            "SYBASE Install - Template processing: Create ini file {{ sap_inifile }} from {{ sap_inifile_template }}"
+      ansible.builtin.template:
+        src:                           "{{ sap_inifile_template }}"
+        dest:                          "{{ dir_params }}/{{ sap_inifile }}"
+        mode:                          0644
+        force:                         true
       vars:
-        bom_name:                      "{{ bom_base_name }}"
-        task_prefix:                   "SYBASE Install: "
-        always_upload_jinja_templates: false
-        sa_enabled:                    true
         core_count:                    "{{ vm_core_count }}"
 
 
