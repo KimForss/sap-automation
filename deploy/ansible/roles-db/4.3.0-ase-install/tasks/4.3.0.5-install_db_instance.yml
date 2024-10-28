@@ -29,6 +29,8 @@
         force:                         true
       vars:
         core_count:                    "{{ vm_core_count }}"
+        dbexport_path:                 "{{ dbexport_folder_path }}"
+        db_media_path:                 "{{ db_install_media_path }}"
 
 
     # +--------------------------------4--------------------------------------*/
