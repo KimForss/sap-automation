@@ -607,30 +607,30 @@
           tags:
             - always
 
-        - name:                        "Configure accounts for oracle"
+        - name:                        "Oracle Installation Play: Install Oracle specific packages"
+          ansible.builtin.include_role:
+            name:                      roles-os/1.4-packages
+
+        - name:                        "Oracle Installation Play: Configure accounts for oracle"
           ansible.builtin.include_role:
             name:                      roles-os/1.11-accounts
 
-        - name:                        "Configure accounts for oracle"
-          ansible.builtin.include_role:
-            name:                      roles-os/1.11-accounts
-
-        - name:                        "Database Installation Playbook: - Check for file system mounts"
+        - name:                        "Oracle Installation Play: Database Installation Playbook: - Check for file system mounts"
           ansible.builtin.include_role:
             name:                      roles-sap-os/2.6-sap-mounts
 
-        - name:                        "Database Installation Playbook: - run Oracle installer"
+        - name:                        "Oracle Installation Play: Database Installation Playbook: - run Oracle installer"
           ansible.builtin.include_role:
             name:                      roles-db/4.1.0-ora-install
 
-        - name:                        "Database Installation Playbook: - Run post installation routines"
+        - name:                        "Oracle Installation Play: Database Installation Playbook: - Run post installation routines"
           ansible.builtin.include_role:
             name:                      roles-sap/7.0.0-post-install
           vars:
             suffix:                    "_DB"
             tier:                      'oracle'
 
-        - name:                        "Database Installation Playbook: - Create db-install-done flag"
+        - name:                        "Oracle Installation Play: Database Installation Playbook: - Create db-install-done flag"
           delegate_to:                 localhost
           become:                      false
           ansible.builtin.file:
@@ -639,7 +639,7 @@
             mode:                      0755
 
 
-    - name:                            "Install Oracle for MSID"
+    - name:                            "Install Oracle for Shared Hosts"
       become:                          true
       become_user:                     root
       when:
