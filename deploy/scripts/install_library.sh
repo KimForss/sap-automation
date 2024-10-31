@@ -164,31 +164,6 @@ if [ true == "$use_deployer" ]; then
     echo "#########################################################################################"
     exit
   fi
-if [ true == "$use_deployer" ]
-then
-    if [ ! -d "${deployer_statefile_foldername}" ]
-    then
-        printf -v val %-40.40s "$deployer_statefile_foldername"
-        echo ""
-        echo "#########################################################################################"
-        echo "#                                                                                       #"
-        echo "#                    Directory does not exist:  "${deployer_statefile_foldername}" #"
-        echo "#                                                                                       #"
-        echo "#########################################################################################"
-        exit
-    fi
-
-if [ true == "$use_deployer" ]; then
-  if [ ! -d "${deployer_statefile_foldername}" ]; then
-    printf -v val %-40.40s "$deployer_statefile_foldername"
-    echo ""
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo "#                    Directory does not exist:  "${deployer_statefile_foldername}" #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    exit
-  fi
 fi
 
 #Persisting the parameters across executions
@@ -367,10 +342,6 @@ echo ""
 if [ -n "${deployer_statefile_foldername}" ]; then
   echo "Deployer folder specified:             ${deployer_statefile_foldername}"
   terraform -chdir="${terraform_module_directory}" plan -no-color -detailed-exitcode -var-file="${var_file}" -var deployer_statefile_foldername="${deployer_statefile_foldername}" >plan_output.log 2>&1
-    echo "Deployer folder specified:             ${deployer_statefile_foldername}"
-    terraform -chdir="${terraform_module_directory}" plan -no-color -detailed-exitcode -var-file="${var_file}" -var deployer_statefile_foldername="${deployer_statefile_foldername}" > plan_output.log 2>&1
-  echo "Deployer folder specified:             ${deployer_statefile_foldername}"
-  terraform -chdir="${terraform_module_directory}" plan -no-color -detailed-exitcode -var-file="${var_file}" -var deployer_statefile_foldername="${deployer_statefile_foldername}" >plan_output.log 2>&1
 else
   terraform -chdir="${terraform_module_directory}" plan -no-color -detailed-exitcode -var-file="${var_file}" >plan_output.log 2>&1
 fi
@@ -439,22 +410,6 @@ if [ -n "${deployer_statefile_foldername}" ]; then
   else
     terraform -chdir="${terraform_module_directory}" apply -var-file="${var_file}" -var deployer_statefile_foldername="${deployer_statefile_foldername}"
   fi
-if [ -n "${deployer_statefile_foldername}" ];
-then
-    echo "Deployer folder specified:             ${deployer_statefile_foldername}"
-    if [ -n "${approve}" ]
-    then
-        terraform -chdir="${terraform_module_directory}" apply -var-file="${var_file}" -var deployer_statefile_foldername="${deployer_statefile_foldername}" -auto-approve -json | tee -a  apply_output.json
-    else
-        terraform -chdir="${terraform_module_directory}" apply -var-file="${var_file}" -var deployer_statefile_foldername="${deployer_statefile_foldername}"
-    fi
-if [ -n "${deployer_statefile_foldername}" ]; then
-  echo "Deployer folder specified:             ${deployer_statefile_foldername}"
-  if [ -n "${approve}" ]; then
-    terraform -chdir="${terraform_module_directory}" apply -var-file="${var_file}" -var deployer_statefile_foldername="${deployer_statefile_foldername}" -auto-approve -json | tee -a apply_output.json
-  else
-    terraform -chdir="${terraform_module_directory}" apply -var-file="${var_file}" -var deployer_statefile_foldername="${deployer_statefile_foldername}"
-  fi
 else
   if [ -n "${approve}" ]; then
     terraform -chdir="${terraform_module_directory}" apply -var-file="${var_file}" -auto-approve -json | tee -a apply_output.json
@@ -484,19 +439,6 @@ if [ -f apply_output.json ]; then
       else
         terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" $moduleID $resourceID
       fi
-          if [ -n "${deployer_statefile_foldername}" ];
-          then
-              echo "Deployer folder specified:             ${deployer_statefile_foldername}"
-              terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var deployer_statefile_foldername="${deployer_statefile_foldername}" $moduleID $resourceID
-          else
-              terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" $moduleID $resourceID
-          fi
-      if [ -n "${deployer_statefile_foldername}" ]; then
-        echo "Deployer folder specified:             ${deployer_statefile_foldername}"
-        terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var deployer_statefile_foldername="${deployer_statefile_foldername}" $moduleID $resourceID
-      else
-        terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" $moduleID $resourceID
-      fi
 
     done
     rerun_apply=1
@@ -536,61 +478,11 @@ if [ -f apply_output.json ]; then
       else
         terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" $moduleID $resourceID
       fi
-          if [ -n "${deployer_statefile_foldername}" ];
-          then
-              echo "Deployer folder specified:             ${deployer_statefile_foldername}"
-              terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var deployer_statefile_foldername="${deployer_statefile_foldername}" $moduleID $resourceID
-          else
-              terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" $moduleID $resourceID
-          fi
-      if [ -n "${deployer_statefile_foldername}" ]; then
-        echo "Deployer folder specified:             ${deployer_statefile_foldername}"
-        terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var deployer_statefile_foldername="${deployer_statefile_foldername}" $moduleID $resourceID
-      else
-        terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" $moduleID $resourceID
-      fi
 
     done
     rerun_apply=1
   fi
 
-  if [ $rerun_apply == 1 ]; then
-    echo ""
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo "#                          Re-running Terraform apply                                   #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    echo ""
-    if [ -n "${deployer_statefile_foldername}" ]; then
-      echo "Deployer folder specified:             ${deployer_statefile_foldername}"
-      terraform -chdir="${terraform_module_directory}" apply -var-file="${var_file}" -var deployer_statefile_foldername="${deployer_statefile_foldername}" -auto-approve -json | tee -a apply_output.json
-    else
-      terraform -chdir="${terraform_module_directory}" apply -var-file="${var_file}" -auto-approve -json | tee -a apply_output.json
-    fi
-    return_value=$?
-    rerun_apply=0
-  fi
-  errors_occurred=$(jq 'select(."@level" == "error") | length' apply_output.json)
-    if [ $rerun_apply == 1 ] ; then
-        echo ""
-        echo "#########################################################################################"
-        echo "#                                                                                       #"
-        echo "#                          Re-running Terraform apply                                   #"
-        echo "#                                                                                       #"
-        echo "#########################################################################################"
-        echo ""
-        if [ -n "${deployer_statefile_foldername}" ];
-        then
-            echo "Deployer folder specified:             ${deployer_statefile_foldername}"
-            terraform -chdir="${terraform_module_directory}" apply -var-file="${var_file}" -var deployer_statefile_foldername="${deployer_statefile_foldername}" -auto-approve -json | tee -a  apply_output.json
-        else
-            terraform -chdir="${terraform_module_directory}" apply -var-file="${var_file}" -auto-approve -json | tee -a  apply_output.json
-        fi
-        return_value=$?
-        rerun_apply=0
-    fi
-    errors_occurred=$(jq 'select(."@level" == "error") | length' apply_output.json)
   if [ $rerun_apply == 1 ]; then
     echo ""
     echo "#########################################################################################"

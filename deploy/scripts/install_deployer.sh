@@ -224,18 +224,6 @@ if [ 1 == $return_value ]; then
   unset TF_DATA_DIR
   exit $return_value
 fi
-return_value=$?
-if [ 1 == $return_value ]; then
-  echo ""
-  echo "#########################################################################################"
-  echo "#                                                                                       #"
-  echo -e "#                             $boldreduscore Errors during the init phase $resetformatting                              #"
-  echo "#                                                                                       #"
-  echo "#########################################################################################"
-  echo ""
-  unset TF_DATA_DIR
-  exit $return_value
-fi
 
 extra_vars=""
 
@@ -404,24 +392,6 @@ if [ -f apply_output.json ]; then
   if [ -f apply_output.json ]; then
     rm apply_output.json
   fi
-fi
-if [ 0 != $return_value ]; then
-  echo "#########################################################################################"
-  echo "#                                                                                       #"
-  echo -e "#                      $boldreduscore !!! Error when Creating the deployer !!! $resetformatting                       #"
-  echo "#                                                                                       #"
-  echo "#########################################################################################"
-  echo ""
-  exit $return_value
-if [ 0 != $return_value ]
-then
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo -e "#                      $boldreduscore !!! Error when Creating the deployer !!! $resetformatting                       #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    echo ""
-    exit $return_value
 fi
 if [ 0 != $return_value ]; then
   echo "#########################################################################################"
