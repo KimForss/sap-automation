@@ -226,6 +226,16 @@
         sap_sid:                       "{{ sid_to_be_deployed.sid }}"
         sidadm_uid:                    "{{ sid_to_be_deployed.sidadm_uid }}"
 
+    - name:                            "DBLoad: Get ini file"
+      ansible.builtin.slurp:
+        src:                           "{{ dir_params }}/{{ sap_inifile }}"
+      register:                        profilefile
+
+    - name:                            "DBLoad: install variables"
+      ansible.builtin.debug:
+      var:                             profilefile
+
+
     - name:                            "DBLoad: install variables"
       ansible.builtin.debug:
         msg:
@@ -257,7 +267,7 @@
       ansible.builtin.shell: |
                                        umask {{ custom_umask | default('022') }} ;
                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }} \
-                                                 SAPINST_EXECUTE_PRODUCT_ID={{ product_id }}            \
+                                                 SAPINST_EXECUTE_PRODUCT_ID={{ product_id }}                     \
                                                  SAPINST_SKIP_DIALOGS=true                                       \
                                                  SAPINST_START_GUISERVER=false
       args:
