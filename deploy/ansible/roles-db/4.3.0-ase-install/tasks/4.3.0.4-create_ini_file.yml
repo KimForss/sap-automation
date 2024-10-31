@@ -42,7 +42,7 @@
 - name:                                "SAP ASE Install: Set BOM facts"
   ansible.builtin.set_fact:
     sap_inifile:                       "{{ bom_base_name }}-dbload-{{ ansible_hostname }}.params"
-    sap_inifile_template:              "{{ bom_base_name }}{{ bom_suffix }}-dbload-inifile-param.j2"
+    sap_inifile_template:              "dbload-inifile-param.j2"
     dir_params:                        "{{ tmp_directory }}/.{{ sap_sid | upper }}-params"
     mem_size:                          7000
     vm_core_count:                     '{% if ansible_facts.processor_vcpus is defined %}{{ ansible_facts.processor_vcpus }}{% else %}{{ ansible_facts.processor_cores }}{% endif %}'
