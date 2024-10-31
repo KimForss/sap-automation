@@ -218,7 +218,7 @@
         force:                         true
       vars:
         hana_backup_path:              "{{ backup_path }}"
-        hana_schema:                   "{{ schema_name }}"
+        hana_schema:                   "{% if schema_name is defined %}{{ schema_name }}{% else %}omit{% endif %}"
         param_directory:               "{{ dir_params }}"
         sap_db_hostname:               "{{ custom_db_virtual_hostname | default(db_virtual_hostname, true) }}"
         sap_profile_dir:               "/sapmnt/{{ sid_to_be_deployed.sid | upper }}/profile"

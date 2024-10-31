@@ -18,9 +18,6 @@ hanadb.landscape.reorg.useCheckProcedureFile                          = DONOTUSE
 hanadb.landscape.reorg.useParameterFile                               = DONOTUSEFILE
 {% endif %}
 
-HDB_Schema_Check_Dialogs.schemaName                                   = {{ hana_schema }}
-HDB_Schema_Check_Dialogs.schemaPassword                               = {{ main_password }}
-
 {% if drop_schema | bool %}
 HDB_Schema_Check_Dialogs.dropSchema                                   = true
 {% endif %}
@@ -29,6 +26,10 @@ NW_ABAP_Import_Dialog.migmonJobNum                                    = 12
 hanadb.landscape.reorg.useParameterFile                               = DONOTUSEFILE
 
 {% if platform | upper == 'HANA' %}
+
+
+HDB_Schema_Check_Dialogs.schemaName                                   = {{ hana_schema }}
+HDB_Schema_Check_Dialogs.schemaPassword                               = {{ main_password }}
 
 NW_HDB_DB.abapSchemaName                                              = {{ hana_schema }}
 NW_HDB_DB.abapSchemaPassword                                          = {{ main_password }}
