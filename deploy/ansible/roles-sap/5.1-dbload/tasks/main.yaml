@@ -233,7 +233,7 @@
 
     - name:                            "DBLoad: install variables"
       ansible.builtin.debug:
-      var:                             profilefile
+        var:                           profilefile
 
 
     - name:                            "DBLoad: install variables"
