@@ -13,7 +13,7 @@ nwUsers.sidadmPassword                                                = {{ main_
 NW_Delete_Sapinst_Users.removeUsers                                   = true
 NW_GetMasterPassword.masterPwd                                        = {{ main_password }}
 
-{% if database_scale_out | bool %}
+{% if db_scale_out | bool %}
 hanadb.landscape.reorg.useCheckProcedureFile                          = DONOTUSEFILE
 hanadb.landscape.reorg.useParameterFile                               = DONOTUSEFILE
 {% endif %}
