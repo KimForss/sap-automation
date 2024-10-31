@@ -94,14 +94,17 @@
       changed_when:                    false
       when:                            ansible_distribution_major_version in ["8", "9"]
 
+    - name:                            "5.6 SCSERS - RHEL - SCS - Check if NFS mount /usr/sap/{{ sap_sid | upper }}/SYS is available before proceeding"
+      ansible.builtin.set_fact:
+        sys_instance_path:             "/usr/sap/{{ sap_sid | upper }}/SYS"
 
     - name:                            "5.6 SCSERS - RHEL - SCS - Check if NFS mount /usr/sap/{{ sap_sid | upper }}/SYS is available before proceeding"
       ansible.builtin.shell: >-
                                        set -o pipefail;
-                                       df -kHT | grep '/usr/sap/{{ sap_sid | upper }}/SYS'
+                                       df -kHT | grep '{{ sys_instance_path }}'
       register:                        nfs_sys_mounted
       changed_when:                    false
-      failed_when:                     false
+      failed_when:                     sys_instance_path not in nfs_sys_mounted.stdout
 
     - name:                            "5.6 SCSERS - RHEL - SCS - attempt to mount SYS directory"
       ansible.builtin.include_role:
@@ -267,12 +270,16 @@
         verbosity:                     2
 
     - name:                            "5.6 SCSERS - RHEL - ERS - Check if NFS mount /usr/sap/{{ sap_sid | upper }}/SYS is available before proceeding"
+      ansible.builtin.set_fact:
+        sys_instance_path:             "/usr/sap/{{ sap_sid | upper }}/SYS"
+
+    - name:                            "5.6 SCSERS - RHEL - ERS - Check if NFS mount /usr/sap/{{ sap_sid | upper }}/SYS is available before proceeding"
       ansible.builtin.shell: >-
                                        set -o pipefail;
-                                       df -kHT | grep '/usr/sap/{{ sap_sid | upper }}/SYS'
+                                       df -kHT | grep '{{ sys_instance_path }}'
       register:                        nfs_sys_mounted
       changed_when:                    false
-      failed_when:                     false
+      failed_when:                     sys_instance_path not in nfs_sys_mounted.stdout
 
     - name:                            "5.6 SCSERS - RHEL - ERS - attempt to mount SYS directory"
       ansible.builtin.include_role:

@@ -76,11 +76,16 @@
         seconds:                       60
 
     - name:                            "5.6 SCSERS - SUSE - SCS - Check if NFS mount /usr/sap/{{ sap_sid | upper }}/SYS is available before proceeding"
+      ansible.builtin.set_fact:
+        sys_instance_path:             "/usr/sap/{{ sap_sid | upper }}/SYS"
+
+    - name:                            "5.6 SCSERS - SUSE - SCS - Check if NFS mount /usr/sap/{{ sap_sid | upper }}/SYS is available before proceeding"
       ansible.builtin.shell: >-
                                        set -o pipefail;
-                                       df -kHT | grep '/usr/sap/{{ sap_sid | upper }}/SYS'
+                                       df -kHT | grep '{{ sys_instance_path }}'
       register:                        nfs_sys_mounted
       changed_when:                    false
+      failed_when:                     sys_instance_path not in nfs_sys_mounted.stdout
 
     - name:                            "5.6 SCSERS - SUSE - SCS - attempt to mount SYS directory"
       ansible.builtin.include_role:
@@ -90,13 +95,17 @@
             - sap_app_ha_sys_mount
       when: inventory_hostname == primary_instance_name and nfs_sys_mounted.rc >= 1
 
-    - name:                            "5.6 SCSERS - SUSE - SCS - Check if NFS mount for instance directory is available before proceeding"
+    - name:                            "5.6 SCSERS - SUSE - SCS - Check if NFS mount /usr/sap/{{ sap_sid | upper }}/{{ instance_type | upper }}{{ scs_instance_number }} is available before proceeding"
+      ansible.builtin.set_fact:
+        scs_instance_path:             "/usr/sap/{{ sap_sid | upper }}/{{ instance_type | upper }}{{ scs_instance_number }}"
+
+    - name:                            "5.6 SCSERS - SUSE - SCS - Check if NFS mount /usr/sap/{{ sap_sid | upper }}/SYS is available before proceeding"
       ansible.builtin.shell: >-
                                        set -o pipefail;
-                                       df -kHT | grep '/usr/sap/{{ sap_sid | upper }}/{{ instance_type | upper }}{{ scs_instance_number }}'
-      register:                        nfs_instdir_mounted
-      failed_when:                     nfs_instdir_mounted.rc >= 1
+                                       df -kHT | grep '{{ scs_instance_path }}'
+      register:                        nfs_sys_mounted
       changed_when:                    false
+      failed_when:                     scs_instance_path not in nfs_sys_mounted.stdout
 
     - name:                            "5.6 SCSERS - SUSE - SCS - Assign ownership"
       ansible.builtin.file:
@@ -213,11 +222,16 @@
   when:                                inventory_hostname == secondary_instance_name
   block:
     - name:                            "5.6 SCSERS - SUSE - ERS - Check if NFS mount /usr/sap/{{ sap_sid | upper }}/SYS is available before proceeding"
+      ansible.builtin.set_fact:
+        sys_instance_path:             "/usr/sap/{{ sap_sid | upper }}/SYS"
+
+    - name:                            "5.6 SCSERS - SUSE - ERS - Check if NFS mount /usr/sap/{{ sap_sid | upper }}/SYS is available before proceeding"
       ansible.builtin.shell: >-
                                        set -o pipefail;
-                                       df -kHT | grep '/usr/sap/{{ sap_sid | upper }}/SYS'
+                                       df -kHT | grep '{{ sys_instance_path }}'
       register:                        nfs_sys_mounted
       changed_when:                    false
+      failed_when:                     sys_instance_path not in nfs_sys_mounted.stdout
 
     - name:                            "5.6 SCSERS - SUSE - ERS - attempt to mount SYS directory"
       ansible.builtin.include_role:
@@ -259,15 +273,27 @@
       delay:                           30
       changed_when:                    false
 
-    - name:                            "Wait for NFS mount for instance directory to be  available before proceeding"
+    - name:                            "Wait for NFS mount for instance directory to be available before proceeding"
       ansible.builtin.wait_for:
         path:                          '/usr/sap/{{ sap_sid | upper }}/ERS{{ ers_instance_number }}'
         msg:                           "NFS mount for ERS directory is not available"
 
+    - name:                            "5.6 SCSERS - SUSE - ERS - Check if NFS mount /usr/sap/{{ sap_sid | upper }}/ERS{{ ers_instance_number }} is available before proceeding"
+      ansible.builtin.set_fact:
+        ers_instance_path:             "/usr/sap/{{ sap_sid | upper }}/ERS{{ ers_instance_number }}"
+
+    - name:                            "5.6 SCSERS - SUSE - SCS - Check if NFS mount {{ ers_instance_path }} is available before proceeding"
+      ansible.builtin.shell: >-
+                                       set -o pipefail;
+                                       df -kHT | grep '{{ ers_instance_path }}'
+      register:                        nfs_sys_mounted
+      changed_when:                    false
+      failed_when:                     ers_instance_path not in nfs_sys_mounted.stdout
+
     - name:                            "Check if NFS mount for instance directory is available before proceeding"
       ansible.builtin.shell: >-
                                        set -o pipefail;
-                                       df -kHT | grep '/usr/sap/{{ sap_sid | upper }}/ERS{{ ers_instance_number }}'
+                                       df -kHT | grep '/usr/sap/{{ sap_sid | upper }}'
       register:                        nfs_instdir_mounted
       changed_when:                    false
 
