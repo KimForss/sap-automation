@@ -189,6 +189,15 @@ echo "Configuration file:                  $system_config_information"
 echo "Deployment region:                   $region"
 echo "Deployment region code:              $region_code"
 
+if [ 1 == $called_from_ado ] ; then
+    this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
+    export TF_VAR_Agent_IP=$this_ip
+    echo "Agent IP:                            $this_ip"
+
+echo "Configuration file:                  $system_config_information"
+echo "Deployment region:                   $region"
+echo "Deployment region code:              $region_code"
+
 if [ 1 == $called_from_ado ]; then
   this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
   export TF_VAR_Agent_IP=$this_ip
@@ -240,6 +249,13 @@ if [[ -z $STATE_SUBSCRIPTION ]]; then
   STATE_SUBSCRIPTION=$ARM_SUBSCRIPTION_ID
 fi
 
+if [[ -z $REMOTE_STATE_SA ]];
+then
+    load_config_vars "${system_config_information}" "REMOTE_STATE_SA"
+    load_config_vars "${system_config_information}" "REMOTE_STATE_RG"
+    load_config_vars "${system_config_information}" "tfstate_resource_id"
+    load_config_vars "${system_config_information}" "STATE_SUBSCRIPTION"
+    load_config_vars "${system_config_information}" "ARM_SUBSCRIPTION_ID"
 if [[ -n $STATE_SUBSCRIPTION ]]; then
   echo ""
   echo "#########################################################################################"
@@ -282,6 +298,8 @@ deployer_tfstate_key_parameter=''
 if [[ -z $deployer_tfstate_key ]]; then
   load_config_vars "${system_config_information}" "deployer_tfstate_key"
 else
+    echo "Deployer state file name:            ${deployer_tfstate_key}"
+    echo "Target subscription:                 $ARM_SUBSCRIPTION_ID"
   echo "Deployer state file name:            ${deployer_tfstate_key}"
   echo "Target subscription:                 $ARM_SUBSCRIPTION_ID"
 fi
@@ -319,8 +337,11 @@ else
 
 fi
 
+useSAS=$(az storage account show  --name  "${REMOTE_STATE_SA}"   --query allowSharedKeyAccess --subscription ${STATE_SUBSCRIPTION} --out tsv)
 useSAS=$(az storage account show --name "${REMOTE_STATE_SA}" --query allowSharedKeyAccess --subscription ${STATE_SUBSCRIPTION} --out tsv)
 
+if [ "$useSAS" = "true" ] ; then
+  echo "Storage Account Authentication:      Key"
 if [ "$useSAS" = "true" ]; then
   echo "Storage Account Authentication:      Key"
   export ARM_USE_AZUREAD=false
@@ -334,6 +355,8 @@ landscape_tfstate_key_parameter=''
 if [[ -z $landscape_tfstate_key ]]; then
   load_config_vars "${system_config_information}" "landscape_tfstate_key"
 else
+    echo "Workload zone state file:            ${landscape_tfstate_key}"
+    save_config_vars "${system_config_information}" landscape_tfstate_key
   echo "Workload zone state file:            ${landscape_tfstate_key}"
   save_config_vars "${system_config_information}" landscape_tfstate_key
 fi
@@ -366,6 +389,19 @@ fi
 if [[ -z $STATE_SUBSCRIPTION ]]; then
   load_config_vars "${system_config_information}" "STATE_SUBSCRIPTION"
 else
+
+    if is_valid_guid "$STATE_SUBSCRIPTION" ; then
+        save_config_var "STATE_SUBSCRIPTION" "${system_config_information}"
+    else
+        printf -v val %-40.40s "$STATE_SUBSCRIPTION"
+        echo "#########################################################################################"
+        echo "#                                                                                       #"
+        echo -e "# The provided state_subscription is not valid:$boldred ${val}$resetformatting#"
+        echo "#                                                                                       #"
+        echo "#########################################################################################"
+        echo "The provided subscription for Terraform remote state is not valid:${val}" > "${system_config_information}".err
+        exit 65
+    fi
 
   if is_valid_guid "$STATE_SUBSCRIPTION"; then
     save_config_var "STATE_SUBSCRIPTION" "${system_config_information}"
@@ -484,20 +520,38 @@ echo ""
 
 check_output=0
 if [ -f terraform.tfstate ]; then
+    if [ -f ./.terraform/terraform.tfstate ]; then
+        if grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate ; then
+            echo ""
+        else
   if [ -f ./.terraform/terraform.tfstate ]; then
     if grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate; then
       echo ""
     else
 
+            if [ "${deployment_system}" == sap_deployer ]; then
+
+                echo ""
+                echo -e "$cyan Reinitializing deployer in case of on a new deployer $resetformatting"
       if [ "${deployment_system}" == sap_deployer ]; then
 
         echo ""
         echo -e "$cyan Reinitializing deployer in case of on a new deployer $resetformatting"
 
+                terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/"${deployment_system}"/
+                terraform -chdir="${terraform_module_directory}" init  -backend-config "path=${param_dirname}/terraform.tfstate" -reconfigure
+                echo ""
+                key_vault_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_arm_id | tr -d \")
         terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/"${deployment_system}"/
         terraform -chdir="${terraform_module_directory}" init -backend-config "path=${param_dirname}/terraform.tfstate" -reconfigure
         echo ""
         key_vault_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_arm_id | tr -d \")
+
+                if [ -n "${key_vault_id}" ]
+                then
+                    export TF_VAR_deployer_kv_user_arm_id="${key_vault_id}" ; echo $TF_VAR_deployer_kv_user_arm_id
+                fi
+            fi
 
         if [ -n "${key_vault_id}" ]; then
           export TF_VAR_deployer_kv_user_arm_id="${key_vault_id}"
@@ -505,10 +559,19 @@ if [ -f terraform.tfstate ]; then
         fi
       fi
 
+            if [ "${deployment_system}" == sap_library ]
+            then
+                echo "Reinitializing library in case of on a new deployer"
+                terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/"${deployment_system}"/
       if [ "${deployment_system}" == sap_library ]; then
         echo "Reinitializing library in case of on a new deployer"
         terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/"${deployment_system}"/
 
+                terraform -chdir="${terraform_module_directory}" init -backend-config "path=${param_dirname}/terraform.tfstate" -reconfigure
+            fi
+        fi
+    fi
+fi
         terraform -chdir="${terraform_module_directory}" init -backend-config "path=${param_dirname}/terraform.tfstate" -reconfigure
       fi
     fi
@@ -650,6 +713,7 @@ if [ -f plan_output.log ]; then
   rm plan_output.log
 fi
 
+allParams=$(printf " -var-file=%s %s %s %s %s %s %s %s" "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}" "${deployer_parameter}" )
 allParams=$(printf " -var-file=%s %s %s %s %s %s %s %s" "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}" "${deployer_parameter}")
 
 terraform -chdir="$terraform_module_directory" plan -no-color -detailed-exitcode $allParams | tee -a plan_output.log
@@ -778,6 +842,7 @@ else
 fi
 
 if [ "${container_exists}" == "false" ]; then
+  if [ "$useSAS" = "true" ] ; then
   if [ "$useSAS" = "true" ]; then
     az storage container create --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --name tfvars --only-show-errors
   else
@@ -785,6 +850,11 @@ if [ "${container_exists}" == "false" ]; then
   fi
 fi
 
+if [ "$useSAS" = "true" ] ; then
+  az storage blob upload --file "${parameterfile}" --container-name tfvars/LANDSCAPE/"${key}" --name "${parameterfile_name}" --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}"  --no-progress --overwrite --only-show-errors  --output none
+else
+  az storage blob upload --file "${parameterfile}" --container-name tfvars/LANDSCAPE/"${key}" --name "${parameterfile_name}" --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}"  --no-progress --overwrite --auth-mode login --only-show-errors  --output none
+fi
 if [ "$useSAS" = "true" ]; then
   az storage blob upload --file "${parameterfile}" --container-name tfvars/LANDSCAPE/"${key}" --name "${parameterfile_name}" --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --no-progress --overwrite --only-show-errors --output none
 else
@@ -1151,6 +1221,17 @@ if [ 1 == $ok_to_proceed ]; then
             fi
             echo -e "#                          $boldreduscore  $string_to_report $resetformatting"
 
+                    done
+                fi
+                echo "#                                                                                       #"
+                echo "#########################################################################################"
+                echo ""
+                if [ 1 == $called_from_ado ] ; then
+                    terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json $allParams | tee -a apply_output.json
+                else
+                    terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -json $allParams | tee -a  apply_output.json
+                fi
+                return_value=$?
           done
         fi
         echo "#                                                                                       #"
@@ -1186,6 +1267,13 @@ if [ 1 == $ok_to_proceed ]; then
 
 fi
 
+if [ "${deployment_system}" == sap_deployer ]
+then
+
+    # terraform -chdir="${terraform_module_directory}"  output
+
+    deployer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_public_ip_address | tr -d \")
+    keyvault=$(terraform -chdir="${terraform_module_directory}"  output -no-color -raw deployer_kv_user_name | tr -d \")
 if [ "${deployment_system}" == sap_deployer ]; then
 
   # terraform -chdir="${terraform_module_directory}"  output
@@ -1214,6 +1302,16 @@ if [ "${deployment_system}" == sap_deployer ]; then
   echo ""
   echo ""
 
+    if [ -n "${ARM_CLIENT_SECRET}" ] ; then
+      az login --service-principal --username "${ARM_CLIENT_ID}" --password=$ARM_CLIENT_SECRET --tenant "${ARM_TENANT_ID}"  --output none
+    else
+      az login --identity --output none
+    fi
+    full_script_path="$(realpath "${BASH_SOURCE[0]}")"
+    script_directory="$(dirname "${full_script_path}")"
+    az deployment group create --resource-group ${created_resource_group_name} --name "ControlPlane_Deployer_${created_resource_group_name}" --template-file "${script_directory}/templates/empty-deployment.json" --output none
+    return_value=0
+    if [ 1 == $called_from_ado ] ; then
   if [ -n "${ARM_CLIENT_SECRET}" ]; then
     az login --service-principal --username "${ARM_CLIENT_ID}" --password=$ARM_CLIENT_SECRET --tenant "${ARM_TENANT_ID}" --output none
   else
@@ -1339,6 +1437,18 @@ if [ "${deployment_system}" == sap_system ]; then
 
   rg_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw created_resource_group_name | tr -d \")
 
+    echo ""
+    echo ""
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo -e "#                        $cyan  Capturing telemetry  $resetformatting                                        #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    echo ""
+    echo ""
+    full_script_path="$(realpath "${BASH_SOURCE[0]}")"
+    script_directory="$(dirname "${full_script_path}")"
+    az deployment group create --resource-group ${rg_name} --name "SAP_${rg_name}" --subscription  $ARM_SUBSCRIPTION_ID --template-file "${script_directory}/templates/empty-deployment.json"  --output none
   echo ""
   echo ""
   echo "#########################################################################################"
@@ -1358,6 +1468,19 @@ if [ "${deployment_system}" == sap_landscape ]; then
   save_config_vars "${system_config_information}" \
     landscape_tfstate_key
 
+    rg_name=$(terraform -chdir="${terraform_module_directory}"  output -no-color -raw created_resource_group_name | tr -d \")
+    echo ""
+    echo ""
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo -e "#                        $cyan  Capturing telemetry  $resetformatting                                        #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    echo ""
+    echo ""
+    full_script_path="$(realpath "${BASH_SOURCE[0]}")"
+    script_directory="$(dirname "${full_script_path}")"
+    az deployment group create --resource-group ${rg_name} --name "SAP-WORKLOAD-ZONE_${rg_name}" --template-file "${script_directory}/templates/empty-deployment.json" --output none
   rg_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw created_resource_group_name | tr -d \")
   echo ""
   echo ""
@@ -1420,6 +1543,9 @@ if [ "${deployment_system}" == sap_library ]; then
   echo ""
   echo ""
 
+    full_script_path="$(realpath "${BASH_SOURCE[0]}")"
+    script_directory="$(dirname "${full_script_path}")"
+    az deployment group create --resource-group ${rg_name} --name "SAP-LIBRARY_${rg_name}" --template-file "${script_directory}/templates/empty-deployment.json" --output none
   full_script_path="$(realpath "${BASH_SOURCE[0]}")"
   script_directory="$(dirname "${full_script_path}")"
   az deployment group create --resource-group ${rg_name} --name "SAP-LIBRARY_${rg_name}" --template-file "${script_directory}/templates/empty-deployment.json" --output none
@@ -1427,6 +1553,8 @@ if [ "${deployment_system}" == sap_library ]; then
 fi
 
 if [ -f "${system_config_information}".err ]; then
+   cat "${system_config_information}".err
+   rm "${system_config_information}".err
   cat "${system_config_information}".err
   rm "${system_config_information}".err
 fi
@@ -1477,6 +1605,15 @@ if [ "${deployment_system}" == sap_library ]; then
     az storage blob upload --file "${deployer_config_information}" --container-name tfvars/.sap_deployment_automation --name "${environment}${region_code}" --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --auth-mode login --no-progress --overwrite --only-show-errors --output none
   fi
 fi
+
+echo ""
+echo "#########################################################################################"
+echo "#                                                                                       #"
+echo -e "#                        $green Deployment completed $resetformatting                                         #"
+echo "#                                                                                       #"
+echo "#########################################################################################"
+echo ""
+
 
 echo ""
 echo "#########################################################################################"

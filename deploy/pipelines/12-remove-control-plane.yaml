@@ -299,6 +299,7 @@ stages:
 
                 return_code=$?
 
+                echo "Return code from remove_controlplane:  $return_code."
                 echo "Return code from remove_controlplane: $return_code."
 
               echo -e "$green--- Remove Control Plane Part 1 ---$reset"
