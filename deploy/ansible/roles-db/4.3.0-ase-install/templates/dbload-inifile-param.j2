@@ -10,8 +10,8 @@
 ###############################################################################################################################################################################
 
 # Location of Export CD
-SAPINST.CD.PACKAGE.RDBMS                                                = {{ db_install_media_path }}
-SAPINST.CD.PACKAGE.LOAD                                                 = {{ dbexport_folder_path }}
+SAPINST.CD.PACKAGE.RDBMS                                                = {{ db_media_path }}
+SAPINST.CD.PACKAGE.LOAD                                                 = {{ dbexport_path }}
 archives.downloadBasket                                                 = {{ kernel_media_folder }}
 NW_Unpack.sapExeDbSar                                                   = {{ sap_exe_full_path }}
 NW_Unpack.sapExeSar                                                     = {{ sap_exe_full_path }}
@@ -52,7 +52,7 @@ NW_getDBInfoGeneric.dbsid                                               = {{ db_
 NW_System.installSAPHostAgent = false
 
 # ABAP message server port for connecting to the message server, leave empty for default
-NW_checkMsgServer.abapMSPort                                            = 3600 
+NW_checkMsgServer.abapMSPort                                            = 3600
 
 # The load type chosen by the user. Valid values are: 'SAP', 'STD', 'OBR', 'HCP', 'FLASHCOPY', 'MDA', 'HBR', 'SBR'
 NW_getLoadType.loadType                                                 = SAP
