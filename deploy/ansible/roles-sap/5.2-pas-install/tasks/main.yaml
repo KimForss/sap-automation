@@ -183,7 +183,7 @@
         scs_instance_number:           "{{ sid_to_be_deployed.ascs_inst_no }}"
         sidadm_uid:                    "{{ sid_to_be_deployed.sidadm_uid }}"
         virt_do_not_resolve_hostname:  "{{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }}"
-        hana_schema:                   "{% if platform == 'HANA' %}{{ schema_name }}{% endif %}"
+        db_schema:                     "{% if platform == 'HANA' %}{{ schema_name }}{% endif %}"
 
     - name:                            "PAS Install: register variables"
       ansible.builtin.set_fact:
