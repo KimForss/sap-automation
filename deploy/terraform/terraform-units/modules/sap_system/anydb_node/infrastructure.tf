@@ -70,6 +70,7 @@ resource "azurerm_lb_probe" "anydb" {
 #                                                                              #
 #######################################4#######################################8
 resource "azurerm_lb_rule" "anydb" {
+  depends_on                           = [ azurerm_windows_virtual_machine.dbserver ]
   provider                             = azurerm.main
   count                                = local.enable_db_lb_deployment && var.database_server_count > 0 ? 1 : 0
   loadbalancer_id                      = azurerm_lb.anydb[0].id
@@ -166,6 +167,6 @@ resource "azurerm_private_dns_a_record" "db" {
 #it just a little bit more time
 resource "time_sleep" "wait_30_secs" {
   create_duration                      = "30s"
-  depends_on = [ azurerm_windows_virtual_machine.dbserver ]
+  depends_on                           = [ azurerm_windows_virtual_machine.dbserver ]
 
 }
