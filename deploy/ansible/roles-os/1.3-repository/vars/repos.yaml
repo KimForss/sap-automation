@@ -55,12 +55,23 @@ repos:
 
   # Adding the entries for Oracle-Linux for testing. cat /etc/oracle-release is the command to get the os version info in Oracle linux.
   oraclelinux8.1:
+    - { tier:   'os', repo: 'libbpf', url: 'https://yum.oracle.com/repo/OracleLinux/OL8/baseos/latest/x86_64/getPackage/libbpf-0.0.4-5.el8.x86_64.rpm', state: 'present' }
+
   oraclelinux8.2:
+    - { tier:   'os', repo: 'libbpf', url: 'https://yum.oracle.com/repo/OracleLinux/OL8/baseos/latest/x86_64/getPackage/libbpf-0.0.4-5.el8.x86_64.rpm', state: 'present' }
   oraclelinux8.3:
+    - { tier:   'os', repo: 'libbpf', url: 'https://yum.oracle.com/repo/OracleLinux/OL8/baseos/latest/x86_64/getPackage/libbpf-0.0.4-5.el8.x86_64.rpm', state: 'present' }
   oraclelinux8.4:
+    - { tier:   'os', repo: 'libbpf', url: 'https://yum.oracle.com/repo/OracleLinux/OL8/baseos/latest/x86_64/getPackage/libbpf-0.0.4-5.el8.x86_64.rpm', state: 'present' }
   oraclelinux8.5:
+    - { tier:   'os', repo: 'libbpf', url: 'https://yum.oracle.com/repo/OracleLinux/OL8/baseos/latest/x86_64/getPackage/libbpf-0.0.4-5.el8.x86_64.rpm', state: 'present' }
   oraclelinux8.6:
+    - { tier:   'os', repo: 'libbpf', url: 'https://yum.oracle.com/repo/OracleLinux/OL8/baseos/latest/x86_64/getPackage/libbpf-0.0.4-5.el8.x86_64.rpm', state: 'present' }
   oraclelinux8.7:
+    - { tier:   'os', repo: 'libbpf', url: 'https://yum.oracle.com/repo/OracleLinux/OL8/baseos/latest/x86_64/getPackage/libbpf-0.0.4-5.el8.x86_64.rpm', state: 'present' }
   oraclelinux8.8:
+    - { tier:   'os', repo: 'libbpf', url: 'https://yum.oracle.com/repo/OracleLinux/OL8/baseos/latest/x86_64/getPackage/libbpf-0.0.4-5.el8.x86_64.rpm', state: 'present' }
   oraclelinux8.9:
+    - { tier:   'os', repo: 'libbpf', url: 'https://yum.oracle.com/repo/OracleLinux/OL8/baseos/latest/x86_64/getPackage/libbpf-0.0.4-5.el8.x86_64.rpm', state: 'present' }
   oraclelinux8.10:
+    - { tier:   'os', repo: 'libbpf', url: 'https://yum.oracle.com/repo/OracleLinux/OL8/baseos/latest/x86_64/getPackage/libbpf-0.0.4-5.el8.x86_64.rpm', state: 'present' }
