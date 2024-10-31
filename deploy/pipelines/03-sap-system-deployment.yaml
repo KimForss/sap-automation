@@ -263,8 +263,6 @@ stages:
                 . /etc/profile.d/deploy_server.sh
                 export ARM_SUBSCRIPTION_ID=$WL_ARM_SUBSCRIPTION_ID
                 if [ $USE_MSI != "true" ]; then
-                  echo "Deployment credentials:              Service Principal"
-                  echo "Deployment credential ID (SPN):      $WL_ARM_CLIENT_ID"
 
                     echo "Deployment credentials:              Service Principal"
                     echo "Deployment credential ID (SPN):      $WL_ARM_CLIENT_ID"
