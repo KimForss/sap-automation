@@ -425,13 +425,12 @@
         - name:                            "Observer Play"
           become:                          true
           block:
-            - name:                        "Observer Playbook: Check if the mounts place"
+            - name:                        "Oracle Data Guard Installation Play: Install Oracle specific packages"
               ansible.builtin.include_role:
-                name:                      roles-sap-os/2.6-sap-mounts
+                name:                      roles-os/1.4-packages
+              vars:
+                tier:                      ora
 
-        - name:                            "Observer Play"
-          become:                          true
-          block:
             - name:                        "Observer Playbook: Check if the mounts place"
               ansible.builtin.include_role:
                 name:                      roles-sap-os/2.6-sap-mounts
