@@ -510,6 +510,7 @@ packages:
     - { tier: 'os',     package: 'libaio',                                       node_tier: 'all',     state: 'present' }
     - { tier: 'os',     package: 'libgcc',                                       node_tier: 'all',     state: 'present' }
     - { tier: 'os',     package: 'libICE-devel',                                 node_tier: 'all',     state: 'present' }
+    - { tier: 'os',     package: 'libnsl',                                       node_tier: 'all',     state: 'present' }
     - { tier: 'os',     package: 'libnsl2',                                      node_tier: 'all',     state: 'present' }
     - { tier: 'os',     package: 'libSM-devel',                                  node_tier: 'all',     state: 'present' }
     - { tier: 'os',     package: 'libstdc++-devel',                              node_tier: 'all',     state: 'present' }
