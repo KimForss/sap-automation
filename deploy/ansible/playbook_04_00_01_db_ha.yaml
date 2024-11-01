@@ -226,7 +226,7 @@
         - db_high_availability is defined
         - database_high_availability is not defined
 
-    - name:                            "Initialize facts for HA resources"
+    - name:                            "Oracle Data Guard Installation Play: Initialize facts for HA resources"
       ansible.builtin.set_fact:
         tier:                          ha
         primary_instance_name:         "{{ ansible_play_hosts_all[0] }}"         # Setting up Primary Instance Name
@@ -241,7 +241,7 @@
         - inventory_hostname == primary_instance_name
       become:                          true
       block:
-        - name:                        Setting the DB facts
+        - name:                        "Oracle Data Guard Installation Play: Setting the DB facts"
           ansible.builtin.set_fact:
             tier:                      ora                                    # Actions for Oracle DB Servers
             action:                    'Prepare_Secondary'
@@ -249,7 +249,13 @@
           tags:
             - always
 
-        - name:                        Oracle Data guard
+        - name:                        "Oracle Data Guard Installation Play: Install Oracle specific packages"
+          ansible.builtin.include_role:
+            name:                      roles-os/1.4-packages
+          vars:
+            tier:                      ora
+
+        - name:                        "Oracle Data Guard Installation Play: Oracle Data guard"
           ansible.builtin.include_role:
             name:                      roles-db/4.1.3-ora-dg
           tags:
@@ -261,7 +267,7 @@
         - platform in ['ORACLE', 'ORACLE-ASM']
       become:                          true
       block:
-        - name:                        Setting the DB facts
+        - name:                        "Oracle Data Guard Installation Play: Setting the DB facts"
           ansible.builtin.set_fact:
             tier:                      ora                                    # Actions for Oracle DB Servers
             action:                    'Prepare_and_Restore'
@@ -269,7 +275,7 @@
           tags:
             - always
 
-        - name:                        Oracle Data guard
+        - name:                        "Oracle Data Guard Installation Play: Oracle Data guard"
           ansible.builtin.include_role:
             name:                      roles-db/4.1.3-ora-dg
           tags:
