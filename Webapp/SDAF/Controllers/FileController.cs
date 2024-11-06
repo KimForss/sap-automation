@@ -443,21 +443,23 @@ namespace AutomationForm.Controllers
           type = 2;
         }
 
-
-        byte[] byteContent = System.IO.File.ReadAllBytes("ParameterDetails/" + newName);
-
-        using (MemoryStream memory = new(byteContent))
+        if (System.IO.File.Exists("ParameterDetails/" + newName))
         {
-          file = new AppFile()
-          {
+          byte[] byteContent = System.IO.File.ReadAllBytes("ParameterDetails/" + newName);
 
-            Id = WebUtility.HtmlEncode(filename),
-            Content = byteContent,
-            UntrustedName = filename,
-            Size = memory.Length,
-            UploadDT = DateTime.UtcNow,
-            FileType = type
-          };
+          using (MemoryStream memory = new(byteContent))
+          {
+            file = new AppFile()
+            {
+
+              Id = WebUtility.HtmlEncode(filename),
+              Content = byteContent,
+              UntrustedName = filename,
+              Size = memory.Length,
+              UploadDT = DateTime.UtcNow,
+              FileType = type
+            };
+          }
         }
       }
       return file ?? new AppFile();
