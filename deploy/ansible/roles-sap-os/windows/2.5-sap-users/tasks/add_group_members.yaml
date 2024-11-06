@@ -17,5 +17,6 @@
     members:
       - '{{ sap_sid }}adm@{{ domain_name }}'
       - '{{ domain_service_account }}@{{ domain_name }}'
+      - 'SAP_{{ sap_sid | upper }}_LocalAdmin'
     state:                                  present
   notify:                                   reboot
