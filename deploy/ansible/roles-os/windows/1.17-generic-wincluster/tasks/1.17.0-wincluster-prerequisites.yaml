@@ -46,6 +46,7 @@
     - RSAT-Clustering
     - RSAT-Clustering-PowerShell
     - RSAT-Clustering-CmdInterface
+    - FS-FileServer
   register: cluster_features
 
 - name:                                "WinCluster-PreReq: Ensure Registry Services is Running"

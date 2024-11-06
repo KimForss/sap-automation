@@ -27,12 +27,12 @@
 
 - name:                                "WinCluster-Create: Print the variables for {{ cluster_name }}"
   ansible.builtin.debug:
-    msg:
-      - "ClusterName is {{ cluster_name }}"
-      - "ClusterIPAddress is {{ cluster_ip_address }}"
-      - "DomainName is {{ domain_name }}"
-      - "Domain Service Account is {{ domain_service_account }}"
-      - "Witness Storage Account Name is {{ witness_storage_account_name }}"
+    msg: |
+                                       "ClusterName is {{ cluster_name }}"
+                                       "ClusterIPAddress is {{ cluster_ip_address }}"
+                                       "DomainName is {{ domain_name }}"
+                                       "Domain Service Account is {{ domain_service_account }}"
+                                       "Witness Storage Account Name is {{ witness_storage_account_name }}"
   when:
     - domain is defined
     - domain | type_debug != 'NoneType'
@@ -71,6 +71,8 @@
         Name:                           "{{ cluster_name }}"
         RetryIntervalSec:               10
         RetryCount:                     60
+        PsDscRunAsCredential_username: "{{ domain_service_account }}@{{ domain_name }}"
+        PsDscRunAsCredential_password: "{{ domain_service_password }}"
 
     - name:                            "WinCluster-Create: Create windows cluster on the second node"
       ansible.windows.win_dsc:
@@ -90,6 +92,8 @@
         Name:                           "{{ cluster_name }}"
         RetryIntervalSec:               10
         RetryCount:                     60
+        PsDscRunAsCredential_username: "{{ domain_service_account }}@{{ domain_name }}"
+        PsDscRunAsCredential_password: "{{ domain_service_password }}"
 
     - name:                            "[Rescue] - WinCluster-Create: Create windows cluster on the second node"
       ansible.windows.win_dsc:
