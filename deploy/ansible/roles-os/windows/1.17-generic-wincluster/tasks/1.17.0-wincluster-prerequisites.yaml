@@ -103,7 +103,7 @@
         ad_object:
           vco_name:                    "{{ scs_cluster_hostname }}"
           domain:                      "{{ domain_name }}"
-          ou_path:                     "{{ domain_ou_path | default('CN=Computers') }}"
+          ou_path:                     "CN=Computers"
           nodes:
                                        - "{{ primary_node }}"
                                        - "{{ secondary_node }}"
@@ -111,12 +111,12 @@
     # Check if the computer object for VCO exists in AD
     - name:                            "WinCluster-PreReq: Verify VCO existence using DSC"
       ansible.windows.win_dsc:
-        resource_name:                 "ADComputer"
-        ComputerName:                  "{{ scs_cluster_hostname }}"
-        Ensure:                        "Present"
-        Path:                          "{{ ad_object.ou_path }},{{ domain_name | regex_replace('\\.', ',DC=') }}"
-        PsDscRunAsCredential_username:     "{{ domain_service_account }}@{{ domain_name }}"
-        PsDscRunAsCredential_password:     "{{ domain_service_password }}"
+      resource_name:                 "ADComputer"
+      ComputerName:                  "{{ scs_cluster_hostname }}"
+      Ensure:                        "Present"
+      Path:                          "{{ ad_object.ou_path }},DC={{ domain_name | regex_replace('\\.', ',DC=') }}"
+      PsDscRunAsCredential_username: "{{ domain_service_account }}@{{ domain_name }}"
+      PsDscRunAsCredential_password: "{{ domain_service_password }}"
       register:                        vco_dsc_check
       failed_when:                     false
 
@@ -138,7 +138,7 @@
 - name:                                "WinCluster-PreReq: Build LDAP path for VCO"
   when:                                vco_exists | default(false)
   ansible.builtin.set_fact:
-    ldap_path:                         "CN={{ ad_object.vco_name }},{{ ad_object.ou_path }},{{ ad_object.domain | regex_replace('\\.', ',DC=') }}"
+    ldap_path:                         "CN={{ ad_object.vco_name }},{{ ad_object.ou_path }},DC={{ ad_object.domain | regex_replace('\\.', ',DC=') }}"
 
 # Set permissions for both nodes using win_dsc
 - name:                                "WinCluster-PreReq: Set AD Permissions for cluster nodes on VCO"
@@ -185,9 +185,6 @@
                                        $ErrorActionPreference = "Stop"
                                        # Set credentials for AD operations
                                        $domain = "{{ ad_object.domain.split('.')[0] | upper }}"
-                                       $username = "{{ domain_service_account }}"
-                                       $password = ConvertTo-SecureString "{{ domain_service_password }}" -AsPlainText -Force
-                                       $credential = New-Object System.Management.Automation.PSCredential ("$domain\$username", $password)
 
                                        Import-Module ActiveDirectory
 
@@ -196,7 +193,7 @@
                                        $results = @()
 
                                        foreach ($node in $nodes) {
-                                           $identity = "$domain\$node$"
+                                           $identity = "$domain\$node`$"
                                            try {
                                                $computerObject = Get-ADComputer "{{ scs_cluster_hostname }}" -Properties nTSecurityDescriptor
                                                $acl = $computerObject.nTSecurityDescriptor.Access
