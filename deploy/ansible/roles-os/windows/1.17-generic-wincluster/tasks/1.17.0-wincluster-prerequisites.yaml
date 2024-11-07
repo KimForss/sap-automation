@@ -103,7 +103,7 @@
         ad_object:
           vco_name:                    "{{ scs_cluster_hostname }}"
           domain:                      "{{ domain_name }}"
-          ou_path:                     '{% domain_ou_path if domain_ou_path | length > 1 else "CN=Computers" %}'
+          ou_path:                     "{% domain_ou_path if domain_ou_path | length > 1 else 'CN=Computers' %}"
           nodes:
                                        - "{{ primary_node }}"
                                        - "{{ secondary_node }}"
