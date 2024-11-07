@@ -30,10 +30,18 @@
     state:                             present
     accept_license:                    true
   loop:
-    - FailOverClusterDsc
-    - PSDesiredStateConfiguration
-    - ServerManager
-    - StorageDsc
+                                       - PSDesiredStateConfiguration
+                                       - ServerManager
+                                       - FailOverClusterDsc
+                                       - StorageDsc
+                                       - ActiveDirectoryDsc
+  register:                            dsc_modules
+
+- name:                                "WinCluster-PreReq: Add the windows AD Powershell features"
+  ansible.windows.win_feature:
+    name:                              "RSAT-AD-PowerShell"
+    state:                             present
+  register:                            ad_features
 
 - name:                                "WinCluster-PreReq: Add the windows cluster features"
   ansible.windows.win_feature:
@@ -42,12 +50,12 @@
     include_management_tools:          true
     include_sub_features:              true
   with_items:
-    - Failover-Clustering
-    - RSAT-Clustering
-    - RSAT-Clustering-PowerShell
-    - RSAT-Clustering-CmdInterface
-    - FS-FileServer
-  register: cluster_features
+                                       - Failover-Clustering
+                                       - RSAT-Clustering
+                                       - RSAT-Clustering-PowerShell
+                                       - RSAT-Clustering-CmdInterface
+                                       - FS-FileServer
+  register:                            cluster_features
 
 - name:                                "WinCluster-PreReq: Ensure Registry Services is Running"
   ansible.windows.win_dsc:
@@ -86,4 +94,139 @@
     post_reboot_delay: 60
   when: (cluster_features.results | selectattr('reboot_required', 'equalto', true)) | list | count > 0
 
+# Pre-task to verify VCO existence
+- name:                                "WinCluster-PreReq: Check if VCO exists in AD"
+  block:
+    # Variables section
+    - name:                            "WinCluster-PreReq: Set AD Permission Variables"
+      ansible.builtin.set_fact:
+        ad_object:
+          vco_name:                    "{{ scs_cluster_hostname }}"
+          domain:                      "{{ domain_name }}"
+          ou_path:                     "CN=Computers"
+          nodes:
+                                       - "{{ primary_node }}"
+                                       - "{{ secondary_node }}"
+
+    # Check if the computer object for VCO exists in AD
+    - name:                            "WinCluster-PreReq: Verify VCO existence using DSC"
+      ansible.windows.win_dsc:
+        resource_name:                 "ADComputer"
+        ComputerName:                  "{{ scs_cluster_hostname }}"
+        Ensure:                        "Present"
+        Path:                          "{{ ad_object.ou_path }},DC={{ domain_name | regex_replace('\\.', ',DC=') }}"
+        PsDscRunAsCredential_username: "{{ domain_service_account }}@{{ domain_name }}"
+        PsDscRunAsCredential_password: "{{ domain_service_password }}"
+      register:                        vco_dsc_check
+      failed_when:                     false
+
+    # Set fact based on check
+    - name:                            "WinCluster-PreReq: Set VCO existence status"
+      ansible.builtin.set_fact:
+        vco_exists:                    "{{ vco_dsc_check is success }}"
+
+  rescue:
+    - name:                            "WinCluster-PreReq: Handle VCO check failure"
+      ansible.builtin.fail:
+        msg: |
+                                       Failed to verify VCO existence:
+                                       VCO Name: {{ scs_cluster_hostname }}
+                                       Domain:   {{ domain_name }}
+                                       Error:    {{ vco_dsc_check.stderr | default('Unknown error') }}
+
+# Build LDAP path only if VCO exists
+- name:                                "WinCluster-PreReq: Build LDAP path for VCO"
+  when:                                vco_exists | default(false)
+  ansible.builtin.set_fact:
+    ldap_path:                         "CN={{ ad_object.vco_name }},{{ ad_object.ou_path }},DC={{ ad_object.domain | regex_replace('\\.', ',DC=') }}"
+
+# Set permissions for both nodes using win_dsc
+- name:                                "WinCluster-PreReq: Set AD Permissions for cluster nodes on VCO"
+  when:                                vco_exists | default(false)
+  ansible.windows.win_dsc:
+    resource_name:                     "ADObjectPermissionEntry"
+    Ensure:                            "Present"
+    Path:                              "{{ ldap_path }}"
+    IdentityReference:                 "{{ ad_object.domain.split('.')[0] | upper }}\\{{ item }}$"
+    ActiveDirectoryRights:             "GenericAll"
+    AccessControlType:                 "Allow"
+    ObjectType:                        "00000000-0000-0000-0000-000000000000"
+    ActiveDirectorySecurityInheritance: "None"
+    InheritedObjectType:               "00000000-0000-0000-0000-000000000000"
+    PsDscRunAsCredential_username:     "{{ domain_service_account }}@{{ domain_name }}"
+    PsDscRunAsCredential_password:     "{{ domain_service_password }}"
+  loop:                                "{{ ad_object.nodes }}"
+  register:                            dsc_results
+  failed_when:                         false
+
+# Try and use win_acl if DSC fails
+- name:                                "WinCluster-PreReq: Set AD Permissions using ACL (fallback)"
+  when:
+                                       - dsc_results is failed
+                                       - vco_exists | default(false)
+  ansible.windows.win_acl:
+    path:                              "AD:{{ ldap_path }}"
+    user:                              "{{ ad_object.domain.split('.')[0] | upper }}\\{{ item }}$"
+    rights:                            "FullControl"
+    type:                              "allow"
+    state:                             "present"
+    inheritance:                       "none"
+  loop:                                "{{ ad_object.nodes }}"
+  register:                            acl_results
+  vars:
+    ansible_become_user:               "{{ domain_service_account }}@{{ domain_name }}"
+    ansible_become_password:           "{{ domain_service_password }}"
+    ansible_become_method:             runas
+
+# Validation task
+- name:                                "WinCluster-PreReq: Validate AD Permissions for cluster nodes"
+  when:                                vco_exists | default(false)
+  ansible.windows.win_shell: |
+                                       $ErrorActionPreference = "Stop"
+                                       # Set credentials for AD operations
+                                       $domain = "{{ ad_object.domain.split('.')[0] | upper }}"
+
+                                       Import-Module ActiveDirectory
+
+                                       $path = "{{ ldap_path }}"
+                                       $nodes = @("{{ primary_node }}","{{ secondary_node }}")
+                                       $results = @()
+
+                                       foreach ($node in $nodes) {
+                                           $identity = "$domain\$node`$"
+                                           try {
+                                               $computerObject = Get-ADComputer "{{ scs_cluster_hostname }}" -Properties nTSecurityDescriptor
+                                               $acl = $computerObject.nTSecurityDescriptor.Access
+
+                                               $access = $acl | Where-Object {
+                                                   $_.IdentityReference.Value -eq $identity -and
+                                                   $_.ActiveDirectoryRights -eq "GenericAll" -and
+                                                   $_.AccessControlType -eq "Allow"
+                                               }
+
+                                               if ($access) {
+                                                   $results += "Permission validated: $identity has full control"
+                                               } else {
+                                                   throw "Permission check failed for $identity"
+                                               }
+                                           } catch {
+                                               throw "Validation failed for $identity`: $_"
+                                           }
+                                       }
+                                       $results
+  register:                            validation_result
+  changed_when:                        false
+  failed_when:                         validation_result.rc != 0
+  vars:
+    ansible_become_user:               "{{ domain_service_account }}@{{ domain_name }}"
+    ansible_become_password:           "{{ domain_service_password }}"
+    ansible_become_method:             runas
+
+# Display results
+- name:                                "WinCluster-PreReq: Display validation results"
+  when:
+                                       - validation_result is success
+                                       - vco_exists | default(false)
+  ansible.builtin.debug:
+    msg:                               "{{ validation_result.stdout_lines }}"
 ...
