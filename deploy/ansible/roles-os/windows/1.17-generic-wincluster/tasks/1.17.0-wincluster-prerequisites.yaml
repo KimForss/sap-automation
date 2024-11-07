@@ -90,6 +90,18 @@
 # Pre-task to verify VCO existence
 - name:                                "WinCluster-PreReq: Check if VCO exists in AD"
   block:
+    # Variables section
+    - name:                                "WinCluster-PreReq: Set AD Permission Variables"
+      when:                                vco_exists | default(false)
+      ansible.builtin.set_fact:
+        ad_object:
+          vco_name:                        "{{ scs_cluster_hostname }}"
+          domain:                          "{{ domain_name }}"
+          ou_path:                         " {{ domain_ou_path | default('CN=Computers') }}"
+          nodes:
+                                          - "{{ primary_node }}"
+                                          - "{{ secondary_node }}"
+
     # Check if the computer object for VCO exists in AD
     - name:                            "WinCluster-PreReq: Verify VCO existence using DSC"
       ansible.windows.win_dsc:
@@ -114,19 +126,6 @@
                                        VCO Name: {{ scs_cluster_hostname }}
                                        Domain:   {{ domain_name }}
                                        Error:    {{ vco_dsc_check.stderr | default('Unknown error') }}
-
-# Variables section
-- name:                                "WinCluster-PreReq: Set AD Permission Variables"
-  when:                                vco_exists | default(false)
-  ansible.builtin.set_fact:
-    ad_object:
-      vco_name:                        "{{ scs_cluster_hostname }}"
-      domain:                          "{{ domain_name }}"
-      ou_path:                         "CN=Computers"
-      nodes:
-                                       - "{{ primary_node }}"
-                                       - "{{ secondary_node }}"
-
 
 # Build LDAP path only if VCO exists
 - name:                                "WinCluster-PreReq: Build LDAP path for VCO"
