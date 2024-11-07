@@ -13,14 +13,12 @@
 - name:                                "WinCluster-PreReq: Calculate clustername for SCS/ERS cluster"
   ansible.builtin.set_fact:
     cluster_name:                      "{{ sap_sid | lower }}scs{{ scs_instance_number }}cl"
-    cacheable:                         true
   when:
     - node_tier | lower in ['scs','ers']
 
 - name:                                "WinCluster-PreReq: Calculate clustername for DB cluster"
   ansible.builtin.set_fact:
     cluster_name:                      "{{ sap_sid | lower }}{{ db_sid | lower }}db{{ db_instance_number }}cl"
-    cacheable:                         true
   when:
     - node_tier | lower == 'sqlserver'
 
@@ -94,8 +92,10 @@
     post_reboot_delay: 60
   when: (cluster_features.results | selectattr('reboot_required', 'equalto', true)) | list | count > 0
 
-# Pre-task to verify VCO existence
+# Pre-task to verify VCO existence. Needs to run only for SCS/ERS nodes.
 - name:                                "WinCluster-PreReq: Check if VCO exists in AD"
+  when:
+    - node_tier | lower in ['scs','ers']
   block:
     # Variables section
     - name:                            "WinCluster-PreReq: Set AD Permission Variables"
@@ -103,10 +103,11 @@
         ad_object:
           vco_name:                    "{{ scs_cluster_hostname }}"
           domain:                      "{{ domain_name }}"
-          ou_path:                     "CN=Computers"
+          ou_path:                     '{% domain_ou_path if domain_ou_path | length > 1 else "CN=Computers" %}'
           nodes:
                                        - "{{ primary_node }}"
                                        - "{{ secondary_node }}"
+                                       - "{{ cluster_name }}"
 
     # Check if the computer object for VCO exists in AD
     - name:                            "WinCluster-PreReq: Verify VCO existence using DSC"
@@ -157,13 +158,16 @@
     PsDscRunAsCredential_password:     "{{ domain_service_password }}"
   loop:                                "{{ ad_object.nodes }}"
   register:                            dsc_results
-  failed_when:                         false
+
 
 # Try and use win_acl if DSC fails
 - name:                                "WinCluster-PreReq: Set AD Permissions using ACL (fallback)"
   when:
                                        - dsc_results is failed
                                        - vco_exists | default(false)
+  become:                              true
+  become_method:                       ansible.builtin.runas
+  become_user:                         '{{ sap_sid }}adm@{{ domain_name }}'
   ansible.windows.win_acl:
     path:                              "AD:{{ ldap_path }}"
     user:                              "{{ ad_object.domain.split('.')[0] | upper }}\\{{ item }}$"
@@ -173,14 +177,13 @@
     inheritance:                       "none"
   loop:                                "{{ ad_object.nodes }}"
   register:                            acl_results
-  vars:
-    ansible_become_user:               "{{ domain_service_account }}@{{ domain_name }}"
-    ansible_become_password:           "{{ domain_service_password }}"
-    ansible_become_method:             runas
 
 # Validation task
 - name:                                "WinCluster-PreReq: Validate AD Permissions for cluster nodes"
   when:                                vco_exists | default(false)
+  become:                              true
+  become_method:                       ansible.builtin.runas
+  become_user:                         '{{ sap_sid }}adm@{{ domain_name }}'
   ansible.windows.win_shell: |
                                        $ErrorActionPreference = "Stop"
                                        # Set credentials for AD operations
@@ -217,10 +220,6 @@
   register:                            validation_result
   changed_when:                        false
   failed_when:                         validation_result.rc != 0
-  vars:
-    ansible_become_user:               "{{ domain_service_account }}@{{ domain_name }}"
-    ansible_become_password:           "{{ domain_service_password }}"
-    ansible_become_method:             runas
 
 # Display results
 - name:                                "WinCluster-PreReq: Display validation results"

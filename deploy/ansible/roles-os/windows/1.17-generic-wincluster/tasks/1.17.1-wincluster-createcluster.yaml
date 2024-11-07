@@ -18,7 +18,6 @@
 - name:                                "WinCluster-Create: Calculating the domain value from {{ domain_name }}"
   ansible.builtin.set_fact:
     domain:                            "{{ domain_name | split('.') | first }}"
-    cacheable:                         true
   when:
     - domain_name is defined
     - domain_name | type_debug != 'NoneType'
@@ -28,10 +27,10 @@
 - name:                                "WinCluster-Create: Print the variables for {{ cluster_name }}"
   ansible.builtin.debug:
     msg: |
-                                       "ClusterName is {{ cluster_name }}"
-                                       "ClusterIPAddress is {{ cluster_ip_address }}"
-                                       "DomainName is {{ domain_name }}"
-                                       "Domain Service Account is {{ domain_service_account }}"
+                                       "ClusterName is                  {{ cluster_name }}"
+                                       "ClusterIPAddress is             {{ cluster_ip_address }}"
+                                       "DomainName is                   {{ domain_name }}"
+                                       "Domain Service Account is       {{ domain_service_account }}"
                                        "Witness Storage Account Name is {{ witness_storage_account_name }}"
   when:
     - domain is defined
@@ -146,7 +145,6 @@
     - name:                            "WinCluster-Create: Set Shared disk number fact"
       ansible.builtin.set_fact:
         shared_disk_number:            "{{ shared_disk.output[0] }}"
-        cacheable:                     true
       when:
         - shared_disk.output[0] is defined
         - shared_disk.output[0] | type_debug != 'NoneType'
@@ -162,7 +160,6 @@
     - name:                            "WinCluster-Create: Create disk label"
       ansible.builtin.set_fact:
         disk_label:                    "{{ sap_sid | upper }}SharedDisk"
-        cacheable:                     true
 
     # PartitionStyle defaults to GPT, so not passing it along
     - name:                            "WinCluster-Create: Format the shared Disk"
@@ -187,7 +184,6 @@
     - name:                            "WinCluster-Create: Set Shared disk number fact"
       ansible.builtin.set_fact:
         clu_shared_disk_number:         "{{ clu_shared_disk_details.output[0] }}"
-        cacheable:                      true
       when:
         - clu_shared_disk_details.output[0] is defined
         - clu_shared_disk_details.output[0] | type_debug != 'NoneType'
