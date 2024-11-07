@@ -96,6 +96,7 @@
 - name:                                "WinCluster-PreReq: Check if VCO exists in AD"
   when:
     - node_tier | lower in ['scs','ers']
+    - ansible_hostname == primary_node
   block:
     # Variables section
     - name:                            "WinCluster-PreReq: Set AD Permission Variables"
