@@ -443,6 +443,11 @@ namespace AutomationForm.Controllers
           type = 2;
         }
 
+        if (newName.Contains("..") || newName.Contains('/') || newName.Contains('\\'))
+        {
+          throw new ArgumentException("Invalid filename");
+        }
+
         if (System.IO.File.Exists("ParameterDetails/" + newName))
         {
           byte[] byteContent = System.IO.File.ReadAllBytes("ParameterDetails/" + newName);
