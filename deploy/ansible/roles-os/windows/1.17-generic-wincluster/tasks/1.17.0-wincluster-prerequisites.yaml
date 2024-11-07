@@ -92,7 +92,7 @@
   block:
     # Check if the computer object for VCO exists in AD
     - name:                            "WinCluster-PreReq: Verify VCO existence using DSC"
-      community.windows.win_dsc:
+      ansible.windows.win_dsc:
         resource_name:                 "ADComputer"
         ComputerName:                  "{{ scs_cluster_hostname }}"
         Ensure:                        "Present"
@@ -138,7 +138,7 @@
 # Set permissions for both nodes using win_dsc
 - name:                                "WinCluster-PreReq: Set AD Permissions for cluster nodes on VCO"
   when:                                vco_exists | default(false)
-  community.windows.win_dsc:
+  ansible.windows.win_dsc:
     resource_name:                     "ADObjectPermissionEntry"
     Ensure:                            "Present"
     Path:                              "{{ ldap_path }}"
