@@ -111,12 +111,12 @@
     # Check if the computer object for VCO exists in AD
     - name:                            "WinCluster-PreReq: Verify VCO existence using DSC"
       ansible.windows.win_dsc:
-      resource_name:                 "ADComputer"
-      ComputerName:                  "{{ scs_cluster_hostname }}"
-      Ensure:                        "Present"
-      Path:                          "{{ ad_object.ou_path }},DC={{ domain_name | regex_replace('\\.', ',DC=') }}"
-      PsDscRunAsCredential_username: "{{ domain_service_account }}@{{ domain_name }}"
-      PsDscRunAsCredential_password: "{{ domain_service_password }}"
+        resource_name:                 "ADComputer"
+        ComputerName:                  "{{ scs_cluster_hostname }}"
+        Ensure:                        "Present"
+        Path:                          "{{ ad_object.ou_path }},DC={{ domain_name | regex_replace('\\.', ',DC=') }}"
+        PsDscRunAsCredential_username: "{{ domain_service_account }}@{{ domain_name }}"
+        PsDscRunAsCredential_password: "{{ domain_service_password }}"
       register:                        vco_dsc_check
       failed_when:                     false
 
