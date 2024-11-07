@@ -183,10 +183,15 @@
   when:                                vco_exists | default(false)
   ansible.windows.win_shell: |
                                        $ErrorActionPreference = "Stop"
+                                       # Set credentials for AD operations
+                                       $domain = "{{ ad_object.domain.split('.')[0] | upper }}"
+                                       $username = "{{ domain_service_account }}"
+                                       $password = ConvertTo-SecureString "{{ domain_service_password }}" -AsPlainText -Force
+                                       $credential = New-Object System.Management.Automation.PSCredential ("$domain\$username", $password)
+
                                        Import-Module ActiveDirectory
 
                                        $path = "{{ ldap_path }}"
-                                       $domain = "{{ ad_object.domain.split('.')[0] | upper }}"
                                        $nodes = @("{{ primary_node }}","{{ secondary_node }}")
                                        $results = @()
 
