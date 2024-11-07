@@ -91,16 +91,15 @@
 - name:                                "WinCluster-PreReq: Check if VCO exists in AD"
   block:
     # Variables section
-    - name:                                "WinCluster-PreReq: Set AD Permission Variables"
-      when:                                vco_exists | default(false)
+    - name:                            "WinCluster-PreReq: Set AD Permission Variables"
       ansible.builtin.set_fact:
         ad_object:
-          vco_name:                        "{{ scs_cluster_hostname }}"
-          domain:                          "{{ domain_name }}"
-          ou_path:                         " {{ domain_ou_path | default('CN=Computers') }}"
+          vco_name:                    "{{ scs_cluster_hostname }}"
+          domain:                      "{{ domain_name }}"
+          ou_path:                     "{{ domain_ou_path | default('CN=Computers') }}"
           nodes:
-                                          - "{{ primary_node }}"
-                                          - "{{ secondary_node }}"
+                                       - "{{ primary_node }}"
+                                       - "{{ secondary_node }}"
 
     # Check if the computer object for VCO exists in AD
     - name:                            "WinCluster-PreReq: Verify VCO existence using DSC"
@@ -115,11 +114,10 @@
     # Set fact based on check
     - name:                            "WinCluster-PreReq: Set VCO existence status"
       ansible.builtin.set_fact:
-        vco_exists:                   "{{ vco_dsc_check is success }}"
+        vco_exists:                    "{{ vco_dsc_check is success }}"
 
   rescue:
     - name:                            "WinCluster-PreReq: Handle VCO check failure"
-      when:                            not vco_exists | default(false)
       ansible.builtin.fail:
         msg: |
                                        Failed to verify VCO existence:
@@ -132,7 +130,6 @@
   when:                                vco_exists | default(false)
   ansible.builtin.set_fact:
     ldap_path:                         "CN={{ ad_object.vco_name }},{{ ad_object.ou_path }},{{ ad_object.domain | regex_replace('\\.', ',DC=') }}"
-
 
 # Set permissions for both nodes using win_dsc
 - name:                                "WinCluster-PreReq: Set AD Permissions for cluster nodes on VCO"
@@ -151,12 +148,11 @@
   register:                            dsc_results
   failed_when:                         false
 
-
 # Try and use win_acl if DSC fails
 - name:                                "WinCluster-PreReq: Set AD Permissions using ACL (fallback)"
   when:
-    - dsc_results is failed
-    - vco_exists | default(false)
+                                       - dsc_results is failed
+                                       - vco_exists | default(false)
   ansible.windows.win_acl:
     path:                              "AD:{{ ldap_path }}"
     user:                              "{{ ad_object.domain.split('.')[0] | upper }}\\{{ item }}$"
@@ -196,16 +192,15 @@
 
                                        $results | ForEach-Object { Write-Output $_ }
                                        if (-not $success) { exit 1 }
-  register:                           validation_result
-  changed_when:                       false
-  failed_when:                        validation_result.rc != 0
-
+  register:                            validation_result
+  changed_when:                        false
+  failed_when:                         validation_result.rc != 0
 
 # Display results
 - name:                                "WinCluster-PreReq: Display validation results"
   when:
-    - validation_result is success
-    - vco_exists | default(false)
+                                       - validation_result is success
+                                       - vco_exists | default(false)
   ansible.builtin.debug:
     msg:                               "{{ validation_result.stdout_lines }}"
 ...
