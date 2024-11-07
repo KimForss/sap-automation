@@ -182,31 +182,36 @@
 - name:                                "WinCluster-PreReq: Validate AD Permissions for cluster nodes"
   when:                                vco_exists | default(false)
   ansible.windows.win_shell: |
+                                       $ErrorActionPreference = "Stop"
+                                       Import-Module ActiveDirectory
+
                                        $path = "{{ ldap_path }}"
                                        $domain = "{{ ad_object.domain.split('.')[0] | upper }}"
-                                       $nodes = @("{{ ad_object.nodes | join('","') }}")
-                                       $success = $true
+                                       $nodes = @("{{ primary_node }}","{{ secondary_node }}")
                                        $results = @()
 
                                        foreach ($node in $nodes) {
-                                           $identity = "$domain\$node`$"
-                                           $acl = Get-Acl -Path "AD:$path"
-                                           $access = $acl.Access | Where-Object {
-                                               $_.IdentityReference.Value -eq $identity -and
-                                               $_.ActiveDirectoryRights -eq 'GenericAll' -and
-                                               $_.AccessControlType -eq 'Allow'
-                                           }
+                                           $identity = "$domain\$node$"
+                                           try {
+                                               $computerObject = Get-ADComputer "{{ scs_cluster_hostname }}" -Properties nTSecurityDescriptor
+                                               $acl = $computerObject.nTSecurityDescriptor.Access
 
-                                           if ($access) {
-                                               $results += "Permission validation successful for $node"
-                                           } else {
-                                               $results += "Permission validation failed for $node"
-                                               $success = $false
+                                               $access = $acl | Where-Object {
+                                                   $_.IdentityReference.Value -eq $identity -and
+                                                   $_.ActiveDirectoryRights -eq "GenericAll" -and
+                                                   $_.AccessControlType -eq "Allow"
+                                               }
+
+                                               if ($access) {
+                                                   $results += "Permission validated: $identity has full control"
+                                               } else {
+                                                   throw "Permission check failed for $identity"
+                                               }
+                                           } catch {
+                                               throw "Validation failed for $identity`: $_"
                                            }
                                        }
-
-                                       $results | ForEach-Object { Write-Output $_ }
-                                       if (-not $success) { exit 1 }
+                                       $results
   register:                            validation_result
   changed_when:                        false
   failed_when:                         validation_result.rc != 0
