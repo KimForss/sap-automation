@@ -158,7 +158,7 @@
   when:
     - dsc_results is failed
     - vco_exists | default(false)
-  community.windows.win_acl:
+  ansible.windows.win_acl:
     path:                              "AD:{{ ldap_path }}"
     user:                              "{{ ad_object.domain.split('.')[0] | upper }}\\{{ item }}$"
     rights:                            "FullControl"
@@ -171,7 +171,7 @@
 # Validation task
 - name:                                "WinCluster-PreReq: Validate AD Permissions for cluster nodes"
   when:                                vco_exists | default(false)
-  community.windows.win_shell: |
+  ansible.windows.win_shell: >-
                                        $path = "{{ ldap_path }}"
                                        $domain = "{{ ad_object.domain.split('.')[0] | upper }}"
                                        $nodes = @("{{ ad_object.nodes | join('","') }}")
