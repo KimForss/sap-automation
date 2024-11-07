@@ -30,12 +30,18 @@
     state:                             present
     accept_license:                    true
   loop:
-    - PSDesiredStateConfiguration
-    - ServerManager
-    - FailOverClusterDsc
-    - StorageDsc
-    - ActiveDirectory
-    - ActiveDirectoryDsc
+                                       - PSDesiredStateConfiguration
+                                       - ServerManager
+                                       - FailOverClusterDsc
+                                       - StorageDsc
+                                       - ActiveDirectoryDsc
+  register:                            dsc_modules
+
+- name:                                "WinCluster-PreReq: Add the windows AD Powershell features"
+  ansible.windows.win_feature:
+    name:                              "RSAT-AD-PowerShell"
+    state:                             present
+  register:                            ad_features
 
 - name:                                "WinCluster-PreReq: Add the windows cluster features"
   ansible.windows.win_feature:
@@ -44,12 +50,12 @@
     include_management_tools:          true
     include_sub_features:              true
   with_items:
-    - Failover-Clustering
-    - RSAT-Clustering
-    - RSAT-Clustering-PowerShell
-    - RSAT-Clustering-CmdInterface
-    - FS-FileServer
-  register: cluster_features
+                                       - Failover-Clustering
+                                       - RSAT-Clustering
+                                       - RSAT-Clustering-PowerShell
+                                       - RSAT-Clustering-CmdInterface
+                                       - FS-FileServer
+  register:                            cluster_features
 
 - name:                                "WinCluster-PreReq: Ensure Registry Services is Running"
   ansible.windows.win_dsc:
@@ -109,6 +115,8 @@
         ComputerName:                  "{{ scs_cluster_hostname }}"
         Ensure:                        "Present"
         Path:                          "{{ ad_object.ou_path }},{{ domain_name | regex_replace('\\.', ',DC=') }}"
+        PsDscRunAsCredential_username:     "{{ domain_service_account }}@{{ domain_name }}"
+        PsDscRunAsCredential_password:     "{{ domain_service_password }}"
       register:                        vco_dsc_check
       failed_when:                     false
 
@@ -145,6 +153,8 @@
     ObjectType:                        "00000000-0000-0000-0000-000000000000"
     ActiveDirectorySecurityInheritance: "None"
     InheritedObjectType:               "00000000-0000-0000-0000-000000000000"
+    PsDscRunAsCredential_username:     "{{ domain_service_account }}@{{ domain_name }}"
+    PsDscRunAsCredential_password:     "{{ domain_service_password }}"
   loop:                                "{{ ad_object.nodes }}"
   register:                            dsc_results
   failed_when:                         false
@@ -163,6 +173,10 @@
     inheritance:                       "none"
   loop:                                "{{ ad_object.nodes }}"
   register:                            acl_results
+  vars:
+    ansible_become_user:               "{{ domain_service_account }}@{{ domain_name }}"
+    ansible_become_password:           "{{ domain_service_password }}"
+    ansible_become_method:             runas
 
 # Validation task
 - name:                                "WinCluster-PreReq: Validate AD Permissions for cluster nodes"
@@ -196,6 +210,10 @@
   register:                            validation_result
   changed_when:                        false
   failed_when:                         validation_result.rc != 0
+  vars:
+    ansible_become_user:               "{{ domain_service_account }}@{{ domain_name }}"
+    ansible_become_password:           "{{ domain_service_password }}"
+    ansible_become_method:             runas
 
 # Display results
 - name:                                "WinCluster-PreReq: Display validation results"
