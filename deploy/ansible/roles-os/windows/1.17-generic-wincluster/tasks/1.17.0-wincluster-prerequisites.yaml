@@ -166,7 +166,7 @@
 # Validation task
 - name:                                "WinCluster-PreReq: Validate AD Permissions for cluster nodes"
   when:                                vco_exists | default(false)
-  ansible.windows.win_shell: >-
+  ansible.windows.win_shell: |
                                        $path = "{{ ldap_path }}"
                                        $domain = "{{ ad_object.domain.split('.')[0] | upper }}"
                                        $nodes = @("{{ ad_object.nodes | join('","') }}")
