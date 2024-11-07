@@ -34,6 +34,7 @@
     - ServerManager
     - FailOverClusterDsc
     - StorageDsc
+    - ActiveDirectory
     - ActiveDirectoryDsc
 
 - name:                                "WinCluster-PreReq: Add the windows cluster features"
