@@ -769,8 +769,9 @@ fi
 
 export TF_VAR_tfstate_resource_id="${tfstate_resource_id}"
 
+echo "List"
 terraform -chdir="${terraform_module_directory}" state list
-
+echo "List done"
 
 echo ""
 echo "#########################################################################################"
