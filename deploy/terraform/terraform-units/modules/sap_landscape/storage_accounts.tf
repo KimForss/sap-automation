@@ -366,8 +366,8 @@ resource "azurerm_storage_account" "transport" {
 
 resource "azurerm_storage_account_queue_properties" "transport" {
   provider                             = azurerm.main
-  count                                = length(var.transport_storage_account_id) > 0 ? 0 : 0
-  storage_account_id                   = length(var.transport_storage_account_id) > 0 ? var.transport_storage_account_id : azurerm_storage_account.transport[0].id
+  count                                = var.create_transport_storage && local.use_AFS_for_shared && length(var.transport_storage_account_id) == 0 ? 1 : 0
+  storage_account_id                   = length(var.transport_storage_account_id) == 0 ? var.transport_storage_account_id : azurerm_storage_account.transport[0].id
   logging                              {
                                          version               = "1.0"
                                          delete                = true
