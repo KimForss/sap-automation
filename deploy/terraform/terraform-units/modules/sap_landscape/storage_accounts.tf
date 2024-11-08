@@ -56,18 +56,18 @@ data "azurerm_storage_account" "storage_bootdiag" {
   resource_group_name                  = split("/", var.diagnostics_storage_account.arm_id)[4]
 }
 
-resource "azurerm_storage_account_queue_properties" "storage_bootdiag" {
-  provider                             = azurerm.main
-  count                                = length(var.diagnostics_storage_account.arm_id) > 0 ? 0 : 0
-  storage_account_id                   = length(var.diagnostics_storage_account.arm_id) > 0 ? var.diagnostics_storage_account.arm_id : azurerm_storage_account.storage_bootdiag[0].id
-  logging                              {
-                                         version               = "1.0"
-                                         delete                = true
-                                         read                  = true
-                                         write                 = true
-                                         retention_policy_days = 7
-                                       }
-}
+# resource "azurerm_storage_account_queue_properties" "storage_bootdiag" {
+#   provider                             = azurerm.main
+#   count                                = length(var.diagnostics_storage_account.arm_id) > 0 ? 0 : 0
+#   storage_account_id                   = length(var.diagnostics_storage_account.arm_id) > 0 ? var.diagnostics_storage_account.arm_id : azurerm_storage_account.storage_bootdiag[0].id
+#   logging                              {
+#                                          version               = "1.0"
+#                                          delete                = true
+#                                          read                  = true
+#                                          write                 = true
+#                                          retention_policy_days = 7
+#                                        }
+# }
 
 resource "azurerm_storage_account_static_website" "storage_bootdiag" {
   provider                             = azurerm.main
@@ -214,18 +214,18 @@ data "azurerm_storage_account" "witness_storage" {
   resource_group_name                  = split("/", var.witness_storage_account.arm_id)[4]
 }
 
-resource "azurerm_storage_account_queue_properties" "witness_storage" {
-  provider                             = azurerm.main
-  count                                = length(var.witness_storage_account.arm_id) > 0 ? 0 : 0
-  storage_account_id                   = length(var.witness_storage_account.arm_id) > 0 ? var.witness_storage_account.arm_id : azurerm_storage_account.witness_storage[0].id
-  logging                              {
-                                         version               = "1.0"
-                                         delete                = true
-                                         read                  = true
-                                         write                 = true
-                                         retention_policy_days = 7
-                                       }
-}
+# resource "azurerm_storage_account_queue_properties" "witness_storage" {
+#   provider                             = azurerm.main
+#   count                                = length(var.witness_storage_account.arm_id) > 0 ? 0 : 0
+#   storage_account_id                   = length(var.witness_storage_account.arm_id) > 0 ? var.witness_storage_account.arm_id : azurerm_storage_account.witness_storage[0].id
+#   logging                              {
+#                                          version               = "1.0"
+#                                          delete                = true
+#                                          read                  = true
+#                                          write                 = true
+#                                          retention_policy_days = 7
+#                                        }
+# }
 
 resource "azurerm_storage_account_static_website" "witness_storage" {
   provider                             = azurerm.main
