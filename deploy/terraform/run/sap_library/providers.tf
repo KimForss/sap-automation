@@ -31,6 +31,9 @@ provider "azurerm"                     {
                                                     resource_group {
                                                                      prevent_deletion_if_contains_resources = true
                                                                    }
+                                                    storage        {
+                                                                        data_plane_available = false
+                                                                   }
 
                                                   }
                                          subscription_id            = local.spn.subscription_id

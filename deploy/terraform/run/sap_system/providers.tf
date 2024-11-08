@@ -23,12 +23,15 @@ provider "azurerm"                     {
                                                     resource_group {
                                                                      prevent_deletion_if_contains_resources = var.prevent_deletion_if_contains_resources
                                                                    }
-                                                    key_vault {
-                                                                 purge_soft_delete_on_destroy               = !var.enable_purge_control_for_keyvaults
-                                                                 purge_soft_deleted_keys_on_destroy         = !var.enable_purge_control_for_keyvaults
-                                                                 purge_soft_deleted_secrets_on_destroy      = !var.enable_purge_control_for_keyvaults
-                                                                 purge_soft_deleted_certificates_on_destroy = !var.enable_purge_control_for_keyvaults
-                                                              }
+                                                    key_vault      {
+                                                                      purge_soft_delete_on_destroy               = !var.enable_purge_control_for_keyvaults
+                                                                      purge_soft_deleted_keys_on_destroy         = !var.enable_purge_control_for_keyvaults
+                                                                      purge_soft_deleted_secrets_on_destroy      = !var.enable_purge_control_for_keyvaults
+                                                                      purge_soft_deleted_certificates_on_destroy = !var.enable_purge_control_for_keyvaults
+                                                                   }
+                                                    storage        {
+                                                                        data_plane_available = false
+                                                                   }
                                                   }
                                          client_id           = try(data.terraform_remote_state.landscape.outputs.use_spn, true) && var.use_spn ? local.spn.client_id : null
                                          client_secret       = try(data.terraform_remote_state.landscape.outputs.use_spn, true) && var.use_spn ? local.spn.client_secret : null
