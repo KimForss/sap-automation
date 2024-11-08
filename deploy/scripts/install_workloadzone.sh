@@ -781,7 +781,7 @@ if [ -n "${deployed_using_version}" ]; then
     echo ""
 fi
 echo "List"
-terraform -chdir="${terraform_module_directory}" state list module.sap_landscape.azurerm_storage_account.
+terraform -chdir="${terraform_module_directory}" state list module.sap_landscape.azurerm_storage_account
 terraform -chdir="${terraform_module_directory}" state rm module.sap_landscape.azurerm_storage_account.storage_bootdiag[0]
 terraform -chdir="${terraform_module_directory}" state rm module.sap_landscape.azurerm_storage_account.witness_storage[0]
 
