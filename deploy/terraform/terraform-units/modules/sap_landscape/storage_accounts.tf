@@ -198,6 +198,13 @@ resource "azurerm_storage_account_queue_properties" "witness_storage" {
   provider                             = azurerm.main
   count                                = length(var.witness_storage_account.arm_id) > 0 ? 0 : 1
   storage_account_id                   = length(var.witness_storage_account.arm_id) > 0 ? var.witness_storage_account.arm_id : azurerm_storage_account.witness_storage[0].id
+  logging                              {
+                                         version               = "1.0"
+                                         delete                = true
+                                         read                  = true
+                                         write                 = true
+                                         retention_policy_days = 7
+                                       }
 }
 
 resource "azurerm_storage_account_static_website" "witness_storage" {
@@ -340,6 +347,13 @@ resource "azurerm_storage_account_queue_properties" "transport" {
   provider                             = azurerm.main
   count                                = length(var.transport_storage_account_id) > 0 ? 0 : 1
   storage_account_id                   = length(var.transport_storage_account_id) > 0 ? var.transport_storage_account_id : azurerm_storage_account.transport[0].id
+  logging                              {
+                                         version               = "1.0"
+                                         delete                = true
+                                         read                  = true
+                                         write                 = true
+                                         retention_policy_days = 7
+                                       }
 }
 
 resource "azurerm_storage_account_static_website" "transport" {
@@ -552,6 +566,13 @@ resource "azurerm_storage_account_queue_properties" "install" {
   provider                             = azurerm.main
   count                                = length(var.install_storage_account_id) > 0 ? 0 : 1
   storage_account_id                   = length(var.install_storage_account_id) > 0 ? var.install_storage_account_id : azurerm_storage_account.install[0].id
+  logging                              {
+                                         version               = "1.0"
+                                         delete                = true
+                                         read                  = true
+                                         write                 = true
+                                         retention_policy_days = 7
+                                       }
 }
 
 resource "azurerm_storage_account_static_website" "install" {
