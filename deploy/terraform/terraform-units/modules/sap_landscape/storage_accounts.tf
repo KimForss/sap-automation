@@ -58,7 +58,7 @@ data "azurerm_storage_account" "storage_bootdiag" {
 
 resource "azurerm_storage_account_queue_properties" "storage_bootdiag" {
   provider                             = azurerm.main
-  count                                = length(var.diagnostics_storage_account.arm_id) > 0 ? 0 : 1
+  count                                = length(var.diagnostics_storage_account.arm_id) > 0 ? 0 : 0
   storage_account_id                   = length(var.diagnostics_storage_account.arm_id) > 0 ? var.diagnostics_storage_account.arm_id : azurerm_storage_account.storage_bootdiag[0].id
   logging                              {
                                          version               = "1.0"
@@ -216,7 +216,7 @@ data "azurerm_storage_account" "witness_storage" {
 
 resource "azurerm_storage_account_queue_properties" "witness_storage" {
   provider                             = azurerm.main
-  count                                = length(var.witness_storage_account.arm_id) > 0 ? 0 : 1
+  count                                = length(var.witness_storage_account.arm_id) > 0 ? 0 : 0
   storage_account_id                   = length(var.witness_storage_account.arm_id) > 0 ? var.witness_storage_account.arm_id : azurerm_storage_account.witness_storage[0].id
   logging                              {
                                          version               = "1.0"
@@ -366,7 +366,7 @@ resource "azurerm_storage_account" "transport" {
 
 resource "azurerm_storage_account_queue_properties" "transport" {
   provider                             = azurerm.main
-  count                                = length(var.transport_storage_account_id) > 0 ? 0 : 1
+  count                                = length(var.transport_storage_account_id) > 0 ? 0 : 0
   storage_account_id                   = length(var.transport_storage_account_id) > 0 ? var.transport_storage_account_id : azurerm_storage_account.transport[0].id
   logging                              {
                                          version               = "1.0"
@@ -586,7 +586,7 @@ resource "azurerm_storage_account" "install" {
 
 resource "azurerm_storage_account_queue_properties" "install" {
   provider                             = azurerm.main
-  count                                = length(var.install_storage_account_id) > 0 ? 0 : 1
+  count                                = length(var.install_storage_account_id) > 0 ? 0 : 0
   storage_account_id                   = length(var.install_storage_account_id) > 0 ? var.install_storage_account_id : azurerm_storage_account.install[0].id
   logging                              {
                                          version               = "1.0"
