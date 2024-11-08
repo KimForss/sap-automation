@@ -31,6 +31,10 @@ provider "azurerm"                     {
                                                                  purge_soft_deleted_secrets_on_destroy      = !var.enable_purge_control_for_keyvaults
                                                                  purge_soft_deleted_certificates_on_destroy = !var.enable_purge_control_for_keyvaults
                                                               }
+                                                    storage        {
+                                                                        data_plane_available = false
+                                                                   }
+
                                                   }
                                          subscription_id     = data.azurerm_key_vault_secret.subscription_id.value
                                          client_id           = var.use_spn ? local.spn.client_id : null
@@ -131,7 +135,7 @@ terraform                              {
                                                                          }
                                                               azurerm =  {
                                                                            source  = "hashicorp/azurerm"
-                                                                           version = "4.7.0"
+                                                                           version = "4.9.0"
                                                                          }
                                                               azapi =    {
                                                                            source  = "Azure/azapi"

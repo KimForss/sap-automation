@@ -23,6 +23,9 @@ provider "azurerm"                     {
                                                                      prevent_deletion_if_contains_resources = true
                                                                    }
 
+                                                    storage        {
+                                                                        data_plane_available = false
+                                                                   }
                                                   }
 
                                          storage_use_azuread        = true
@@ -34,6 +37,9 @@ provider "azurerm"                     {
                                          features {
                                                     resource_group {
                                                                      prevent_deletion_if_contains_resources = true
+                                                                   }
+                                                    storage        {
+                                                                        data_plane_available = false
                                                                    }
 
                                                   }
@@ -111,7 +117,7 @@ terraform                              {
                                                                          }
                                                               azurerm =  {
                                                                            source  = "hashicorp/azurerm"
-                                                                           version = "4.7.0"
+                                                                           version = "4.9.0"
                                                                          }
                                                             }
                                        }
