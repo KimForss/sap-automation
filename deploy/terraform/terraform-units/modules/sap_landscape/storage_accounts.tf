@@ -211,6 +211,7 @@ resource "azurerm_storage_account_static_website" "witness_storage" {
   provider                             = azurerm.main
   count                                = length(var.witness_storage_account.arm_id) > 0 ? 0 : 1
   storage_account_id                   = length(var.witness_storage_account.arm_id) > 0 ? var.witness_storage_account.arm_id : azurerm_storage_account.witness_storage[0].id
+  index_document                       = "custom_index.html"
 }
 
 resource "azurerm_private_endpoint" "witness_storage" {
@@ -360,6 +361,7 @@ resource "azurerm_storage_account_static_website" "transport" {
   provider                             = azurerm.main
   count                                = length(var.transport_storage_account_id) > 0 ? 0 : 1
   storage_account_id                   = length(var.transport_storage_account_id) > 0 ? var.transport_storage_account_id : azurerm_storage_account.transport[0].id
+  index_document                       = "custom_index.html"
 }
 
 resource "azurerm_private_dns_a_record" "transport" {
@@ -579,6 +581,7 @@ resource "azurerm_storage_account_static_website" "install" {
   provider                             = azurerm.main
   count                                = length(var.install_storage_account_id) > 0 ? 0 : 1
   storage_account_id                   = length(var.install_storage_account_id) > 0 ? var.install_storage_account_id : azurerm_storage_account.install[0].id
+  index_document                       = "custom_index.html"
 }
 
 resource "azurerm_storage_account_network_rules" "install" {
