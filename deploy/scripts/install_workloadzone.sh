@@ -769,8 +769,22 @@ fi
 
 export TF_VAR_tfstate_resource_id="${tfstate_resource_id}"
 
+deployed_using_version=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw automation_version)
+if [ -n "${deployed_using_version}" ]; then
+    printf -v val %-.20s "$deployed_using_version"
+    echo ""
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo -e "#             $cyan Deployed using the Terraform templates version: $val $resetformatting               #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    echo ""
+fi
 echo "List"
-terraform -chdir="${terraform_module_directory}" state list
+terraform -chdir="${terraform_module_directory}" state list module.sap_landscape.azurerm_storage_account.
+terraform -chdir="${terraform_module_directory}" state rm module.sap_landscape.azurerm_storage_account.storage_bootdiag[0]
+terraform -chdir="${terraform_module_directory}" state rm module.sap_landscape.azurerm_storage_account.witness_storage[0]
+
 echo "List done"
 
 echo ""
