@@ -781,9 +781,28 @@ if [ -n "${deployed_using_version}" ]; then
     echo ""
 fi
 echo "List"
-terraform -chdir="${terraform_module_directory}" state list module.sap_landscape.azurerm_storage_account
-terraform -chdir="${terraform_module_directory}" state rm module.sap_landscape.azurerm_storage_account.storage_bootdiag[0]
-terraform -chdir="${terraform_module_directory}" state rm module.sap_landscape.azurerm_storage_account.witness_storage[0]
+saName=$(terraform -chdir="${terraform_module_directory}" state list module.sap_landscape | grep 'module.sap_landscape.azurerm_storage_account.storage_bootdiag[0]')
+if [ -n "${saName}" ]; then
+    echo "Removing storage account state object:           ${saName} "
+    terraform -chdir="${terraform_module_directory}" state rm module.sap_landscape.azurerm_storage_account.storage_bootdiag[0]
+fi
+saName=$(terraform -chdir="${terraform_module_directory}" state list module.sap_landscape | grep 'module.sap_landscape.azurerm_storage_account.witness_storage[0]')
+if [ -n "${saName}" ]; then
+    echo "Removing storage account state object:           ${saName} "
+    terraform -chdir="${terraform_module_directory}" state rm module.sap_landscape.azurerm_storage_account.witness_storage[0]
+fi
+
+saName=$(terraform -chdir="${terraform_module_directory}" state list module.sap_landscape | grep 'module.sap_landscape.azurerm_storage_account.install[0]')
+if [ -n "${saName}" ]; then
+    echo "Removing storage account state object:           ${saName} "
+    terraform -chdir="${terraform_module_directory}" state rm module.sap_landscape.azurerm_storage_account.install[0]
+fi
+
+saName=$(terraform -chdir="${terraform_module_directory}" state list module.sap_landscape | grep 'module.sap_landscape.azurerm_storage_account.transport[0]')
+if [ -n "${saName}" ]; then
+    echo "Removing storage account state object:           ${saName} "
+    terraform -chdir="${terraform_module_directory}" state rm module.sap_landscape.azurerm_storage_account.transport[0]
+fi
 
 echo "List done"
 
@@ -933,6 +952,41 @@ fi
 rerun_apply=0
 if [ -f apply_output.json ]
 then
+    # Check for resource that can be imported
+    existingSAs=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary}  | select(.summary | startswith("creating Storage Account "))' apply_output.json)
+    if [[ -n ${existingSAs} ]]
+    then
+
+        readarray -t existing_resources < <(echo ${existingSAs} | jq -c '.' )
+        for item in "${existing_resources[@]}"; do
+            moduleID=$(jq -c -r '.address '  <<< "$item")
+            resourceID=$(jq -c -r '.summary' <<< "$item" | awk -F'\"' '{print $2}')
+            echo "Trying to import" $resourceID "into" $moduleID
+            allParamsforImport=$(printf " -var-file=%s %s %s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter} " )
+            echo terraform -chdir="${terraform_module_directory}" import $allParamsforImport $moduleID $resourceID
+            terraform -chdir="${terraform_module_directory}" import $allParamsforImport $moduleID $resourceID
+        done
+
+        rerun_apply=1
+        rm apply_output.json
+        echo ""
+        echo ""
+        echo "#########################################################################################"
+        echo "#                                                                                       #"
+        echo -e "#                          $cyan Re running Terraform apply$resetformatting                                  #"
+        echo "#                                                                                       #"
+        echo "#########################################################################################"
+        echo ""
+        echo ""
+        if [ 1 == $called_from_ado ] ; then
+            terraform -chdir="${terraform_module_directory}" apply ${approve} -parallelism="${parallelism}" -no-color -var-file=${var_file} $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter -json  | tee -a  apply_output.json
+        else
+            terraform -chdir="${terraform_module_directory}" apply ${approve} -parallelism="${parallelism}" -var-file=${var_file} $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter -json  | tee -a  apply_output.json
+        fi
+        return_value=$?
+
+    fi
+
     # Check for resource that can be imported
     existing=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary}  | select(.summary | startswith("A resource with the ID"))' apply_output.json)
     if [[ -n ${existing} ]]
