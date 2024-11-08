@@ -56,26 +56,6 @@ data "azurerm_storage_account" "storage_bootdiag" {
   resource_group_name                  = split("/", var.diagnostics_storage_account.arm_id)[4]
 }
 
-resource "azurerm_storage_account_queue_properties" "storage_bootdiag" {
-  provider                             = azurerm.main
-  count                                = length(var.diagnostics_storage_account.arm_id) > 0 ? 0 : 0
-  storage_account_id                   = length(var.diagnostics_storage_account.arm_id) > 0 ? var.diagnostics_storage_account.arm_id : azurerm_storage_account.storage_bootdiag[0].id
-  logging                              {
-                                         version               = "1.0"
-                                         delete                = true
-                                         read                  = true
-                                         write                 = true
-                                         retention_policy_days = 7
-                                       }
-}
-
-resource "azurerm_storage_account_static_website" "storage_bootdiag" {
-  provider                             = azurerm.main
-  count                                = length(var.diagnostics_storage_account.arm_id) > 0 ? 0 : 1
-  storage_account_id                   = length(var.diagnostics_storage_account.arm_id) > 0 ? var.diagnostics_storage_account.arm_id : azurerm_storage_account.storage_bootdiag[0].id
-  index_document                       = "custom_index.html"
-}
-
 resource "azurerm_private_endpoint" "storage_bootdiag" {
   provider                             = azurerm.main
   count                                = var.use_private_endpoint && local.admin_subnet_defined && (length(var.diagnostics_storage_account.arm_id) == 0) ? 0 : 0
@@ -214,26 +194,6 @@ data "azurerm_storage_account" "witness_storage" {
   resource_group_name                  = split("/", var.witness_storage_account.arm_id)[4]
 }
 
-resource "azurerm_storage_account_queue_properties" "witness_storage" {
-  provider                             = azurerm.main
-  count                                = length(var.witness_storage_account.arm_id) > 0 ? 0 : 0
-  storage_account_id                   = length(var.witness_storage_account.arm_id) > 0 ? var.witness_storage_account.arm_id : azurerm_storage_account.witness_storage[0].id
-  logging                              {
-                                         version               = "1.0"
-                                         delete                = true
-                                         read                  = true
-                                         write                 = true
-                                         retention_policy_days = 7
-                                       }
-}
-
-resource "azurerm_storage_account_static_website" "witness_storage" {
-  provider                             = azurerm.main
-  count                                = length(var.witness_storage_account.arm_id) > 0 ? 0 : 1
-  storage_account_id                   = length(var.witness_storage_account.arm_id) > 0 ? var.witness_storage_account.arm_id : azurerm_storage_account.witness_storage[0].id
-  index_document                       = "custom_index.html"
-}
-
 resource "azurerm_private_endpoint" "witness_storage" {
   provider                             = azurerm.main
   count                                = var.use_private_endpoint && local.admin_subnet_defined && (length(var.witness_storage_account.arm_id) == 0) ? 0 : 0
@@ -364,33 +324,6 @@ resource "azurerm_storage_account" "transport" {
 
 }
 
-resource "azurerm_storage_account_queue_properties" "transport" {
-  provider                             = azurerm.main
-  depends_on                           = [
-                                           azurerm_storage_account.transport
-                                         ]
-  count                                = var.create_transport_storage && local.use_AFS_for_shared && length(var.transport_storage_account_id) == 0 ? 1 : 0
-  storage_account_id                   = length(var.transport_storage_account_id) == 0 ? var.transport_storage_account_id : azurerm_storage_account.transport[0].id
-  logging                              {
-                                         version               = "1.0"
-                                         delete                = true
-                                         read                  = true
-                                         write                 = true
-                                         retention_policy_days = 7
-                                       }
-}
-
-resource "azurerm_storage_account_static_website" "transport" {
-  depends_on                           = [
-                                           azurerm_storage_account.transport
-                                         ]
-  provider                             = azurerm.main
-  count                                = var.create_transport_storage && local.use_AFS_for_shared && length(var.transport_storage_account_id) == 0 ? 1 : 0
-  storage_account_id                   = length(var.transport_storage_account_id) > 0 ? var.transport_storage_account_id : azurerm_storage_account.transport[0].id
-  index_document                       = "custom_index.html"
-
-}
-
 resource "azurerm_private_dns_a_record" "transport" {
   provider                             = azurerm.privatelinkdnsmanagement
   count                                = var.use_private_endpoint && var.create_transport_storage && local.use_Azure_native_DNS && local.use_AFS_for_shared && length(var.transport_private_endpoint_id) == 0 ? 1 : 0
@@ -438,10 +371,10 @@ resource "azurerm_storage_share" "transport" {
                                          )
   name                                 = format("%s", local.resource_suffixes.transport_volume)
 
-  storage_account_name                 = length(var.transport_storage_account_id) > 0 ? (
-                                           split("/", var.transport_storage_account_id)[8]
+  storage_account_id                   = length(var.transport_storage_account_id) > 0 ? (
+                                           var.transport_storage_account_id
                                            ) : (
-                                           azurerm_storage_account.transport[0].name
+                                           azurerm_storage_account.transport[0].id
                                          )
   enabled_protocol                     = "NFS"
 
@@ -588,27 +521,6 @@ resource "azurerm_storage_account" "install" {
   tags                                 = var.tags
   shared_access_key_enabled            = var.infrastructure.shared_access_key_enabled_nfs
 
-}
-
-
-# resource "azurerm_storage_account_queue_properties" "install" {
-#   provider                             = azurerm.main
-#   count                                = length(var.install_storage_account_id) > 0 ? 0 : 0
-#   storage_account_id                   = length(var.install_storage_account_id) > 0 ? var.install_storage_account_id : azurerm_storage_account.install[0].id
-#   logging                              {
-#                                          version               = "1.0"
-#                                          delete                = true
-#                                          read                  = true
-#                                          write                 = true
-#                                          retention_policy_days = 7
-#                                        }
-# }
-
-resource "azurerm_storage_account_static_website" "install" {
-  provider                             = azurerm.main
-  count                                = local.use_AFS_for_shared && length(var.install_storage_account_id) == 0 ? 1 : 0
-  storage_account_id                   = length(var.install_storage_account_id) > 0 ? var.install_storage_account_id : azurerm_storage_account.install[0].id
-  index_document                       = "custom_index.html"
 }
 
 resource "azurerm_storage_account_network_rules" "install" {
@@ -792,11 +704,11 @@ resource "azurerm_storage_share" "install" {
                                          )
 
   name                                 = format("%s", local.resource_suffixes.install_volume)
-  storage_account_name                 = local.use_AFS_for_shared ? (
+  storage_account_id                   = local.use_AFS_for_shared ? (
                                            length(var.install_storage_account_id) > 0 ? (
-                                             split("/", var.install_storage_account_id)[8]
+                                             var.install_storage_account_id
                                              ) : (
-                                             azurerm_storage_account.install[0].name
+                                             azurerm_storage_account.install[0].id
                                            )) : (
                                            ""
                                          )
@@ -816,11 +728,11 @@ resource "azurerm_storage_share" "install_smb" {
                                          )
 
   name                                 = format("%s", local.resource_suffixes.install_volume_smb)
-  storage_account_name                 = local.use_AFS_for_shared ? (
+  storage_account_id                   = local.use_AFS_for_shared ? (
                                            length(var.install_storage_account_id) > 0 ? (
-                                             split("/", var.install_storage_account_id)[8]
+                                             var.install_storage_account_id
                                              ) : (
-                                             azurerm_storage_account.install[0].name
+                                             azurerm_storage_account.install[0].id
                                            )) : (
                                            ""
                                          )
