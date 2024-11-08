@@ -173,6 +173,7 @@ resource "azurerm_storage_account" "witness_storage" {
 
 }
 
+
 resource "azurerm_private_dns_a_record" "witness_storage" {
   provider                             = azurerm.privatelinkdnsmanagement
   count                                = var.dns_settings.register_storage_accounts_keyvaults_with_dns ? 0 : 0
@@ -192,6 +193,13 @@ data "azurerm_storage_account" "witness_storage" {
   name                                 = split("/", var.witness_storage_account.arm_id)[8]
   resource_group_name                  = split("/", var.witness_storage_account.arm_id)[4]
 }
+
+resource "azurerm_storage_account_queue_properties" "witness_storage" {
+  provider                             = azurerm.main
+  count                                = length(var.witness_storage_account.arm_id) > 0 ? 0 : 1
+  storage_account_id                   = length(var.witness_storage_account.arm_id) > 0 ? var.witness_storage_account.arm_id : azurerm_storage_account.witness_storage[0].id
+}
+
 
 resource "azurerm_private_endpoint" "witness_storage" {
   provider                             = azurerm.main
@@ -321,6 +329,12 @@ resource "azurerm_storage_account" "transport" {
 
   tags                                 = var.tags
 
+}
+
+resource "azurerm_storage_account_queue_properties" "transport" {
+  provider                             = azurerm.main
+  count                                = length(var.transport_storage_account_id) > 0 ? 0 : 1
+  storage_account_id                   = length(var.transport_storage_account_id) > 0 ? var.transport_storage_account_id : azurerm_storage_account.transport[0].id
 }
 
 
@@ -522,6 +536,14 @@ resource "azurerm_storage_account" "install" {
   shared_access_key_enabled            = var.infrastructure.shared_access_key_enabled_nfs
 
 }
+
+
+resource "azurerm_storage_account_queue_properties" "install" {
+  provider                             = azurerm.main
+  count                                = length(var.install_storage_account_id) > 0 ? 0 : 1
+  storage_account_id                   = length(var.install_storage_account_id) > 0 ? var.install_storage_account_id : azurerm_storage_account.install[0].id
+}
+
 
 resource "azurerm_storage_account_network_rules" "install" {
   provider                             = azurerm.main
