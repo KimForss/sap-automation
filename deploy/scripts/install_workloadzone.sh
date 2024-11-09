@@ -784,7 +784,7 @@ echo "List"
 moduleID='module.sap_landscape.azurerm_storage_account.storage_bootdiag[0]'
 terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep "id" | awk -F'=' '{print $2}' | xargs
 resourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep "id" | awk -F'=' '{print $2}' | xargs)
-if [ -n "${resourceId}" ]; then
+if [ -n "${resourceID}" ]; then
     echo "Removing storage account state object:           ${moduleID} "
     terraform -chdir="${terraform_module_directory}" state rm ${moduleID}
     allParamsforImport=$(printf " -var-file=%s %s %s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter} " )
