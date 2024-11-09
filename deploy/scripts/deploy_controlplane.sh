@@ -105,14 +105,12 @@ if [ -n "$approve" ]; then
 fi
 
 if [ ! -f "$deployer_parameter_file" ]; then
-    export missing_value='deployer parameter file'
-    control_plane_missing
+    control_plane_missing 'deployer parameter file'
     exit 2 #No such file or directory
 fi
 
 if [ ! -f "$library_parameter_file" ]; then
-    export missing_value='library parameter file'
-    control_plane_missing
+    control_plane_missing 'library parameter file'
     exit 2 #No such file or directory
 fi
 

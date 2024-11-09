@@ -71,7 +71,7 @@ function control_plane_showhelp {
 }
 
 function control_plane_missing {
-    printf -v val '%-40s' "$missing_value"
+    printf -v val '%-40s' "$1"
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #"
@@ -146,7 +146,7 @@ function workload_zone_showhelp {
 }
 
 function workload_zone_missing {
-    printf -v val %-.40s "$option"
+    printf -v val %-.40s "$1"
     echo ""
     echo ""
     echo "#########################################################################################"
@@ -489,9 +489,11 @@ function validate_key_parameters {
 
     # Helper variables
     load_config_vars $1 "environment"
-    export environment=$(echo ${environment} | xargs | tr "[:lower:]" "[:upper:]" | tr -d '\r' )
+    environment=$(echo ${environment} | xargs | tr "[:lower:]" "[:upper:]" | tr -d '\r' )
+    export environment
     load_config_vars $1 "location"
-    export region=$(echo ${location} | xargs | tr -d '\r')
+    region=$(echo ${location} | xargs | tr -d '\r')
+    export region
 
     if [ -z ${environment} ]; then
         echo "#########################################################################################"
@@ -529,7 +531,7 @@ function version_compare {
         return 0
     fi
     local IFS=.
-    local i ver1=($1) ver2=($2)
+    local i ver1=("$1") ver2=("$2")
     # fill empty fields in ver1 with zeros
     for ((i=${#ver1[@]}; i<${#ver2[@]}; i++))
     do
@@ -547,5 +549,4 @@ function version_compare {
         fi
     done
     return 0
-}
 }
