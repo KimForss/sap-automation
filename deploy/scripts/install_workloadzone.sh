@@ -990,8 +990,10 @@ then
         for item in "${existing_resources[@]}"; do
             moduleID=$(jq -c -r '.address '  <<< "$item")
             resourceID=$(jq -c -r '.summary' <<< "$item" | awk -F'\"' '{print $2}')
-            echo $resourceID | awk '{split($0,a," "); print a[3] a[2] a[1]}'
-            resourceID="/subscriptions/${a[1]}/resourceGroups/${a[2]}/providers/Microsoft.Storage/storageAccounts/${a[3]}"
+            resourceGroupID=$(echo $resourceID | awk '{split($0,a,"\""); print  a[5]}' | awk -F'\\' '{print $1}')
+            subscriptionID=$(echo $resourceID | awk '{split($0,a,"\""); print  a[3]}' | awk -F'\\' '{print $1}')
+            accountID=$(echo $resourceID | awk '{split($0,a,"\""); print  a[7]}' | awk -F'\\' '{print $1}')
+            resourceID="/subscriptions/$subscriptionID}/resourceGroups/${resourceGroupID}/providers/Microsoft.Storage/storageAccounts/${accountID}"
             echo "Trying to import" $resourceID "into" $moduleID
             allParamsforImport=$(printf " -var-file=%s %s %s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter} " )
             echo terraform -chdir="${terraform_module_directory}" import $allParamsforImport $moduleID $resourceID
