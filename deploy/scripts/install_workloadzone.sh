@@ -783,7 +783,7 @@ fi
 echo "List"
 terraform -chdir="${terraform_module_directory}" state list module.sap_landscape
 terraform -chdir="${terraform_module_directory}" state show -json 'module.sap_landscape.azurerm_storage_account.storage_bootdiag[0]'
-terraform -chdir="${terraform_module_directory}" state show -json 'module.sap_landscape.azurerm_storage_account.storage_bootdiag[0]' | jq '
+terraform -chdir="${terraform_module_directory}" state show -json 'module.sap_landscape.azurerm_storage_account.storage_bootdiag[0]' | jq
 exit 0
 saName=$(terraform -chdir="${terraform_module_directory}" state list module.sap_landscape | grep module.sap_landscape.azurerm_storage_account.storage_bootdiag[0])
 if [ -n "${saName}" ]; then
