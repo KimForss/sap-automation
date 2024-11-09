@@ -779,10 +779,16 @@ if [ -n "${deployed_using_version}" ]; then
     echo "#                                                                                       #"
     echo "#########################################################################################"
     echo ""
-    version_compare "${deployed_using_version}" "3.13.3.0"
+    version_compare "${deployed_using_version}" "3.13.2.0"
     older_version=$?
     if [ 2 == $older_version ]; then
-      echo "Deployed using an older version"
+      echo ""
+      echo "#########################################################################################"
+      echo "#                                                                                       #"
+      echo -e "#           $boldred  Deployed using an older version $resetformatting                                          #"
+      echo "#                                                                                       #"
+      echo "#########################################################################################"
+      echo ""
       moduleID='module.sap_landscape.azurerm_storage_account.storage_bootdiag[0]'
       terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep "id" | awk -F'=' '{print $2}' | xargs
       resourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep "id" | awk -F'=' '{print $2}' | xargs)
