@@ -988,8 +988,9 @@ then
 
         readarray -t existing_resources < <(echo ${existingSAs} | jq -c '.' )
         for item in "${existing_resources[@]}"; do
+
                    moduleID=$(jq -c -r '.address '  <<< "$item")
-                 resourceID=$(jq -c -r '.summary' <<< "$item" | awk -F: '{print $8}' | awk -F' ' '{print $5}'); echo "resourceID: $resourceID"
+                 resourceID=$(jq -c -r '.summary' <<< "$item"); echo "resourceID: $resourceID"
             echo "Trying to import $resourceID into $moduleID"
             allParamsforImport=$(printf " -var-file=%s %s %s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter} " )
             echo terraform -chdir="${terraform_module_directory}" import $allParamsforImport $moduleID $resourceID
