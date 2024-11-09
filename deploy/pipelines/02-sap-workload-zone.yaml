@@ -578,7 +578,7 @@ stages:
 
               az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "FENCING_SPN_ID.value")
               if [ -z ${az_var} ]; then
-                  echo "##vso[task.logissue type=warning]Variable FENCING_SPN_ID is not set. Required for highly available deployments"
+                  echo "##vso[task.logissue type=warning]Variable FENCING_SPN_ID is not set. Required for highly available deployments when using Service Principals for fencing."
               else
                   export fencing_id=$(az keyvault secret list --vault-name $workload_key_vault --subscription $STATE_SUBSCRIPTION --query [].name -o tsv | grep ${workload_prefix}-fencing-spn-id | xargs)
                   if [ -z "$fencing_id" ]; then
