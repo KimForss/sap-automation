@@ -990,6 +990,10 @@ then
         for item in "${existing_resources[@]}"; do
             moduleID=$(jq -c -r '.address '  <<< "$item")
             resourceID=$(jq -c -r '.summary' <<< "$item" | awk -F'\"' '{print $2}')
+            storageAccountId=$(echo "$resourceID" | awk -F' ' '{print $3}')
+            resourceGroupId=$(echo "$resourceID" | awk -F' ' '{print $2}')
+            subscriptionId=$(echo "$resourceID" | awk -F' ' '{print $2}')
+            resourceID="/subscriptions/${subscriptionId}/resourceGroups/${resourceGroupId}/providers/Microsoft.Storage/storageAccounts/${storageAccountId}"
             echo "Trying to import" $resourceID "into" $moduleID
             allParamsforImport=$(printf " -var-file=%s %s %s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter} " )
             echo terraform -chdir="${terraform_module_directory}" import $allParamsforImport $moduleID $resourceID
