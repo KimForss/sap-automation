@@ -991,6 +991,9 @@ then
 
                    moduleID=$(jq -c -r '.address '  <<< "$item")
                  resourceID=$(jq -c -r '.summary' <<< "$item"); echo "resourceID: $resourceID"
+                 echo $resourceID | awk -F: '{print $2}' | cut -d ' ' -f 2
+                 echo $resourceID | awk -F: '{print $3}' | cut -d ' ' -f 2
+                 echo $resourceID | awk -F: '{print $4}' | cut -d ' ' -f 2 | tr -d ')'
             echo "Trying to import $resourceID into $moduleID"
             allParamsforImport=$(printf " -var-file=%s %s %s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter} " )
             echo terraform -chdir="${terraform_module_directory}" import $allParamsforImport $moduleID $resourceID
