@@ -995,11 +995,11 @@ then
              resourceGroupID=$(echo "${resourceID}" | awk -F: '{print $3}' | cut -d ' ' -f 2 | tr -d '"') ; echo "resourceGroupID: $resourceGroupID"
             storageAccountID=$(echo "${resourceID}" | awk -F: '{print $4}' | cut -d ' ' -f 2 | tr -d ')' | tr -d '"'); echo "storageAccountID: $storageAccountID"
 
-            resourceID="/subscriptions/$subscriptionID/resourceGroups/$resourceGroupID/providers/Microsoft.Storage/storageAccounts/$storageAccountID)"
-            echo "Trying to import $resourceID into $moduleID"
+            azureResourceID="/subscriptions/$subscriptionID/resourceGroups/$resourceGroupID/providers/Microsoft.Storage/storageAccounts/$storageAccountID"
+            echo "Trying to import $azureResourceID into $moduleID"
             allParamsforImport=$(printf " -var-file=%s %s %s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter} " )
-            echo terraform -chdir="${terraform_module_directory}" import $allParamsforImport "$moduleID"" $resource"ID
-            terraform -chdir="${terraform_module_directory}" import $allParamsforImport "$moduleID"" $resource"ID
+            echo terraform -chdir="${terraform_module_directory}" import $allParamsforImport $moduleID $azureResourceID
+            terraform -chdir="${terraform_module_directory}" import $allParamsforImport $moduleID $azureResourceID
         done
 
         rerun_apply=1
