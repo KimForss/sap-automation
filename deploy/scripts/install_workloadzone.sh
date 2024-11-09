@@ -989,8 +989,8 @@ then
         readarray -t existing_resources < <(echo ${existingSAs} | jq -c '.' )
         for item in "${existing_resources[@]}"; do
             moduleID=$(jq -c -r '.address '  <<< "$item")
-            resourceID=$(jq -c -r '.summary' <<< "$item" | awk -F'\"' '{print $2}')
-            storageAccountId=$(echo "$resourceID" | awk -F' ' '{print $3}')
+            resourceID=$(jq -c -r '.summary' <<< "$item" | awk -F'\"' '{print $2}') ; echo $resourceID
+            storageAccountId=$(echo "$resourceID" | awk -F' ' '{print $3}') ; echo $storageAccountId
             resourceGroupId=$(echo "$resourceID" | awk -F' ' '{print $2}')
             subscriptionId=$(echo "$resourceID" | awk -F' ' '{print $2}')
             resourceID="/subscriptions/${subscriptionId}/resourceGroups/${resourceGroupId}/providers/Microsoft.Storage/storageAccounts/${storageAccountId}"
