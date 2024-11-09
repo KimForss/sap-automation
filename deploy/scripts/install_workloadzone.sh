@@ -990,6 +990,7 @@ then
         for item in "${existing_resources[@]}"; do
             moduleID=$(jq -c -r '.address '  <<< "$item")
             resourceID=$(jq -c -r '.summary' <<< "$item" | awk -F'\"' '{print $2}') ; echo $resourceID
+            echo "1"
             echo $resourceID[0]
             storageAccountId=$(echo "$resourceID" | awk -F' ' '{print $1}') ; echo $storageAccountId
             storageAccountId=$(echo "$resourceID" | awk -F'\n' '{print $1}') ; echo $storageAccountId
