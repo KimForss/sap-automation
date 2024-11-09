@@ -531,7 +531,7 @@ function version_compare {
         return 0
     fi
     local IFS=.
-    local i ver1=("$1") ver2=("$2")
+    local i ver1=($1) ver2=($2)
     # fill empty fields in ver1 with zeros
     for ((i=${#ver1[@]}; i<${#ver2[@]}; i++))
     do
