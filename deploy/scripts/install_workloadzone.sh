@@ -990,10 +990,9 @@ then
         for item in "${existing_resources[@]}"; do
             echo "item: $item"
                    moduleID=$(jq -c -r '.address '  <<< "$item")
-                 resourceID=$(jq -c -r '.summary' <<< "$item" | awk -F'\"' '{print $2}'); echo "resourceID: $resourceID"
+                 resourceID=$(jq -c -r '.summary' <<< "$item" | awk -F: '{print $8}' | awk -F' ' '{print $5}'; echo "resourceID: $resourceID"
                  array=($resourceID)
-                 echo "${array[0]}"
-                 echo "${array[1]}"
+                 echo ${array}
 "            resourceGroupID=$(echo $resourceID | awk '{split($0,a,"\""); print  a[5]}' | tr -d "\\" ); echo "ResourceGroupId: $resourceGroupID"
              subscriptionID=$(echo $resourceID | awk '{split($0,a,"\""); print  a[3]}' | tr -d "\\" ); echo "SubscriptionId:  $subscriptionID"
                   accountID=$(echo $resourceID | awk '{split($0,a,"\""); print  a[7]}' | tr -d "\\" ); echo "AccountID: $accountID"
