@@ -991,9 +991,9 @@ then
 
                     moduleID=$(jq -c -r '.address '  <<< "$item")
                   resourceID=$(jq -c -r '.summary' <<< "$item"); echo "resourceID: $resourceID"
-              subscriptionID=$(echo "${resourceID}" | awk -F: '{print $2}' | cut -d ' ' -f 2 | tr -d '"'); echo
-             resourceGroupID=$(echo "${resourceID}" | awk -F: '{print $3}' | cut -d ' ' -f 2 | tr -d '"') ; echo "resourceGroupID: $resourceGroupID"
-            storageAccountID=$(echo "${resourceID}" | awk -F: '{print $4}' | cut -d ' ' -f 2 | tr -d ')' | tr -d '"'); echo "storageAccountID: $storageAccountID"
+              subscriptionID=$(echo "${resourceID}" | awk -F: '{print $2}' | cut -d ' ' -f 2 | tr -d '"' )            ; echo "subscriptionID: $subscriptionID"
+             resourceGroupID=$(echo "${resourceID}" | awk -F: '{print $3}' | cut -d ' ' -f 2 | tr -d '"' )            ; echo "resourceGroupID: $resourceGroupID"
+            storageAccountID=$(echo "${resourceID}" | awk -F: '{print $4}' | cut -d ' ' -f 2 | tr -d ')' | tr -d '"' ); echo "storageAccountID: $storageAccountID"
 
             azureResourceID="/subscriptions/$subscriptionID/resourceGroups/$resourceGroupID/providers/Microsoft.Storage/storageAccounts/$storageAccountID"
             echo "Trying to import $azureResourceID into $moduleID"
