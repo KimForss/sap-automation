@@ -38,6 +38,13 @@ variable "prevent_deletion_if_contains_resources" {
                                                     type        = bool
                                                     default     = true
                                                   }
+variable "Description"                           {
+                                                   description = "This is the description for the deployment"
+                                                   type        = string
+                                                   default     = ""
+                                                 }
+
+
 #######################################4#######################################8
 #                                                                              #
 #                          Resource group definitioms                          #
