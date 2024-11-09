@@ -989,7 +989,7 @@ then
         readarray -t existing_resources < <(echo ${existingSAs} | jq -c '.' )
         for item in "${existing_resources[@]}"; do
                    moduleID=$(jq -c -r '.address '  <<< "$item")
-                 resourceID=$(jq -c -r '.summary' <<< "$item" | awk -F'\"' '{print $2}')
+                 resourceID=$(jq -c -r '.summary' <<< "$item" | awk -F'\"' '{print $2}'); echo "resourceID: $resourceID"
             resourceGroupID=$(echo $resourceID | awk '{split($0,a,"\""); print  a[5]}' | tr -d "\\" ); echo "ResourceGroupId: $resourceGroupID"
              subscriptionID=$(echo $resourceID | awk '{split($0,a,"\""); print  a[3]}' | tr -d "\\" ); echo "SubscriptionId:  $subscriptionID"
                   accountID=$(echo $resourceID | awk '{split($0,a,"\""); print  a[7]}' | tr -d "\\" ); echo "AccountID: $accountID"
