@@ -991,7 +991,10 @@ then
             echo "item: $item"
                    moduleID=$(jq -c -r '.address '  <<< "$item")
                  resourceID=$(jq -c -r '.summary' <<< "$item" | awk -F'\"' '{print $2}'); echo "resourceID: $resourceID"
-            resourceGroupID=$(echo $resourceID | awk '{split($0,a,"\""); print  a[5]}' | tr -d "\\" ); echo "ResourceGroupId: $resourceGroupID"
+                 array=($resourceID)
+                 echo "${array[0]}"
+                 echo "${array[1]}"
+"            resourceGroupID=$(echo $resourceID | awk '{split($0,a,"\""); print  a[5]}' | tr -d "\\" ); echo "ResourceGroupId: $resourceGroupID"
              subscriptionID=$(echo $resourceID | awk '{split($0,a,"\""); print  a[3]}' | tr -d "\\" ); echo "SubscriptionId:  $subscriptionID"
                   accountID=$(echo $resourceID | awk '{split($0,a,"\""); print  a[7]}' | tr -d "\\" ); echo "AccountID: $accountID"
                  resourceID="/subscriptions/${subscriptionID}/resourceGroups/${resourceGroupID}/providers/Microsoft.Storage/storageAccounts/${accountID}"
