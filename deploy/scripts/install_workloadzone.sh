@@ -990,7 +990,7 @@ then
         for item in "${existing_resources[@]}"; do
 
                     moduleID=$(jq -c -r '.address '  <<< "$item")
-                  resourceID=$(jq -c -r '.summary' <<< "$item" | tr -d \\n | tr -d \\r ); echo "resourceID: $resourceID"
+                  resourceID=$(jq -c -r '.summary' <<< "$item" | tr \\n ' ' | tr \\r ' ' | xargs ); echo "resourceID: $resourceID"
                   echo "-----------"
               subscriptionID=$(echo "${resourceID}" | awk -F: '{print $2}' | cut -d ' ' -f 2 | tr -d '"' | xargs )            ; echo "subscriptionID: $subscriptionID"
                   echo "-----------"
