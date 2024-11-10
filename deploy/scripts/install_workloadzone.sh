@@ -989,7 +989,7 @@ then
         readarray -t existing_resources < <(echo ${existingSAs} | jq -c '.' )
         for item in "${existing_resources[@]}"; do
 
-                    moduleID=$(jq -c -r '.address '  <<< "$item" | tr -d "\[0\]" )
+                    moduleID=$(jq -c -r '.address '  <<< "$item" )
                   resourceID=$(jq -c -r '.summary' <<< "$item" | tr \\n ' ' | tr \\r ' ' | xargs );
               subscriptionID=$(echo "${resourceID}" | awk -F: '{print $2}' | cut -d ' ' -f 2 | tr -d '"' | xargs )            ; echo "subscriptionID: $subscriptionID"
              resourceGroupID=$(echo "${resourceID}" | awk -F: '{print $3}' | cut -d ' ' -f 2 | tr -d '"' | xargs )            ; echo "resourceGroupID: $resourceGroupID"
@@ -997,7 +997,7 @@ then
             azureResourceID="/subscriptions/$subscriptionID/resourceGroups/$resourceGroupID/providers/Microsoft.Storage/storageAccounts/$storageAccountID"
             echo "Trying to import $azureResourceID into $moduleID"
             allParamsforImport=$(printf " -var-file=%s %s %s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter} " )
-            echo terraform -chdir="${terraform_module_directory}" import $allParamsforImport $moduleID $azureResourceID
+            echo terraform -chdir="${terraform_module_directory}" import $allParamsforImport '$moduleID' $azureResourceID
             terraform -chdir="${terraform_module_directory}" import $allParamsforImport $moduleID $azureResourceID
         done
 
