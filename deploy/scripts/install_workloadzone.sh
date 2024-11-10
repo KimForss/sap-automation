@@ -989,10 +989,10 @@ then
         readarray -t existing_resources < <(echo ${existingSAs} | jq -c '.' )
         for item in "${existing_resources[@]}"; do
 
-                    moduleID="'"$(jq -c -r '.address '  <<< "$item" )"'"
+                    moduleID="'"$(jq -c -r '.address '  <<< "$item" )"'"                                                      ; echo "moduleID  :       $moduleID"
                   resourceID=$(jq -c -r '.summary' <<< "$item" | tr \\n ' ' | tr \\r ' ' | xargs );
-              subscriptionID=$(echo "${resourceID}" | awk -F: '{print $2}' | cut -d ' ' -f 2 | tr -d '"' | xargs )            ; echo "subscriptionID: $subscriptionID"
-             resourceGroupID=$(echo "${resourceID}" | awk -F: '{print $3}' | cut -d ' ' -f 2 | tr -d '"' | xargs )            ; echo "resourceGroupID: $resourceGroupID"
+              subscriptionID=$(echo "${resourceID}" | awk -F: '{print $2}' | cut -d ' ' -f 2 | tr -d '"' | xargs )            ; echo "subscriptionID:   $subscriptionID"
+             resourceGroupID=$(echo "${resourceID}" | awk -F: '{print $3}' | cut -d ' ' -f 2 | tr -d '"' | xargs )            ; echo "resourceGroupID:  $resourceGroupID"
             storageAccountID=$(echo "${resourceID}" | awk -F: '{print $4}' | cut -d ' ' -f 2 | tr -d ')' | tr -d '"' | xargs ); echo "storageAccountID: $storageAccountID"
             azureResourceID="/subscriptions/$subscriptionID/resourceGroups/$resourceGroupID/providers/Microsoft.Storage/storageAccounts/$storageAccountID"
             echo "Trying to import $azureResourceID into $moduleID"
