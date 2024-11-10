@@ -990,11 +990,14 @@ then
         for item in "${existing_resources[@]}"; do
 
                     moduleID=$(jq -c -r '.address '  <<< "$item")
-                  resourceID=$(jq -c -r '.summary' <<< "$item" | tr -d \\n ); echo "resourceID: $resourceID"
+                  resourceID=$(jq -c -r '.summary' <<< "$item" | tr -d \\n | tr -d \\r ); echo "resourceID: $resourceID"
+                  echo "-----------"
               subscriptionID=$(echo "${resourceID}" | awk -F: '{print $2}' | cut -d ' ' -f 2 | tr -d '"' | xargs )            ; echo "subscriptionID: $subscriptionID"
+                  echo "-----------"
              resourceGroupID=$(echo "${resourceID}" | awk -F: '{print $3}' | cut -d ' ' -f 2 | tr -d '"' | xargs )            ; echo "resourceGroupID: $resourceGroupID"
+                  echo "-----------"
             storageAccountID=$(echo "${resourceID}" | awk -F: '{print $4}' | cut -d ' ' -f 2 | tr -d ')' | tr -d '"' | xargs ); echo "storageAccountID: $storageAccountID"
-
+                  echo "-----------"
             azureResourceID="/subscriptions/$subscriptionID/resourceGroups/$resourceGroupID/providers/Microsoft.Storage/storageAccounts/$storageAccountID"
             echo "Trying to import $azureResourceID into $moduleID"
             exit 65
