@@ -990,17 +990,12 @@ then
         for item in "${existing_resources[@]}"; do
 
                     moduleID=$(jq -c -r '.address '  <<< "$item")
-                  resourceID=$(jq -c -r '.summary' <<< "$item" | tr \\n ' ' | tr \\r ' ' | xargs ); echo "resourceID: $resourceID"
-                  echo "-----------"
+                  resourceID=$(jq -c -r '.summary' <<< "$item" | tr \\n ' ' | tr \\r ' ' | xargs );
               subscriptionID=$(echo "${resourceID}" | awk -F: '{print $2}' | cut -d ' ' -f 2 | tr -d '"' | xargs )            ; echo "subscriptionID: $subscriptionID"
-                  echo "-----------"
              resourceGroupID=$(echo "${resourceID}" | awk -F: '{print $3}' | cut -d ' ' -f 2 | tr -d '"' | xargs )            ; echo "resourceGroupID: $resourceGroupID"
-                  echo "-----------"
             storageAccountID=$(echo "${resourceID}" | awk -F: '{print $4}' | cut -d ' ' -f 2 | tr -d ')' | tr -d '"' | xargs ); echo "storageAccountID: $storageAccountID"
-                  echo "-----------"
             azureResourceID="/subscriptions/$subscriptionID/resourceGroups/$resourceGroupID/providers/Microsoft.Storage/storageAccounts/$storageAccountID"
             echo "Trying to import $azureResourceID into $moduleID"
-            exit 65
             allParamsforImport=$(printf " -var-file=%s %s %s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter} " )
             echo terraform -chdir="${terraform_module_directory}" import $allParamsforImport $moduleID $azureResourceID
             terraform -chdir="${terraform_module_directory}" import $allParamsforImport $moduleID $azureResourceID
