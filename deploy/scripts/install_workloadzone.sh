@@ -996,7 +996,7 @@ then
             storageAccountID=$(echo "${resourceID}" | awk -F: '{print $4}' | cut -d ' ' -f 2 | tr -d ')' | tr -d '"' | xargs ); echo "storageAccountID: $storageAccountID"
             azureResourceID="/subscriptions/$subscriptionID/resourceGroups/$resourceGroupID/providers/Microsoft.Storage/storageAccounts/$storageAccountID"
             echo "Trying to import $azureResourceID into $moduleID"
-            allParamsforImport=$(printf " -var-file=%s %s %s %s %s %s '%s' %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}" "${moduleID}"  "${azureResourceID}")
+            allParamsforImport=$(printf " -var-file=%s %s %s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}" "${moduleID}"  "${azureResourceID}")
             echo "terraform -chdir=${terraform_module_directory} import $allParamsforImport"
             terraform -chdir="${terraform_module_directory}" import $allParamsforImport
         done
