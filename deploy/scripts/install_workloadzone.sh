@@ -790,7 +790,6 @@ if [ -n "${deployed_using_version}" ]; then
       echo "#########################################################################################"
       echo ""
       moduleID='module.sap_landscape.azurerm_storage_account.storage_bootdiag[0]'
-      terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep "id" | awk -F'=' '{print $2}' | xargs
       resourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep "id" | awk -F' =' '{print $2}' | awk -F' ' '{print $1}' | xargs)
       if [ -n "${resourceID}" ]; then
           echo "Removing storage account state object:           ${moduleID} "
@@ -807,7 +806,6 @@ if [ -n "${deployed_using_version}" ]; then
       fi
 
       moduleID='module.sap_landscape.azurerm_storage_account.witness_storage[0]'
-      terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep "id" | awk -F'=' '{print $2}' | xargs
       resourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep "id" | awk -F' =' '{print $2}' | awk -F' ' '{print $1}' | xargs)
       if [ -n "${resourceID}" ]; then
           echo "Removing storage account state object:           ${moduleID} "
@@ -822,6 +820,7 @@ if [ -n "${deployed_using_version}" ]; then
             fi
           fi
       fi
+
       moduleID='module.sap_landscape.azurerm_storage_account.install[0]'
       resourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep "id" | awk -F' =' '{print $2}' | awk -F' ' '{print $1}' | xargs)
       if [ -n "${resourceID}" ]; then
