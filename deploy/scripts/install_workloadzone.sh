@@ -791,17 +791,9 @@ if [ -n "${deployed_using_version}" ]; then
         echo ""
 
         moduleID='module.sap_landscape.azurerm_storage_account.storage_bootdiag[0]'
-        terraform -chdir="${terraform_module_directory}" state show "${moduleID}"
-
-        terraform -chdir="${terraform_module_directory}" show -json | jq '.values.root_module.resources[] | select(.address=="$moduleID") | .values.id'
-        echo "-----------------"
-        terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 "id" | xargs | cut -d "=" -f2 | xargs
-        echo "-----------------"
-        terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 "^id" | cut -d "=" -f2 | xargs
-        azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 "^id" | awk -F'=' '{print $2}' | cut -d " " -f1 | xargs)
+        azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 "id" | xargs | cut -d "=" -f2 | xargs)
         echo "Terraform resource ID:  $moduleID"
         echo "Azure resource ID:      $azureResourceID"
-        exit 65
         if [ -n "${azureResourceID}" ]; then
             echo "Removing storage account state object:           ${moduleID} "
             if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"
@@ -817,11 +809,11 @@ if [ -n "${deployed_using_version}" ]; then
                 fi
             fi
         else
-          exit 65
+            exit 65
         fi
 
         moduleID='module.sap_landscape.azurerm_storage_account.witness_storage[0]'
-        azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 "^id" | awk -F'=' '{print $2}' | cut -d " " -f1 | xargs)
+        azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 "id" | xargs | cut -d "=" -f2 | xargs)
         echo "Terraform resource ID:  $moduleID"
         echo "Azure resource ID:      $azureResourceID"
 
@@ -842,13 +834,7 @@ if [ -n "${deployed_using_version}" ]; then
         fi
 
         moduleID='module.sap_landscape.azurerm_storage_account.install[0]'
-
-        terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 "^id"
-        terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 "^id"
-        terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 "^id" | awk -F'=' '{print $2}'
-        terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 "^id" | awk -F'=' '{print $2}' | cut -d " " -f1
-
-        azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 "^id" | awk -F'=' '{print $2}' | cut -d " " -f1 | xargs)
+        azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 "id" | xargs | cut -d "=" -f2 | xargs)
         echo "Terraform resource ID:  $moduleID"
         echo "Azure resource ID:      $azureResourceID"
 
@@ -869,7 +855,7 @@ if [ -n "${deployed_using_version}" ]; then
         fi
 
         moduleID='module.sap_landscape.azurerm_storage_account.transport[0]'
-        azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 "^id" | awk -F'=' '{print $2}' | cut -d " " -f1 | xargs)
+        azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 "id" | xargs | cut -d "=" -f2 | xargs)
         echo "Terraform resource ID:  $moduleID"
         echo "Azure resource ID:      $azureResourceID"
 
@@ -900,9 +886,9 @@ echo "##########################################################################
 echo ""
 
 if [ 1 == $called_from_ado ] ; then
-  terraform -chdir="${terraform_module_directory}" plan -no-color -detailed-exitcode  -var-file=${var_file} $tfstate_parameter $deployer_tfstate_key_parameter  | tee -a plan_output.log
+    terraform -chdir="${terraform_module_directory}" plan -no-color -detailed-exitcode  -var-file=${var_file} $tfstate_parameter $deployer_tfstate_key_parameter  | tee -a plan_output.log
 else
-  terraform -chdir="${terraform_module_directory}" plan -detailed-exitcode  -var-file=${var_file} $tfstate_parameter $deployer_tfstate_key_parameter  | tee -a plan_output.log
+    terraform -chdir="${terraform_module_directory}" plan -detailed-exitcode  -var-file=${var_file} $tfstate_parameter $deployer_tfstate_key_parameter  | tee -a plan_output.log
 fi
 return_value=$?
 
@@ -924,19 +910,18 @@ then
     exit $return_value
 fi
 
-  echo "TEST_ONLY: " $TEST_ONLY
-  if [ "${TEST_ONLY}" == "True" ]; then
-      echo ""
-      echo "#########################################################################################"
-      echo "#                                                                                       #"
-      echo -e "#                                 $cyan Running plan only. $resetformatting                                  #"
-      echo "#                                                                                       #"
-      echo "#                                  No deployment performed.                             #"
-      echo "#                                                                                       #"
-      echo "#########################################################################################"
-      echo ""
-      exit 0
-  fi
+if [ "${TEST_ONLY}" == "True" ]; then
+    echo ""
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo -e "#                                 $cyan Running plan only. $resetformatting                                  #"
+    echo "#                                                                                       #"
+    echo "#                                  No deployment performed.                             #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    echo ""
+    exit 0
+fi
 
 
 ok_to_proceed=0
@@ -1024,9 +1009,9 @@ if [ 1 == $ok_to_proceed ]; then
     else
         if [ -n "${approve}" ]
         then
-          terraform -chdir="${terraform_module_directory}" apply ${approve} -parallelism="${parallelism}" -var-file=${var_file} $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter -json  | tee -a  apply_output.json
+            terraform -chdir="${terraform_module_directory}" apply ${approve} -parallelism="${parallelism}" -var-file=${var_file} $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter -json  | tee -a  apply_output.json
         else
-          terraform -chdir="${terraform_module_directory}" apply ${approve} -parallelism="${parallelism}" -var-file=${var_file} $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter
+            terraform -chdir="${terraform_module_directory}" apply ${approve} -parallelism="${parallelism}" -var-file=${var_file} $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter
         fi
 
     fi
@@ -1034,14 +1019,15 @@ if [ 1 == $ok_to_proceed ]; then
     return_value=$?
 
 fi
+
 rerun_apply=0
+
 if [ -f apply_output.json ]
 then
     # Check for resource that can be imported
     existingSAs=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary}  | select(.summary | startswith("creating Storage Account "))' apply_output.json)
     if [[ -n ${existingSAs} ]]
     then
-
         readarray -t existing_resources < <(echo ${existingSAs} | jq -c '.' )
         for item in "${existing_resources[@]}"; do
 
@@ -1085,11 +1071,11 @@ then
         readarray -t existing_resources < <(echo ${existing} | jq -c '.' )
         for item in "${existing_resources[@]}"; do
             moduleID=$(jq -c -r '.address '  <<< "$item")
-            resourceID=$(jq -c -r '.summary' <<< "$item" | awk -F'\"' '{print $2}')
-            echo "Trying to import" $resourceID "into" $moduleID
-            allParamsforImport=$(printf " -var-file=%s %s %s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter} " )
-            echo terraform -chdir="${terraform_module_directory}" import $allParamsforImport $moduleID $resourceID
-            terraform -chdir="${terraform_module_directory}" import $allParamsforImport $moduleID $resourceID
+            azureResourceID=$(jq -c -r '.summary' <<< "$item" | awk -F'\"' '{print $2}')
+            echo "Trying to import $azureResourceID into $moduleID"
+            allParamsforImport=$(printf " -var-file=%s %s %s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}" "${moduleID}"  "${azureResourceID}")
+            echo terraform -chdir="${terraform_module_directory}" import "${allParamsforImport}"
+            terraform -chdir="${terraform_module_directory}" import "${allParamsforImport}"
         done
 
         rerun_apply=1
@@ -1122,11 +1108,11 @@ then
             readarray -t existing_resources < <(echo ${existing} | jq -c '.' )
             for item in "${existing_resources[@]}"; do
                 moduleID=$(jq -c -r '.address '  <<< "$item")
-                resourceID=$(jq -c -r '.summary' <<< "$item" | awk -F'\"' '{print $2}')
-                echo "Trying to import" $resourceID "into" $moduleID
-                allParamsforImport=$(printf " -var-file=%s %s %s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter} " )
-                echo terraform -chdir="${terraform_module_directory}" import $allParamsforImport $moduleID $resourceID
-                terraform -chdir="${terraform_module_directory}" import $allParamsforImport $moduleID $resourceID
+            azureResourceID=$(jq -c -r '.summary' <<< "$item" | awk -F'\"' '{print $2}')
+            echo "Trying to import $azureResourceID into $moduleID"
+            allParamsforImport=$(printf " -var-file=%s %s %s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}" "${moduleID}"  "${azureResourceID}")
+            echo terraform -chdir="${terraform_module_directory}" import "${allParamsforImport}"
+            terraform -chdir="${terraform_module_directory}" import "${allParamsforImport}"
             done
 
             rerun_apply=1
@@ -1209,6 +1195,7 @@ if [ -f apply_output.json ]
 then
      rm apply_output.json
 fi
+
 
 workload_zone_prefix=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw workload_zone_prefix | tr -d \")
 save_config_var "workload_zone_prefix" "${workload_config_information}"
@@ -1336,23 +1323,23 @@ unset TF_DATA_DIR
 #################################################################################
 
 if [ "$useSAS" = "true" ] ; then
-  container_exists=$(az storage container exists --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --name tfvars --only-show-errors --query exists)
+    container_exists=$(az storage container exists --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --name tfvars --only-show-errors --query exists)
 else
-  container_exists=$(az storage container exists --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --name tfvars --only-show-errors --query exists --auth-mode login)
+    container_exists=$(az storage container exists --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --name tfvars --only-show-errors --query exists --auth-mode login)
 fi
 
 if [ "${container_exists}" == "false" ]; then
-  if [ "$useSAS" = "true" ] ; then
-    az storage container create --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --name tfvars --only-show-errors
-  else
-    az storage container create --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --name tfvars --auth-mode login --only-show-errors
-  fi
+    if [ "$useSAS" = "true" ] ; then
+        az storage container create --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --name tfvars --only-show-errors
+    else
+        az storage container create --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --name tfvars --auth-mode login --only-show-errors
+    fi
 fi
 
 if [ "$useSAS" = "true" ] ; then
-  az storage blob upload --file "${parameterfile}" --container-name tfvars/LANDSCAPE/"${key}" --name "${parameterfile_name}" --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}"  --no-progress --overwrite --only-show-errors  --output none
+    az storage blob upload --file "${parameterfile}" --container-name tfvars/LANDSCAPE/"${key}" --name "${parameterfile_name}" --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}"  --no-progress --overwrite --only-show-errors  --output none
 else
-  az storage blob upload --file "${parameterfile}" --container-name tfvars/LANDSCAPE/"${key}" --name "${parameterfile_name}" --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}"  --no-progress --overwrite --auth-mode login --only-show-errors  --output none
+    az storage blob upload --file "${parameterfile}" --container-name tfvars/LANDSCAPE/"${key}" --name "${parameterfile_name}" --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}"  --no-progress --overwrite --auth-mode login --only-show-errors  --output none
 fi
 
 
