@@ -839,6 +839,7 @@ if [ -n "${deployed_using_version}" ]; then
           then
             allParamsforImport=$(printf " -var-file=%s %s %s %s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}"  "${moduleID}" "${resourceID}")
             echo "Importing storage account state object:           ${moduleID} "
+            echo terraform -chdir="${terraform_module_directory}" import "$allParamsforImport"
             if ! terraform -chdir="${terraform_module_directory}" import "$allParamsforImport"
             then
               echo -e "$boldred Importing storage account state object:           ${moduleID} failed $resetformatting"
