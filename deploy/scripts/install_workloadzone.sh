@@ -792,7 +792,13 @@ if [ -n "${deployed_using_version}" ]; then
 
         moduleID='module.sap_landscape.azurerm_storage_account.storage_bootdiag[0]'
         terraform -chdir="${terraform_module_directory}" state show "${moduleID}"
-        terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 "^id" | xargs
+
+        terraform show -json | jq '.values.root_module.resources[] | select(.address=="$moduleID") | .values.id'
+        echo "-----------------"
+        terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 "id" | xargs
+        echo "-----------------"
+        terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 "^/storageAccounts/" | xargs
+        echo "-----------------"
         terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 "^id" | cut -d "=" -f2 | xargs
         azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 "^id" | awk -F'=' '{print $2}' | cut -d " " -f1 | xargs)
         echo "Terraform resource ID:  $moduleID"
