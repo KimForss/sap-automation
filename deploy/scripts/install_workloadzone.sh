@@ -793,9 +793,9 @@ if [ -n "${deployed_using_version}" ]; then
       terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep "id" | awk -F'=' '{print $2}' | xargs
       resourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep "id" | awk -F'=' '{print $2}' | xargs)
       if [ -n "${resourceID}" ]; then
-          echo "Removing storage account state object:           ${moduleID} "
-          terraform -chdir="${terraform_module_directory}" state rm ${moduleID}
-          allParamsforImport=$(printf " -var-file=%s %s %s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter} " )
+          # echo "Removing storage account state object:           ${moduleID} "
+          # terraform -chdir="${terraform_module_directory}" state rm ${moduleID}
+          allParamsforImport=$(printf " -var-file=%s %s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter} " )
           echo "Importing storage account state object:           ${moduleID} "
           terraform -chdir="${terraform_module_directory}" import $allParamsforImport $moduleID $resourceID
 
@@ -804,9 +804,9 @@ if [ -n "${deployed_using_version}" ]; then
       terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep "id" | awk -F'=' '{print $2}' | xargs
       resourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep "id" | awk -F'=' '{print $2}' | xargs)
       if [ -n "${resourceID}" ]; then
-          echo "Removing storage account state object:           ${moduleID} "
-          terraform -chdir="${terraform_module_directory}" state rm ${moduleID}
-          allParamsforImport=$(printf " -var-file=%s %s %s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter} " )
+          # echo "Removing storage account state object:           ${moduleID} "
+          # terraform -chdir="${terraform_module_directory}" state rm ${moduleID}
+          allParamsforImport=$(printf " -var-file=%s %s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter} " )
           echo "Importing storage account state object:           ${moduleID} "
           terraform -chdir="${terraform_module_directory}" import $allParamsforImport $moduleID $resourceID
 
@@ -815,9 +815,9 @@ if [ -n "${deployed_using_version}" ]; then
       moduleID='module.sap_landscape.azurerm_storage_account.install[0]'
       resourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep "id" | awk -F'=' '{print $2}' | xargs)
       if [ -n "${resourceID}" ]; then
-          echo "Removing storage account state object:           ${moduleID} "
-          terraform -chdir="${terraform_module_directory}" state rm ${moduleID}
-          allParamsforImport=$(printf " -var-file=%s %s %s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter} " )
+          # echo "Removing storage account state object:           ${moduleID} "
+          # terraform -chdir="${terraform_module_directory}" state rm ${moduleID}
+          allParamsforImport=$(printf " -var-file=%s %s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter} " )
           echo "Importing storage account state object:           ${moduleID} "
           terraform -chdir="${terraform_module_directory}" import $allParamsforImport $moduleID $resourceID
 
@@ -826,9 +826,9 @@ if [ -n "${deployed_using_version}" ]; then
       moduleID='module.sap_landscape.azurerm_storage_account.transport[0]'
       resourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep "id" | awk -F'=' '{print $2}' | xargs)
       if [ -n "${resourceID}" ]; then
-          echo "Removing storage account state object:           ${moduleID} "
-          terraform -chdir="${terraform_module_directory}" state rm ${moduleID}
-          allParamsforImport=$(printf " -var-file=%s %s %s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter} " )
+          # echo "Removing storage account state object:           ${moduleID} "
+          # terraform -chdir="${terraform_module_directory}" state rm ${moduleID}
+          allParamsforImport=$(printf " -var-file=%s %s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter} " )
           echo "Importing storage account state object:           ${moduleID} "
           terraform -chdir="${terraform_module_directory}" import $allParamsforImport $moduleID $resourceID
       fi
