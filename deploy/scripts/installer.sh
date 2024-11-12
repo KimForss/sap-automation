@@ -678,15 +678,16 @@ else
         # Remeadiating the Storage Accounts and File Shares
         if [ "${deployment_system}" == sap_library ]; then
 
+            ReplaceResourceInStateFile 'module.sap_library.azurerm_storage_account.storage_sapbits[0]' "${terraform_module_directory}"
+
+            ReplaceResourceInStateFile 'module.sap_library.azurerm_storage_container.storagecontainer_sapbits[0]'  "${terraform_module_directory}"
+
             ReplaceResourceInStateFile 'module.sap_library.azurerm_storage_account.storage_tfstate[0]' "${terraform_module_directory}"
 
             ReplaceResourceInStateFile 'module.sap_library.azurerm_storage_container.storagecontainer_tfstate[0]' "${terraform_module_directory}"
 
             ReplaceResourceInStateFile 'module.sap_library.azurerm_storage_container.storagecontainer_tfvars[0]' "${terraform_module_directory}"
 
-            ReplaceResourceInStateFile 'module.sap_library.azurerm_storage_account.storage_sapbits[0]' "${terraform_module_directory}"
-
-            ReplaceResourceInStateFile 'module.sap_library.azurerm_storage_container.storagecontainer_sapbits[0]'  "${terraform_module_directory}"
 
         fi
 
