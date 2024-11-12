@@ -805,6 +805,8 @@ if [ -n "${deployed_using_version}" ]; then
         echo "#########################################################################################"
         echo ""
 
+        # Remeadiating the Storage Accounts and File Shares
+
         moduleID='module.sap_landscape.azurerm_storage_account.storage_bootdiag[0]'
         azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 "id" | xargs | cut -d "=" -f2 | xargs)
         echo "Terraform resource ID:  $moduleID"
@@ -833,13 +835,15 @@ if [ -n "${deployed_using_version}" ]; then
             echo "Removing storage account state object:           ${moduleID} "
             if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"
             then
-                echo "Importing storage account state object:           ${moduleID} "
+                echo "Importing storage account state object:           ${moduleID}"
                 echo "terraform -chdir=${terraform_module_directory} import -var-file=${var_file} -var deployer_tfstate_key=${deployer_tfstate_key} -var tfstate_resource_id=${tfstate_resource_id} ${moduleID} ${azureResourceID}"
                 if ! terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var "deployer_tfstate_key=${deployer_tfstate_key}" -var "tfstate_resource_id=${tfstate_resource_id}" "${moduleID}" "${azureResourceID}"
                 then
                     echo -e "$boldred Importing storage account state object:           ${moduleID} failed $resetformatting"
                 fi
             fi
+        else
+            exit 65
         fi
 
         moduleID='module.sap_landscape.azurerm_storage_account.install[0]'
@@ -851,13 +855,15 @@ if [ -n "${deployed_using_version}" ]; then
             echo "Removing storage account state object:           ${moduleID} "
             if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"
             then
-                echo "Importing storage account state object:           ${moduleID} "
+                echo "Importing storage account state object:           ${moduleID}"
                 echo "terraform -chdir=${terraform_module_directory} import -var-file=${var_file} -var deployer_tfstate_key=${deployer_tfstate_key} -var tfstate_resource_id=${tfstate_resource_id} ${moduleID} ${azureResourceID}"
                 if ! terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var "deployer_tfstate_key=${deployer_tfstate_key}" -var "tfstate_resource_id=${tfstate_resource_id}" "${moduleID}" "${azureResourceID}"
                 then
                     echo -e "$boldred Importing storage account state object:           ${moduleID} failed $resetformatting"
                 fi
             fi
+        else
+            exit 65
         fi
 
         moduleID='module.sap_landscape.azurerm_storage_account.transport[0]'
@@ -869,14 +875,78 @@ if [ -n "${deployed_using_version}" ]; then
             echo "Removing storage account state object:           ${moduleID} "
             if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"
             then
-                echo "Importing storage account state object:           ${moduleID} "
+                echo "Importing storage account state object:           ${moduleID}"
                 echo "terraform -chdir=${terraform_module_directory} import -var-file=${var_file} -var deployer_tfstate_key=${deployer_tfstate_key} -var tfstate_resource_id=${tfstate_resource_id} ${moduleID} ${azureResourceID}"
                 if ! terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var "deployer_tfstate_key=${deployer_tfstate_key}" -var "tfstate_resource_id=${tfstate_resource_id}" "${moduleID}" "${azureResourceID}"
                 then
                     echo -e "$boldred Importing storage account state object:           ${moduleID} failed $resetformatting"
                 fi
             fi
+        else
+            exit 65
         fi
+
+        moduleID='module.sap_landscape.azurerm_storage_share.transport[0]'
+        azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 "id" | xargs | cut -d "=" -f2 | xargs)
+        echo "Terraform resource ID:  $moduleID"
+        echo "Azure resource ID:      $azureResourceID"
+
+        if [ -n "${azureResourceID}" ]; then
+            echo "Removing storage account state object:           ${moduleID} "
+            if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"
+            then
+                echo "Importing storage account state object:           ${moduleID}"
+                echo "terraform -chdir=${terraform_module_directory} import -var-file=${var_file} -var deployer_tfstate_key=${deployer_tfstate_key} -var tfstate_resource_id=${tfstate_resource_id} ${moduleID} ${azureResourceID}"
+                if ! terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var "deployer_tfstate_key=${deployer_tfstate_key}" -var "tfstate_resource_id=${tfstate_resource_id}" "${moduleID}" "${azureResourceID}"
+                then
+                    echo -e "$boldred Importing storage account state object:           ${moduleID} failed $resetformatting"
+                fi
+            fi
+        else
+            exit 65
+        fi
+
+        moduleID='module.sap_landscape.azurerm_storage_share.install[0]'
+        azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 "id" | xargs | cut -d "=" -f2 | xargs)
+        echo "Terraform resource ID:  $moduleID"
+        echo "Azure resource ID:      $azureResourceID"
+
+        if [ -n "${azureResourceID}" ]; then
+            echo "Removing storage account state object:           ${moduleID} "
+            if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"
+            then
+                echo "Importing storage account state object:           ${moduleID}"
+                echo "terraform -chdir=${terraform_module_directory} import -var-file=${var_file} -var deployer_tfstate_key=${deployer_tfstate_key} -var tfstate_resource_id=${tfstate_resource_id} ${moduleID} ${azureResourceID}"
+                if ! terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var "deployer_tfstate_key=${deployer_tfstate_key}" -var "tfstate_resource_id=${tfstate_resource_id}" "${moduleID}" "${azureResourceID}"
+                then
+                    echo -e "$boldred Importing storage account state object:           ${moduleID} failed $resetformatting"
+                fi
+            fi
+        else
+            exit 65
+        fi
+
+        moduleID='module.sap_landscape.azurerm_storage_share.install_smb[0]'
+        azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 "id" | xargs | cut -d "=" -f2 | xargs)
+        echo "Terraform resource ID:  $moduleID"
+        echo "Azure resource ID:      $azureResourceID"
+
+        if [ -n "${azureResourceID}" ]; then
+            echo "Removing storage account state object:           ${moduleID} "
+            if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"
+            then
+                echo "Importing storage account state object:           ${moduleID}"
+                echo "terraform -chdir=${terraform_module_directory} import -var-file=${var_file} -var deployer_tfstate_key=${deployer_tfstate_key} -var tfstate_resource_id=${tfstate_resource_id} ${moduleID} ${azureResourceID}"
+                if ! terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var "deployer_tfstate_key=${deployer_tfstate_key}" -var "tfstate_resource_id=${tfstate_resource_id}" "${moduleID}" "${azureResourceID}"
+                then
+                    echo -e "$boldred Importing storage account state object:           ${moduleID} failed $resetformatting"
+                fi
+            fi
+        else
+            exit 65
+        fi
+
+
     fi
 fi
 
@@ -1009,13 +1079,13 @@ if [ 1 == $ok_to_proceed ]; then
     fi
 
     if [ 1 == $called_from_ado ] ; then
-        terraform -chdir="${terraform_module_directory}" apply ${approve} -parallelism="${parallelism}" -no-color -var-file=${var_file} $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter -json  | tee -a  apply_output.json
+        terraform -chdir="${terraform_module_directory}" apply "${approve}" -parallelism="${parallelism}" -no-color -var-file=${var_file} $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter -json  | tee -a  apply_output.json
     else
         if [ -n "${approve}" ]
         then
-            terraform -chdir="${terraform_module_directory}" apply ${approve} -parallelism="${parallelism}" -var-file=${var_file} $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter -json  | tee -a  apply_output.json
+            terraform -chdir="${terraform_module_directory}" apply "${approve}" -parallelism="${parallelism}" -var-file="${var_file}" "$tfstate_parameter" "$deployer_tfstate_key_parameter" -json  | tee -a  apply_output.json
         else
-            terraform -chdir="${terraform_module_directory}" apply ${approve} -parallelism="${parallelism}" -var-file=${var_file} $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter
+            terraform -chdir="${terraform_module_directory}" apply "${approve}" -parallelism="${parallelism}" -var-file="${var_file}" "$tfstate_parameter" "$landscape_tfstate_key_parameter" "$deployer_tfstate_key_parameter"
         fi
 
     fi
@@ -1042,9 +1112,12 @@ then
             storageAccountID=$(echo "${resourceID}" | awk -F: '{print $4}' | cut -d ' ' -f 2 | tr -d ')' | tr -d '"' | xargs ); echo "storageAccountID: $storageAccountID"
             azureResourceID="/subscriptions/$subscriptionID/resourceGroups/$resourceGroupID/providers/Microsoft.Storage/storageAccounts/$storageAccountID"
             echo "Trying to import $azureResourceID into $moduleID"
-            allParamsforImport=$(printf " -var-file=%s %s %s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}" "${moduleID}" "${azureResourceID}")
-            echo "terraform -chdir=${terraform_module_directory} import $allParamsforImport"
-            terraform -chdir="${terraform_module_directory}" import $allParamsforImport
+            echo "terraform -chdir=${terraform_module_directory} import -var-file=${var_file} -var deployer_tfstate_key=${deployer_tfstate_key} -var tfstate_resource_id=${tfstate_resource_id} ${moduleID} ${azureResourceID}"
+            if ! terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var "deployer_tfstate_key=${deployer_tfstate_key}" -var "tfstate_resource_id=${tfstate_resource_id}" "${moduleID}" "${azureResourceID}"
+            then
+              echo -e "$boldred Importing storage account state object:           ${moduleID} failed $resetformatting"
+            fi
+
         done
 
         rerun_apply=1
@@ -1059,9 +1132,9 @@ then
         echo ""
         echo ""
         if [ 1 == $called_from_ado ] ; then
-            terraform -chdir="${terraform_module_directory}" apply ${approve} -parallelism="${parallelism}" -no-color -var-file=${var_file} $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter -json  | tee -a  apply_output.json
+            terraform -chdir="${terraform_module_directory}" apply "${approve}" -parallelism="${parallelism}" -no-color -var-file=${var_file} "$tfstate_parameter" $"deployer_tfstate_key_parameter "-json  | tee -a  apply_output.json
         else
-            terraform -chdir="${terraform_module_directory}" apply ${approve} -parallelism="${parallelism}" -var-file=${var_file} $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter -json  | tee -a  apply_output.json
+            terraform -chdir="${terraform_module_directory}" apply "${approve}" -parallelism="${parallelism}" -var-file=${var_file} "$tfstate_parameter"  "$deployer_tfstate_key_parameter" -json  | tee -a  apply_output.json
         fi
         return_value=$?
 
@@ -1077,9 +1150,12 @@ then
             moduleID=$(jq -c -r '.address '  <<< "$item")
             azureResourceID=$(jq -c -r '.summary' <<< "$item" | awk -F'\"' '{print $2}')
             echo "Trying to import $azureResourceID into $moduleID"
-            allParamsforImport=$(printf " -var-file=%s %s %s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}" "${moduleID}" "${azureResourceID}")
-            echo terraform -chdir="${terraform_module_directory}" import "${allParamsforImport}"
-            terraform -chdir="${terraform_module_directory}" import "${allParamsforImport}"
+            echo "terraform -chdir=${terraform_module_directory} import -var-file=${var_file} -var deployer_tfstate_key=${deployer_tfstate_key} -var tfstate_resource_id=${tfstate_resource_id} ${moduleID} ${azureResourceID}"
+            if ! terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var "deployer_tfstate_key=${deployer_tfstate_key}" -var "tfstate_resource_id=${tfstate_resource_id}" "${moduleID}" "${azureResourceID}"
+            then
+              echo -e "$boldred Importing storage account state object:           ${moduleID} failed $resetformatting"
+            fi
+
         done
 
         rerun_apply=1
@@ -1094,9 +1170,9 @@ then
         echo ""
         echo ""
         if [ 1 == $called_from_ado ] ; then
-            terraform -chdir="${terraform_module_directory}" apply ${approve} -parallelism="${parallelism}" -no-color -var-file=${var_file} $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter -json  | tee -a  apply_output.json
+            terraform -chdir="${terraform_module_directory}" apply "${approve}" -parallelism="${parallelism}" -no-color -var-file="${var_file}" "$tfstate_parameter" "$deployer_tfstate_key_parameter" -json  | tee -a  apply_output.json
         else
-            terraform -chdir="${terraform_module_directory}" apply ${approve} -parallelism="${parallelism}" -var-file=${var_file} $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter -json  | tee -a  apply_output.json
+            terraform -chdir="${terraform_module_directory}" apply "${approve}" -parallelism="${parallelism}" -var-file="${var_file}" "$tfstate_parameter"  "$deployer_tfstate_key_parameter" -json  | tee -a  apply_output.json
         fi
         return_value=$?
 
@@ -1114,9 +1190,12 @@ then
                 moduleID=$(jq -c -r '.address '  <<< "$item")
             azureResourceID=$(jq -c -r '.summary' <<< "$item" | awk -F'\"' '{print $2}')
             echo "Trying to import $azureResourceID into $moduleID"
-            allParamsforImport=$(printf " -var-file=%s %s %s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}" "${moduleID}" "${azureResourceID}")
-            echo terraform -chdir="${terraform_module_directory}" import "${allParamsforImport}"
-            terraform -chdir="${terraform_module_directory}" import "${allParamsforImport}"
+            echo "terraform -chdir=${terraform_module_directory} import -var-file=${var_file} -var deployer_tfstate_key=${deployer_tfstate_key} -var tfstate_resource_id=${tfstate_resource_id} ${moduleID} ${azureResourceID}"
+            if ! terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var "deployer_tfstate_key=${deployer_tfstate_key}" -var "tfstate_resource_id=${tfstate_resource_id}" "${moduleID}" "${azureResourceID}"
+            then
+              echo -e "$boldred Importing storage account state object:           ${moduleID} failed $resetformatting"
+            fi
+
             done
 
             rerun_apply=1
@@ -1132,9 +1211,9 @@ then
             echo ""
             echo ""
             if [ 1 == $called_from_ado ] ; then
-                terraform -chdir="${terraform_module_directory}" apply ${approve} -parallelism="${parallelism}" -no-color -var-file=${var_file} $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter -json  | tee -a  apply_output.json
+                terraform -chdir="${terraform_module_directory}" apply "${approve}" -parallelism="${parallelism}" -no-color -var-file="${var_file}" "$tfstate_parameter" "$deployer_tfstate_key_parameter" -json  | tee -a  apply_output.json
             else
-                terraform -chdir="${terraform_module_directory}" apply ${approve} -parallelism="${parallelism}" -var-file=${var_file} $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter -json  | tee -a  apply_output.json
+                terraform -chdir="${terraform_module_directory}" apply "${approve}" -parallelism="${parallelism}" -var-file="${var_file}" "$tfstate_parameter"  "$deployer_tfstate_key_parameter" -json  | tee -a  apply_output.json
             fi
             return_value=$?
         fi
