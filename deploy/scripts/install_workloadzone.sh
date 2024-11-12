@@ -314,6 +314,13 @@ param_dirname=$(pwd)
 var_file="${param_dirname}"/"${parameterfile}"
 export TF_DATA_DIR="${param_dirname}/.terraform"
 
+extra_vars=""
+
+if [ -f terraform.tfvars ]; then
+  extra_vars=" -var-file=${param_dirname}/terraform.tfvars "
+fi
+
+
 if [ -n "$subscription" ]
 then
     if is_valid_guid "$subscription"  ; then
@@ -427,7 +434,7 @@ then
         fi
     fi
 
-    tfstate_parameter=" -var tfstate_resource_id=${tfstate_resource_id}"
+    tfstate_parameter=" -var 'tfstate_resource_id=${tfstate_resource_id}'"
 else
     if [ -z "$REMOTE_STATE_RG" ]
     then
@@ -518,10 +525,10 @@ then
     if [ -n "${deployer_tfstate_key}" ]
     then
         # Deployer state was specified in $CONFIG_REPO_PATH/.sap_deployment_automation library config
-        deployer_tfstate_key_parameter=" -var deployer_tfstate_key=${deployer_tfstate_key}"
+        deployer_tfstate_key_parameter=" -var 'deployer_tfstate_key=${deployer_tfstate_key}'"
     fi
 else
-    deployer_tfstate_key_parameter=" -var deployer_tfstate_key=${deployer_tfstate_key}"
+    deployer_tfstate_key_parameter=" -var 'deployer_tfstate_key=${deployer_tfstate_key}'"
     save_config_vars "${workload_config_information}" deployer_tfstate_key
 fi
 
@@ -532,7 +539,7 @@ if [ -z "${REMOTE_STATE_SA}" ]; then
     load_config_vars "${workload_config_information}" "REMOTE_STATE_RG"
     load_config_vars "${workload_config_information}" "tfstate_resource_id"
 
-    tfstate_parameter=" -var tfstate_resource_id=${tfstate_resource_id}"
+    tfstate_parameter=" -var 'tfstate_resource_id=${tfstate_resource_id}'"
 
     if [ -n "${STATE_SUBSCRIPTION}" ]
     then
@@ -551,7 +558,7 @@ if [ -z "${REMOTE_STATE_RG}" ]; then
         load_config_vars "${workload_config_information}" "REMOTE_STATE_RG"
         load_config_vars "${workload_config_information}" "tfstate_resource_id"
 
-        tfstate_parameter=" -var tfstate_resource_id=${tfstate_resource_id}"
+        tfstate_parameter=" -var 'tfstate_resource_id=${tfstate_resource_id}'"
     else
         option="REMOTE_STATE_RG"
         read -p "Remote state resource group name:"  REMOTE_STATE_RG
@@ -561,11 +568,11 @@ fi
 
 if [ -n "${tfstate_resource_id}" ]
 then
-    tfstate_parameter=" -var tfstate_resource_id=${tfstate_resource_id}"
+    tfstate_parameter=" -var 'tfstate_resource_id=${tfstate_resource_id}'"
 else
     get_and_store_sa_details ${REMOTE_STATE_SA} "${workload_config_information}"
     load_config_vars "${workload_config_information}" "tfstate_resource_id"
-    tfstate_parameter=" -var tfstate_resource_id=${tfstate_resource_id}"
+    tfstate_parameter=" -var 'tfstate_resource_id=${tfstate_resource_id}'"
 fi
 
 terraform_module_directory="$(realpath "${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/run/"${deployment_system}" )"
@@ -798,7 +805,7 @@ if [ -n "${deployed_using_version}" ]; then
             echo "Removing storage account state object:           ${moduleID} "
             if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"
             then
-                allParamsforImport=$(printf " -var-file=%s %s %s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}" "${moduleID}"  "${azureResourceID}")
+                allParamsforImport=$(printf " -var-file=%s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${deployer_tfstate_key_parameter}" "${moduleID}"  "${azureResourceID}" | tr "  " " ")
                 echo "Importing storage account state object:           ${moduleID} "
 
                 echo "terraform -chdir=${terraform_module_directory} import $allParamsforImport"
@@ -821,7 +828,7 @@ if [ -n "${deployed_using_version}" ]; then
             echo "Removing storage account state object:           ${moduleID} "
             if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"
             then
-                allParamsforImport=$(printf " -var-file=%s %s %s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}" "${moduleID}"  "${azureResourceID}")
+                allParamsforImport=$(printf " -var-file=%s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${deployer_tfstate_key_parameter}" "${moduleID}"  "${azureResourceID}" | tr "  " " ")
                 echo "Importing storage account state object:           ${moduleID} "
 
                 echo "terraform -chdir=${terraform_module_directory} import $allParamsforImport"
@@ -842,7 +849,7 @@ if [ -n "${deployed_using_version}" ]; then
             echo "Removing storage account state object:           ${moduleID} "
             if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"
             then
-                allParamsforImport=$(printf " -var-file=%s %s %s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}" "${moduleID}"  "${azureResourceID}")
+                allParamsforImport=$(printf " -var-file=%s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${deployer_tfstate_key_parameter}" "${moduleID}"  "${azureResourceID}" | tr "  " " ")
                 echo "Importing storage account state object:           ${moduleID} "
 
                 echo "terraform -chdir=${terraform_module_directory} import $allParamsforImport"
@@ -863,7 +870,7 @@ if [ -n "${deployed_using_version}" ]; then
             echo "Removing storage account state object:           ${moduleID} "
             if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"
             then
-                allParamsforImport=$(printf " -var-file=%s %s %s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}" "${moduleID}"  "${azureResourceID}")
+                allParamsforImport=$(printf " -var-file=%s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${deployer_tfstate_key_parameter}" "${moduleID}"  "${azureResourceID}" | tr "  " " ")
                 echo "Importing storage account state object:           ${moduleID} "
 
                 echo "terraform -chdir=${terraform_module_directory} import $allParamsforImport"
