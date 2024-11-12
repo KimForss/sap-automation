@@ -266,11 +266,12 @@ resource "azurerm_storage_container" "storagecontainer_tfstate" {
                                            azurerm_private_dns_a_record.storage_tfstate_pep_a_record_registry
                                          ]
   name                                 = var.storage_account_tfstate.tfstate_blob_container.name
-                                           storage_account_name = local.sa_tfstate_exists ? (
-                                             data.azurerm_storage_account.storage_tfstate[0].name) : (
-                                             azurerm_storage_account.storage_tfstate[0].name
+  storage_account_id                   = local.sa_tfstate_exists ? (
+                                             data.azurerm_storage_account.storage_tfstate[0].id) : (
+                                             azurerm_storage_account.storage_tfstate[0].id
                                            )
   container_access_type                = "private"
+
 
 }
 
@@ -442,9 +443,9 @@ resource "azurerm_storage_container" "storagecontainer_sapbits" {
                                            azurerm_private_dns_a_record.storage_sapbits_pep_a_record_registry
                                          ]
   name                                 = var.storage_account_sapbits.sapbits_blob_container.name
-  storage_account_name                 = local.sa_sapbits_exists ? (
-                                             data.azurerm_storage_account.storage_sapbits[0].name) : (
-                                             azurerm_storage_account.storage_sapbits[0].name
+  storage_account_id                   = local.sa_sapbits_exists ? (
+                                             data.azurerm_storage_account.storage_sapbits[0].id) : (
+                                             azurerm_storage_account.storage_sapbits[0].id
                                            )
   container_access_type                = "private"
 }
@@ -556,8 +557,8 @@ data "azurerm_storage_container" "storagecontainer_tfvars" {
   provider                             = azurerm.main
   count                                = var.storage_account_tfstate.tfvars_blob_container.is_existing ? 1 : 0
   name                                 = var.storage_account_tfstate.tfvars_blob_container.name
-  storage_account_name                 = local.sa_tfstate_exists ? (
-                                           data.azurerm_storage_account.storage_tfstate[0].name) : (
-                                           azurerm_storage_account.storage_tfstate[0].name
+  storage_account_id                   = local.sa_tfstate_exists ? (
+                                           data.azurerm_storage_account.storage_tfstate[0].id) : (
+                                           azurerm_storage_account.storage_tfstate[0].id
                                          )
 }

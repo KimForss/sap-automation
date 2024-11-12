@@ -545,48 +545,48 @@ terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/run/"$
 export TF_DATA_DIR="${param_dirname}/.terraform"
 
 if [ ! -d ./.terraform/ ]; then
-  echo "New deployment"
-  deployment_parameter=" -var deployment=new "
+    echo "New deployment"
+    deployment_parameter=" -var deployment=new "
 
-  terraform -chdir="${terraform_module_directory}" init -upgrade=true \
+    terraform -chdir="${terraform_module_directory}" init -upgrade=true \
     --backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
     --backend-config "resource_group_name=${REMOTE_STATE_RG}" \
     --backend-config "storage_account_name=${REMOTE_STATE_SA}" \
     --backend-config "container_name=tfstate" \
     --backend-config "key=${key}.terraform.tfstate"
-  return_value=$?
+    return_value=$?
 
 else
 
-  temp=$(grep "\"type\": \"local\"" .terraform/terraform.tfstate)
-  if [ -n "${temp}" ]; then
-    terraform -chdir="${terraform_module_directory}" init -upgrade=true -force-copy \
-      --backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
-      --backend-config "resource_group_name=${REMOTE_STATE_RG}" \
-      --backend-config "storage_account_name=${REMOTE_STATE_SA}" \
-      --backend-config "container_name=tfstate" \
-      --backend-config "key=${key}.terraform.tfstate"
-    return_value=$?
+    temp=$(grep "\"type\": \"local\"" .terraform/terraform.tfstate)
+    if [ -n "${temp}" ]; then
+        terraform -chdir="${terraform_module_directory}" init -upgrade=true -force-copy \
+        --backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
+        --backend-config "resource_group_name=${REMOTE_STATE_RG}" \
+        --backend-config "storage_account_name=${REMOTE_STATE_SA}" \
+        --backend-config "container_name=tfstate" \
+        --backend-config "key=${key}.terraform.tfstate"
+        return_value=$?
 
-  else
-    echo ""
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo -e "#            $cyan The system has already been deployed and the statefile is in Azure $resetformatting       #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    echo ""
+    else
+        echo ""
+        echo "#########################################################################################"
+        echo "#                                                                                       #"
+        echo -e "#            $cyan The system has already been deployed and the statefile is in Azure $resetformatting       #"
+        echo "#                                                                                       #"
+        echo "#########################################################################################"
+        echo ""
 
-    check_output=1
-    terraform -chdir="${terraform_module_directory}" init -upgrade=true -reconfigure \
-      --backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
-      --backend-config "resource_group_name=${REMOTE_STATE_RG}" \
-      --backend-config "storage_account_name=${REMOTE_STATE_SA}" \
-      --backend-config "container_name=tfstate" \
-      --backend-config "key=${key}.terraform.tfstate"
-    return_value=$?
+        check_output=1
+        terraform -chdir="${terraform_module_directory}" init -upgrade=true -reconfigure \
+        --backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
+        --backend-config "resource_group_name=${REMOTE_STATE_RG}" \
+        --backend-config "storage_account_name=${REMOTE_STATE_SA}" \
+        --backend-config "container_name=tfstate" \
+        --backend-config "key=${key}.terraform.tfstate"
+        return_value=$?
 
-  fi
+    fi
 fi
 if [ 0 != $return_value ]; then
   echo "#########################################################################################"
@@ -599,72 +599,225 @@ if [ 0 != $return_value ]; then
   exit $return_value
 fi
 if [ 1 == $check_output ]; then
-  outputs=$(terraform -chdir="${terraform_module_directory}" output)
-  if echo "${outputs}" | grep "No outputs"; then
-    ok_to_proceed=true
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo -e "#                                 $cyan  New deployment $resetformatting                                      #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-
-    deployment_parameter=" -var deployment=new "
-
-  else
-    echo ""
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo -e "#                          $cyan Existing deployment was detected$resetformatting                            #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    echo ""
-    # allParams=$(printf " -var-file=%s %s %s %s %s %s %s" "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}" )
-    # terraform -chdir="${terraform_module_directory}" refresh $allParams
-
-    deployment_parameter=" "
-
-    deployed_using_version=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw automation_version | tr -d \")
-
-    if [ -z "${deployed_using_version}" ]; then
-      echo ""
-      echo "#########################################################################################"
-      echo "#                                                                                       #"
-      echo -e "#   $boldred The environment was deployed using an older version of the Terrafrom templates$resetformatting     #"
-      echo "#                                                                                       #"
-      echo "#                               !!! Risk for Data loss !!!                              #"
-      echo "#                                                                                       #"
-      echo "#        Please inspect the output of Terraform plan carefully before proceeding        #"
-      echo "#                                                                                       #"
-      echo "#########################################################################################"
-
-      if [ 1 == $called_from_ado ]; then
-        unset TF_DATA_DIR
-        exit 1
-      fi
-      read -p "Do you want to continue Y/N?" ans
-      answer=${ans^^}
-      if [ $answer == 'Y' ]; then
+    outputs=$(terraform -chdir="${terraform_module_directory}" output)
+    if echo "${outputs}" | grep "No outputs"; then
         ok_to_proceed=true
-      else
-        unset TF_DATA_DIR
-        exit 1
-      fi
+        echo "#########################################################################################"
+        echo "#                                                                                       #"
+        echo -e "#                                 $cyan  New deployment $resetformatting                                      #"
+        echo "#                                                                                       #"
+        echo "#########################################################################################"
+
+        deployment_parameter=" -var deployment=new "
+
     else
-      version_parameter=" -var terraform_template_version=${deployed_using_version} "
+        echo ""
+        echo "#########################################################################################"
+        echo "#                                                                                       #"
+        echo -e "#                          $cyan Existing deployment was detected$resetformatting                            #"
+        echo "#                                                                                       #"
+        echo "#########################################################################################"
+        echo ""
+        # allParams=$(printf " -var-file=%s %s %s %s %s %s %s" "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}" )
+        # terraform -chdir="${terraform_module_directory}" refresh $allParams
 
-      printf -v val %-.20s "$deployed_using_version"
-      echo ""
-      echo "#########################################################################################"
-      echo "#                                                                                       #"
-      echo -e "#              $cyan Deployed using the Terraform templates version: $val $resetformatting               #"
-      echo "#                                                                                       #"
-      echo "#########################################################################################"
-      echo ""
-      #Add version logic here
+        deployment_parameter=" "
+
+        deployed_using_version=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw automation_version | tr -d \")
+
+        if [ -z "${deployed_using_version}" ]; then
+            echo ""
+            echo "#########################################################################################"
+            echo "#                                                                                       #"
+            echo -e "#   $boldred The environment was deployed using an older version of the Terrafrom templates$resetformatting     #"
+            echo "#                                                                                       #"
+            echo "#                               !!! Risk for Data loss !!!                              #"
+            echo "#                                                                                       #"
+            echo "#        Please inspect the output of Terraform plan carefully before proceeding        #"
+            echo "#                                                                                       #"
+            echo "#########################################################################################"
+
+            if [ 1 == $called_from_ado ]; then
+                unset TF_DATA_DIR
+                exit 1
+            fi
+            read -p "Do you want to continue Y/N?" ans
+            answer=${ans^^}
+            if [ $answer == 'Y' ]; then
+                ok_to_proceed=true
+            else
+                unset TF_DATA_DIR
+                exit 1
+            fi
+        else
+            version_parameter=" -var terraform_template_version=${deployed_using_version} "
+
+            printf -v val %-.20s "$deployed_using_version"
+            echo ""
+            echo "#########################################################################################"
+            echo "#                                                                                       #"
+            echo -e "#              $cyan Deployed using the Terraform templates version: $val $resetformatting               #"
+            echo "#                                                                                       #"
+            echo "#########################################################################################"
+            echo ""
+            version_compare "${deployed_using_version}" "3.13.2.0"
+            older_version=$?
+            if [ 2 == $older_version ]; then
+                echo ""
+                echo "#########################################################################################"
+                echo "#                                                                                       #"
+                echo -e "#           $boldred  Deployed using an older version $resetformatting                                          #"
+                echo "#                                                                                       #"
+                echo "#########################################################################################"
+                echo ""
+
+                # Remeadiating the Storage Accounts and File Shares
+                if [ "${deployment_system}" == sap_library ]; then
+
+                    moduleID='module.sap_library.azurerm_storage_account.storage_tfstate[0]'
+                    azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 "id" | xargs | cut -d "=" -f2 | xargs)
+                    echo "Terraform resource ID:  $moduleID"
+                    echo "Azure resource ID:      $azureResourceID"
+                    if [ -n "${azureResourceID}" ]; then
+                        echo "Removing storage account state object:           ${moduleID} "
+                        if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"
+                        then
+                            echo "Importing storage account state object:           ${moduleID}"
+                            echo "terraform -chdir=${terraform_module_directory} import -var-file=${var_file} -var deployer_tfstate_key=${deployer_tfstate_key} -var tfstate_resource_id=${tfstate_resource_id} ${moduleID} ${azureResourceID}"
+                            if ! terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var "deployer_tfstate_key=${deployer_tfstate_key}" -var "tfstate_resource_id=${tfstate_resource_id}" "${moduleID}" "${azureResourceID}"
+                            then
+                                echo -e "$boldred Importing storage account state object:           ${moduleID} failed $resetformatting"
+                            fi
+                        fi
+                    fi
+
+                    moduleID='module.sap_library.azurerm_storage_account.storage_sapbits[0]'
+                    azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 "id" | xargs | cut -d "=" -f2 | xargs)
+                    echo "Terraform resource ID:  $moduleID"
+                    echo "Azure resource ID:      $azureResourceID"
+                    if [ -n "${azureResourceID}" ]; then
+                        echo "Removing storage account state object:           ${moduleID} "
+                        if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"
+                        then
+                            echo "Importing storage account state object:           ${moduleID}"
+                            echo "terraform -chdir=${terraform_module_directory} import -var-file=${var_file} -var deployer_tfstate_key=${deployer_tfstate_key} -var tfstate_resource_id=${tfstate_resource_id} ${moduleID} ${azureResourceID}"
+                            if ! terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var "deployer_tfstate_key=${deployer_tfstate_key}" -var "tfstate_resource_id=${tfstate_resource_id}" "${moduleID}" "${azureResourceID}"
+                            then
+                                echo -e "$boldred Importing storage account state object:           ${moduleID} failed $resetformatting"
+                            fi
+                        fi
+                    fi
+                fi
+
+                if [ "${deployment_system}" == sap_deployer ]; then
+
+                    moduleID='module.sap_deployer.azurerm_storage_account.deployer[0]'
+                    azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 "id" | xargs | cut -d "=" -f2 | xargs)
+                    echo "Terraform resource ID:  $moduleID"
+                    echo "Azure resource ID:      $azureResourceID"
+                    if [ -n "${azureResourceID}" ]; then
+                        echo "Removing storage account state object:           ${moduleID} "
+                        if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"
+                        then
+                            echo "Importing storage account state object:           ${moduleID}"
+                            echo "terraform -chdir=${terraform_module_directory} import -var-file=${var_file} -var deployer_tfstate_key=${deployer_tfstate_key} -var tfstate_resource_id=${tfstate_resource_id} ${moduleID} ${azureResourceID}"
+                            if ! terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var "deployer_tfstate_key=${deployer_tfstate_key}" -var "tfstate_resource_id=${tfstate_resource_id}" "${moduleID}" "${azureResourceID}"
+                            then
+                                echo -e "$boldred Importing storage account state object:           ${moduleID} failed $resetformatting"
+                            fi
+                        fi
+                    fi
+                fi
+
+                if [ "${deployment_system}" == sap_system ]; then
+
+                    moduleID='module.sap_deployer.azurerm_storage_account.sapmnt[0]'
+                    azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 "id" | xargs | cut -d "=" -f2 | xargs)
+                    echo "Terraform resource ID:  $moduleID"
+                    echo "Azure resource ID:      $azureResourceID"
+                    if [ -n "${azureResourceID}" ]; then
+                        echo "Removing storage account state object:           ${moduleID} "
+                        if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"
+                        then
+                            echo "Importing storage account state object:           ${moduleID}"
+                            echo "terraform -chdir=${terraform_module_directory} import -var-file=${var_file} -var deployer_tfstate_key=${deployer_tfstate_key} -var tfstate_resource_id=${tfstate_resource_id} ${moduleID} ${azureResourceID}"
+                            if ! terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var "deployer_tfstate_key=${deployer_tfstate_key}" -var "tfstate_resource_id=${tfstate_resource_id}" "${moduleID}" "${azureResourceID}"
+                            then
+                                echo -e "$boldred Importing storage account state object:           ${moduleID} failed $resetformatting"
+                            fi
+                        fi
+                    fi
+
+                    moduleID='module.sap_deployer.azurerm_storage_account.hanashared[0]'
+                    azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 "id" | xargs | cut -d "=" -f2 | xargs)
+                    echo "Terraform resource ID:  $moduleID"
+                    echo "Azure resource ID:      $azureResourceID"
+                    if [ -n "${azureResourceID}" ]; then
+                        echo "Removing storage account state object:           ${moduleID} "
+                        if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"
+                        then
+                            echo "Importing storage account state object:           ${moduleID}"
+                            echo "terraform -chdir=${terraform_module_directory} import -var-file=${var_file} -var deployer_tfstate_key=${deployer_tfstate_key} -var tfstate_resource_id=${tfstate_resource_id} ${moduleID} ${azureResourceID}"
+                            if ! terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var "deployer_tfstate_key=${deployer_tfstate_key}" -var "tfstate_resource_id=${tfstate_resource_id}" "${moduleID}" "${azureResourceID}"
+                            then
+                                echo -e "$boldred Importing storage account state object:           ${moduleID} failed $resetformatting"
+                            fi
+                        fi
+                    fi
+                    moduleID='module.sap_deployer.azurerm_storage_account.hanashared[1]'
+                    azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 "id" | xargs | cut -d "=" -f2 | xargs)
+                    echo "Terraform resource ID:  $moduleID"
+                    echo "Azure resource ID:      $azureResourceID"
+                    if [ -n "${azureResourceID}" ]; then
+                        echo "Removing storage account state object:           ${moduleID} "
+                        if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"
+                        then
+                            echo "Importing storage account state object:           ${moduleID}"
+                            echo "terraform -chdir=${terraform_module_directory} import -var-file=${var_file} -var deployer_tfstate_key=${deployer_tfstate_key} -var tfstate_resource_id=${tfstate_resource_id} ${moduleID} ${azureResourceID}"
+                            if ! terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var "deployer_tfstate_key=${deployer_tfstate_key}" -var "tfstate_resource_id=${tfstate_resource_id}" "${moduleID}" "${azureResourceID}"
+                            then
+                                echo -e "$boldred Importing storage account state object:           ${moduleID} failed $resetformatting"
+                            fi
+                        fi
+                    fi
+                    moduleID='module.sap_deployer.azurerm_storage_account.hanashared[2]'
+                    azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 "id" | xargs | cut -d "=" -f2 | xargs)
+                    echo "Terraform resource ID:  $moduleID"
+                    echo "Azure resource ID:      $azureResourceID"
+                    if [ -n "${azureResourceID}" ]; then
+                        echo "Removing storage account state object:           ${moduleID} "
+                        if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"
+                        then
+                            echo "Importing storage account state object:           ${moduleID}"
+                            echo "terraform -chdir=${terraform_module_directory} import -var-file=${var_file} -var deployer_tfstate_key=${deployer_tfstate_key} -var tfstate_resource_id=${tfstate_resource_id} ${moduleID} ${azureResourceID}"
+                            if ! terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var "deployer_tfstate_key=${deployer_tfstate_key}" -var "tfstate_resource_id=${tfstate_resource_id}" "${moduleID}" "${azureResourceID}"
+                            then
+                                echo -e "$boldred Importing storage account state object:           ${moduleID} failed $resetformatting"
+                            fi
+                        fi
+                    fi
+                    moduleID='module.sap_deployer.azurerm_storage_account.hanashared[3]'
+                    azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 "id" | xargs | cut -d "=" -f2 | xargs)
+                    echo "Terraform resource ID:  $moduleID"
+                    echo "Azure resource ID:      $azureResourceID"
+                    if [ -n "${azureResourceID}" ]; then
+                        echo "Removing storage account state object:           ${moduleID} "
+                        if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"
+                        then
+                            echo "Importing storage account state object:           ${moduleID}"
+                            echo "terraform -chdir=${terraform_module_directory} import -var-file=${var_file} -var deployer_tfstate_key=${deployer_tfstate_key} -var tfstate_resource_id=${tfstate_resource_id} ${moduleID} ${azureResourceID}"
+                            if ! terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var "deployer_tfstate_key=${deployer_tfstate_key}" -var "tfstate_resource_id=${tfstate_resource_id}" "${moduleID}" "${azureResourceID}"
+                            then
+                                echo -e "$boldred Importing storage account state object:           ${moduleID} failed $resetformatting"
+                            fi
+                        fi
+                    fi
+                fi
+
+            fi
+        fi
     fi
-  fi
 fi
-
 echo ""
 echo "#########################################################################################"
 echo "#                                                                                       #"
