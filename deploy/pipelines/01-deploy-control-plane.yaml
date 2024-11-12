@@ -702,7 +702,7 @@ stages:
                             export ARM_USE_MSI=true
                             export ARM_USE_AZUREAD=true
                             unset ARM_CLIENT_SECRET
-                            az account set --subscription $ARM_SUBSCRIPTION_ID
+                            az account set --subscription $CP_ARM_SUBSCRIPTION_ID
                         fi
                     fi
 
@@ -775,7 +775,7 @@ stages:
                         $SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh \
                         --deployer_parameter_file "${deployer_configfile}"              \
                         --library_parameter_file "${library_configfile}"                \
-                        --subscription $STATE_SUBSCRIPTION                              \
+                        --subscription $CP_ARM_SUBSCRIPTION_ID                          \
                         --spn_secret "${ARM_CLIENT_SECRET}"                             \
                         --tenant_id "${ARM_TENANT_ID}"                                  \
                         --auto-approve --ado                                            \
@@ -787,7 +787,7 @@ stages:
                         ${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/deploy_controlplane.sh  \
                         --deployer_parameter_file "${deployer_configfile}"                 \
                         --library_parameter_file "${library_configfile}"                   \
-                        --subscription "${STATE_SUBSCRIPTION}" --ado --msi                 \
+                        --subscription $CP_ARM_SUBSCRIPTION_ID --ado --msi                 \
                         "${storage_account_parameter}" "${keyvault_parameter}"             \
                         --auto-approve
 
