@@ -14,7 +14,7 @@ resource "time_offset" "secret_expiry_date" {
 resource "azurerm_key_vault_secret" "saplibrary_access_key" {
   provider                             = azurerm.deployer
 
-  count                                = length(var.key_vault.kv_spn_id) > 0 && var.storage_account_sapbits.shared_access_key_enabled ? 1 : 0
+  count                                = var.storage_account_sapbits.shared_access_key_enabled && length(try(var.key_vault.kv_spn_id, "")) > 0 ? 1 : 0
   depends_on                           = [azurerm_private_endpoint.kv_user, azurerm_storage_account.storage_sapbits]
   name                                 = "sapbits-access-key"
   value                                = local.sa_sapbits_exists ? (
@@ -32,7 +32,7 @@ resource "azurerm_key_vault_secret" "saplibrary_access_key" {
 
 resource "azurerm_key_vault_secret" "sapbits_location_base_path" {
   provider                             = azurerm.deployer
-  count                                = length(var.key_vault.kv_spn_id) > 0 ? 1 : 0
+  count                                = length(try(var.key_vault.kv_spn_id, "")) > 0 ? 1 : 0
   depends_on                           = [azurerm_private_endpoint.kv_user, azurerm_storage_account.storage_sapbits]
   name                                 = "sapbits-location-base-path"
   value                                = var.storage_account_sapbits.sapbits_blob_container.is_existing ? (
@@ -49,7 +49,7 @@ resource "azurerm_key_vault_secret" "sapbits_location_base_path" {
 
 resource "azurerm_key_vault_secret" "sa_connection_string" {
   provider                             = azurerm.deployer
-  count                                = length(var.key_vault.kv_spn_id) > 0 ? 1 : 0
+  count                                = length(try(var.key_vault.kv_spn_id, "")) > 0 ? 1 : 0
   depends_on                           = [azurerm_private_endpoint.kv_user, azurerm_storage_account.storage_sapbits]
   name                                 = "sa-connection-string"
   value                                = local.sa_tfstate_exists ? (
@@ -65,7 +65,7 @@ resource "azurerm_key_vault_secret" "sa_connection_string" {
 
 resource "azurerm_key_vault_secret" "tfstate" {
   provider                             = azurerm.deployer
-  count                                = length(var.key_vault.kv_spn_id) > 0 ? 1 : 0
+  count                                 = length(try(var.key_vault.kv_spn_id, "")) > 0 ? 1 : 0
   depends_on                           = [azurerm_private_endpoint.kv_user, azurerm_storage_account.storage_sapbits]
   name                                 = "tfstate"
   value                                = var.use_private_endpoint ? (
