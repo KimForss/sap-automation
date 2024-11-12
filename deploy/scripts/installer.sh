@@ -690,6 +690,7 @@ else
                     if ! terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var "deployer_tfstate_key=${deployer_tfstate_key}" -var "tfstate_resource_id=${tfstate_resource_id}" "${moduleID}" "${azureResourceID}"
                     then
                         echo -e "$boldred Importing storage account state object:           ${moduleID} failed $resetformatting"
+                        exit 65
                     fi
                 fi
             fi
@@ -708,6 +709,7 @@ else
                     if ! terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var "deployer_tfstate_key=${deployer_tfstate_key}" -var "tfstate_resource_id=${tfstate_resource_id}" "${moduleID}" "${azureResourceID}"
                     then
                         echo -e "$boldred Importing storage account state object:           ${moduleID} failed $resetformatting"
+                        exit 65
                     fi
                 fi
             fi
@@ -725,6 +727,7 @@ else
                     if ! terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var "deployer_tfstate_key=${deployer_tfstate_key}" -var "tfstate_resource_id=${tfstate_resource_id}" "${moduleID}" "${azureResourceID}"
                     then
                         echo -e "$boldred Importing storage account state object:           ${moduleID} failed $resetformatting"
+                        exit 65
                     fi
                 fi
             fi
@@ -742,6 +745,7 @@ else
                     if ! terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var "tfstate_resource_id=${tfstate_resource_id}" "${moduleID}" "${azureResourceID}"
                     then
                         echo -e "$boldred Importing storage account state object:           ${moduleID} failed $resetformatting"
+                        exit 65
                     fi
                 fi
             fi
@@ -759,6 +763,7 @@ else
                     if ! terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var "deployer_tfstate_key=${deployer_tfstate_key}" -var "tfstate_resource_id=${tfstate_resource_id}" "${moduleID}" "${azureResourceID}"
                     then
                         echo -e "$boldred Importing storage account state object:           ${moduleID} failed $resetformatting"
+                        exit 65
                     fi
                 fi
             fi
@@ -779,6 +784,7 @@ else
                     if ! terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var "deployer_tfstate_key=${deployer_tfstate_key}" -var "tfstate_resource_id=${tfstate_resource_id}" "${moduleID}" "${azureResourceID}"
                     then
                         echo -e "$boldred Importing storage account state object:           ${moduleID} failed $resetformatting"
+                        exit 65
                     fi
                 fi
             fi
@@ -799,6 +805,7 @@ else
                     if ! terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var "deployer_tfstate_key=${deployer_tfstate_key}" -var "tfstate_resource_id=${tfstate_resource_id}" "${moduleID}" "${azureResourceID}"
                     then
                         echo -e "$boldred Importing storage account state object:           ${moduleID} failed $resetformatting"
+                        exit 65
                     fi
                 fi
             fi
@@ -816,6 +823,7 @@ else
                     if ! terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var "deployer_tfstate_key=${deployer_tfstate_key}" -var "tfstate_resource_id=${tfstate_resource_id}" "${moduleID}" "${azureResourceID}"
                     then
                         echo -e "$boldred Importing storage account state object:           ${moduleID} failed $resetformatting"
+                        exit 65
                     fi
                 fi
             fi
@@ -832,6 +840,7 @@ else
                     if ! terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var "deployer_tfstate_key=${deployer_tfstate_key}" -var "tfstate_resource_id=${tfstate_resource_id}" "${moduleID}" "${azureResourceID}"
                     then
                         echo -e "$boldred Importing storage account state object:           ${moduleID} failed $resetformatting"
+                        exit 65
                     fi
                 fi
             fi
@@ -848,6 +857,7 @@ else
                     if ! terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var "deployer_tfstate_key=${deployer_tfstate_key}" -var "tfstate_resource_id=${tfstate_resource_id}" "${moduleID}" "${azureResourceID}"
                     then
                         echo -e "$boldred Importing storage account state object:           ${moduleID} failed $resetformatting"
+                        exit 65
                     fi
                 fi
             fi
@@ -864,6 +874,7 @@ else
                     if ! terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var "deployer_tfstate_key=${deployer_tfstate_key}" -var "tfstate_resource_id=${tfstate_resource_id}" "${moduleID}" "${azureResourceID}"
                     then
                         echo -e "$boldred Importing storage account state object:           ${moduleID} failed $resetformatting"
+                        exit 65
                     fi
                 fi
             fi
