@@ -695,6 +695,8 @@ else
             fi
 
             moduleID='module.sap_library.azurerm_storage_container.storagecontainer_tfstate[0]'
+            terraform -chdir="${terraform_module_directory}" state show "${moduleID}"
+            exit 65
             azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 "id" | xargs | cut -d "=" -f2 | xargs)
             echo "Terraform resource ID:  $moduleID"
             echo "Azure resource ID:      $azureResourceID"
