@@ -808,7 +808,7 @@ if [ -n "${deployed_using_version}" ]; then
         # Remeadiating the Storage Accounts and File Shares
 
         moduleID='module.sap_landscape.azurerm_storage_account.storage_bootdiag[0]'
-        azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 "id" | xargs | cut -d "=" -f2 | xargs)
+        azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 " id " | xargs | cut -d "=" -f2 | xargs)
         echo "Terraform resource ID:  $moduleID"
         echo "Azure resource ID:      $azureResourceID"
         if [ -n "${azureResourceID}" ]; then
@@ -827,7 +827,7 @@ if [ -n "${deployed_using_version}" ]; then
         fi
 
         moduleID='module.sap_landscape.azurerm_storage_account.witness_storage[0]'
-        azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 "id" | xargs | cut -d "=" -f2 | xargs)
+        azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 " id " | xargs | cut -d "=" -f2 | xargs)
         echo "Terraform resource ID:  $moduleID"
         echo "Azure resource ID:      $azureResourceID"
 
@@ -847,7 +847,7 @@ if [ -n "${deployed_using_version}" ]; then
         fi
 
         moduleID='module.sap_landscape.azurerm_storage_account.install[0]'
-        azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 "id" | xargs | cut -d "=" -f2 | xargs)
+        azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 " id " | xargs | cut -d "=" -f2 | xargs)
         echo "Terraform resource ID:  $moduleID"
         echo "Azure resource ID:      $azureResourceID"
 
@@ -867,7 +867,7 @@ if [ -n "${deployed_using_version}" ]; then
         fi
 
         moduleID='module.sap_landscape.azurerm_storage_account.transport[0]'
-        azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 "id" | xargs | cut -d "=" -f2 | xargs)
+        azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 " id " | xargs | cut -d "=" -f2 | xargs)
         echo "Terraform resource ID:  $moduleID"
         echo "Azure resource ID:      $azureResourceID"
 
@@ -887,7 +887,7 @@ if [ -n "${deployed_using_version}" ]; then
         fi
 
         moduleID='module.sap_landscape.azurerm_storage_share.transport[0]'
-        azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 "id" | xargs | cut -d "=" -f2 | xargs)
+        azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 " id " | xargs | cut -d "=" -f2 | xargs)
         echo "Terraform resource ID:  $moduleID"
         echo "Azure resource ID:      $azureResourceID"
 
@@ -907,7 +907,7 @@ if [ -n "${deployed_using_version}" ]; then
         fi
 
         moduleID='module.sap_landscape.azurerm_storage_share.install[0]'
-        azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 "id" | xargs | cut -d "=" -f2 | xargs)
+        azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 " id " | xargs | cut -d "=" -f2 | xargs)
         echo "Terraform resource ID:  $moduleID"
         echo "Azure resource ID:      $azureResourceID"
 
@@ -927,7 +927,7 @@ if [ -n "${deployed_using_version}" ]; then
         fi
 
         moduleID='module.sap_landscape.azurerm_storage_share.install_smb[0]'
-        azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 "id" | xargs | cut -d "=" -f2 | xargs)
+        azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 " id " | xargs | cut -d "=" -f2 | xargs)
         echo "Terraform resource ID:  $moduleID"
         echo "Azure resource ID:      $azureResourceID"
 

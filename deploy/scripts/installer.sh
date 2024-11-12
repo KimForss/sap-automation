@@ -678,7 +678,7 @@ else
         if [ "${deployment_system}" == sap_library ]; then
 
             moduleID='module.sap_library.azurerm_storage_account.storage_tfstate[0]'
-            azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 "id" | xargs | cut -d "=" -f2 | xargs)
+            azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 " id " | xargs | cut -d "=" -f2 | xargs)
             echo "Terraform resource ID:  $moduleID"
             echo "Azure resource ID:      $azureResourceID"
             if [ -n "${azureResourceID}" ]; then
@@ -696,7 +696,7 @@ else
 
             moduleID='module.sap_library.azurerm_storage_container.storagecontainer_tfstate[0]'
             terraform -chdir="${terraform_module_directory}" state show "${moduleID}"
-            azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 "id" | xargs | cut -d "=" -f2 | xargs)
+            azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 " id " | xargs | cut -d "=" -f2 | xargs)
             echo "Terraform resource ID:  $moduleID"
             echo "Azure resource ID:      $azureResourceID"
             if [ -n "${azureResourceID}" ]; then
@@ -713,7 +713,7 @@ else
             fi
 
             moduleID='module.sap_library.azurerm_storage_container.storagecontainer_tfvars[0]'
-            azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 "id" | xargs | cut -d "=" -f2 | xargs)
+            azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 " id " | xargs | cut -d "=" -f2 | xargs)
             echo "Terraform resource ID:  $moduleID"
             echo "Azure resource ID:      $azureResourceID"
             if [ -n "${azureResourceID}" ]; then
@@ -730,7 +730,7 @@ else
             fi
 
             moduleID='module.sap_library.azurerm_storage_account.storage_sapbits[0]'
-            azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 "id" | xargs | cut -d "=" -f2 | xargs)
+            azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 " id " | xargs | cut -d "=" -f2 | xargs)
             echo "Terraform resource ID:  $moduleID"
             echo "Azure resource ID:      $azureResourceID"
             if [ -n "${azureResourceID}" ]; then
@@ -747,7 +747,7 @@ else
             fi
 
             moduleID='module.sap_library.azurerm_storage_container.storagecontainer_sapbits[0]'
-            azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 "id" | xargs | cut -d "=" -f2 | xargs)
+            azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 " id " | xargs | cut -d "=" -f2 | xargs)
             echo "Terraform resource ID:  $moduleID"
             echo "Azure resource ID:      $azureResourceID"
             if [ -n "${azureResourceID}" ]; then
@@ -767,7 +767,7 @@ else
         if [ "${deployment_system}" == sap_deployer ]; then
 
             moduleID='module.sap_deployer.azurerm_storage_account.deployer[0]'
-            azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 "id" | xargs | cut -d "=" -f2 | xargs)
+            azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 " id " | xargs | cut -d "=" -f2 | xargs)
             echo "Terraform resource ID:  $moduleID"
             echo "Azure resource ID:      $azureResourceID"
             if [ -n "${azureResourceID}" ]; then
@@ -787,7 +787,7 @@ else
         if [ "${deployment_system}" == sap_system ]; then
 
             moduleID='module.sap_deployer.azurerm_storage_account.sapmnt[0]'
-            azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 "id" | xargs | cut -d "=" -f2 | xargs)
+            azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 " id " | xargs | cut -d "=" -f2 | xargs)
             echo "Terraform resource ID:  $moduleID"
             echo "Azure resource ID:      $azureResourceID"
             if [ -n "${azureResourceID}" ]; then
@@ -804,7 +804,7 @@ else
             fi
 
             moduleID='module.sap_deployer.azurerm_storage_account.hanashared[0]'
-            azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 "id" | xargs | cut -d "=" -f2 | xargs)
+            azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 " id " | xargs | cut -d "=" -f2 | xargs)
             echo "Terraform resource ID:  $moduleID"
             echo "Azure resource ID:      $azureResourceID"
             if [ -n "${azureResourceID}" ]; then
@@ -820,7 +820,7 @@ else
                 fi
             fi
             moduleID='module.sap_deployer.azurerm_storage_account.hanashared[1]'
-            azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 "id" | xargs | cut -d "=" -f2 | xargs)
+            azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 " id " | xargs | cut -d "=" -f2 | xargs)
             echo "Terraform resource ID:  $moduleID"
             echo "Azure resource ID:      $azureResourceID"
             if [ -n "${azureResourceID}" ]; then
@@ -836,7 +836,7 @@ else
                 fi
             fi
             moduleID='module.sap_deployer.azurerm_storage_account.hanashared[2]'
-            azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 "id" | xargs | cut -d "=" -f2 | xargs)
+            azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 " id " | xargs | cut -d "=" -f2 | xargs)
             echo "Terraform resource ID:  $moduleID"
             echo "Azure resource ID:      $azureResourceID"
             if [ -n "${azureResourceID}" ]; then
@@ -852,7 +852,7 @@ else
                 fi
             fi
             moduleID='module.sap_deployer.azurerm_storage_account.hanashared[3]'
-            azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 "id" | xargs | cut -d "=" -f2 | xargs)
+            azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 " id " | xargs | cut -d "=" -f2 | xargs)
             echo "Terraform resource ID:  $moduleID"
             echo "Azure resource ID:      $azureResourceID"
             if [ -n "${azureResourceID}" ]; then
