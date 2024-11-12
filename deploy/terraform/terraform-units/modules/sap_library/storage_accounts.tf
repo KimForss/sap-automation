@@ -266,12 +266,24 @@ resource "azurerm_storage_container" "storagecontainer_tfstate" {
                                            azurerm_private_dns_a_record.storage_tfstate_pep_a_record_registry
                                          ]
   name                                 = var.storage_account_tfstate.tfstate_blob_container.name
+
   storage_account_id                   = local.sa_tfstate_exists ? (
                                              data.azurerm_storage_account.storage_tfstate[0].id) : (
                                              azurerm_storage_account.storage_tfstate[0].id
                                            )
+
+  storage_account_name                 = local.sa_tfstate_exists ? (
+                                             data.azurerm_storage_account.storage_tfstate[0].name) : (
+                                             azurerm_storage_account.storage_tfstate[0].name
+                                           )
+
   container_access_type                = "private"
 
+lifecycle                                  {
+    ignore_changes                              = [
+                                                    storage_account_name
+                                                  ]
+                                             }
 
 }
 
@@ -447,7 +459,16 @@ resource "azurerm_storage_container" "storagecontainer_sapbits" {
                                              data.azurerm_storage_account.storage_sapbits[0].id) : (
                                              azurerm_storage_account.storage_sapbits[0].id
                                            )
+
+  storage_account_name                 = local.sa_sapbits_exists ? (
+                                             data.azurerm_storage_account.storage_sapbits[0].name) : (
+                                             azurerm_storage_account.storage_sapbits[0].name
+                                           )
+
+
   container_access_type                = "private"
+
+
 }
 
 // Imports existing storage blob container for SAP bits
@@ -549,6 +570,12 @@ resource "azurerm_storage_container" "storagecontainer_tfvars" {
                                            data.azurerm_storage_account.storage_tfstate[0].name) : (
                                            azurerm_storage_account.storage_tfstate[0].name
                                          )
+  storage_account_id                   = local.sa_tfstate_exists ? (
+                                           data.azurerm_storage_account.storage_tfstate[0].id) : (
+                                           azurerm_storage_account.storage_tfstate[0].id
+                                         )
+
+
   container_access_type                = "private"
 
 }
