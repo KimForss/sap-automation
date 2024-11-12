@@ -1126,11 +1126,10 @@ if [ 1 == $ok_to_proceed ]; then
       readarray -t existing_resources < <(echo ${existing} | jq -c '.')
       for item in "${existing_resources[@]}"; do
         moduleID=$(jq -c -r '.address ' <<<"$item")
-        resourceID=$(jq -c -r '.summary' <<<"$item" | awk -F'\"' '{print $2}')
-        echo "Trying to import" $resourceID "into" $moduleID
-        allParamsforImport=$(printf " -var-file=%s %s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter} ")
-        echo terraform -chdir="${terraform_module_directory}" import $allParamsforImport $moduleID $resourceID
-        terraform -chdir="${terraform_module_directory}" import $allParamsforImport $moduleID $resourceID
+        azureResourceID=$(jq -c -r '.summary' <<<"$item" | awk -F'\"' '{print $2}')
+        echo "Trying to import $azureResourceID into $moduleID"
+        echo terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var "deployer_tfstate_key=${deployer_tfstate_key}" -var "landscape_tfstate_key=${landscape_tfstate_key}" -var "tfstate_resource_id=${tfstate_resource_id}" "${moduleID}" "${azureResourceID}"
+        terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var "deployer_tfstate_key=${deployer_tfstate_key}" -var "landscape_tfstate_key=${landscape_tfstate_key}" -var "tfstate_resource_id=${tfstate_resource_id}" "${moduleID}" "${azureResourceID}"
       done
       rm apply_output.json
 
@@ -1163,11 +1162,11 @@ if [ 1 == $ok_to_proceed ]; then
         readarray -t existing_resources < <(echo ${existing} | jq -c '.')
         for item in "${existing_resources[@]}"; do
           moduleID=$(jq -c -r '.address ' <<<"$item")
-          resourceID=$(jq -c -r '.summary' <<<"$item" | awk -F'\"' '{print $2}')
-          echo "Trying to import" $resourceID "into" $moduleID
-          allParamsforImport=$(printf " -var-file=%s %s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter} ")
-          echo terraform -chdir="${terraform_module_directory}" import $allParamsforImport $moduleID $resourceID
-          terraform -chdir="${terraform_module_directory}" import $allParamsforImport $moduleID $resourceID
+          azureResourceID=$(jq -c -r '.summary' <<<"$item" | awk -F'\"' '{print $2}')
+          echo "Trying to import $azureResourceID into $moduleID"
+          echo terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var "deployer_tfstate_key=${deployer_tfstate_key}" -var "landscape_tfstate_key=${landscape_tfstate_key}" -var "tfstate_resource_id=${tfstate_resource_id}" "${moduleID}" "${azureResourceID}"
+          terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var "deployer_tfstate_key=${deployer_tfstate_key}" -var "landscape_tfstate_key=${landscape_tfstate_key}" -var "tfstate_resource_id=${tfstate_resource_id}" "${moduleID}" "${azureResourceID}"
+          return_value=$?
         done
 
         rm apply_output.json
