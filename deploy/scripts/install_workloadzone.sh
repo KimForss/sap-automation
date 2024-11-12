@@ -813,14 +813,11 @@ if [ -n "${deployed_using_version}" ]; then
             echo "Removing storage account state object:           ${moduleID} "
             if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"
             then
-                allParamsforImport=$(printf " -var-file=%s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${deployer_tfstate_key_parameter}" "${moduleID}" "${azureResourceID}" | tr "  " " ")
                 echo "Importing storage account state object:           ${moduleID} "
-
-                echo "terraform -chdir=${terraform_module_directory} import $allParamsforImport"
-                if ! terraform -chdir="${terraform_module_directory}" import "${moduleID}" "${azureResourceID}"
+                echo "terraform -chdir=${terraform_module_directory} import -var-file=${var_file} ${moduleID} ${azureResourceID}"
+                if ! terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" "${moduleID}" "${azureResourceID}"
                 then
                     echo -e "$boldred Importing storage account state object:           ${moduleID} failed $resetformatting"
-
                 fi
             fi
         else
@@ -836,14 +833,11 @@ if [ -n "${deployed_using_version}" ]; then
             echo "Removing storage account state object:           ${moduleID} "
             if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"
             then
-                allParamsforImport=$(printf " -var-file=%s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${deployer_tfstate_key_parameter}" "${moduleID}" "${azureResourceID}" | tr "  " " ")
                 echo "Importing storage account state object:           ${moduleID} "
-
-                echo "terraform -chdir=${terraform_module_directory} import $allParamsforImport"
-                if ! terraform -chdir="${terraform_module_directory}" import "${moduleID}" "${azureResourceID}"
+                echo "terraform -chdir=${terraform_module_directory} import -var-file=${var_file} ${moduleID} ${azureResourceID}"
+                if ! terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" "${moduleID}" "${azureResourceID}"
                 then
                     echo -e "$boldred Importing storage account state object:           ${moduleID} failed $resetformatting"
-
                 fi
             fi
         fi
@@ -857,14 +851,11 @@ if [ -n "${deployed_using_version}" ]; then
             echo "Removing storage account state object:           ${moduleID} "
             if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"
             then
-                allParamsforImport=$(printf " -var-file=%s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${deployer_tfstate_key_parameter}" "${moduleID}" "${azureResourceID}" | tr "  " " ")
                 echo "Importing storage account state object:           ${moduleID} "
-
-                echo "terraform -chdir=${terraform_module_directory} import $allParamsforImport"
-                if ! terraform -chdir="${terraform_module_directory}" import "${moduleID}" "${azureResourceID}"
+                echo "terraform -chdir=${terraform_module_directory} import -var-file=${var_file} ${moduleID} ${azureResourceID}"
+                if ! terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" "${moduleID}" "${azureResourceID}"
                 then
                     echo -e "$boldred Importing storage account state object:           ${moduleID} failed $resetformatting"
-
                 fi
             fi
         fi
@@ -878,11 +869,9 @@ if [ -n "${deployed_using_version}" ]; then
             echo "Removing storage account state object:           ${moduleID} "
             if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"
             then
-                allParamsforImport=$(printf " -var-file=%s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${deployer_tfstate_key_parameter}" "${moduleID}" "${azureResourceID}" | tr "  " " ")
                 echo "Importing storage account state object:           ${moduleID} "
-
-                echo "terraform -chdir=${terraform_module_directory} import $allParamsforImport"
-                if ! terraform -chdir="${terraform_module_directory}" import  "${moduleID}" "${azureResourceID}"
+                echo "terraform -chdir=${terraform_module_directory} import -var-file=${var_file} ${moduleID} ${azureResourceID}"
+                if ! terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" "${moduleID}" "${azureResourceID}"
                 then
                     echo -e "$boldred Importing storage account state object:           ${moduleID} failed $resetformatting"
                 fi
