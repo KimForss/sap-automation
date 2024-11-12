@@ -195,14 +195,6 @@ resource "azurerm_storage_share" "sapmnt" {
                                            ) : (
                                            ""
                                          )
-  storage_account_name                 = var.NFS_provider == "AFS" ? (
-                                           length(var.azure_files_sapmnt_id) > 0 ? (
-                                             data.azurerm_storage_account.sapmnt[0].name) : (
-                                             azurerm_storage_account.sapmnt[0].name
-                                           )
-                                           ) : (
-                                           ""
-                                         )
   enabled_protocol                     = "NFS"
 
   quota                                = var.sapmnt_volume_size
@@ -231,7 +223,6 @@ resource "azurerm_storage_share" "sapmnt_smb" {
 
   name                                 = format("%s", local.resource_suffixes.sapmnt_smb)
   storage_account_id                   = var.NFS_provider == "AFS" ? azurerm_storage_account.sapmnt[0].id : ""
-  storage_account_name                 = var.NFS_provider == "AFS" ? azurerm_storage_account.sapmnt[0].name : ""
   enabled_protocol                     = "SMB"
 
   quota                                = var.sapmnt_volume_size
