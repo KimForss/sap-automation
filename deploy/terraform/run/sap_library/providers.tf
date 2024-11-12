@@ -32,7 +32,7 @@ provider "azurerm"                     {
                                                                      prevent_deletion_if_contains_resources = true
                                                                    }
                                                     storage        {
-                                                                        data_plane_available = false
+                                                                        data_plane_available = var.shared_access_key_enabled
                                                                    }
 
                                                   }
