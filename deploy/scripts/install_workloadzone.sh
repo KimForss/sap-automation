@@ -808,144 +808,25 @@ if [ -n "${deployed_using_version}" ]; then
         # Remeadiating the Storage Accounts and File Shares
 
         moduleID='module.sap_landscape.azurerm_storage_account.storage_bootdiag[0]'
-        azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 " id " | xargs | cut -d "=" -f2 | xargs)
-        echo "Terraform resource ID:  $moduleID"
-        echo "Azure resource ID:      $azureResourceID"
-        if [ -n "${azureResourceID}" ]; then
-            echo "Removing storage account state object:           ${moduleID} "
-            if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"
-            then
-                echo "Importing storage account state object:           ${moduleID}"
-                echo "terraform -chdir=${terraform_module_directory} import -var-file=${var_file} -var deployer_tfstate_key=${deployer_tfstate_key} -var tfstate_resource_id=${tfstate_resource_id} ${moduleID} ${azureResourceID}"
-                if ! terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var "deployer_tfstate_key=${deployer_tfstate_key}" -var "tfstate_resource_id=${tfstate_resource_id}" "${moduleID}" "${azureResourceID}"
-                then
-                    echo -e "$boldred Importing storage account state object:           ${moduleID} failed $resetformatting"
-                fi
-            fi
-        else
-            exit 65
-        fi
+        ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}"
 
         moduleID='module.sap_landscape.azurerm_storage_account.witness_storage[0]'
-        azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 " id " | xargs | cut -d "=" -f2 | xargs)
-        echo "Terraform resource ID:  $moduleID"
-        echo "Azure resource ID:      $azureResourceID"
-
-        if [ -n "${azureResourceID}" ]; then
-            echo "Removing storage account state object:           ${moduleID} "
-            if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"
-            then
-                echo "Importing storage account state object:           ${moduleID}"
-                echo "terraform -chdir=${terraform_module_directory} import -var-file=${var_file} -var deployer_tfstate_key=${deployer_tfstate_key} -var tfstate_resource_id=${tfstate_resource_id} ${moduleID} ${azureResourceID}"
-                if ! terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var "deployer_tfstate_key=${deployer_tfstate_key}" -var "tfstate_resource_id=${tfstate_resource_id}" "${moduleID}" "${azureResourceID}"
-                then
-                    echo -e "$boldred Importing storage account state object:           ${moduleID} failed $resetformatting"
-                fi
-            fi
-        else
-            exit 65
-        fi
+        ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}"
 
         moduleID='module.sap_landscape.azurerm_storage_account.install[0]'
-        azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 " id " | xargs | cut -d "=" -f2 | xargs)
-        echo "Terraform resource ID:  $moduleID"
-        echo "Azure resource ID:      $azureResourceID"
-
-        if [ -n "${azureResourceID}" ]; then
-            echo "Removing storage account state object:           ${moduleID} "
-            if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"
-            then
-                echo "Importing storage account state object:           ${moduleID}"
-                echo "terraform -chdir=${terraform_module_directory} import -var-file=${var_file} -var deployer_tfstate_key=${deployer_tfstate_key} -var tfstate_resource_id=${tfstate_resource_id} ${moduleID} ${azureResourceID}"
-                if ! terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var "deployer_tfstate_key=${deployer_tfstate_key}" -var "tfstate_resource_id=${tfstate_resource_id}" "${moduleID}" "${azureResourceID}"
-                then
-                    echo -e "$boldred Importing storage account state object:           ${moduleID} failed $resetformatting"
-                fi
-            fi
-        else
-            exit 65
-        fi
+        ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}"
 
         moduleID='module.sap_landscape.azurerm_storage_account.transport[0]'
-        azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 " id " | xargs | cut -d "=" -f2 | xargs)
-        echo "Terraform resource ID:  $moduleID"
-        echo "Azure resource ID:      $azureResourceID"
-
-        if [ -n "${azureResourceID}" ]; then
-            echo "Removing storage account state object:           ${moduleID} "
-            if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"
-            then
-                echo "Importing storage account state object:           ${moduleID}"
-                echo "terraform -chdir=${terraform_module_directory} import -var-file=${var_file} -var deployer_tfstate_key=${deployer_tfstate_key} -var tfstate_resource_id=${tfstate_resource_id} ${moduleID} ${azureResourceID}"
-                if ! terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var "deployer_tfstate_key=${deployer_tfstate_key}" -var "tfstate_resource_id=${tfstate_resource_id}" "${moduleID}" "${azureResourceID}"
-                then
-                    echo -e "$boldred Importing storage account state object:           ${moduleID} failed $resetformatting"
-                fi
-            fi
-        else
-            exit 65
-        fi
+        ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}"
 
         moduleID='module.sap_landscape.azurerm_storage_share.transport[0]'
-        azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 " id " | xargs | cut -d "=" -f2 | xargs)
-        echo "Terraform resource ID:  $moduleID"
-        echo "Azure resource ID:      $azureResourceID"
-
-        if [ -n "${azureResourceID}" ]; then
-            echo "Removing storage account state object:           ${moduleID} "
-            if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"
-            then
-                echo "Importing storage account state object:           ${moduleID}"
-                echo "terraform -chdir=${terraform_module_directory} import -var-file=${var_file} -var deployer_tfstate_key=${deployer_tfstate_key} -var tfstate_resource_id=${tfstate_resource_id} ${moduleID} ${azureResourceID}"
-                if ! terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var "deployer_tfstate_key=${deployer_tfstate_key}" -var "tfstate_resource_id=${tfstate_resource_id}" "${moduleID}" "${azureResourceID}"
-                then
-                    echo -e "$boldred Importing storage account state object:           ${moduleID} failed $resetformatting"
-                fi
-            fi
-        else
-            exit 65
-        fi
+        ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}"
 
         moduleID='module.sap_landscape.azurerm_storage_share.install[0]'
-        azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 " id " | xargs | cut -d "=" -f2 | xargs)
-        echo "Terraform resource ID:  $moduleID"
-        echo "Azure resource ID:      $azureResourceID"
-
-        if [ -n "${azureResourceID}" ]; then
-            echo "Removing storage account state object:           ${moduleID} "
-            if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"
-            then
-                echo "Importing storage account state object:           ${moduleID}"
-                echo "terraform -chdir=${terraform_module_directory} import -var-file=${var_file} -var deployer_tfstate_key=${deployer_tfstate_key} -var tfstate_resource_id=${tfstate_resource_id} ${moduleID} ${azureResourceID}"
-                if ! terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var "deployer_tfstate_key=${deployer_tfstate_key}" -var "tfstate_resource_id=${tfstate_resource_id}" "${moduleID}" "${azureResourceID}"
-                then
-                    echo -e "$boldred Importing storage account state object:           ${moduleID} failed $resetformatting"
-                fi
-            fi
-        else
-            exit 65
-        fi
+        ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}"
 
         moduleID='module.sap_landscape.azurerm_storage_share.install_smb[0]'
-        azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 " id " | xargs | cut -d "=" -f2 | xargs)
-        echo "Terraform resource ID:  $moduleID"
-        echo "Azure resource ID:      $azureResourceID"
-
-        if [ -n "${azureResourceID}" ]; then
-            echo "Removing storage account state object:           ${moduleID} "
-            if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"
-            then
-                echo "Importing storage account state object:           ${moduleID}"
-                echo "terraform -chdir=${terraform_module_directory} import -var-file=${var_file} -var deployer_tfstate_key=${deployer_tfstate_key} -var tfstate_resource_id=${tfstate_resource_id} ${moduleID} ${azureResourceID}"
-                if ! terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var "deployer_tfstate_key=${deployer_tfstate_key}" -var "tfstate_resource_id=${tfstate_resource_id}" "${moduleID}" "${azureResourceID}"
-                then
-                    echo -e "$boldred Importing storage account state object:           ${moduleID} failed $resetformatting"
-                fi
-            fi
-        else
-            exit 65
-        fi
-
+        ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}"
 
     fi
 fi
