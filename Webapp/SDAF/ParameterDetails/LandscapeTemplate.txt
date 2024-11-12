@@ -33,6 +33,10 @@ $$location$$
 # Description of the Workload zone.
 $$Description$$
 
+# Subscription for the Workload zone.
+$$subscription$$
+
+
 #If you want to provide a custom naming json use the following parameter.
 $$name_override_file$$
 
