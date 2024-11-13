@@ -273,13 +273,6 @@ resource "azurerm_storage_container" "storagecontainer_tfstate" {
                                            )
 
   container_access_type                = "private"
-
-lifecycle                                  {
-    ignore_changes                              = [
-                                                    storage_account_name
-                                                  ]
-                                             }
-
 }
 
 data "azurerm_storage_container" "storagecontainer_tfstate" {
