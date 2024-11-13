@@ -683,7 +683,7 @@ else
             resourceGroupName=$(az resource show --ids "${azureResourceID}"  --query "resourceGroup" --output tsv)
             resourceType=$(az resource show --ids "${azureResourceID}"  --query "type" --output tsv)
             resourceName=$(az resource show --ids "${azureResourceID}"  --query "name" --output tsv)
-            az resource lock create --lock-type CanNotDelete -n "SAP Media account delete lock" --resource-group "${resourceGroupName}" --resource "${resourceName}" --resource-type "${resourceType}"
+            az resource lock create --lock-type CanNotDelete -n "SAP Media account delete lock" --resource-group "${resourceGroupName}" --resource "${resourceName}" --resource-type "${resourceType}" --output none
 
             ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}"
 
@@ -696,7 +696,7 @@ else
             resourceGroupName=$(az resource show --ids "${azureResourceID}"  --query "resourceGroup" --output tsv)
             resourceType=$(az resource show --ids "${azureResourceID}"  --query "type" --output tsv)
             resourceName=$(az resource show --ids "${azureResourceID}"  --query "name" --output tsv)
-            az resource lock create --lock-type CanNotDelete -n "Terraform state account delete lock" --resource-group "${resourceGroupName}" --resource "${resourceName}" --resource-type "${resourceType}"
+            az resource lock create --lock-type CanNotDelete -n "Terraform state account delete lock" --resource-group "${resourceGroupName}" --resource "${resourceName}" --resource-type "${resourceType}" --output none
 
             ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}"
 
