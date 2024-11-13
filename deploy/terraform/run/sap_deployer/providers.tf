@@ -18,12 +18,12 @@ provider "azurerm"                     {
                                                     resource_group {
                                                                      prevent_deletion_if_contains_resources = var.prevent_deletion_if_contains_resources
                                                                    }
-                                                    key_vault {
-                                                                 purge_soft_delete_on_destroy               = !var.enable_purge_control_for_keyvaults
-                                                                 purge_soft_deleted_keys_on_destroy         = !var.enable_purge_control_for_keyvaults
-                                                                 purge_soft_deleted_secrets_on_destroy      = !var.enable_purge_control_for_keyvaults
-                                                                 purge_soft_deleted_certificates_on_destroy = !var.enable_purge_control_for_keyvaults
-                                                              }
+                                                    key_vault      {
+                                                                      purge_soft_delete_on_destroy               = !var.enable_purge_control_for_keyvaults
+                                                                      purge_soft_deleted_keys_on_destroy         = !var.enable_purge_control_for_keyvaults
+                                                                      purge_soft_deleted_secrets_on_destroy      = !var.enable_purge_control_for_keyvaults
+                                                                      purge_soft_deleted_certificates_on_destroy = !var.enable_purge_control_for_keyvaults
+                                                                   }
                                                   }
                                          partner_id                 = "f94f50f2-2539-42f8-9c8e-c65b28c681f7"
                                          storage_use_azuread        = !var.shared_access_key_enabled

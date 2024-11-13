@@ -21,7 +21,7 @@ provider "azurerm"                     {
 provider "azurerm"                     {
                                          features {
                                                     resource_group {
-                                                                     prevent_deletion_if_contains_resources = var.prevent_deletion_if_contains_resources
+                                                                     prevent_deletion_if_contains_resources      = var.prevent_deletion_if_contains_resources
                                                                    }
                                                     key_vault      {
                                                                       purge_soft_delete_on_destroy               = !var.enable_purge_control_for_keyvaults
@@ -81,27 +81,27 @@ provider "azuread"                     {
                                        }
 
 terraform                              {
-                                         required_version   = ">= 1.0"
-                                         required_providers {
-                                                              external = {
-                                                                           source = "hashicorp/external"
-                                                                         }
-                                                              local    = {
-                                                                           source = "hashicorp/local"
-                                                                         }
-                                                              random   = {
-                                                                           source = "hashicorp/random"
-                                                                         }
-                                                              null =     {
-                                                                           source = "hashicorp/null"
-                                                                         }
-                                                              azuread =  {
-                                                                           source  = "hashicorp/azuread"
-                                                                           version = "3.0.2"
-                                                                         }
-                                                              azurerm =  {
-                                                                           source  = "hashicorp/azurerm"
-                                                                           version = "4.9.0"
-                                                                         }
-                                                            }
+                                         required_version    = ">= 1.0"
+                                         required_providers  {
+                                                               external = {
+                                                                            source = "hashicorp/external"
+                                                                          }
+                                                               local    = {
+                                                                            source = "hashicorp/local"
+                                                                          }
+                                                               random   = {
+                                                                            source = "hashicorp/random"
+                                                                          }
+                                                               null =     {
+                                                                            source = "hashicorp/null"
+                                                                          }
+                                                               azuread =  {
+                                                                            source  = "hashicorp/azuread"
+                                                                            version = "3.0.2"
+                                                                          }
+                                                               azurerm =  {
+                                                                            source  = "hashicorp/azurerm"
+                                                                            version = "4.9.0"
+                                                                          }
+                                                             }
                                        }

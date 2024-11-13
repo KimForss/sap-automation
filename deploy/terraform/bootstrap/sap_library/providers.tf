@@ -14,7 +14,7 @@ Description:
 */
 
 data "azurerm_client_config" "current" {
-                                         provider = azurerm.deployer
+                                         provider                   = azurerm.deployer
                                        }
 
 provider "azurerm"                     {
@@ -24,7 +24,7 @@ provider "azurerm"                     {
                                                                    }
 
                                                     storage        {
-                                                                        data_plane_available = false
+                                                                        data_plane_available = var.shared_access_key_enabled
                                                                    }
                                                   }
 
@@ -91,9 +91,9 @@ provider "azurerm"                     {
                                        }
 
 provider "azuread"                     {
-                                         client_id     = local.spn.client_id
-                                         client_secret = local.spn.client_secret
-                                         tenant_id     = local.spn.tenant_id
+                                         client_id                  = local.spn.client_id
+                                         client_secret              = local.spn.client_secret
+                                         tenant_id                  = local.spn.tenant_id
                                        }
 
 terraform                              {
