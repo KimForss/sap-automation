@@ -695,20 +695,19 @@ else
 
             ReplaceResourceInStateFile 'module.sap_deployer.azurerm_storage_account.deployer[0]' "${terraform_module_directory}"
 
-
         fi
 
         if [ "${deployment_system}" == sap_system ]; then
 
-            ReplaceResourceInStateFile 'module.sap_system.azurerm_storage_account.sapmnt[0]' "${terraform_module_directory}"
+            ReplaceResourceInStateFile 'module.common_infrastructure.azurerm_storage_account.sapmnt[0]' "${terraform_module_directory}"
 
-            ReplaceResourceInStateFile 'module.sap_system.azurerm_storage_account.hanashared[0]' "${terraform_module_directory}"
+            ReplaceResourceInStateFile 'module.common_infrastructure.azurerm_storage_share.sapmnt[0]' "${terraform_module_directory}"
 
-            ReplaceResourceInStateFile 'module.sap_system.azurerm_storage_account.hanashared[1]' "${terraform_module_directory}"
+            ReplaceResourceInStateFile 'module.hdb_node.azurerm_storage_account.hanashared[0]' "${terraform_module_directory}"
+            ReplaceResourceInStateFile 'module.hdb_node.azurerm_storage_share.hanashared[0]' "${terraform_module_directory}"
 
-            ReplaceResourceInStateFile 'module.sap_system.azurerm_storage_account.hanashared[2]' "${terraform_module_directory}"
-
-            ReplaceResourceInStateFile 'module.sap_system.azurerm_storage_account.hanashared[3]' "${terraform_module_directory}"
+            ReplaceResourceInStateFile 'module.hdb_node.azurerm_storage_account.hanashared[1]' "${terraform_module_directory}"
+            ReplaceResourceInStateFile 'module.hdb_node.azurerm_storage_share.hanashared[1]' "${terraform_module_directory}"
 
         fi
 
