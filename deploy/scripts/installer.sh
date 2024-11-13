@@ -700,15 +700,15 @@ else
 
         if [ "${deployment_system}" == sap_system ]; then
 
-            ReplaceResourceInStateFile 'module.sap_deployer.azurerm_storage_account.sapmnt[0]' "${terraform_module_directory}"
+            ReplaceResourceInStateFile 'module.sap_system.azurerm_storage_account.sapmnt[0]' "${terraform_module_directory}"
 
-            ReplaceResourceInStateFile 'module.sap_deployer.azurerm_storage_account.hanashared[0]' "${terraform_module_directory}"
+            ReplaceResourceInStateFile 'module.sap_system.azurerm_storage_account.hanashared[0]' "${terraform_module_directory}"
 
-            ReplaceResourceInStateFile 'module.sap_deployer.azurerm_storage_account.hanashared[1]' "${terraform_module_directory}"
+            ReplaceResourceInStateFile 'module.sap_system.azurerm_storage_account.hanashared[1]' "${terraform_module_directory}"
 
-            ReplaceResourceInStateFile 'module.sap_deployer.azurerm_storage_account.hanashared[2]' "${terraform_module_directory}"
+            ReplaceResourceInStateFile 'module.sap_system.azurerm_storage_account.hanashared[2]' "${terraform_module_directory}"
 
-            ReplaceResourceInStateFile 'module.sap_deployer.azurerm_storage_account.hanashared[3]' "${terraform_module_directory}"
+            ReplaceResourceInStateFile 'module.sap_system.azurerm_storage_account.hanashared[3]' "${terraform_module_directory}"
 
         fi
 
@@ -870,6 +870,75 @@ else
 fi
 
 fatal_errors=0
+
+# SAP Library
+test=$(grep module.sap_library.azurerm_storage_account.storage_sapbits plan_output.log | grep -m1 replaced)
+if [ -n "${test}" ]; then
+  echo ""
+  echo "#########################################################################################"
+  echo "#                                                                                       #"
+  echo -e "#                               $boldreduscore!!! Risk for Data loss !!!$resetformatting                              #"
+  echo "#                                                                                       #"
+  echo "#                  SAP Library Storage Account will be replaced                         #"
+  echo "#                                                                                       #"
+  echo "#########################################################################################"
+  echo ""
+  echo ""
+  echo "##vso[task.logissue type=error]${test}"
+  fatal_errors=1
+fi
+
+# SAP Library sapbits
+test=$(grep module.sap_library.azurerm_storage_container.storagecontainer_sapbits plan_output.log | grep -m1 replaced)
+if [ -n "${test}" ]; then
+  echo ""
+  echo "#########################################################################################"
+  echo "#                                                                                       #"
+  echo -e "#                               $boldreduscore!!! Risk for Data loss !!!$resetformatting                              #"
+  echo "#                                                                                       #"
+  echo "#                  SAP Library media container will be replaced                         #"
+  echo "#                                                                                       #"
+  echo "#########################################################################################"
+  echo ""
+  echo ""
+  echo "##vso[task.logissue type=error]${test}"
+  fatal_errors=1
+fi
+
+# Terraform State Library
+test=$(grep module.sap_library.azurerm_storage_account.storage_tfstate plan_output.log | grep -m1 replaced)
+if [ -n "${test}" ]; then
+  echo ""
+  echo "#########################################################################################"
+  echo "#                                                                                       #"
+  echo -e "#                               $boldreduscore!!! Risk for Data loss !!!$resetformatting                              #"
+  echo "#                                                                                       #"
+  echo "#                  Terraform State Storage Account will be replaced                     #"
+  echo "#                                                                                       #"
+  echo "#########################################################################################"
+  echo ""
+  echo ""
+  echo "##vso[task.logissue type=error]${test}"
+  fatal_errors=1
+fi
+
+# Terraform state container
+test=$(grep module.sap_library.azurerm_storage_container.storagecontainer_tfstate plan_output.log | grep -m1 replaced)
+if [ -n "${test}" ]; then
+  echo ""
+  echo "#########################################################################################"
+  echo "#                                                                                       #"
+  echo -e "#                               $boldreduscore!!! Risk for Data loss !!!$resetformatting                              #"
+  echo "#                                                                                       #"
+  echo "#                  Terraform state file container will be replaced                      #"
+  echo "#                                                                                       #"
+  echo "#########################################################################################"
+  echo ""
+  echo ""
+  echo "##vso[task.logissue type=error]${test}"
+  fatal_errors=1
+fi
+
 # HANA VM
 test=$(grep vm_dbnode plan_output.log | grep -m1 replaced)
 if [ -n "${test}" ]; then
