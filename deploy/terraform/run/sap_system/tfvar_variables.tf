@@ -137,7 +137,7 @@ variable "shared_access_key_enabled"            {
 
 variable "shared_access_key_enabled_nfs"        {
                                                   description = "Indicates whether the storage account used for NFS permits requests to be authorized with the account access key via Shared Key."
-                                                  default     = true
+                                                  default     = false
                                                   type        = bool
                                                 }
 
