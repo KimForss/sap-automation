@@ -122,7 +122,7 @@ resource "azurerm_private_dns_a_record" "storage_tfstate_pep_a_record_registry" 
                                            )
                                          )
   ttl                                  = 3600
-  records                              = [azurerm_private_endpoint.storage_tfstate[0].private_service_connection.private_ip_address]
+  records                              = [azurerm_private_endpoint.storage_tfstate[0].private_service_connection[0].private_ip_address]
 
   lifecycle {
               ignore_changes = [tags]
@@ -379,7 +379,7 @@ resource "azurerm_private_dns_a_record" "storage_sapbits_pep_a_record_registry" 
                                               azurerm_resource_group.library[0].name)
                                          )
   ttl                                  = 3600
-  records                              = [azurerm_private_endpoint.storage_sapbits[0].private_service_connection.private_ip_address]
+  records                              = [azurerm_private_endpoint.storage_sapbits[0].private_service_connection[0].private_ip_address]
 
   lifecycle {
               ignore_changes = [tags]

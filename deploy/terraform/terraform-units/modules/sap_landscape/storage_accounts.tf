@@ -45,7 +45,7 @@ resource "azurerm_private_dns_a_record" "storage_bootdiag" {
                                            azurerm_resource_group.resource_group[0].name
                                          )
   ttl                                  = 3600
-  records                              = [azurerm_private_endpoint.storage_bootdiag[count.index].private_service_connection.private_ip_address]
+  records                              = [azurerm_private_endpoint.storage_bootdiag[count.index].private_service_connection[0].private_ip_address]
   tags                                 = var.tags
 }
 
@@ -181,7 +181,7 @@ resource "azurerm_private_dns_a_record" "witness_storage" {
   zone_name                            = var.dns_settings.dns_zone_names.blob_dns_zone_name
   resource_group_name                  = var.dns_settings.privatelink_dns_resourcegroup_name
   ttl                                  = 3600
-  records                              = [azurerm_private_endpoint.witness_storage[count.index].private_service_connection.private_ip_address]
+  records                              = [azurerm_private_endpoint.witness_storage[count.index].private_service_connection[0].private_ip_address]
 
   tags                                 = var.tags
 
