@@ -565,8 +565,8 @@ function ReplaceResourceInStateFile
       if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"
       then
           echo "Importing storage account state object:           ${moduleID}"
-          echo "terraform -chdir=${terraform_module_directory} import -var-file=${var_file} -var deployer_tfstate_key=${deployer_tfstate_key} -var tfstate_resource_id=${tfstate_resource_id} ${moduleID} ${azureResourceID}"
-          if ! terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var "deployer_tfstate_key=${deployer_tfstate_key}" -var "tfstate_resource_id=${tfstate_resource_id}" "${moduleID}" "${azureResourceID}"
+          echo "terraform -chdir=${terraform_module_directory} import -var-file=${var_file} -var deployer_tfstate_key=${deployer_tfstate_key} -var tfstate_resource_id=${tfstate_resource_id} $3 ${moduleID} ${azureResourceID}"
+          if ! terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var "deployer_tfstate_key=${deployer_tfstate_key}" -var "tfstate_resource_id=${tfstate_resource_id}" $3 "${moduleID}" "${azureResourceID}"
           then
               echo -e "$boldred Importing storage account state object:           ${moduleID} failed $resetformatting"
               exit 65
