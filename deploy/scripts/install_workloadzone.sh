@@ -814,6 +814,13 @@ if [ -n "${deployed_using_version}" ]; then
         ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}"
 
         moduleID='module.sap_landscape.azurerm_storage_account.install[0]'
+        azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 " id " | xargs | cut -d "=" -f2 | xargs)
+
+        resourceGroupName=$(az resource show --ids "${azureResourceID}"  --query "resourceGroup" --output tsv)
+        resourceType=$(az resource show --ids "${azureResourceID}"  --query "type" --output tsv)
+        resourceName=$(az resource show --ids "${azureResourceID}"  --query "name" --output tsv)
+        az resource lock create --lock-type CanNotDelete -n "SAP Instaqllation Media account delete lock" --resource-group "${resourceGroupName}" --resource "${resourceName}" --resource-type "${resourceType}"
+
         ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}"
 
         moduleID='module.sap_landscape.azurerm_storage_account.transport[0]'

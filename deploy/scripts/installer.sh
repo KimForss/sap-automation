@@ -677,37 +677,61 @@ else
 
         # Remeadiating the Storage Accounts and File Shares
         if [ "${deployment_system}" == sap_library ]; then
+            moduleID='module.sap_library.azurerm_storage_account.storage_sapbits[0]'
+            azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 " id " | xargs | cut -d "=" -f2 | xargs)
 
-            ReplaceResourceInStateFile 'module.sap_library.azurerm_storage_account.storage_sapbits[0]' "${terraform_module_directory}"
+            resourceGroupName=$(az resource show --ids "${azureResourceID}"  --query "resourceGroup" --output tsv)
+            resourceType=$(az resource show --ids "${azureResourceID}"  --query "type" --output tsv)
+            resourceName=$(az resource show --ids "${azureResourceID}"  --query "name" --output tsv)
+            az resource lock create --lock-type CanNotDelete -n "SAP Media account delete lock" --resource-group "${resourceGroupName}" --resource "${resourceName}" --resource-type "${resourceType}"
 
-            ReplaceResourceInStateFile 'module.sap_library.azurerm_storage_container.storagecontainer_sapbits[0]'  "${terraform_module_directory}"
+            ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}"
 
-            ReplaceResourceInStateFile 'module.sap_library.azurerm_storage_account.storage_tfstate[0]' "${terraform_module_directory}"
+            moduleID='module.sap_library.azurerm_storage_container.storagecontainer_sapbits[0]'
+            ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}"
 
-            ReplaceResourceInStateFile 'module.sap_library.azurerm_storage_container.storagecontainer_tfstate[0]' "${terraform_module_directory}"
+            moduleID='module.sap_library.azurerm_storage_account.storage_tfstate[0]'
+            azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 " id " | xargs | cut -d "=" -f2 | xargs)
 
-            ReplaceResourceInStateFile 'module.sap_library.azurerm_storage_container.storagecontainer_tfvars[0]' "${terraform_module_directory}"
+            resourceGroupName=$(az resource show --ids "${azureResourceID}"  --query "resourceGroup" --output tsv)
+            resourceType=$(az resource show --ids "${azureResourceID}"  --query "type" --output tsv)
+            resourceName=$(az resource show --ids "${azureResourceID}"  --query "name" --output tsv)
+            az resource lock create --lock-type CanNotDelete -n "Terraform state account delete lock" --resource-group "${resourceGroupName}" --resource "${resourceName}" --resource-type "${resourceType}"
 
+            ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}"
+
+            moduleID='module.sap_library.azurerm_storage_container.storagecontainer_tfstate[0]'
+            ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}"
+
+            moduleID='module.sap_library.azurerm_storage_container.storagecontainer_tfvars[0]'
+            ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}"
 
         fi
 
         if [ "${deployment_system}" == sap_deployer ]; then
 
-            ReplaceResourceInStateFile 'module.sap_deployer.azurerm_storage_account.deployer[0]' "${terraform_module_directory}"
+            moduleID='module.sap_deployer.azurerm_storage_account.deployer[0]'
+            ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}"
 
         fi
 
         if [ "${deployment_system}" == sap_system ]; then
 
-            ReplaceResourceInStateFile 'module.common_infrastructure.azurerm_storage_account.sapmnt[0]' "${terraform_module_directory}" "${landscape_tfstate_key_parameter}"
+            moduleID='module.common_infrastructure.azurerm_storage_account.sapmnt[0]'
+            ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}"
 
-            ReplaceResourceInStateFile 'module.common_infrastructure.azurerm_storage_share.sapmnt[0]' "${terraform_module_directory}" "${landscape_tfstate_key_parameter}"
+            moduleID='module.common_infrastructure.azurerm_storage_share.sapmnt[0]'
+            ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}"
 
-            ReplaceResourceInStateFile 'module.hdb_node.azurerm_storage_account.hanashared[0]' "${terraform_module_directory}" "${landscape_tfstate_key_parameter}"
-            ReplaceResourceInStateFile 'module.hdb_node.azurerm_storage_share.hanashared[0]' "${terraform_module_directory}" "${landscape_tfstate_key_parameter}"
+            moduleID='module.hdb_node.azurerm_storage_account.hanashared[0]'
+            ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}"
+            moduleID='module.hdb_node.azurerm_storage_share.hanashared[0]'
+            ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}"
 
-            ReplaceResourceInStateFile 'module.hdb_node.azurerm_storage_account.hanashared[1]' "${terraform_module_directory}" "${landscape_tfstate_key_parameter}"
-            ReplaceResourceInStateFile 'module.hdb_node.azurerm_storage_share.hanashared[1]' "${terraform_module_directory}" "${landscape_tfstate_key_parameter}"
+            moduleID='module.hdb_node.azurerm_storage_account.hanashared[1]'
+            ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}"
+            moduleID='module.hdb_node.azurerm_storage_share.hanashared[1]'
+            ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}"
 
         fi
 
