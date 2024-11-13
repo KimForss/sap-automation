@@ -526,6 +526,10 @@ function validate_key_parameters {
 function version_compare {
     echo "Comparison:                          $1 <= $2"
 
+    if [ -z $1 ]; then
+        return 2
+    fi
+
     if [[ "$1" == "$2" ]]
     then
         return 0
