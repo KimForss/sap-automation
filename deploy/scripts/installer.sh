@@ -674,6 +674,7 @@ else
         echo "#                                                                                       #"
         echo "#########################################################################################"
         echo ""
+        echo "##vso[task.logissue type=warning]Deployed using an older version ${deployed_using_version}. Performing state management operations"
 
         # Remeadiating the Storage Accounts and File Shares
         if [ "${deployment_system}" == sap_library ]; then
