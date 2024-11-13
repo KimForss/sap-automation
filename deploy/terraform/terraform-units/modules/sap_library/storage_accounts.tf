@@ -349,6 +349,18 @@ resource "azurerm_storage_account_network_rules" "storage_sapbits" {
             }
 }
 
+resource "azurerm_management_lock" "storage_sapbits" {
+  provider                             = azurerm.main
+  count                                = (local.sa_sapbits_exists) ? 0 : var.place_delete_lock_on_resources ? 1 : 0
+  name                                 = format("%s-lock", azurerm_storage_account.storage_sapbits[0].name)
+  scope                                = azurerm_storage_account.storage_sapbits[0].id
+  lock_level                           = "CanNotDelete"
+  notes                                = "Locked because it's needed by Terraform to store state"
+  lifecycle {
+    prevent_destroy = false
+  }
+}
+
 
 resource "azurerm_private_dns_a_record" "storage_sapbits_pep_a_record_registry" {
   provider                             = azurerm.privatelinkdnsmanagement
@@ -522,17 +534,17 @@ data "azurerm_private_dns_zone" "table" {
 
 }
 
-data "azurerm_network_interface" "storage_tfstate" {
-  count                                = var.use_private_endpoint && !local.sa_tfstate_exists ? 1 : 0
-  name                                 = azurerm_private_endpoint.storage_tfstate[count.index].network_interface[0].name
-  resource_group_name                  = split("/", azurerm_private_endpoint.storage_tfstate[count.index].network_interface[0].id)[4]
-}
+# data "azurerm_network_interface" "storage_tfstate" {
+#   count                                = var.use_private_endpoint && !local.sa_tfstate_exists ? 1 : 0
+#   name                                 = azurerm_private_endpoint.storage_tfstate[count.index].network_interface[0].name
+#   resource_group_name                  = split("/", azurerm_private_endpoint.storage_tfstate[count.index].network_interface[0].id)[4]
+# }
 
-data "azurerm_network_interface" "storage_sapbits" {
-  count                                = var.use_private_endpoint && !local.sa_sapbits_exists ? 1 : 0
-  name                                 = azurerm_private_endpoint.storage_sapbits[count.index].network_interface[0].name
-  resource_group_name                  = split("/", azurerm_private_endpoint.storage_sapbits[count.index].network_interface[0].id)[4]
-}
+# data "azurerm_network_interface" "storage_sapbits" {
+#   count                                = var.use_private_endpoint && !local.sa_sapbits_exists ? 1 : 0
+#   name                                 = azurerm_private_endpoint.storage_sapbits[count.index].network_interface[0].name
+#   resource_group_name                  = split("/", azurerm_private_endpoint.storage_sapbits[count.index].network_interface[0].id)[4]
+# }
 
 resource "azurerm_management_lock" "storage_tfstate" {
   provider                             = azurerm.main
