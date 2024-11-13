@@ -88,22 +88,6 @@ resource "azurerm_storage_account_network_rules" "storage_tfstate" {
             }
 }
 
-resource "azurerm_role_assignment" "storage_tfstate_contributor" {
-  count                                = try(var.deployer_tfstate.deployer_msi_id, "") != "" ? 1 : 0
-  provider                             = azurerm.main
-  scope                                = local.sa_tfstate_exists ? var.storage_account_tfstate.arm_id : azurerm_storage_account.storage_tfstate[0].id
-  role_definition_name                 = "Storage Blob Data Contributor"
-  principal_id                         = var.deployer_tfstate.deployer_msi_id
-}
-
-resource "azurerm_role_assignment" "storage_tfstate_contributor_ssi" {
-  provider                             = azurerm.main
-  count                                = try(var.deployer_tfstate.add_system_assigned_identity, false) ? length(var.deployer_tfstate.deployer_system_assigned_identity) : 0
-  scope                                = local.sa_tfstate_exists ? var.storage_account_tfstate.arm_id : azurerm_storage_account.storage_tfstate[0].id
-  role_definition_name                 = "Storage Blob Data Contributor"
-  principal_id                         = var.deployer_tfstate.deployer_system_assigned_identity[count.index]
-}
-
 resource "azurerm_private_dns_a_record" "storage_tfstate_pep_a_record_registry" {
   provider                             = azurerm.privatelinkdnsmanagement
   count                                = var.dns_settings.register_storage_accounts_keyvaults_with_dns && var.use_private_endpoint && var.use_custom_dns_a_registration && !local.sa_tfstate_exists ? 1 : 0
@@ -484,24 +468,6 @@ resource "azurerm_storage_share" "fileshare_sapbits" {
                                            )
   quota                                = 1024
 }
-
-resource "azurerm_role_assignment" "storage_sapbits_contributor" {
-  provider                             = azurerm.main
-  count                                = try(var.deployer_tfstate.deployer_uai.principal_id, "") != "" ? 1 : 0
-  scope                                = local.sa_sapbits_exists ? var.storage_account_sapbits.arm_id : azurerm_storage_account.storage_sapbits[0].id
-  role_definition_name                 = "Storage Blob Data Contributor"
-  principal_id                         = var.deployer_tfstate.deployer_uai.principal_id
-}
-
-resource "azurerm_role_assignment" "storage_sapbits_contributor_ssi" {
-  provider                             = azurerm.main
-  count                                = try(var.deployer_tfstate.add_system_assigned_identity, false) ? length(var.deployer_tfstate.deployer_system_assigned_identity) : 0
-  scope                                = local.sa_sapbits_exists ? var.storage_account_sapbits.arm_id : azurerm_storage_account.storage_sapbits[0].id
-  role_definition_name                 = "Storage Blob Data Contributor"
-  principal_id                         = var.deployer_tfstate.deployer_system_assigned_identity[count.index]
-}
-
-
 
 data "azurerm_private_dns_zone" "storage" {
   provider                             = azurerm.privatelinkdnsmanagement
