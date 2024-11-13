@@ -1235,8 +1235,8 @@ if [ 1 == $ok_to_proceed ]; then
         moduleID=$(jq -c -r '.address ' <<<"$item")
         azureResourceID=$(jq -c -r '.summary' <<<"$item" | awk -F'\"' '{print $2}')
         echo "Trying to import $azureResourceID into $moduleID"
-        echo terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var "deployer_tfstate_key=${deployer_tfstate_key}" -var "landscape_tfstate_key=${landscape_tfstate_key}" -var "tfstate_resource_id=${tfstate_resource_id}" "${moduleID}" "${azureResourceID}"
-        terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var "deployer_tfstate_key=${deployer_tfstate_key}" -var "landscape_tfstate_key=${landscape_tfstate_key}" -var "tfstate_resource_id=${tfstate_resource_id}" "${moduleID}" "${azureResourceID}"
+        echo terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var "tfstate_resource_id=${tfstate_resource_id}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${moduleID}" "${azureResourceID}"
+        terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var "tfstate_resource_id=${tfstate_resource_id}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${moduleID}" "${azureResourceID}"
       done
       rm apply_output.json
 
