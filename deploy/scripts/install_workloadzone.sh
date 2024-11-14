@@ -837,17 +837,17 @@ if [ -n "${deployed_using_version}" ]; then
 
     ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}"  "id"
 
-    moduleID='module.sap_landscape.azurerm_storage_account.transport[0]'  "id"
-    ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}"
+    moduleID='module.sap_landscape.azurerm_storage_account.transport[0]'
+    ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "id"
 
-    moduleID='module.sap_landscape.azurerm_storage_share.transport[0]'  "resource_manager_id"
-    ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}"
+    moduleID='module.sap_landscape.azurerm_storage_share.transport[0]'
+    ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "resource_manager_id"
 
-    moduleID='module.sap_landscape.azurerm_storage_share.install[0]' "resource_manager_id"
-    ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}"
+    moduleID='module.sap_landscape.azurerm_storage_share.install[0]'
+    ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "resource_manager_id"
 
-    moduleID='module.sap_landscape.azurerm_storage_share.install_smb[0]' "resource_manager_id"
-    ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}"
+    moduleID='module.sap_landscape.azurerm_storage_share.install_smb[0]'
+    ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "resource_manager_id"
 
   fi
 fi
