@@ -4,6 +4,8 @@
 # stage of the pipefile has a non-zero exit status.
 set -o pipefail
 
+set -x
+
 #colors for terminal
 boldreduscore="\e[1;4;31m"
 boldred="\e[1;31m"
@@ -761,8 +763,6 @@ echo ""
 if [ -f plan_output.log ]; then
   rm plan_output.log
 fi
-
-allParams=$(printf " -var-file=%s %s %s %s %s %s %s %s" "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}" "${deployer_parameter}")
 
 terraform -chdir="$terraform_module_directory" plan -no-color -detailed-exitcode -var-file="${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}" "${approve}" | tee -a plan_output.log
 return_value=$?
