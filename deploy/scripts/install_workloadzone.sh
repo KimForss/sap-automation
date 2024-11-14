@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# Ensure that the exit status of a pipeline command is non-zero if any
+# stage of the pipefile has a non-zero exit status.
+set -o pipefail
+
+set -x
+
 #colors for terminal
 boldreduscore="\e[1;4;31m"
 boldred="\e[1;31m"
@@ -846,8 +852,6 @@ echo -e "#                           $cyan  Running Terraform plan $resetformatt
 echo "#                                                                                       #"
 echo "#########################################################################################"
 echo ""
-
-set +x
 
 if [ 1 == $called_from_ado ]; then
   terraform -chdir="${terraform_module_directory}" plan -no-color -detailed-exitcode -var-file="${var_file}" \
