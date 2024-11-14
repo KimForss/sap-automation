@@ -4,7 +4,7 @@
 # stage of the pipefile has a non-zero exit status.
 set -o pipefail
 
-set -x
+# set -x
 
 #colors for terminal
 boldreduscore="\e[1;4;31m"
