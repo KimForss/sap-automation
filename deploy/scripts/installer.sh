@@ -230,6 +230,8 @@ extra_vars=""
 
 if [ -f terraform.tfvars ]; then
   extra_vars=" -var-file=${param_dirname}/terraform.tfvars "
+else
+  unset extra_vars
 fi
 
 if [ "${deployment_system}" == sap_deployer ]; then
@@ -305,7 +307,7 @@ else
   save_config_vars "${system_config_information}" REMOTE_STATE_SA
 fi
 
-deployer_tfstate_key_parameter=''
+deployer_tfstate_key_parameter=""
 
 if [[ -z $deployer_tfstate_key ]]; then
   load_config_vars "${system_config_information}" "deployer_tfstate_key"
@@ -344,6 +346,7 @@ else
 
   echo "Deployer Keyvault ID:                $TF_VAR_deployer_kv_user_arm_id"
   deployer_parameter="  -var subscription_id=${STATE_SUBSCRIPTION} "
+  unset deployer_tfstate_key_parameter
   export ARM_SUBSCRIPTION_ID=$STATE_SUBSCRIPTION
 
 fi
