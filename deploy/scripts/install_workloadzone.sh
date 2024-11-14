@@ -819,7 +819,8 @@ if [ -n "${deployed_using_version}" ]; then
     resourceGroupName=$(az resource show --ids "${azureResourceID}" --query "resourceGroup" --output tsv)
     resourceType=$(az resource show --ids "${azureResourceID}" --query "type" --output tsv)
     resourceName=$(az resource show --ids "${azureResourceID}" --query "name" --output tsv)
-    az resource lock create --lock-type CanNotDelete -n "SAP Instaqllation Media account delete lock" --resource-group "${resourceGroupName}" --resource "${resourceName}" --resource-type "${resourceType}"
+    az resource lock create --lock-type CanNotDelete -n "SAP Installation Media account delete lock" --subscription "${subscription}" \
+      --resource-group "${resourceGroupName}" --resource "${resourceName}" --resource-type "${resourceType}"
 
     ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}"
 
@@ -847,9 +848,11 @@ echo "##########################################################################
 echo ""
 
 if [ 1 == $called_from_ado ]; then
-  terraform -chdir="${terraform_module_directory}" plan -no-color -detailed-exitcode -var-file="${var_file}" "${tfstate_parameter}" "${deployer_tfstate_key_parameter}" | tee -a plan_output.log
+  terraform -chdir="${terraform_module_directory}" plan -no-color -detailed-exitcode -var-file="${var_file}" \
+    "${tfstate_parameter}" "${deployer_tfstate_key_parameter}" | tee -a plan_output.log
 else
-  terraform -chdir="${terraform_module_directory}" plan -detailed-exitcode -var-file="${var_file}" "${tfstate_parameter}" "${deployer_tfstate_key_parameter}" | tee -a plan_output.log
+  terraform -chdir="${terraform_module_directory}" plan -detailed-exitcode -var-file="${var_file}" \
+  "${tfstate_parameter}" "${deployer_tfstate_key_parameter}" | tee -a plan_output.log
 fi
 return_value=$?
 
