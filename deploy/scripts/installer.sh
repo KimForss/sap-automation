@@ -614,7 +614,7 @@ if [ 1 == $check_output ]; then
     echo "#                                                                                       #"
     echo "#########################################################################################"
     echo ""
-    # allParams=$(printf " -var-file=%s %s %s %s %s %s %s" "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}" )
+    # allParameters=$(printf " -var-file=%s %s %s %s %s %s %s" "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}" )
     # terraform -chdir="${terraform_module_directory}" refresh -var-file="${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}" "${approve}"
 
     deployment_parameter=" "
@@ -756,10 +756,10 @@ if [ -f plan_output.log ]; then
   rm plan_output.log
 fi
 
-allParams=$(printf " -var-file=%s %s %s %s %s %s %s %s" "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}" "${deployer_parameter}")
+allParameters=$(printf " -var-file=%s %s %s %s %s %s %s %s" "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}" "${deployer_parameter}")
 
 # shellcheck disable=SC2086
-terraform -chdir="$terraform_module_directory" plan -no-color -detailed-exitcode $allParams | tee -a plan_output.log
+terraform -chdir="$terraform_module_directory" plan -no-color -detailed-exitcode $allParameters | tee -a plan_output.log
 
 return_value=$?
 echo "Terraform Plan return code:          $return_value"
@@ -1202,21 +1202,22 @@ if [ 1 == $ok_to_proceed ]; then
   echo "#########################################################################################"
   echo ""
 
-  allParams=$(printf " -var-file=%s %s %s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}" "${approve}")
+        allParameters=$(printf " -var-file=%s %s %s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}" "${approve}")
+  allImportParameters=$(printf " -var-file=%s %s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}")
 
   if [ 1 == $called_from_ado ]; then
     # shellcheck disable=SC2086
     terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json \
-      $allParams | tee -a apply_output.json
+      $allParameters | tee -a apply_output.json
   else
     if [ -n "${approve}" ]; then
       # shellcheck disable=SC2086
       terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json \
-        $allParams | tee -a apply_output.json
+        $allParameters | tee -a apply_output.json
     else
       # shellcheck disable=SC2086
       terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" \
-        $allParams
+        $allParameters
     fi
   fi
   return_value=$?
@@ -1239,10 +1240,10 @@ if [ 1 == $ok_to_proceed ]; then
           moduleID=$(jq -c -r '.address ' <<<"$item")
           azureResourceID=$(jq -c -r '.summary' <<<"$item" | awk -F'\"' '{print $2}')
           echo "Trying to import $azureResourceID into $moduleID"
-          echo terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var "tfstate_resource_id=${tfstate_resource_id}" \
-            "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${moduleID}" "${azureResourceID}"
-          terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var "tfstate_resource_id=${tfstate_resource_id}" \
-            "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${moduleID}" "${azureResourceID}"
+          # shellcheck disable=SC2086
+          echo terraform -chdir="${terraform_module_directory}" import $allImportParameters "${moduleID}" "${azureResourceID}"
+          # shellcheck disable=SC2086
+          terraform -chdir="${terraform_module_directory}" import $allImportParameters "${moduleID}" "${azureResourceID}"
         done
         rm apply_output.json
 
@@ -1260,7 +1261,7 @@ if [ 1 == $ok_to_proceed ]; then
           echo ""
           # shellcheck disable=SC2086
           terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json \
-            $allParams | tee -a apply_output.json
+            $allParameters | tee -a apply_output.json
           return_value=$?
         fi
       fi
@@ -1275,10 +1276,10 @@ if [ 1 == $ok_to_proceed ]; then
             moduleID=$(jq -c -r '.address ' <<<"$item")
             azureResourceID=$(jq -c -r '.summary' <<<"$item" | awk -F'\"' '{print $2}')
             echo "Trying to import $azureResourceID into $moduleID"
-            echo terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var "deployer_tfstate_key=${deployer_tfstate_key}" \
-              -var "landscape_tfstate_key=${landscape_tfstate_key}" -var "tfstate_resource_id=${tfstate_resource_id}" "${moduleID}" "${azureResourceID}"
-            terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var "deployer_tfstate_key=${deployer_tfstate_key}" \
-              -var "landscape_tfstate_key=${landscape_tfstate_key}" -var "tfstate_resource_id=${tfstate_resource_id}" "${moduleID}" "${azureResourceID}"
+            # shellcheck disable=SC2086
+            echo terraform -chdir="${terraform_module_directory}" import $allImportParameters "${moduleID}" "${azureResourceID}"
+            # shellcheck disable=SC2086
+            terraform -chdir="${terraform_module_directory}" import $allImportParameters "${moduleID}" "${azureResourceID}"
             return_value=$?
           done
 
@@ -1295,7 +1296,7 @@ if [ 1 == $ok_to_proceed ]; then
           echo ""
           # shellcheck disable=SC2086
           terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json \
-            $allParams | tee -a apply_output.json
+            $allParameters | tee -a apply_output.json
           return_value=$?
         fi
 
