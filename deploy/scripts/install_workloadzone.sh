@@ -201,6 +201,13 @@ fi
 key=$(echo "${workload_file_parametername}" | cut -d. -f1)
 landscape_tfstate_key=${key}.terraform.tfstate
 
+if [ -f terraform.tfvars ]; then
+  extra_vars="-var-file=${param_dirname}/terraform.tfvars"
+else
+  unset extra_vars
+fi
+
+
 #Persisting the parameters across executions
 
 automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation
@@ -853,13 +860,11 @@ echo "#                                                                         
 echo "#########################################################################################"
 echo ""
 
-if [ 1 == $called_from_ado ]; then
-  terraform -chdir="${terraform_module_directory}" plan -no-color -detailed-exitcode -var-file="${var_file}" \
-    "${tfstate_parameter}" "${deployer_tfstate_key_parameter}" | tee -a plan_output.log
-else
-  terraform -chdir="${terraform_module_directory}" plan -detailed-exitcode -var-file="${var_file}" \
-  "${tfstate_parameter}" "${deployer_tfstate_key_parameter}" | tee -a plan_output.log
-fi
+allParams=$(printf " -var-file=%s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${deployer_tfstate_key_parameter}" )
+
+# shellcheck disable=SC2086
+terraform -chdir="$terraform_module_directory" plan -no-color -detailed-exitcode $allParams | tee -a plan_output.log
+
 return_value=$?
 
 echo "Terraform Plan return code:          $return_value"
@@ -970,16 +975,20 @@ if [ 1 == $ok_to_proceed ]; then
     parallelism=$TF_PARALLELLISM
   fi
 
+  allParams=$(printf " -var-file=%s %s %s %s" "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${deployer_tfstate_key_parameter}" )
+
+  # shellcheck disable=SC2086
+
   if [ 1 == $called_from_ado ]; then
-    terraform -chdir="${terraform_module_directory}" apply "${approve}" -parallelism="${parallelism}" -no-color -var-file="${var_file}" \
-      "$tfstate_parameter" "$landscape_tfstate_key_parameter" "$deployer_tfstate_key_parameter" -json | tee -a apply_output.json
+    # shellcheck disable=SC2086
+    terraform -chdir="${terraform_module_directory}" apply "${approve}" -parallelism="${parallelism}" -no-color -json $allParams | tee -a apply_output.json
   else
     if [ -n "${approve}" ]; then
-      terraform -chdir="${terraform_module_directory}" apply "${approve}" -parallelism="${parallelism}" -var-file="${var_file}" "$tfstate_parameter" \
-        "$deployer_tfstate_key_parameter" -json | tee -a apply_output.json
+      # shellcheck disable=SC2086
+      terraform -chdir="${terraform_module_directory}" apply "${approve}" -parallelism="${parallelism}" -no-color -json $allParams | tee -a apply_output.json
     else
-      terraform -chdir="${terraform_module_directory}" apply "${approve}" -parallelism="${parallelism}" -var-file="${var_file}" "$tfstate_parameter" \
-        "$landscape_tfstate_key_parameter" "$deployer_tfstate_key_parameter"
+      # shellcheck disable=SC2086
+      terraform -chdir="${terraform_module_directory}" apply "${approve}" -parallelism="${parallelism}" $allParams
     fi
 
   fi
