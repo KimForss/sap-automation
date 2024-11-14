@@ -547,7 +547,7 @@ function ReplaceResourceInStateFile {
 
   local moduleID=$1
   local terraform_module_directory=$2
-  azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 " $3 " | xargs | cut -d "=" -f2 | xargs)
+  azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 " $3 " | xargs | cut -d "=" -f2 | xargs | tr "/fileshares/" "/shares/")
   echo "Terraform resource ID:  $moduleID"
   echo "Azure resource ID:      $azureResourceID"
   if [ -n "${azureResourceID}" ]; then
