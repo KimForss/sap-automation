@@ -72,7 +72,6 @@ while :; do
   -h | --help)
     showhelp
     exit 3
-    shift
     ;;
   --)
     shift
@@ -117,7 +116,7 @@ fi
 
 region=$(echo "${region}" | tr "[:upper:]" "[:lower:]")
 # Convert the region to the correct code
-get_region_code $region
+get_region_code "$region"
 
 key=$(echo "${parameterfile}" | cut -d. -f1)
 
@@ -174,8 +173,8 @@ else
       echo "#                                                                                       #"
       echo "#########################################################################################"
       sed -i /"use_microsoft_graph"/d "${param_dirname}/.terraform/terraform.tfstate"
-      if [ $approve == "--auto-approve" ]; then
-        tfstate_resource_id=$(az resource list --name $REINSTALL_ACCOUNTNAME --subscription $REINSTALL_SUBSCRIPTION --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
+      if [ "$approve" == "--auto-approve" ]; then
+        tfstate_resource_id=$(az resource list --name "$REINSTALL_ACCOUNTNAME" --subscription "$REINSTALL_SUBSCRIPTION" --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
         if [ -n "${tfstate_resource_id}" ]; then
           echo "Reinitializing against remote state"
           export TF_VAR_tfstate_resource_id=$tfstate_resource_id
@@ -195,9 +194,9 @@ else
           terraform -chdir="${terraform_module_directory}" refresh -var-file="${var_file}"
         fi
       else
-        read -p "Do you want to bootstrap the deployer again Y/N?" ans
+        read -p -r "Do you want to bootstrap the deployer again Y/N?" ans
         answer=${ans^^}
-        if [ $answer == 'Y' ]; then
+        if [ "$answer" == 'Y' ]; then
           terraform -chdir="${terraform_module_directory}" init -upgrade=true -backend-config "path=${param_dirname}/terraform.tfstate"
           terraform -chdir="${terraform_module_directory}" refresh -var-file="${var_file}"
         else
@@ -231,7 +230,7 @@ if [ -f terraform.tfvars ]; then
   extra_vars=" -var-file=${param_dirname}/terraform.tfvars "
 fi
 
-terraform -chdir="${terraform_module_directory}" refresh -var-file="${var_file}" $extra_vars
+terraform -chdir="${terraform_module_directory}" refresh -var-file="${var_file}" "${extra_vars}"
 
 echo ""
 echo "#########################################################################################"
@@ -241,7 +240,7 @@ echo "#                                                                         
 echo "#########################################################################################"
 echo ""
 
-terraform -chdir="${terraform_module_directory}" plan -detailed-exitcode -var-file="${var_file}" $extra_vars | tee -a plan_output.log
+terraform -chdir="${terraform_module_directory}" plan -detailed-exitcode -var-file="${var_file}" "${extra_vars}" | tee -a plan_output.log
 
 return_value=$?
 if [ 1 == $return_value ]; then
@@ -279,9 +278,9 @@ if [[ -n "${TF_PARALLELLISM}" ]]; then
   parallelism=$TF_PARALLELLISM
 fi
 if [ -n "${approve}" ]; then
-  terraform -chdir="${terraform_module_directory}" apply ${approve} -parallelism="${parallelism}" -var-file="${var_file}" $extra_vars -json | tee -a apply_output.json
+  terraform -chdir="${terraform_module_directory}" apply "${approve}" -parallelism="${parallelism}" -var-file="${var_file}" "${extra_vars}" -json | tee -a apply_output.json
 else
-  terraform -chdir="${terraform_module_directory}" apply ${approve} -parallelism="${parallelism}" -var-file="${var_file}" $extra_vars
+  terraform -chdir="${terraform_module_directory}" apply "${approve}" -parallelism="${parallelism}" -var-file="${var_file}" "${extra_vars}"
 fi
 return_value=$?
 
@@ -296,10 +295,10 @@ if [ -f apply_output.json ]; then
     for item in "${existing_resources[@]}"; do
       moduleID=$(jq -c -r '.address ' <<<"$item")
       resourceID=$(jq -c -r '.summary' <<<"$item" | awk -F'\"' '{print $2}')
-      echo "Trying to import" $resourceID "into" $moduleID
+      echo "Trying to import $resourceID into $moduleID"
 
-      echo terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" $extra_vars $moduleID $resourceID
-      terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" $extra_vars $moduleID $resourceID
+      echo terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" "${extra_vars}" "${moduleID}" "${resourceID}"
+      terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" "${extra_vars}" "${moduleID}" "${resourceID}"
     done
     rerun_apply=1
   fi
@@ -315,7 +314,7 @@ if [ -f apply_output.json ]; then
     echo "#                                                                                       #"
     echo "#########################################################################################"
     echo ""
-    terraform -chdir="${terraform_module_directory}" apply ${approve} -parallelism="${parallelism}" -var-file="${var_file}" $extra_vars -json | tee -a apply_output.json
+    terraform -chdir="${terraform_module_directory}" apply "${approve}" -parallelism="${parallelism}" -var-file="${var_file}" "${extra_vars}" -json | tee -a apply_output.json
     return_value=$?
     rerun_apply=0
   fi
@@ -331,10 +330,10 @@ if [ -f apply_output.json ]; then
       for item in "${existing_resources[@]}"; do
         moduleID=$(jq -c -r '.address ' <<<"$item")
         resourceID=$(jq -c -r '.summary' <<<"$item" | awk -F'\"' '{print $2}')
-        echo "Trying to import" $resourceID "into" $moduleID
+        echo "Trying to import $resourceID into $moduleID"
 
-        echo terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" $extra_vars $moduleID $resourceID
-        terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" $extra_vars $moduleID $resourceID
+        echo terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" "${extra_vars}" "${moduleID}" "${resourceID}"
+        terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" "${extra_vars}" "${moduleID}" "${resourceID}"
       done
       rerun_apply=1
     fi
@@ -350,7 +349,7 @@ if [ -f apply_output.json ]; then
       echo "#                                                                                       #"
       echo "#########################################################################################"
       echo ""
-      terraform -chdir="${terraform_module_directory}" apply ${approve} -parallelism="${parallelism}" -var-file="${var_file}" $extra_vars -json | tee -a apply_output.json
+      terraform -chdir="${terraform_module_directory}" apply "${approve}" -parallelism="${parallelism}" -var-file="${var_file}" "${extra_vars}" -json | tee -a apply_output.json
       return_value=$?
     fi
 

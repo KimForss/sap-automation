@@ -73,7 +73,6 @@ while :; do
   -h | --help)
     showhelp
     exit 3
-    shift
     ;;
   --)
     shift
@@ -98,7 +97,7 @@ fi
 
 param_dirname=$(dirname "${parameterfile}")
 
-if [ $param_dirname != '.' ]; then
+if [ "$param_dirname" != '.' ]; then
   echo ""
   echo "#########################################################################################"
   echo "#                                                                                       #"
@@ -108,7 +107,7 @@ if [ $param_dirname != '.' ]; then
   exit 3
 fi
 
-ext=$(echo ${parameterfile} | cut -d. -f2)
+ext=$(echo "${parameterfile}" | cut -d. -f2)
 
 # Helper variables
 if [ "${ext}" == json ]; then
@@ -119,7 +118,7 @@ else
 
   load_config_vars "${param_dirname}"/"${parameterfile}" "environment"
   load_config_vars "${param_dirname}"/"${parameterfile}" "location"
-  region=$(echo ${location} | xargs)
+  region=$(echo "${location}" | xargs)
 
 fi
 
@@ -159,7 +158,7 @@ if [ true == "$use_deployer" ]; then
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo "#                    Directory does not exist:  "${deployer_statefile_foldername}" #"
+    echo "#                    Directory does not exist:  ${deployer_statefile_foldername} #"
     echo "#                                                                                       #"
     echo "#########################################################################################"
     exit
@@ -169,7 +168,7 @@ fi
 #Persisting the parameters across executions
 automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
 generic_config_information="${automation_config_directory}"config
-library_config_information="${automation_config_directory}""${environment}""${region_code}"
+library_config_information="${automation_config_directory}${environment}${region_code}"
 
 #Plugins
 isInCloudShellCheck=$(checkIfCloudShell)
@@ -196,7 +195,7 @@ init "${automation_config_directory}" "${generic_config_information}" "${library
 export TF_DATA_DIR="${param_dirname}"/.terraform
 var_file="${param_dirname}"/"${parameterfile}"
 
-if [ ! -n "${SAP_AUTOMATION_REPO_PATH}" ]; then
+if [ -z "${SAP_AUTOMATION_REPO_PATH}" ]; then
   echo ""
   echo "#########################################################################################"
   echo "#                                                                                       #"
@@ -211,13 +210,12 @@ if [ ! -n "${SAP_AUTOMATION_REPO_PATH}" ]; then
   exit 4
 fi
 
-templen=$(echo "${ARM_SUBSCRIPTION_ID}" | wc -c)
 # Subscription length is 37
-if [ 37 != $templen ]; then
+if [ 37 != "${#ARM_SUBSCRIPTION_ID}" ]; then
   arm_config_stored=false
 fi
 
-if [ ! -n "$ARM_SUBSCRIPTION_ID" ]; then
+if [ -z "$ARM_SUBSCRIPTION_ID" ]; then
   echo ""
   echo "#########################################################################################"
   echo "#                                                                                       #"
@@ -234,7 +232,7 @@ fi
 
 terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/"${deployment_system}"/
 
-if [ ! -d ${terraform_module_directory} ]; then
+if [ ! -d "${terraform_module_directory}" ]; then
   echo "#########################################################################################"
   echo "#                                                                                       #"
   echo "#   Incorrect system deployment type specified :" ${deployment_system} "            #"
@@ -282,8 +280,8 @@ else
       echo "#                                                                                       #"
       echo "#########################################################################################"
 
-      if [ $approve == "--auto-approve" ]; then
-        tfstate_resource_id=$(az resource list --name $REINSTALL_ACCOUNTNAME --subscription $REINSTALL_SUBSCRIPTION --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
+      if [ "$approve" == "--auto-approve" ]; then
+        tfstate_resource_id=$(az resource list --name "$REINSTALL_ACCOUNTNAME" --subscription "$REINSTALL_SUBSCRIPTION" --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
         if [ -n "${tfstate_resource_id}" ]; then
           echo "Reinitializing against remote state"
           terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/run/"${deployment_system}"/
@@ -302,9 +300,9 @@ else
         fi
       else
 
-        read -p "Do you want to re bootstrap the SAP library Y/N?" ans
+        read -p -r "Do you want to re bootstrap the SAP library Y/N?" ans
         answer=${ans^^}
-        if [ $answer == 'Y' ]; then
+        if [ "$answer" == 'Y' ]; then
           terraform -chdir="${terraform_module_directory}" init -upgrade=true -reconfigure -backend-config "path=${param_dirname}/terraform.tfstate"
           return_value=$?
           if [ 0 != $return_value ]; then
@@ -360,13 +358,13 @@ if [ 0 == $return_value ]; then
   fi
 
   tfstate_resource_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw tfstate_resource_id | tr -d \")
-  STATE_SUBSCRIPTION=$(echo $tfstate_resource_id | cut -d/ -f3 | tr -d \" | xargs)
+  STATE_SUBSCRIPTION=$(echo "$tfstate_resource_id" | cut -d/ -f3 | tr -d \" | xargs)
 
-  az account set --sub $STATE_SUBSCRIPTION
+  az account set --sub "$STATE_SUBSCRIPTION"
 
   REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw remote_state_storage_account_name | tr -d \")
 
-  get_and_store_sa_details ${REMOTE_STATE_SA} "${system_config_information}"
+  get_and_store_sa_details "${REMOTE_STATE_SA}" "${system_config_information}"
 
   unset TF_DATA_DIR
   exit $return_value
@@ -431,13 +429,13 @@ if [ -f apply_output.json ]; then
     for item in "${existing_resources[@]}"; do
       moduleID=$(jq -c -r '.address ' <<<"$item")
       resourceID=$(jq -c -r '.summary' <<<"$item" | awk -F'\"' '{print $2}')
-      echo "Trying to import" $resourceID "into" $moduleID
+      echo "Trying to import $resourceID into $moduleID"
 
       if [ -n "${deployer_statefile_foldername}" ]; then
         echo "Deployer folder specified:             ${deployer_statefile_foldername}"
-        terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var deployer_statefile_foldername="${deployer_statefile_foldername}" $moduleID $resourceID
+        terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var deployer_statefile_foldername="${deployer_statefile_foldername}" "${moduleID}" "${resourceID}"
       else
-        terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" $moduleID $resourceID
+        terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" "${moduleID}" "${resourceID}"
       fi
 
     done
@@ -470,13 +468,13 @@ if [ -f apply_output.json ]; then
     for item in "${existing_resources[@]}"; do
       moduleID=$(jq -c -r '.address ' <<<"$item")
       resourceID=$(jq -c -r '.summary' <<<"$item" | awk -F'\"' '{print $2}')
-      echo "Trying to import" $resourceID "into" $moduleID
+      echo "Trying to import $resourceID into $moduleID"
 
       if [ -n "${deployer_statefile_foldername}" ]; then
         echo "Deployer folder specified:             ${deployer_statefile_foldername}"
-        terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var deployer_statefile_foldername="${deployer_statefile_foldername}" $moduleID $resourceID
+        terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var deployer_statefile_foldername="${deployer_statefile_foldername}" "${moduleID}" "${resourceID}"
       else
-        terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" $moduleID $resourceID
+        terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" "${moduleID}" "${resourceID}"
       fi
 
     done
@@ -558,7 +556,7 @@ if [ -z "${temp}" ]; then
 fi
 
 tfstate_resource_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw tfstate_resource_id | tr -d \")
-temp=$(echo $tfstate_resource_id | grep -m1 "Warning")
+temp=$(echo "$tfstate_resource_id" | grep -m1 "Warning")
 if [ -z "${temp}" ]; then
   temp=$(echo "${tfstate_resource_id}" | grep "Backend reinitialization required")
   if [ -z "${temp}" ]; then

@@ -516,7 +516,7 @@ else
     else
       read -r -p "Do you want to specify the Workload SPN Details Y/N?" ans
       answer=${ans^^}
-      if [ ${answer} == 'Y' ]; then
+      if [ "${answer}" == 'Y' ]; then
         allParams=$(printf " --workload --environment %s --region %s --vault %s --subscription %s  --spn_id %s " "${environment}" "${region_code}" "${keyvault}" "${STATE_SUBSCRIPTION}" "${client_id}")
 
         "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/set_secrets.sh ${allParams}"
@@ -547,7 +547,7 @@ else
 fi
 
 if [ -z "${REMOTE_STATE_SA}" ]; then
-  read -p "Terraform state storage account name:" REMOTE_STATE_SA
+  read -p -r "Terraform state storage account name:" REMOTE_STATE_SA
   get_and_store_sa_details "${REMOTE_STATE_SA}" "${workload_config_information}"
   load_config_vars "${workload_config_information}" "STATE_SUBSCRIPTION"
   load_config_vars "${workload_config_information}" "REMOTE_STATE_RG"
@@ -557,7 +557,7 @@ if [ -z "${REMOTE_STATE_SA}" ]; then
   export TF_VAR_tfstate_resource_id=${tfstate_resource_id}
 
   if [ -n "${STATE_SUBSCRIPTION}" ]; then
-    if [ $account_set == 0 ]; then
+    if [ "$account_set" == 0 ]; then
       az account set --sub "${STATE_SUBSCRIPTION}"
       account_set=1
     fi
@@ -566,7 +566,7 @@ fi
 
 if [ -z "${REMOTE_STATE_RG}" ]; then
   if [ -n "${REMOTE_STATE_SA}" ]; then
-    get_and_store_sa_details ${REMOTE_STATE_SA} "${workload_config_information}"
+    get_and_store_sa_details "${REMOTE_STATE_SA}" "${workload_config_information}"
     load_config_vars "${workload_config_information}" "STATE_SUBSCRIPTION"
     load_config_vars "${workload_config_information}" "REMOTE_STATE_RG"
     load_config_vars "${workload_config_information}" "tfstate_resource_id"
@@ -583,7 +583,7 @@ if [ -n "${tfstate_resource_id}" ]; then
   tfstate_parameter=" -var tfstate_resource_id=${tfstate_resource_id}"
   export TF_VAR_tfstate_resource_id=${tfstate_resource_id}
 else
-  get_and_store_sa_details ${REMOTE_STATE_SA} "${workload_config_information}"
+  get_and_store_sa_details "${REMOTE_STATE_SA}" "${workload_config_information}"
   load_config_vars "${workload_config_information}" "tfstate_resource_id"
   tfstate_parameter=" -var tfstate_resource_id=${tfstate_resource_id}"
   export TF_VAR_tfstate_resource_id=${tfstate_resource_id}
@@ -732,9 +732,9 @@ if [ 1 == $check_output ]; then
         exit 1
       fi
 
-      read -p "Do you want to continue Y/N?" ans
+      read -p -r "Do you want to continue Y/N?" ans
       answer=${ans^^}
-      if [ $answer == 'Y' ]; then
+      if [ "$answer" == 'Y' ]; then
         ok_to_proceed=true
       else
         unset TF_DATA_DIR
@@ -847,9 +847,9 @@ echo "##########################################################################
 echo ""
 
 if [ 1 == $called_from_ado ]; then
-  terraform -chdir="${terraform_module_directory}" plan -no-color -detailed-exitcode -var-file=${var_file} $tfstate_parameter $deployer_tfstate_key_parameter | tee -a plan_output.log
+  terraform -chdir="${terraform_module_directory}" plan -no-color -detailed-exitcode -var-file="${var_file}" "${tfstate_parameter}" "${deployer_tfstate_key_parameter}" | tee -a plan_output.log
 else
-  terraform -chdir="${terraform_module_directory}" plan -detailed-exitcode -var-file=${var_file} $tfstate_parameter $deployer_tfstate_key_parameter | tee -a plan_output.log
+  terraform -chdir="${terraform_module_directory}" plan -detailed-exitcode -var-file="${var_file}" "${tfstate_parameter}" "${deployer_tfstate_key_parameter}" | tee -a plan_output.log
 fi
 return_value=$?
 
@@ -931,9 +931,9 @@ if [ 2 == $return_value ]; then
     read -n 1 -r -s -p $'Press enter to continue...\n'
 
     cat plan_output.log
-    read -p "Do you want to continue with the deployment Y/N?" ans
+    read -p -r "Do you want to continue with the deployment Y/N?" ans
     answer=${ans^^}
-    if [ $answer == 'Y' ]; then
+    if [ "${answer}" == 'Y' ]; then
       ok_to_proceed=1
     else
       unset TF_DATA_DIR
@@ -1113,8 +1113,6 @@ if [ -f apply_output.json ]; then
     return_value=0
     errors_occurred=$(jq 'select(."@level" == "error") | length' apply_output.json)
 
-    cat apply_output.json
-
     if [[ -n $errors_occurred ]]; then
       echo ""
       echo "#########################################################################################"
@@ -1135,16 +1133,16 @@ if [ -f apply_output.json ]; then
             echo -e "#                          $boldreduscore  $report $resetformatting"
             if [ 1 == $called_from_ado ]; then
 
-              roleAssignmentExists=$(echo ${report} | grep -m1 "RoleAssignmentExists")
-              if [ -z ${roleAssignmentExists} ]; then
+              roleAssignmentExists=$(echo "${report}" | grep -m1 "RoleAssignmentExists")
+              if [ -z "${roleAssignmentExists}" ]; then
                 echo "##vso[task.logissue type=error]${report}"
               fi
             fi
           else
             echo -e "#                          $boldreduscore  $string_to_report $resetformatting"
             if [ 1 == $called_from_ado ]; then
-              roleAssignmentExists=$(echo ${string_to_report} | grep -m1 "RoleAssignmentExists")
-              if [ -z ${roleAssignmentExists} ]; then
+              roleAssignmentExists=$(echo "${string_to_report}" | grep -m1 "RoleAssignmentExists")
+              if [ -z "${roleAssignmentExists}" ]; then
                 echo "##vso[task.logissue type=error]${string_to_report}"
               fi
             fi
