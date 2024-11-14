@@ -1260,15 +1260,9 @@ if [ 1 == $ok_to_proceed ]; then
           echo "#########################################################################################"
           echo ""
           echo ""
-          if [ 1 == $called_from_ado ]; then
-            terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json -var-file="${var_file}" \
-              "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" \
-              "${version_parameter}" "${approve}" | tee -a apply_output.json
-          else
-            terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -json -var-file="${var_file}" "${extra_vars}" \
-              "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" \
-              "${version_parameter}" "${approve}" | tee -a apply_output.json
-          fi
+          # shellcheck disable=SC2086
+          terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json \
+            $allParams | tee -a apply_output.json
           return_value=$?
         fi
       fi
@@ -1301,15 +1295,9 @@ if [ 1 == $ok_to_proceed ]; then
           echo "#########################################################################################"
           echo ""
           echo ""
-          if [ 1 == $called_from_ado ]; then
-            terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json -var-file="${var_file}" \
-              "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" \
-              "${version_parameter}" "${approve}" | tee -a apply_output.json
-          else
-            terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -json -var-file="${var_file}" "${extra_vars}" \
-              "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" \
-              "${version_parameter}" "${approve}" | tee -a apply_output.json
-          fi
+          # shellcheck disable=SC2086
+          terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json \
+            $allParams | tee -a apply_output.json
           return_value=$?
         fi
 
