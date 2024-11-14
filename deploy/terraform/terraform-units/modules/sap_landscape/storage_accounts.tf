@@ -377,11 +377,11 @@ resource "azurerm_storage_share" "transport" {
                                            azurerm_storage_account.transport[0].id
                                          )
 
-  storage_account_name                 = var.data_plane_available ? length(var.transport_storage_account_id) > 0 ? (
-                                           split("/", var.transport_storage_account_id)[8]
-                                           ) : (
-                                           azurerm_storage_account.transport[0].name
-                                         ) : null
+  # storage_account_name                 = var.data_plane_available ? length(var.transport_storage_account_id) > 0 ? (
+  #                                          split("/", var.transport_storage_account_id)[8]
+  #                                          ) : (
+  #                                          azurerm_storage_account.transport[0].name
+  #                                        ) : null
 
   enabled_protocol                     = "NFS"
 
