@@ -761,7 +761,8 @@ echo ""
 if [ -f plan_output.log ]; then
   rm plan_output.log
 fi
-allParams=$(printf "-var-file=%s %s %s %s %s %s %s %s" "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}" "${deployer_parameter}" | tr "  " " ")
+
+allParams=$(printf "-var-file=%s %s %s %s %s %s %s %s" "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}" "${deployer_parameter}")
 
 # shellcheck disable=SC2086
 terraform -chdir="$terraform_module_directory" plan -no-color -detailed-exitcode $allParams | tee -a plan_output.log
