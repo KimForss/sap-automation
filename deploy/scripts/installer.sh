@@ -229,7 +229,7 @@ var_file="${param_dirname}"/"${parameterfile}"
 extra_vars=""
 
 if [ -f terraform.tfvars ]; then
-  extra_vars=" -var-file=${param_dirname}/terraform.tfvars "
+  extra_vars="-var-file=${param_dirname}/terraform.tfvars"
 else
   unset extra_vars
 fi
@@ -320,7 +320,7 @@ if [ "${deployment_system}" != sap_deployer ]; then
   if [ -z "${deployer_tfstate_key}" ]; then
     if [ 1 != $called_from_ado ]; then
       read -p -r "Deployer terraform statefile name :" landscape_tfstate_key
-      deployer_tfstate_key_parameter=" -var deployer_tfstate_key=${deployer_tfstate_key}"
+      deployer_tfstate_key_parameter="-var deployer_tfstate_key=${deployer_tfstate_key}"
       save_config_var "deployer_tfstate_key" "${system_config_information}"
     else
       echo ""
@@ -336,7 +336,7 @@ if [ "${deployment_system}" != sap_deployer ]; then
       exit 2
     fi
   else
-    deployer_tfstate_key_parameter=" -var deployer_tfstate_key=${deployer_tfstate_key}"
+    deployer_tfstate_key_parameter="-var deployer_tfstate_key=${deployer_tfstate_key}"
     echo "Deployer state file name:            ${deployer_tfstate_key}"
   fi
 else
@@ -391,8 +391,10 @@ if [ "${deployment_system}" == sap_system ]; then
       exit 2
     fi
   else
-    landscape_tfstate_key_parameter=" -var landscape_tfstate_key=${landscape_tfstate_key}"
+    landscape_tfstate_key_parameter="-var landscape_tfstate_key=${landscape_tfstate_key}"
   fi
+else
+  unset landscape_tfstate_key_parameter
 fi
 
 if [[ -z $STATE_SUBSCRIPTION ]]; then
@@ -657,7 +659,7 @@ if [ -z "${deployed_using_version}" ]; then
     exit 1
   fi
 else
-  version_parameter=" -var terraform_template_version=${deployed_using_version} "
+  version_parameter="-var terraform_template_version=${deployed_using_version}"
 
   printf -v val %-.20s "$deployed_using_version"
   echo ""
