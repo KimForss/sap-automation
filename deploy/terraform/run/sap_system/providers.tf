@@ -30,7 +30,7 @@ provider "azurerm"                     {
                                                                       purge_soft_deleted_certificates_on_destroy = !var.enable_purge_control_for_keyvaults
                                                                    }
                                                     storage        {
-                                                                        data_plane_available                     = var.shared_access_key_enabled_nfs
+                                                                        data_plane_available                     = var.data_plane_available
                                                                    }
                                                   }
                                          client_id           = try(data.terraform_remote_state.landscape.outputs.use_spn, true) && var.use_spn ? local.spn.client_id : null

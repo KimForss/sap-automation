@@ -228,6 +228,12 @@ variable "shared_access_key_enabled"            {
                                                   type        = bool
                                                 }
 
+variable "data_plane_available"                 {
+                                                  description = "Boolean value indicating if storage account access is via data plane"
+                                                  default     = false
+                                                  type        = bool
+                                                }
+
 
 #########################################################################################
 #                                                                                       #

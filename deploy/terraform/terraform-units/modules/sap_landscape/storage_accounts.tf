@@ -371,11 +371,18 @@ resource "azurerm_storage_share" "transport" {
                                          )
   name                                 = format("%s", local.resource_suffixes.transport_volume)
 
-  storage_account_id                   = length(var.transport_storage_account_id) > 0 ? (
-                                           var.transport_storage_account_id
+  storage_account_id                   = var.data_plane_available ? null : length(var.transport_storage_account_id) > 0 ? (
+                                           split(var.transport_storage_account_id
                                            ) : (
                                            azurerm_storage_account.transport[0].id
                                          )
+
+  storage_account_name                 = var.data_plane_available ? length(var.transport_storage_account_id) > 0 ? (
+                                           plit("/", var.transport_storage_account_id)[8]
+                                           ) : (
+                                           azurerm_storage_account.transport[0].name
+                                         ) : null
+
   enabled_protocol                     = "NFS"
 
   quota                                = var.transport_volume_size
