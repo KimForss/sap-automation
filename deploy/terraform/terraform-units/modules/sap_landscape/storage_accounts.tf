@@ -378,7 +378,7 @@ resource "azurerm_storage_share" "transport" {
                                          )
 
   storage_account_name                 = var.data_plane_available ? length(var.transport_storage_account_id) > 0 ? (
-                                           plit("/", var.transport_storage_account_id)[8]
+                                           split("/", var.transport_storage_account_id)[8]
                                            ) : (
                                            azurerm_storage_account.transport[0].name
                                          ) : null
