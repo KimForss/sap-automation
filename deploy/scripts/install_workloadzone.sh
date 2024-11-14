@@ -847,6 +847,8 @@ echo "#                                                                         
 echo "#########################################################################################"
 echo ""
 
+set +x
+
 if [ 1 == $called_from_ado ]; then
   terraform -chdir="${terraform_module_directory}" plan -no-color -detailed-exitcode -var-file="${var_file}" \
     "${tfstate_parameter}" "${deployer_tfstate_key_parameter}" | tee -a plan_output.log
