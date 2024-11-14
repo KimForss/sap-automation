@@ -505,8 +505,7 @@ else
 
       echo "Calling set_secrets with:             ${fixed_allParams}"
 
-      "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/set_secrets.sh" --workload --environment "${environment}" --region "${region_code}" \
-      --vault "${keyvault}" --subscription "${ARM_SUBSCRIPTION_ID}" --keyvault_subscription "${STATE_SUBSCRIPTION}" --spn_id "${client_id}" --tenant_id "${tenant_id} --spn_secret "${spn_secret}"
+      "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/set_secrets.sh" --workload --environment "${environment}" --region "${region_code}" --vault "${keyvault}" --subscription "$ARM_SUBSCRIPTION_ID" --keyvault_subscription "${STATE_SUBSCRIPTION}" --spn_id "${client_id}" --tenant_id "${tenant_id}" --spn_secret "${spn_secret}"
 
       if [ -f secret.err ]; then
         error_message=$(cat secret.err)
@@ -532,7 +531,6 @@ else
     fi
   fi
 fi
-
 
 if [ -z "${deployer_tfstate_key}" ]; then
   load_config_vars "${workload_config_information}" "deployer_tfstate_key"
@@ -576,7 +574,7 @@ if [ -z "${REMOTE_STATE_RG}" ]; then
     tfstate_parameter=" -var tfstate_resource_id=${tfstate_resource_id}"
   else
     option="REMOTE_STATE_RG"
-    read -p "Remote state resource group name:" REMOTE_STATE_RG
+    read -p -r "Remote state resource group name:" REMOTE_STATE_RG
     save_config_vars "${workload_config_information}" REMOTE_STATE_RG
   fi
 fi
