@@ -372,7 +372,7 @@ resource "azurerm_storage_share" "transport" {
   name                                 = format("%s", local.resource_suffixes.transport_volume)
 
   storage_account_id                   = var.data_plane_available ? null : length(var.transport_storage_account_id) > 0 ? (
-                                           split(var.transport_storage_account_id
+                                           var.transport_storage_account_id
                                            ) : (
                                            azurerm_storage_account.transport[0].id
                                          )
