@@ -547,7 +547,14 @@ function ReplaceResourceInStateFile {
 
   local moduleID=$1
   local terraform_module_directory=$2
-  azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 " $3 " | xargs | cut -d "=" -f2 | xargs | tr "/fileshares/" "/shares/")
+  azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 " $3 " | xargs | cut -d "=" -f2 | xargs )
+  tempString=$(echo "${azureResourceID}" | grep "/fileshares/")
+  if [ -n "${tempString}" ]; then
+    # Use sed to replace /fileshares/ with /shares/
+    # shellcheck disable=SC2001
+    azureResourceID=$(echo "$azureResourceID" | sed 's|/fileshares/|/shares/|g')
+  fi
+
   echo "Terraform resource ID:  $moduleID"
   echo "Azure resource ID:      $azureResourceID"
   if [ -n "${azureResourceID}" ]; then
