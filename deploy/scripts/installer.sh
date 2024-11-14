@@ -674,26 +674,24 @@ else
     if [ "${deployment_system}" == sap_library ]; then
       moduleID='module.sap_library.azurerm_storage_account.storage_sapbits[0]'
       azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 " id " | xargs | cut -d "=" -f2 | xargs)
+      ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "id"
 
       resourceGroupName=$(az resource show --ids "${azureResourceID}" --query "resourceGroup" --output tsv)
       resourceType=$(az resource show --ids "${azureResourceID}" --query "type" --output tsv)
       resourceName=$(az resource show --ids "${azureResourceID}" --query "name" --output tsv)
       az resource lock create --lock-type CanNotDelete -n "SAP Media account delete lock" --resource-group "${resourceGroupName}" --resource "${resourceName}" --resource-type "${resourceType}" --output none
 
-      ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "id"
-
       moduleID='module.sap_library.azurerm_storage_container.storagecontainer_sapbits[0]'
       ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "resource_manager_id"
 
       moduleID='module.sap_library.azurerm_storage_account.storage_tfstate[0]'
       azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 " id " | xargs | cut -d "=" -f2 | xargs)
+      ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "id"
 
       resourceGroupName=$(az resource show --ids "${azureResourceID}" --query "resourceGroup" --output tsv)
       resourceType=$(az resource show --ids "${azureResourceID}" --query "type" --output tsv)
       resourceName=$(az resource show --ids "${azureResourceID}" --query "name" --output tsv)
       az resource lock create --lock-type CanNotDelete -n "Terraform state account delete lock" --resource-group "${resourceGroupName}" --resource "${resourceName}" --resource-type "${resourceType}" --output none
-
-      ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "id"
 
       moduleID='module.sap_library.azurerm_storage_container.storagecontainer_tfstate[0]'
       ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "resource_manager_id"
