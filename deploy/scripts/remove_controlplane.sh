@@ -117,7 +117,7 @@ while :; do
     shift 2
     ;;
   -a | --ado)
-    approveparam="--auto-approve;ado=1"
+    approve_parameter="--auto-approve;ado=1"
     shift
     ;;
   -g | --keep_agent)
@@ -125,7 +125,7 @@ while :; do
     shift
     ;;
   -i | --auto-approve)
-    approveparam="--auto-approve"
+    approve_parameter="--auto-approve"
     shift
     ;;
   -h | --help)
@@ -375,13 +375,17 @@ if [ -f ./.terraform/terraform.tfstate ]; then
 
     #Initialize the statefile and copy to local
     sed -i /"use_microsoft_graph"/d "${param_dirname}/.terraform/terraform.tfstate"
-    terraform -chdir="${terraform_module_directory}" init -force-copy -migrate-state --backend-config "path=${param_dirname}/terraform.tfstate" -var deployer_statefile_folder="${deployer_statefile_foldername_path}"
-    terraform -chdir="${terraform_module_directory}" init -reconfigure --backend-config "path=${param_dirname}/terraform.tfstate" -var deployer_statefile_folder="${deployer_statefile_foldername_path}"
+    terraform -chdir="${terraform_module_directory}" init -force-copy -migrate-state --backend-config }
+    "path=${param_dirname}/terraform.tfstate" -var deployer_statefile_folder="${deployer_statefile_foldername_path}"
+    terraform -chdir="${terraform_module_directory}" init -reconfigure --backend-config "path=${param_dirname}/terraform.tfstate" \
+      -var deployer_statefile_folder="${deployer_statefile_foldername_path}"
   else
-    terraform -chdir="${terraform_module_directory}" init -reconfigure --backend-config "path=${param_dirname}/terraform.tfstate" -var deployer_statefile_folder="${deployer_statefile_foldername_path}"
+    terraform -chdir="${terraform_module_directory}" init -reconfigure --backend-config "path=${param_dirname}/terraform.tfstate" \
+      -var deployer_statefile_folder="${deployer_statefile_foldername_path}"
   fi
 else
-  terraform -chdir="${terraform_module_directory}" init -reconfigure --backend-config "path=${param_dirname}/terraform.tfstate" -var deployer_statefile_folder="${deployer_statefile_foldername_path}"
+  terraform -chdir="${terraform_module_directory}" init -reconfigure --backend-config "path=${param_dirname}/terraform.tfstate" \
+    -var deployer_statefile_folder="${deployer_statefile_foldername_path}"
 fi
 
 if [ -f init_error.log ]; then
@@ -419,7 +423,7 @@ echo "##########################################################################
 echo ""
 
 terraform -chdir="${terraform_module_directory}" destroy -var-file="${var_file}" -var use_deployer=false \
-  -var deployer_statefile_foldername="${deployer_statefile_foldername_path}" "${extra_vars}" "${approveparam}"
+  -var deployer_statefile_foldername="${deployer_statefile_foldername_path}" "${approve_parameter}"
 return_value=$?
 
 if [ 0 != $return_value ]; then
@@ -457,7 +461,7 @@ else
   param_dirname=$(pwd)
 
   if [ -z "$keyvault" ]; then
-    load_config_vars "${environment_config_information}" "keyvault"
+    load_config_vars "${deployer_config_information}" "keyvault"
     if valid_kv_name "$keyvault"; then
       az keyvault network-rule add --ip-address "$TF_VAR_Agent_IP" --name "$keyvault"
     fi
@@ -483,7 +487,7 @@ else
   echo "#########################################################################################"
   echo ""
 
-  terraform -chdir="${terraform_module_directory}" destroy  -var-file="${var_file}" "${extra_vars}" "${approveparam}"
+  terraform -chdir="${terraform_module_directory}" destroy -var-file="${var_file}" "${approve_parameter}"
   return_value=$?
   step=0
   save_config_var "step" "${deployer_config_information}"
