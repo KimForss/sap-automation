@@ -375,8 +375,8 @@ if [ -f ./.terraform/terraform.tfstate ]; then
 
     #Initialize the statefile and copy to local
     sed -i /"use_microsoft_graph"/d "${param_dirname}/.terraform/terraform.tfstate"
-    terraform -chdir="${terraform_module_directory}" init -force-copy -migrate-state --backend-config }
-    "path=${param_dirname}/terraform.tfstate" -var deployer_statefile_folder="${deployer_statefile_foldername_path}"
+    terraform -chdir="${terraform_module_directory}" init -force-copy -migrate-state --backend-config \
+      "path=${param_dirname}/terraform.tfstate" -var deployer_statefile_folder="${deployer_statefile_foldername_path}"
     terraform -chdir="${terraform_module_directory}" init -reconfigure --backend-config "path=${param_dirname}/terraform.tfstate" \
       -var deployer_statefile_folder="${deployer_statefile_foldername_path}"
   else
