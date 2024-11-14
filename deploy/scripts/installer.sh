@@ -769,7 +769,16 @@ if [ -f plan_output.log ]; then
   rm plan_output.log
 fi
 
-terraform -chdir="$terraform_module_directory" plan -no-color -detailed-exitcode -var-file="${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}" "${approve}" | tee -a plan_output.log
+if [ "${deployment_system}" == sap_deployer ]; then
+  terraform -chdir="$terraform_module_directory" plan -no-color -detailed-exitcode -var-file="${var_file}" "${extra_vars}" "${tfstate_parameter}" "${version_parameter}" "${approve}" | tee -a plan_output.log
+elif [ "${deployment_system}" == sap_library ]; then
+  terraform -chdir="$terraform_module_directory" plan -no-color -detailed-exitcode -var-file="${var_file}" "${extra_vars}" "${tfstate_parameter}""${deployer_tfstate_key_parameter}" "${version_parameter}" "${approve}" | tee -a plan_output.log
+elif [ "${deployment_system}" == sap_landscape ]; then
+  terraform -chdir="$terraform_module_directory" plan -no-color -detailed-exitcode -var-file="${var_file}" "${extra_vars}" "${tfstate_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}" "${approve}" | tee -a plan_output.log
+elif [ "${deployment_system}" == sap_system ]; then
+  terraform -chdir="$terraform_module_directory" plan -no-color -detailed-exitcode -var-file="${var_file}" "${extra_vars}" "${tfstate_parameter}" "${deployer_tfstate_key_parameter}" "${landscape_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}" "${approve}" | tee -a plan_output.log
+
+fi
 return_value=$?
 echo "Terraform Plan return code:          $return_value"
 
