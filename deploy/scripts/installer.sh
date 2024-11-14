@@ -313,7 +313,7 @@ else
 fi
 
 if [ "${deployment_system}" != sap_deployer ]; then
-  if [ -z ${deployer_tfstate_key} ]; then
+  if [ -z "${deployer_tfstate_key}" ]; then
     if [ 1 != $called_from_ado ]; then
       read -p -r "Deployer terraform statefile name :" landscape_tfstate_key
       deployer_tfstate_key_parameter=" -var deployer_tfstate_key=${deployer_tfstate_key}"
@@ -619,7 +619,7 @@ if [ 1 == $check_output ]; then
     echo "#########################################################################################"
     echo ""
     # allParams=$(printf " -var-file=%s %s %s %s %s %s %s" "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}" )
-    # terraform -chdir="${terraform_module_directory}" refresh $allParams
+    # terraform -chdir="${terraform_module_directory}" refresh -var-file="${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}" "${approve}"
 
     deployment_parameter=" "
   fi
@@ -764,7 +764,7 @@ fi
 
 allParams=$(printf " -var-file=%s %s %s %s %s %s %s %s" "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}" "${deployer_parameter}")
 
-terraform -chdir="$terraform_module_directory" plan -no-color -detailed-exitcode $allParams | tee -a plan_output.log
+terraform -chdir="$terraform_module_directory" plan -no-color -detailed-exitcode -var-file="${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}" "${approve}" | tee -a plan_output.log
 return_value=$?
 echo "Terraform Plan return code:          $return_value"
 
@@ -1206,15 +1206,18 @@ if [ 1 == $ok_to_proceed ]; then
   echo "#########################################################################################"
   echo ""
 
-  allParams=$(printf " -var-file=%s %s %s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}" "${approve}")
-
   if [ 1 == $called_from_ado ]; then
-    terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json $allParams | tee -a apply_output.json
+    terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json \
+      -var-file="${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" \
+      "${deployment_parameter}" "${version_parameter}" "${approve}" | tee -a apply_output.json
   else
     if [ -n "${approve}" ]; then
-      terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -json $allParams | tee -a apply_output.json
+      terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -json -var-file="${var_file}" "${extra_vars}" \
+        "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" \
+        "${version_parameter}" "${approve}" | tee -a apply_output.json
     else
-      terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" $allParams
+      terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -var-file="${var_file}" "${extra_vars}" \
+        "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}" "${approve}"
     fi
   fi
   return_value=$?
@@ -1231,8 +1234,10 @@ if [ 1 == $ok_to_proceed ]; then
         moduleID=$(jq -c -r '.address ' <<<"$item")
         azureResourceID=$(jq -c -r '.summary' <<<"$item" | awk -F'\"' '{print $2}')
         echo "Trying to import $azureResourceID into $moduleID"
-        echo terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var "tfstate_resource_id=${tfstate_resource_id}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${moduleID}" "${azureResourceID}"
-        terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var "tfstate_resource_id=${tfstate_resource_id}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${moduleID}" "${azureResourceID}"
+        echo terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var "tfstate_resource_id=${tfstate_resource_id}" \
+          "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${moduleID}" "${azureResourceID}"
+        terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var "tfstate_resource_id=${tfstate_resource_id}" \
+          "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${moduleID}" "${azureResourceID}"
       done
       rm apply_output.json
 
@@ -1249,9 +1254,13 @@ if [ 1 == $ok_to_proceed ]; then
         echo ""
         echo ""
         if [ 1 == $called_from_ado ]; then
-          terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json $allParams | tee -a apply_output.json
+          terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json -var-file="${var_file}" \
+            "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" \
+            "${version_parameter}" "${approve}" | tee -a apply_output.json
         else
-          terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -json $allParams | tee -a apply_output.json
+          terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -json -var-file="${var_file}" "${extra_vars}" \
+            "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" \
+            "${version_parameter}" "${approve}" | tee -a apply_output.json
         fi
         return_value=$?
       fi
@@ -1267,8 +1276,10 @@ if [ 1 == $ok_to_proceed ]; then
           moduleID=$(jq -c -r '.address ' <<<"$item")
           azureResourceID=$(jq -c -r '.summary' <<<"$item" | awk -F'\"' '{print $2}')
           echo "Trying to import $azureResourceID into $moduleID"
-          echo terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var "deployer_tfstate_key=${deployer_tfstate_key}" -var "landscape_tfstate_key=${landscape_tfstate_key}" -var "tfstate_resource_id=${tfstate_resource_id}" "${moduleID}" "${azureResourceID}"
-          terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var "deployer_tfstate_key=${deployer_tfstate_key}" -var "landscape_tfstate_key=${landscape_tfstate_key}" -var "tfstate_resource_id=${tfstate_resource_id}" "${moduleID}" "${azureResourceID}"
+          echo terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var "deployer_tfstate_key=${deployer_tfstate_key}" \
+            -var "landscape_tfstate_key=${landscape_tfstate_key}" -var "tfstate_resource_id=${tfstate_resource_id}" "${moduleID}" "${azureResourceID}"
+          terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var "deployer_tfstate_key=${deployer_tfstate_key}" \
+            -var "landscape_tfstate_key=${landscape_tfstate_key}" -var "tfstate_resource_id=${tfstate_resource_id}" "${moduleID}" "${azureResourceID}"
           return_value=$?
         done
 
@@ -1284,9 +1295,13 @@ if [ 1 == $ok_to_proceed ]; then
         echo ""
         echo ""
         if [ 1 == $called_from_ado ]; then
-          terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json $allParams | tee -a apply_output.json
+          terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json -var-file="${var_file}" \
+            "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" \
+            "${version_parameter}" "${approve}" | tee -a apply_output.json
         else
-          terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -json $allParams | tee -a apply_output.json
+          terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -json -var-file="${var_file}" "${extra_vars}" \
+            "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" \
+            "${version_parameter}" "${approve}" | tee -a apply_output.json
         fi
         return_value=$?
       fi
@@ -1388,7 +1403,8 @@ if [ "${deployment_system}" == sap_deployer ]; then
   fi
   full_script_path="$(realpath "${BASH_SOURCE[0]}")"
   script_directory="$(dirname "${full_script_path}")"
-  az deployment group create --resource-group ${created_resource_group_name} --name "ControlPlane_Deployer_${created_resource_group_name}" --template-file "${script_directory}/templates/empty-deployment.json" --output none
+  az deployment group create --resource-group ${created_resource_group_name} --name "ControlPlane_Deployer_${created_resource_group_name}" \
+    --template-file "${script_directory}/templates/empty-deployment.json" --output none
   return_value=0
   if [ 1 == $called_from_ado ]; then
 
@@ -1408,9 +1424,9 @@ if [ "${deployment_system}" == sap_deployer ]; then
       if [ -n "${webapp_url_base}" ]; then
         az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "WEBAPP_URL_BASE.value")
         if [ -z ${az_var} ]; then
-          az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name WEBAPP_URL_BASE --value $webapp_url_base --output none --only-show-errors
+          az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name WEBAPP_URL_BASE --value "$webapp_url_base" --output none --only-show-errors
         else
-          az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name WEBAPP_URL_BASE --value $webapp_url_base --output none --only-show-errors
+          az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name WEBAPP_URL_BASE --value "$webapp_url_base" --output none --only-show-errors
         fi
       fi
 
@@ -1418,9 +1434,9 @@ if [ "${deployment_system}" == sap_deployer ]; then
       if [ -n "${webapp_identity}" ]; then
         az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "WEBAPP_IDENTITY.value")
         if [ -z ${az_var} ]; then
-          az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name WEBAPP_IDENTITY --value $webapp_identity --output none --only-show-errors
+          az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name WEBAPP_IDENTITY --value "$webapp_identity" --output none --only-show-errors
         else
-          az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name WEBAPP_IDENTITY --value $webapp_identity --output none --only-show-errors
+          az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name WEBAPP_IDENTITY --value "$webapp_identity" --output none --only-show-errors
         fi
       fi
 
@@ -1428,9 +1444,9 @@ if [ "${deployment_system}" == sap_deployer ]; then
       if [ -n "${webapp_id}" ]; then
         az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "WEBAPP_ID.value")
         if [ -z ${az_var} ]; then
-          az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name WEBAPP_ID --value $webapp_id --output none --only-show-errors
+          az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name WEBAPP_ID --value "$webapp_id" --output none --only-show-errors
         else
-          az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name WEBAPP_ID --value $webapp_id --output none --only-show-errors
+          az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name WEBAPP_ID --value "$webapp_id" --output none --only-show-errors
         fi
       fi
       if [ -n "${random_id}" ]; then
@@ -1461,48 +1477,6 @@ if [ "${deployment_system}" == sap_deployer ]; then
 fi
 
 if [ "${deployment_system}" == sap_system ]; then
-  # re_run=0
-  # database_loadbalancer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output -no-color database_loadbalancer_ip | tr -d "\n"  | tr -d "("  | tr -d ")" | tr -d " ")
-  # database_loadbalancer_public_ip_address=$(echo ${database_loadbalancer_public_ip_address/tolist/})
-  # database_loadbalancer_public_ip_address=$(echo ${database_loadbalancer_public_ip_address/,]/]})
-  # echo "Database Load Balancer IP: $database_loadbalancer_public_ip_address"
-
-  # load_config_vars "${parameterfile_name}" "database_loadbalancer_ips"
-  # database_loadbalancer_ips=$(echo ${database_loadbalancer_ips} | xargs)
-
-  # if [[ "${database_loadbalancer_public_ip_address}" != "${database_loadbalancer_ips}" ]];
-  # then
-  #   database_loadbalancer_ips=${database_loadbalancer_public_ip_address}
-  #   if [ -n "${database_loadbalancer_ips}" ]; then
-  #       save_config_var "database_loadbalancer_ips" "${parameterfile_name}"
-  #       re_run=1
-  #   fi
-  # fi
-
-  # scs_loadbalancer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output -no-color scs_loadbalancer_ips | tr -d "\n"  | tr -d "("  | tr -d ")" | tr -d " ")
-  # scs_loadbalancer_public_ip_address=$(echo ${scs_loadbalancer_public_ip_address/tolist/})
-  # scs_loadbalancer_public_ip_address=$(echo ${scs_loadbalancer_public_ip_address/,]/]})
-  # echo "SCS Load Balancer IP: $scs_loadbalancer_public_ip_address"
-
-  # load_config_vars "${parameterfile_name}" "scs_server_loadbalancer_ips"
-  # scs_server_loadbalancer_ips=$(echo ${scs_server_loadbalancer_ips} | xargs)
-
-  # if [[ "${scs_loadbalancer_public_ip_address}" != "${scs_server_loadbalancer_ips}" ]];
-  # then
-  #   scs_server_loadbalancer_ips=${scs_loadbalancer_public_ip_address}
-  #   if [ -n "${scs_server_loadbalancer_ips}" ]; then
-  #       save_config_var "scs_server_loadbalancer_ips" "${parameterfile_name}"
-  #       re_run=1
-  #   fi
-  # fi
-
-  # if [ 1 == $re_run ] ; then
-  #     if [ 1 == $called_from_ado ] ; then
-  #         terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings $allParams  2>error.log
-  #     else
-  #         terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" $allParams  2>error.log
-  #     fi
-  # fi
 
   rg_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw created_resource_group_name | tr -d \")
 
@@ -1517,7 +1491,8 @@ if [ "${deployment_system}" == sap_system ]; then
   echo ""
   full_script_path="$(realpath "${BASH_SOURCE[0]}")"
   script_directory="$(dirname "${full_script_path}")"
-  az deployment group create --resource-group ${rg_name} --name "SAP_${rg_name}" --subscription $ARM_SUBSCRIPTION_ID --template-file "${script_directory}/templates/empty-deployment.json" --output none
+  az deployment group create --resource-group "${rg_name}" --name "SAP_${rg_name}" --subscriptio"n $ARM_SUBSCRIPTION_ID" \
+    --template-file "${script_directory}/templates/empty-deployment.json" --output none
 
 fi
 
@@ -1609,39 +1584,49 @@ unset TF_DATA_DIR
 useSAS=$(az storage account show --name "${REMOTE_STATE_SA}" --query allowSharedKeyAccess --subscription "${STATE_SUBSCRIPTION}" --out tsv)
 
 if [ "$useSAS" = "true" ]; then
-  az storage blob upload --file "${parameterfile}" --container-name tfvars/"${state_path}"/"${key}" --name "${parameterfile_name}" --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --no-progress --overwrite --only-show-errors --output none
+  az storage blob upload --file "${parameterfile}" --container-name tfvars/"${state_path}"/"${key}" --name "${parameterfile_name}" \
+    --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --no-progress --overwrite --only-show-errors --output none
 else
-  az storage blob upload --file "${parameterfile}" --container-name tfvars/"${state_path}"/"${key}" --name "${parameterfile_name}" --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --auth-mode login --no-progress --overwrite --only-show-errors --output none
+  az storage blob upload --file "${parameterfile}" --container-name tfvars/"${state_path}"/"${key}" --name "${parameterfile_name}"
+  --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --auth-mode login --no-progress --overwrite --only-show-errors --output none
 fi
 
 if [ "${deployment_system}" == sap_system ]; then
   echo "Uploading the yaml files from ${param_dirname} to the storage account"
   if [ "$useSAS" = "true" ]; then
-    az storage blob upload --file sap-parameters.yaml --container-name tfvars/"${state_path}"/"${key}" --name sap-parameters.yaml --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --no-progress --overwrite --only-show-errors --output none
+    az storage blob upload --file sap-parameters.yaml --container-name tfvars/"${state_path}"/"${key}" --name sap-parameters.yaml \
+      --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --no-progress --overwrite --only-show-errors --output none
   else
-    az storage blob upload --file sap-parameters.yaml --container-name tfvars/"${state_path}"/"${key}" --name sap-parameters.yaml --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --auth-mode login --no-progress --overwrite --only-show-errors --output none
+    az storage blob upload --file sap-parameters.yaml --container-name tfvars/"${state_path}"/"${key}" --name sap-parameters.yaml
+    --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --auth-mode login --no-progress --overwrite --only-show-errors --output none
   fi
   hosts_file=$(ls *_hosts.yaml)
   if [ "$useSAS" = "true" ]; then
-    az storage blob upload --file "${hosts_file}" --container-name tfvars/"${state_path}"/"${key}" --name "${hosts_file}" --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --no-progress --overwrite --only-show-errors --output none
+    az storage blob upload --file "${hosts_file}" --container-name tfvars/"${state_path}"/"${key}" --name "${hosts_file}" \
+      --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --no-progress --overwrite --only-show-errors --output none
   else
-    az storage blob upload --file "${hosts_file}" --container-name tfvars/"${state_path}"/"${key}" --name "${hosts_file}" --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --auth-mode login --no-progress --overwrite --only-show-errors --output none
+    az storage blob upload --file "${hosts_file}" --container-name tfvars/"${state_path}"/"${key}" --name "${hosts_file}" \
+      --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --auth-mode login --no-progress --overwrite --only-show-errors --output none
   fi
 fi
 
 if [ "${deployment_system}" == sap_landscape ]; then
   if [ "$useSAS" = "true" ]; then
-    az storage blob upload --file "${system_config_information}" --container-name tfvars/.sap_deployment_automation --name "${environment}${region_code}${network_logical_name}" --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --no-progress --overwrite --only-show-errors --output none
+    az storage blob upload --file "${system_config_information}" --container-name tfvars/.sap_deployment_automation --name "${environment}${region_code}${network_logical_name}" \
+      --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --no-progress --overwrite --only-show-errors --output none
   else
-    az storage blob upload --file "${system_config_information}" --container-name tfvars/.sap_deployment_automation --name "${environment}${region_code}${network_logical_name}" --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --auth-mode login --no-progress --overwrite --only-show-errors --output none
+    az storage blob upload --file "${system_config_information}" --container-name tfvars/.sap_deployment_automation --name "${environment}${region_code}${network_logical_name}" \
+      --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --auth-mode login --no-progress --overwrite --only-show-errors --output none
   fi
 fi
 if [ "${deployment_system}" == sap_library ]; then
   deployer_config_information="${automation_config_directory}"/"${environment}""${region_code}"
   if [ "$useSAS" = "true" ]; then
-    az storage blob upload --file "${deployer_config_information}" --container-name tfvars/.sap_deployment_automation --name "${environment}${region_code}" --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --no-progress --overwrite --only-show-errors --output none
+    az storage blob upload --file "${deployer_config_information}" --container-name tfvars/.sap_deployment_automation --name "${environment}${region_code}" \
+      --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --no-progress --overwrite --only-show-errors --output none
   else
-    az storage blob upload --file "${deployer_config_information}" --container-name tfvars/.sap_deployment_automation --name "${environment}${region_code}" --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --auth-mode login --no-progress --overwrite --only-show-errors --output none
+    az storage blob upload --file "${deployer_config_information}" --container-name tfvars/.sap_deployment_automation --name "${environment}${region_code}" \
+      --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --auth-mode login --no-progress --overwrite --only-show-errors --output none
   fi
 fi
 
