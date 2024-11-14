@@ -1300,13 +1300,10 @@ if [ 1 == $ok_to_proceed ]; then
 
     if [ -f apply_output.json ]; then
 
-      if [[ -n $errors_occurred ]]; then
-        echo ""
-        echo "#########################################################################################"
-        echo "#                                                                                       #"
-        echo -e "#                          $boldreduscore!Errors during the apply phase!$resetformatting                              #"
+        cat apply_output.json
 
-        return_value=2
+        return_value=0
+
         all_errors=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary, detail: .diagnostic.detail} ' apply_output.json)
         if [[ -n ${all_errors} ]]; then
           readarray -t errors_strings < <(echo ${all_errors} | jq -c '.')
@@ -1319,10 +1316,11 @@ if [ 1 == $ok_to_proceed ]; then
             if [[ -n ${report} ]]; then
               echo -e "#                          $boldreduscore  $report $resetformatting"
               if [ 1 == $called_from_ado ]; then
-
                 roleAssignmentExists=$(echo ${report} | grep -m1 "RoleAssignmentExists")
                 if [ -z ${roleAssignmentExists} ]; then
                   echo "##vso[task.logissue type=error]${report}"
+                else
+                  return_value=2
                 fi
               fi
             else
@@ -1338,16 +1336,6 @@ if [ 1 == $ok_to_proceed ]; then
 
           done
         fi
-        echo "#                                                                                       #"
-        echo "#########################################################################################"
-        echo ""
-        if [ 1 == $called_from_ado ]; then
-          terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json $allParams | tee -a apply_output.json
-        else
-          terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -json $allParams | tee -a apply_output.json
-        fi
-        return_value=$?
-
       fi
     fi
 
