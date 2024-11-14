@@ -88,11 +88,6 @@ echo "Current directory:                   $(pwd)"
 echo "Terraform state subscription_id:     ${STATE_SUBSCRIPTION}"
 echo "Terraform state storage account name:${REMOTE_STATE_SA}"
 
-tfstate_resource_id=""
-tfstate_parameter=""
-
-deployer_tfstate_key_parameter=""
-landscape_tfstate_key_parameter=""
 landscape_tfstate_key_exists=false
 
 parameterfile_name=$(basename "${parameterfile}")
@@ -225,8 +220,6 @@ param_dirname=$(pwd)
 init "${automation_config_directory}" "${generic_config_information}" "${system_config_information}"
 
 var_file="${param_dirname}"/"${parameterfile}"
-
-extra_vars=""
 
 if [ -f terraform.tfvars ]; then
   extra_vars="-var-file=${param_dirname}/terraform.tfvars"
@@ -473,7 +466,7 @@ if [[ -z ${tfstate_resource_id} ]]; then
 
 fi
 
-tfstate_parameter=" -var tfstate_resource_id=${tfstate_resource_id}"
+tfstate_parameter="-var tfstate_resource_id=${tfstate_resource_id}"
 
 terraform_module_directory="$SAP_AUTOMATION_REPO_PATH"/deploy/terraform/run/"${deployment_system}"/
 export TF_DATA_DIR="${param_dirname}/.terraform"
