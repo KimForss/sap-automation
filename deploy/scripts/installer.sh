@@ -680,10 +680,10 @@ else
       resourceName=$(az resource show --ids "${azureResourceID}" --query "name" --output tsv)
       az resource lock create --lock-type CanNotDelete -n "SAP Media account delete lock" --resource-group "${resourceGroupName}" --resource "${resourceName}" --resource-type "${resourceType}" --output none
 
-      ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}"
+      ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "id"
 
       moduleID='module.sap_library.azurerm_storage_container.storagecontainer_sapbits[0]'
-      ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}"
+      ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "resource_manager_id"
 
       moduleID='module.sap_library.azurerm_storage_account.storage_tfstate[0]'
       azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 " id " | xargs | cut -d "=" -f2 | xargs)
@@ -693,13 +693,13 @@ else
       resourceName=$(az resource show --ids "${azureResourceID}" --query "name" --output tsv)
       az resource lock create --lock-type CanNotDelete -n "Terraform state account delete lock" --resource-group "${resourceGroupName}" --resource "${resourceName}" --resource-type "${resourceType}" --output none
 
-      ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}"
+      ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "id"
 
       moduleID='module.sap_library.azurerm_storage_container.storagecontainer_tfstate[0]'
-      ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}"
+      ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "resource_manager_id"
 
       moduleID='module.sap_library.azurerm_storage_container.storagecontainer_tfvars[0]'
-      ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}"
+      ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "resource_manager_id"
 
     fi
 
@@ -726,20 +726,20 @@ else
     if [ "${deployment_system}" == sap_system ]; then
 
       moduleID='module.common_infrastructure.azurerm_storage_account.sapmnt[0]'
-      ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "${landscape_tfstate_key_parameter}"
+      ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "${landscape_tfstate_key_parameter}" "id"
 
       moduleID='module.common_infrastructure.azurerm_storage_share.sapmnt[0]'
-      ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "${landscape_tfstate_key_parameter}"
+      ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "${landscape_tfstate_key_parameter}" "resource_manager_id"
 
       moduleID='module.hdb_node.azurerm_storage_account.hanashared[0]'
-      ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "${landscape_tfstate_key_parameter}"
+      ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "${landscape_tfstate_key_parameter}" "id"
       moduleID='module.hdb_node.azurerm_storage_share.hanashared[0]'
-      ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "${landscape_tfstate_key_parameter}"
+      ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "${landscape_tfstate_key_parameter}" "resource_manager_id"
 
       moduleID='module.hdb_node.azurerm_storage_account.hanashared[1]'
-      ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "${landscape_tfstate_key_parameter}"
+      ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "${landscape_tfstate_key_parameter}" "id"
       moduleID='module.hdb_node.azurerm_storage_share.hanashared[1]'
-      ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "${landscape_tfstate_key_parameter}"
+      ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "${landscape_tfstate_key_parameter}" "resource_manager_id"
 
     fi
 

@@ -821,10 +821,10 @@ if [ -n "${deployed_using_version}" ]; then
     # Remeadiating the Storage Accounts and File Shares
 
     moduleID='module.sap_landscape.azurerm_storage_account.storage_bootdiag[0]'
-    ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}"
+    ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "id"
 
     moduleID='module.sap_landscape.azurerm_storage_account.witness_storage[0]'
-    ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}"
+    ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}"  "id"
 
     moduleID='module.sap_landscape.azurerm_storage_account.install[0]'
     azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 " id " | xargs | cut -d "=" -f2 | xargs)
@@ -835,18 +835,18 @@ if [ -n "${deployed_using_version}" ]; then
     az resource lock create --lock-type CanNotDelete -n "SAP Installation Media account delete lock" --subscription "${subscription}" \
       --resource-group "${resourceGroupName}" --resource "${resourceName}" --resource-type "${resourceType}"
 
+    ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}"  "id"
+
+    moduleID='module.sap_landscape.azurerm_storage_account.transport[0]'  "id"
     ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}"
 
-    moduleID='module.sap_landscape.azurerm_storage_account.transport[0]'
+    moduleID='module.sap_landscape.azurerm_storage_share.transport[0]'  "resource_manager_id"
     ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}"
 
-    moduleID='module.sap_landscape.azurerm_storage_share.transport[0]'
+    moduleID='module.sap_landscape.azurerm_storage_share.install[0]' "resource_manager_id"
     ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}"
 
-    moduleID='module.sap_landscape.azurerm_storage_share.install[0]'
-    ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}"
-
-    moduleID='module.sap_landscape.azurerm_storage_share.install_smb[0]'
+    moduleID='module.sap_landscape.azurerm_storage_share.install_smb[0]' "resource_manager_id"
     ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}"
 
   fi

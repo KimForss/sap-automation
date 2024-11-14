@@ -547,15 +547,15 @@ function ReplaceResourceInStateFile {
 
   local moduleID=$1
   local terraform_module_directory=$2
-  azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 " id " | xargs | cut -d "=" -f2 | xargs)
+  azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 " $3 " | xargs | cut -d "=" -f2 | xargs)
   echo "Terraform resource ID:  $moduleID"
   echo "Azure resource ID:      $azureResourceID"
   if [ -n "${azureResourceID}" ]; then
     echo "Removing storage account state object:           ${moduleID} "
     if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
       echo "Importing storage account state object:           ${moduleID}"
-      echo "terraform -chdir=${terraform_module_directory} import -var-file=${var_file} -var deployer_tfstate_key=${deployer_tfstate_key} -var tfstate_resource_id=${tfstate_resource_id} $3 ${moduleID} ${azureResourceID}"
-      if ! terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var "deployer_tfstate_key=${deployer_tfstate_key}" -var "tfstate_resource_id=${tfstate_resource_id}" $3 "${moduleID}" "${azureResourceID}"; then
+      echo "terraform -chdir=${terraform_module_directory} import -var-file=${var_file} -var deployer_tfstate_key=${deployer_tfstate_key} -var tfstate_resource_id=${tfstate_resource_id} $4 ${moduleID} ${azureResourceID}"
+      if ! terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var "deployer_tfstate_key=${deployer_tfstate_key}" -var "tfstate_resource_id=${tfstate_resource_id}" $4 "${moduleID}" "${azureResourceID}"; then
         echo -e "$boldred Importing storage account state object:           ${moduleID} failed $resetformatting"
         exit 65
       fi
