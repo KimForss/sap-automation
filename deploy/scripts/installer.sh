@@ -732,7 +732,7 @@ else
       moduleID='module.hdb_node.azurerm_storage_account.hanashared[0]'
       ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "id" "${landscape_tfstate_key_parameter}"
       moduleID='module.hdb_node.azurerm_storage_share.hanashared[0]'
-      ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "resource_manager_id"  "${landscape_tfstate_key_parameter}"
+      ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "resource_manager_id" "${landscape_tfstate_key_parameter}"
 
       moduleID='module.hdb_node.azurerm_storage_account.hanashared[1]'
       ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "id" "${landscape_tfstate_key_parameter}"
@@ -1202,7 +1202,7 @@ if [ 1 == $ok_to_proceed ]; then
   echo "#########################################################################################"
   echo ""
 
-        allParameters=$(printf " -var-file=%s %s %s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}" "${approve}")
+  allParameters=$(printf " -var-file=%s %s %s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}" "${approve}")
   allImportParameters=$(printf " -var-file=%s %s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}")
 
   if [ 1 == $called_from_ado ]; then
@@ -1484,7 +1484,7 @@ if [ "${deployment_system}" == sap_system ]; then
   echo ""
   full_script_path="$(realpath "${BASH_SOURCE[0]}")"
   script_directory="$(dirname "${full_script_path}")"
-  az deployment group create --resource-group "${rg_name}" --name "SAP_${rg_name}" --subscriptio"n $ARM_SUBSCRIPTION_ID" \
+  az deployment group create --resource-group "${rg_name}" --name "SAP_${rg_name}" --subscription "$ARM_SUBSCRIPTION_ID" \
     --template-file "${script_directory}/templates/empty-deployment.json" --output none
 
 fi
@@ -1505,7 +1505,8 @@ if [ "${deployment_system}" == sap_landscape ]; then
   echo ""
   full_script_path="$(realpath "${BASH_SOURCE[0]}")"
   script_directory="$(dirname "${full_script_path}")"
-  az deployment group create --resource-group "${rg_name}" --name "SAP-WORKLOAD-ZONE_${rg_name}" --template-file "${script_directory}/templates/empty-deployment.json" --output none
+  az deployment group create --resource-group "${rg_name}" --name "SAP-WORKLOAD-ZONE_${rg_name}" --subscription "$ARM_SUBSCRIPTION_ID" \
+    --template-file "${script_directory}/templates/empty-deployment.json" --output none
 fi
 
 if [ "${deployment_system}" == sap_library ]; then
