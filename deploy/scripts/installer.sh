@@ -759,7 +759,7 @@ fi
 allParameters=$(printf " -var-file=%s %s %s %s %s %s %s %s" "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}" "${deployer_parameter}")
 
 # shellcheck disable=SC2086
-terraform -chdir="$terraform_module_directory" plan -no-color -detailed-exitcode $allParameters | tee -a plan_output.log
+terraform -chdir="$terraform_module_directory" plan -detailed-exitcode $allParameters | tee -a plan_output.log
 
 return_value=$?
 echo "Terraform Plan return code:          $return_value"

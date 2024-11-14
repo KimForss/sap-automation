@@ -226,6 +226,12 @@ echo "Deployment region code:              $region_code"
 
 key=$(echo "${parameterfile_name}" | cut -d. -f1)
 
+if [ -f terraform.tfvars ]; then
+  extra_vars="-var-file=${param_dirname}/terraform.tfvars"
+else
+  unset extra_vars
+fi
+
 echo ""
 echo "Terraform details"
 echo "-------------------------------------------------------------------------"
@@ -346,7 +352,7 @@ terraform -chdir="${terraform_module_directory}" init -reconfigure \
   exit 1
 }
 
-export tfstate_resource_id=$(az storage account show --name "${REMOTE_STATE_SA}" --query id --subscription "${STATE_SUBSCRIPTION}" --out tsv)
+tfstate_resource_id=$(az storage account show --name "${REMOTE_STATE_SA}" --query id --subscription "${STATE_SUBSCRIPTION}" --out tsv)
 export TF_VAR_tfstate_resource_id="${tfstate_resource_id}"
 
 created_resource_group_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw created_resource_group_id | tr -d \")
@@ -405,10 +411,14 @@ if [ "$resource_group_exist" ]; then
     echo -e "#$cyan processing $deployment_system removal as defined in $parameterfile_name $resetformatting"
     echo "Calling destroy with:          -var-file=${var_file} $approve $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter"
 
+    allParameters=$(printf " -var-file=%s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}"  )
+
     if [ -n "${approve}" ]; then
-      terraform -chdir="${terraform_module_directory}" destroy -var-file="${var_file}" "$approve" "$tfstate_parameter" "$landscape_tfstate_key_parameter" "$deployer_tfstate_key_parameter" -json | tee -a destroy_output.json
+      # shellcheck disable=SC2086
+      terraform -chdir="${terraform_module_directory}" destroy $allParameters "$approve" -no-color -json | tee -a destroy_output.json
     else
-      terraform -chdir="${terraform_module_directory}" destroy -var-file="${var_file}" "$approve" "$tfstate_parameter" "$landscape_tfstate_key_parameter" "$deployer_tfstate_key_parameter"
+      # shellcheck disable=SC2086
+      terraform -chdir="${terraform_module_directory}" destroy $allParameters
 
     fi
 
