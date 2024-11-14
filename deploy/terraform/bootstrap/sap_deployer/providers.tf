@@ -29,7 +29,7 @@ provider "azurerm"                     {
                                                                      purge_soft_deleted_certificates_on_destroy = !var.enable_purge_control_for_keyvaults
                                                                    }
                                                     storage        {
-                                                                        data_plane_available = true
+                                                                        data_plane_available = var.data_plane_available
                                                                    }
                                                   }
 

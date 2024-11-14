@@ -561,6 +561,13 @@ variable "tfstate_resource_id"                       {
 
                                                      }
 
+variable "data_plane_available"                      {
+                                                       description = "Boolean value indicating if storage account access is via data plane"
+                                                       default     = false
+                                                       type        = bool
+                                                     }
+
+
 ###############################################################################
 #                                                                             #
 #                                  Identity                                   #
