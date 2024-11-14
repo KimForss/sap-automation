@@ -73,7 +73,6 @@ while :; do
   -h | --help)
     showhelp
     exit 3
-    shift
     ;;
   --)
     shift
@@ -164,7 +163,7 @@ fi
 region=$(echo "${region}" | tr "[:upper:]" "[:lower:]")
 if valid_region_name "${region}"; then
   # Convert the region to the correct code
-  get_region_code ${region}
+  get_region_code "${region}"
 else
   echo "Invalid region: $region"
   exit 2
@@ -316,7 +315,7 @@ fi
 if [ "${deployment_system}" != sap_deployer ]; then
   if [ -z ${deployer_tfstate_key} ]; then
     if [ 1 != $called_from_ado ]; then
-      read -p "Deployer terraform statefile name :" landscape_tfstate_key
+      read -p -r "Deployer terraform statefile name :" landscape_tfstate_key
       deployer_tfstate_key_parameter=" -var deployer_tfstate_key=${deployer_tfstate_key}"
       save_config_var "deployer_tfstate_key" "${system_config_information}"
     else
@@ -369,7 +368,7 @@ fi
 if [ "${deployment_system}" == sap_system ]; then
   if [ -z ${landscape_tfstate_key} ]; then
     if [ 1 != $called_from_ado ]; then
-      read -p "Workload terraform statefile name :" landscape_tfstate_key
+      read -p -r "Workload terraform statefile name :" landscape_tfstate_key
       landscape_tfstate_key_parameter=" -var landscape_tfstate_key=${landscape_tfstate_key}"
       save_config_var "landscape_tfstate_key" "${system_config_information}"
     else
@@ -437,7 +436,7 @@ load_config_vars "${system_config_information}" "tfstate_resource_id"
 
 if [[ -z ${REMOTE_STATE_SA} ]]; then
   if [ 1 != $called_from_ado ]; then
-    read -p "Terraform state storage account name:" REMOTE_STATE_SA
+    read -p -r "Terraform state storage account name:" REMOTE_STATE_SA
 
     get_and_store_sa_details "${REMOTE_STATE_SA}" "${system_config_information}"
     load_config_vars "${system_config_information}" "STATE_SUBSCRIPTION"
@@ -546,48 +545,48 @@ terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/run/"$
 export TF_DATA_DIR="${param_dirname}/.terraform"
 
 if [ ! -d ./.terraform/ ]; then
-    echo "New deployment"
-    deployment_parameter=" -var deployment=new "
+  echo "New deployment"
+  deployment_parameter=" -var deployment=new "
 
-    terraform -chdir="${terraform_module_directory}" init -upgrade=true \
+  terraform -chdir="${terraform_module_directory}" init -upgrade=true \
     --backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
     --backend-config "resource_group_name=${REMOTE_STATE_RG}" \
     --backend-config "storage_account_name=${REMOTE_STATE_SA}" \
     --backend-config "container_name=tfstate" \
     --backend-config "key=${key}.terraform.tfstate"
-    return_value=$?
+  return_value=$?
 
 else
 
-    temp=$(grep "\"type\": \"local\"" .terraform/terraform.tfstate)
-    if [ -n "${temp}" ]; then
-        terraform -chdir="${terraform_module_directory}" init -upgrade=true -force-copy \
-        --backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
-        --backend-config "resource_group_name=${REMOTE_STATE_RG}" \
-        --backend-config "storage_account_name=${REMOTE_STATE_SA}" \
-        --backend-config "container_name=tfstate" \
-        --backend-config "key=${key}.terraform.tfstate"
-        return_value=$?
+  temp=$(grep "\"type\": \"local\"" .terraform/terraform.tfstate)
+  if [ -n "${temp}" ]; then
+    terraform -chdir="${terraform_module_directory}" init -upgrade=true -force-copy \
+      --backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
+      --backend-config "resource_group_name=${REMOTE_STATE_RG}" \
+      --backend-config "storage_account_name=${REMOTE_STATE_SA}" \
+      --backend-config "container_name=tfstate" \
+      --backend-config "key=${key}.terraform.tfstate"
+    return_value=$?
 
-    else
-        echo ""
-        echo "#########################################################################################"
-        echo "#                                                                                       #"
-        echo -e "#            $cyan The system has already been deployed and the statefile is in Azure $resetformatting       #"
-        echo "#                                                                                       #"
-        echo "#########################################################################################"
-        echo ""
+  else
+    echo ""
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo -e "#            $cyan The system has already been deployed and the statefile is in Azure $resetformatting       #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    echo ""
 
-        check_output=1
-        terraform -chdir="${terraform_module_directory}" init -upgrade=true -reconfigure \
-        --backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
-        --backend-config "resource_group_name=${REMOTE_STATE_RG}" \
-        --backend-config "storage_account_name=${REMOTE_STATE_SA}" \
-        --backend-config "container_name=tfstate" \
-        --backend-config "key=${key}.terraform.tfstate"
-        return_value=$?
+    check_output=1
+    terraform -chdir="${terraform_module_directory}" init -upgrade=true -reconfigure \
+      --backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
+      --backend-config "resource_group_name=${REMOTE_STATE_RG}" \
+      --backend-config "storage_account_name=${REMOTE_STATE_SA}" \
+      --backend-config "container_name=tfstate" \
+      --backend-config "key=${key}.terraform.tfstate"
+    return_value=$?
 
-    fi
+  fi
 fi
 if [ 0 != $return_value ]; then
   echo "#########################################################################################"
@@ -600,160 +599,156 @@ if [ 0 != $return_value ]; then
   exit $return_value
 fi
 if [ 1 == $check_output ]; then
-    outputs=$(terraform -chdir="${terraform_module_directory}" output)
-    if echo "${outputs}" | grep "No outputs"; then
-        ok_to_proceed=true
-        echo "#########################################################################################"
-        echo "#                                                                                       #"
-        echo -e "#                                 $cyan  New deployment $resetformatting                                      #"
-        echo "#                                                                                       #"
-        echo "#########################################################################################"
+  outputs=$(terraform -chdir="${terraform_module_directory}" output)
+  if echo "${outputs}" | grep "No outputs"; then
+    ok_to_proceed=true
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo -e "#                                 $cyan  New deployment $resetformatting                                      #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
 
-        deployment_parameter=" -var deployment=new "
+    deployment_parameter=" -var deployment=new "
 
-    else
-        echo ""
-        echo "#########################################################################################"
-        echo "#                                                                                       #"
-        echo -e "#                          $cyan Existing deployment was detected$resetformatting                            #"
-        echo "#                                                                                       #"
-        echo "#########################################################################################"
-        echo ""
-        # allParams=$(printf " -var-file=%s %s %s %s %s %s %s" "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}" )
-        # terraform -chdir="${terraform_module_directory}" refresh $allParams
+  else
+    echo ""
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo -e "#                          $cyan Existing deployment was detected$resetformatting                            #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    echo ""
+    # allParams=$(printf " -var-file=%s %s %s %s %s %s %s" "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}" )
+    # terraform -chdir="${terraform_module_directory}" refresh $allParams
 
-        deployment_parameter=" "
-    fi
+    deployment_parameter=" "
+  fi
 fi
-
 
 deployed_using_version=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw automation_version | tr -d \")
 
 if [ -z "${deployed_using_version}" ]; then
-    echo ""
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo -e "#   $boldred The environment was deployed using an older version of the Terrafrom templates$resetformatting     #"
-    echo "#                                                                                       #"
-    echo "#                               !!! Risk for Data loss !!!                              #"
-    echo "#                                                                                       #"
-    echo "#        Please inspect the output of Terraform plan carefully before proceeding        #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
+  echo ""
+  echo "#########################################################################################"
+  echo "#                                                                                       #"
+  echo -e "#   $boldred The environment was deployed using an older version of the Terrafrom templates$resetformatting     #"
+  echo "#                                                                                       #"
+  echo "#                               !!! Risk for Data loss !!!                              #"
+  echo "#                                                                                       #"
+  echo "#        Please inspect the output of Terraform plan carefully before proceeding        #"
+  echo "#                                                                                       #"
+  echo "#########################################################################################"
 
-    if [ 1 == $called_from_ado ]; then
-        unset TF_DATA_DIR
-        exit 1
-    fi
-    read -p "Do you want to continue Y/N?" ans
-    answer=${ans^^}
-    if [ $answer == 'Y' ]; then
-        ok_to_proceed=true
-    else
-        unset TF_DATA_DIR
-        exit 1
-    fi
+  if [ 1 == $called_from_ado ]; then
+    unset TF_DATA_DIR
+    exit 1
+  fi
+  read -p -r "Do you want to continue Y/N?" ans
+  answer=${ans^^}
+  if [ $answer == 'Y' ]; then
+    ok_to_proceed=true
+  else
+    unset TF_DATA_DIR
+    exit 1
+  fi
 else
-    version_parameter=" -var terraform_template_version=${deployed_using_version} "
+  version_parameter=" -var terraform_template_version=${deployed_using_version} "
 
-    printf -v val %-.20s "$deployed_using_version"
+  printf -v val %-.20s "$deployed_using_version"
+  echo ""
+  echo "#########################################################################################"
+  echo "#                                                                                       #"
+  echo -e "#              $cyan Deployed using the Terraform templates version: $val $resetformatting               #"
+  echo "#                                                                                       #"
+  echo "#########################################################################################"
+  echo ""
+  version_compare "${deployed_using_version}" "3.13.2.0"
+  older_version=$?
+  if [ 2 == $older_version ]; then
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo -e "#              $cyan Deployed using the Terraform templates version: $val $resetformatting               #"
+    echo -e "#           $boldred  Deployed using an older version $resetformatting                                          #"
     echo "#                                                                                       #"
     echo "#########################################################################################"
     echo ""
-    version_compare "${deployed_using_version}" "3.13.2.0"
-    older_version=$?
-    if [ 2 == $older_version ]; then
-        echo ""
-        echo "#########################################################################################"
-        echo "#                                                                                       #"
-        echo -e "#           $boldred  Deployed using an older version $resetformatting                                          #"
-        echo "#                                                                                       #"
-        echo "#########################################################################################"
-        echo ""
-        echo "##vso[task.logissue type=warning]Deployed using an older version ${deployed_using_version}. Performing state management operations"
+    echo "##vso[task.logissue type=warning]Deployed using an older version ${deployed_using_version}. Performing state management operations"
 
-        # Remeadiating the Storage Accounts and File Shares
-        if [ "${deployment_system}" == sap_library ]; then
-            moduleID='module.sap_library.azurerm_storage_account.storage_sapbits[0]'
-            azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 " id " | xargs | cut -d "=" -f2 | xargs)
+    # Remeadiating the Storage Accounts and File Shares
+    if [ "${deployment_system}" == sap_library ]; then
+      moduleID='module.sap_library.azurerm_storage_account.storage_sapbits[0]'
+      azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 " id " | xargs | cut -d "=" -f2 | xargs)
 
-            resourceGroupName=$(az resource show --ids "${azureResourceID}"  --query "resourceGroup" --output tsv)
-            resourceType=$(az resource show --ids "${azureResourceID}"  --query "type" --output tsv)
-            resourceName=$(az resource show --ids "${azureResourceID}"  --query "name" --output tsv)
-            az resource lock create --lock-type CanNotDelete -n "SAP Media account delete lock" --resource-group "${resourceGroupName}" --resource "${resourceName}" --resource-type "${resourceType}" --output none
+      resourceGroupName=$(az resource show --ids "${azureResourceID}" --query "resourceGroup" --output tsv)
+      resourceType=$(az resource show --ids "${azureResourceID}" --query "type" --output tsv)
+      resourceName=$(az resource show --ids "${azureResourceID}" --query "name" --output tsv)
+      az resource lock create --lock-type CanNotDelete -n "SAP Media account delete lock" --resource-group "${resourceGroupName}" --resource "${resourceName}" --resource-type "${resourceType}" --output none
 
-            ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}"
+      ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}"
 
-            moduleID='module.sap_library.azurerm_storage_container.storagecontainer_sapbits[0]'
-            ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}"
+      moduleID='module.sap_library.azurerm_storage_container.storagecontainer_sapbits[0]'
+      ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}"
 
-            moduleID='module.sap_library.azurerm_storage_account.storage_tfstate[0]'
-            azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 " id " | xargs | cut -d "=" -f2 | xargs)
+      moduleID='module.sap_library.azurerm_storage_account.storage_tfstate[0]'
+      azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 " id " | xargs | cut -d "=" -f2 | xargs)
 
-            resourceGroupName=$(az resource show --ids "${azureResourceID}"  --query "resourceGroup" --output tsv)
-            resourceType=$(az resource show --ids "${azureResourceID}"  --query "type" --output tsv)
-            resourceName=$(az resource show --ids "${azureResourceID}"  --query "name" --output tsv)
-            az resource lock create --lock-type CanNotDelete -n "Terraform state account delete lock" --resource-group "${resourceGroupName}" --resource "${resourceName}" --resource-type "${resourceType}" --output none
+      resourceGroupName=$(az resource show --ids "${azureResourceID}" --query "resourceGroup" --output tsv)
+      resourceType=$(az resource show --ids "${azureResourceID}" --query "type" --output tsv)
+      resourceName=$(az resource show --ids "${azureResourceID}" --query "name" --output tsv)
+      az resource lock create --lock-type CanNotDelete -n "Terraform state account delete lock" --resource-group "${resourceGroupName}" --resource "${resourceName}" --resource-type "${resourceType}" --output none
 
-            ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}"
+      ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}"
 
-            moduleID='module.sap_library.azurerm_storage_container.storagecontainer_tfstate[0]'
-            ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}"
+      moduleID='module.sap_library.azurerm_storage_container.storagecontainer_tfstate[0]'
+      ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}"
 
-            moduleID='module.sap_library.azurerm_storage_container.storagecontainer_tfvars[0]'
-            ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}"
-
-        fi
-
-        if [ "${deployment_system}" == sap_deployer ]; then
-
-            moduleID='module.sap_deployer.azurerm_storage_account.deployer[0]'
-            azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 " id " | xargs | cut -d "=" -f2 | xargs)
-            echo "Terraform resource ID:  $moduleID"
-            echo "Azure resource ID:      $azureResourceID"
-            if [ -n "${azureResourceID}" ]; then
-                echo "Removing storage account state object:           ${moduleID} "
-                if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"
-                then
-                    echo "Importing storage account state object:           ${moduleID}"
-                    echo "terraform -chdir=${terraform_module_directory} import -var-file=${var_file} -var tfstate_resource_id=${tfstate_resource_id} $3 ${moduleID} ${azureResourceID}"
-                    if ! terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var "tfstate_resource_id=${tfstate_resource_id}" $3 "${moduleID}" "${azureResourceID}"
-                    then
-                        echo -e "$boldred Importing storage account state object:           ${moduleID} failed $resetformatting"
-                        exit 65
-                    fi
-                fi
-            fi
-
-        fi
-
-        if [ "${deployment_system}" == sap_system ]; then
-
-            moduleID='module.common_infrastructure.azurerm_storage_account.sapmnt[0]'
-            ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}"
-
-            moduleID='module.common_infrastructure.azurerm_storage_share.sapmnt[0]'
-            ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}"
-
-            moduleID='module.hdb_node.azurerm_storage_account.hanashared[0]'
-            ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}"
-            moduleID='module.hdb_node.azurerm_storage_share.hanashared[0]'
-            ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}"
-
-            moduleID='module.hdb_node.azurerm_storage_account.hanashared[1]'
-            ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}"
-            moduleID='module.hdb_node.azurerm_storage_share.hanashared[1]'
-            ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}"
-
-        fi
+      moduleID='module.sap_library.azurerm_storage_container.storagecontainer_tfvars[0]'
+      ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}"
 
     fi
-fi
 
+    if [ "${deployment_system}" == sap_deployer ]; then
+
+      moduleID='module.sap_deployer.azurerm_storage_account.deployer[0]'
+      azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 " id " | xargs | cut -d "=" -f2 | xargs)
+      echo "Terraform resource ID:  $moduleID"
+      echo "Azure resource ID:      $azureResourceID"
+      if [ -n "${azureResourceID}" ]; then
+        echo "Removing storage account state object:           ${moduleID} "
+        if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
+          echo "Importing storage account state object:           ${moduleID}"
+          echo "terraform -chdir=${terraform_module_directory} import -var-file=${var_file} -var tfstate_resource_id=${tfstate_resource_id} $3 ${moduleID} ${azureResourceID}"
+          if ! terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var "tfstate_resource_id=${tfstate_resource_id}" $3 "${moduleID}" "${azureResourceID}"; then
+            echo -e "$boldred Importing storage account state object:           ${moduleID} failed $resetformatting"
+            exit 65
+          fi
+        fi
+      fi
+
+    fi
+
+    if [ "${deployment_system}" == sap_system ]; then
+
+      moduleID='module.common_infrastructure.azurerm_storage_account.sapmnt[0]'
+      ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}"
+
+      moduleID='module.common_infrastructure.azurerm_storage_share.sapmnt[0]'
+      ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}"
+
+      moduleID='module.hdb_node.azurerm_storage_account.hanashared[0]'
+      ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}"
+      moduleID='module.hdb_node.azurerm_storage_share.hanashared[0]'
+      ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}"
+
+      moduleID='module.hdb_node.azurerm_storage_account.hanashared[1]'
+      ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}"
+      moduleID='module.hdb_node.azurerm_storage_share.hanashared[1]'
+      ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}"
+
+    fi
+
+  fi
+fi
 
 echo ""
 echo "#########################################################################################"
@@ -805,32 +800,32 @@ if [ 1 != $return_value ]; then
         webapp_url_base=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_url_base | tr -d \")
 
         if [ -n "${webapp_url_base}" ]; then
-          az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WEBAPP_URL_BASE.value")
+          az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "WEBAPP_URL_BASE.value")
           if [ -z ${az_var} ]; then
-            az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_URL_BASE --value $webapp_url_base --output none --only-show-errors
+            az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name WEBAPP_URL_BASE --value "$webapp_url_base" --output none --only-show-errors
           else
-            az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_URL_BASE --value $webapp_url_base --output none --only-show-errors
+            az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name WEBAPP_URL_BASE --value "$webapp_url_base" --output none --only-show-errors
           fi
         fi
 
         webapp_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_id | tr -d \")
         if [ -n "${webapp_id}" ]; then
-          az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WEBAPP_ID.value")
+          az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "WEBAPP_ID.value")
           if [ -z ${az_var} ]; then
-            az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_ID --value $webapp_id --output none --only-show-errors
+            az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name WEBAPP_ID --value "$webapp_id" --output none --only-show-errors
           else
-            az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_ID --value $webapp_id --output none --only-show-errors
+            az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name WEBAPP_ID --value "$webapp_id" --output none --only-show-errors
           fi
         fi
 
         msi_object_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_user_assigned_identity | tr -d \")
 
         if [ -n "${msi_object_id}" ]; then
-          az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "MSI_ID.value")
+          az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "MSI_ID.value")
           if [ -z ${az_var} ]; then
-            az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name MSI_ID --value $msi_object_id --output none --only-show-errors
+            az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name MSI_ID --value "$msi_object_id" --output none --only-show-errors
           else
-            az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name MSI_ID --value $msi_object_id --output none --only-show-errors
+            az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name MSI_ID --value "$msi_object_id" --output none --only-show-errors
           fi
         fi
 
@@ -863,11 +858,11 @@ if [ 1 != $return_value ]; then
       if [ 1 == "$called_from_ado" ]; then
         SAPBITS=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw sapbits_storage_account_name | tr -d \")
         if [ -n "${SAPBITS}" ]; then
-          az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "INSTALLATION_MEDIA_ACCOUNT.value")
+          az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "INSTALLATION_MEDIA_ACCOUNT.value")
           if [ -z ${az_var} ]; then
-            az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name INSTALLATION_MEDIA_ACCOUNT --value $SAPBITS --output none --only-show-errors
+            az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name INSTALLATION_MEDIA_ACCOUNT --value "$SAPBITS" --output none --only-show-errors
           else
-            az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name INSTALLATION_MEDIA_ACCOUNT --value $SAPBITS --output none --only-show-errors
+            az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name INSTALLATION_MEDIA_ACCOUNT --value "$SAPBITS" --output none --only-show-errors
           fi
         fi
       fi
@@ -1181,9 +1176,9 @@ if [ $fatal_errors == 1 ]; then
   if [ 1 == $force ]; then
     ok_to_proceed=1
   else
-    read -p "Do you want to continue with the deployment Y/N?" ans
+    read -p -r "Do you want to continue with the deployment Y/N?" ans
     answer=${ans^^}
-    if [ $answer == 'Y' ]; then
+    if [ "$answer" == 'Y' ]; then
       ok_to_proceed=true
     else
       unset TF_DATA_DIR
@@ -1300,63 +1295,62 @@ if [ 1 == $ok_to_proceed ]; then
 
     if [ -f apply_output.json ]; then
 
-        cat apply_output.json
+      cat apply_output.json
 
-        return_value=0
+      return_value=0
 
-        all_errors=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary, detail: .diagnostic.detail} ' apply_output.json)
-        if [[ -n ${all_errors} ]]; then
-          readarray -t errors_strings < <(echo ${all_errors} | jq -c '.')
-          for errors_string in "${errors_strings[@]}"; do
-            string_to_report=$(jq -c -r '.detail ' <<<"$errors_string")
-            if [[ -z ${string_to_report} ]]; then
-              string_to_report=$(jq -c -r '.summary ' <<<"$errors_string")
-            fi
-            report=$(echo $string_to_report | grep -m1 "Message=" "${var_file}" | cut -d'=' -f2- | tr -d ' ' | tr -d '"')
-            if [[ -n ${report} ]]; then
-              echo -e "#                          $boldreduscore  $report $resetformatting"
-              if [ 1 == $called_from_ado ]; then
-                roleAssignmentExists=$(echo ${report} | grep -m1 "RoleAssignmentExists")
-                if [ -z ${roleAssignmentExists} ]; then
-                  echo "##vso[task.logissue type=error]${report}"
-                else
-                  return_value=2
-                fi
-              fi
-            else
-              echo -e "#                          $boldreduscore  $string_to_report $resetformatting"
-              if [ 1 == $called_from_ado ]; then
-                roleAssignmentExists=$(echo ${string_to_report} | grep -m1 "RoleAssignmentExists")
-                if [ -z ${roleAssignmentExists} ]; then
-                  echo "##vso[task.logissue type=error]${string_to_report}"
-                fi
+      all_errors=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary, detail: .diagnostic.detail} ' apply_output.json)
+      if [[ -n ${all_errors} ]]; then
+        readarray -t errors_strings < <(echo ${all_errors} | jq -c '.')
+        for errors_string in "${errors_strings[@]}"; do
+          string_to_report=$(jq -c -r '.detail ' <<<"$errors_string")
+          if [[ -z ${string_to_report} ]]; then
+            string_to_report=$(jq -c -r '.summary ' <<<"$errors_string")
+          fi
+          report=$(echo $string_to_report | grep -m1 "Message=" "${var_file}" | cut -d'=' -f2- | tr -d ' ' | tr -d '"')
+          if [[ -n ${report} ]]; then
+            echo -e "#                          $boldreduscore  $report $resetformatting"
+            if [ 1 == $called_from_ado ]; then
+              roleAssignmentExists=$(echo ${report} | grep -m1 "RoleAssignmentExists")
+              if [ -z ${roleAssignmentExists} ]; then
+                echo "##vso[task.logissue type=error]${report}"
+              else
+                return_value=2
               fi
             fi
+          else
             echo -e "#                          $boldreduscore  $string_to_report $resetformatting"
+            if [ 1 == $called_from_ado ]; then
+              roleAssignmentExists=$(echo ${string_to_report} | grep -m1 "RoleAssignmentExists")
+              if [ -z ${roleAssignmentExists} ]; then
+                echo "##vso[task.logissue type=error]${string_to_report}"
+              fi
+            fi
+          fi
+          echo -e "#                          $boldreduscore  $string_to_report $resetformatting"
 
-          done
-        fi
+        done
+
       fi
     fi
-
   fi
 
-  if [ -f apply_output.json ]; then
-    rm apply_output.json
-  fi
+fi
 
-  if [ 0 != $return_value ]; then
-    echo ""
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo -e "#                          $boldreduscore!Errors during the apply phase!$resetformatting                              #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    echo ""
-    unset TF_DATA_DIR
-    exit $return_value
-  fi
+if [ -f apply_output.json ]; then
+  rm apply_output.json
+fi
 
+if [ 0 != $return_value ]; then
+  echo ""
+  echo "#########################################################################################"
+  echo "#                                                                                       #"
+  echo -e "#                          $boldreduscore!Errors during the apply phase!$resetformatting                              #"
+  echo "#                                                                                       #"
+  echo "#########################################################################################"
+  echo ""
+  unset TF_DATA_DIR
+  exit $return_value
 fi
 
 if [ "${deployment_system}" == sap_deployer ]; then
@@ -1401,50 +1395,50 @@ if [ "${deployment_system}" == sap_deployer ]; then
     terraform -chdir="${terraform_module_directory}" output -json -no-color deployer_uai
 
     if [ -n "${created_resource_group_name}" ]; then
-      az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WEBAPP_RESOURCE_GROUP.value")
+      az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "WEBAPP_RESOURCE_GROUP.value")
       if [ -z ${az_var} ]; then
-        az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_RESOURCE_GROUP --value $created_resource_group_name --output none --only-show-errors
+        az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name WEBAPP_RESOURCE_GROUP --value "$created_resource_group_name" --output none --only-show-errors
       else
-        az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_RESOURCE_GROUP --value $created_resource_group_name --output none --only-show-errors
+        az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name WEBAPP_RESOURCE_GROUP --value "$created_resource_group_name" --output none --only-show-errors
       fi
     fi
 
     if [[ "${TF_VAR_use_webapp}" == "true" && $IS_PIPELINE_DEPLOYMENT = "true" ]]; then
       webapp_url_base=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_url_base | tr -d \")
       if [ -n "${webapp_url_base}" ]; then
-        az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WEBAPP_URL_BASE.value")
+        az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "WEBAPP_URL_BASE.value")
         if [ -z ${az_var} ]; then
-          az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_URL_BASE --value $webapp_url_base --output none --only-show-errors
+          az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name WEBAPP_URL_BASE --value $webapp_url_base --output none --only-show-errors
         else
-          az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_URL_BASE --value $webapp_url_base --output none --only-show-errors
+          az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name WEBAPP_URL_BASE --value $webapp_url_base --output none --only-show-errors
         fi
       fi
 
       webapp_identity=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_identity | tr -d \")
       if [ -n "${webapp_identity}" ]; then
-        az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WEBAPP_IDENTITY.value")
+        az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "WEBAPP_IDENTITY.value")
         if [ -z ${az_var} ]; then
-          az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_IDENTITY --value $webapp_identity --output none --only-show-errors
+          az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name WEBAPP_IDENTITY --value $webapp_identity --output none --only-show-errors
         else
-          az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_IDENTITY --value $webapp_identity --output none --only-show-errors
+          az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name WEBAPP_IDENTITY --value $webapp_identity --output none --only-show-errors
         fi
       fi
 
       webapp_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_id | tr -d \")
       if [ -n "${webapp_id}" ]; then
-        az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WEBAPP_ID.value")
+        az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "WEBAPP_ID.value")
         if [ -z ${az_var} ]; then
-          az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_ID --value $webapp_id --output none --only-show-errors
+          az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name WEBAPP_ID --value $webapp_id --output none --only-show-errors
         else
-          az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_ID --value $webapp_id --output none --only-show-errors
+          az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name WEBAPP_ID --value $webapp_id --output none --only-show-errors
         fi
       fi
       if [ -n "${random_id}" ]; then
-        az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "DEPLOYER_RANDOM_ID_SEED.value")
+        az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "DEPLOYER_RANDOM_ID_SEED.value")
         if [ -z ${az_var} ]; then
-          az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name DEPLOYER_RANDOM_ID_SEED --value "${random_id}" --output none --only-show-errors
+          az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name DEPLOYER_RANDOM_ID_SEED --value "${random_id}" --output none --only-show-errors
         else
-          az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name DEPLOYER_RANDOM_ID_SEED --value "${random_id}" --output none --only-show-errors
+          az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name DEPLOYER_RANDOM_ID_SEED --value "${random_id}" --output none --only-show-errors
         fi
       fi
     fi
@@ -1562,19 +1556,19 @@ if [ "${deployment_system}" == sap_library ]; then
   if [ 1 == $called_from_ado ]; then
 
     if [ -n "${sapbits_storage_account_name}" ]; then
-      az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "INSTALLATION_MEDIA_ACCOUNT.value")
+      az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "INSTALLATION_MEDIA_ACCOUNT.value")
       if [ -z ${az_var} ]; then
-        az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name INSTALLATION_MEDIA_ACCOUNT --value "${sapbits_storage_account_name}" --output none --only-show-errors
+        az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name INSTALLATION_MEDIA_ACCOUNT --value "${sapbits_storage_account_name}" --output none --only-show-errors
       else
-        az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name INSTALLATION_MEDIA_ACCOUNT --value "${sapbits_storage_account_name}" --output none --only-show-errors
+        az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name INSTALLATION_MEDIA_ACCOUNT --value "${sapbits_storage_account_name}" --output none --only-show-errors
       fi
     fi
     if [ -n "${random_id_b64}" ]; then
-      az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "LIBRARY_RANDOM_ID_SEED.value")
+      az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "LIBRARY_RANDOM_ID_SEED.value")
       if [ -z ${az_var} ]; then
-        az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name LIBRARY_RANDOM_ID_SEED --value "${random_id_b64}" --output none --only-show-errors
+        az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name LIBRARY_RANDOM_ID_SEED --value "${random_id_b64}" --output none --only-show-errors
       else
-        az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name LIBRARY_RANDOM_ID_SEED --value "${random_id_b64}" --output none --only-show-errors
+        az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name LIBRARY_RANDOM_ID_SEED --value "${random_id_b64}" --output none --only-show-errors
       fi
     fi
 
