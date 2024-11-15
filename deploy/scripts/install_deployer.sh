@@ -140,6 +140,10 @@ if [ 0 != $return_code ]; then
   exit $return_code
 fi
 
+echo "Configuration file:                  $parameterfile"
+echo "Deployment region:                   $region"
+echo "Deployment region code:              $region_code"
+
 terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/"${deployment_system}"/
 export TF_DATA_DIR="${param_dirname}"/.terraform
 
@@ -229,7 +233,6 @@ extra_vars=""
 if [ -f terraform.tfvars ]; then
   extra_vars=" -var-file=${param_dirname}/terraform.tfvars "
 fi
-
 
 allParameters=$(printf " -var-file=%s %s " "${var_file}" "${extra_vars}")
 
