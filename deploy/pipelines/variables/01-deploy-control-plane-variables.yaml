@@ -35,7 +35,6 @@ parameters:
     type:                              string
     default:                           Control_Plane_Service_Connection
 
-
 variables:
   - group:                             "SDAF-General"
 
@@ -76,3 +75,6 @@ variables:
 
   - name:                              deployer_environment
     value:                             ${{ parameters.environment }}
+
+  - name:                              force_reset
+    value:                             ${{ parameters.force_reset }}

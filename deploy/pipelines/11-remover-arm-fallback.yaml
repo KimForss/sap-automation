@@ -121,12 +121,12 @@ stages:
                 echo "##vso[build.updatebuildnumber]Removing $(sap_system_folder)"
 
                 changed=0
-                if [ -d SYSTEM/$(sap_system_folder)/.terraform ]; then
-                  git rm -q  --ignore-unmatch -r SYSTEM/$(sap_system_folder)/.terraform
+                if [ -d "SYSTEM/$(sap_system_folder)/.terraform" ]; then
+                  git rm -q  --ignore-unmatch -r "SYSTEM/$(sap_system_folder)/.terraform"
                   changed=1
                 fi
-                if [ -f  SYSTEM/$(sap_system_folder)/sap-parameters.yaml ]; then
-                  git rm -q  --ignore-unmatch SYSTEM/$(sap_system_folder)/sap-parameters.yaml
+                if [ -f  "SYSTEM/$(sap_system_folder)/sap-parameters.yaml" ]; then
+                  git rm -q  --ignore-unmatch "SYSTEM/$(sap_system_folder)/sap-parameters.yaml"
                   changed=1
                 fi
 

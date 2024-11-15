@@ -11,7 +11,7 @@ parameters:
     type:                              string
     default:                           MGMT-WEEU-DEP01-INFRASTRUCTURE
 
-  - name: library
+  - name:                              library
     displayName:                       "SAP Library configuration name, use the following syntax: ENV-LOCA-SAP_LIBRARY"
     type:                              string
     default:                           MGMT-WEEU-SAP_LIBRARY
@@ -62,7 +62,6 @@ stages:
           environment:                 ${{ parameters.environment }}
           use_webapp_param:            ${{ parameters.use_webapp_param }}
           use_deployer:                ${{ parameters.use_deployer }}
-          force_reset:                 ${{ parameters.force_reset }}
     displayName:                       Prepare the self hosted agent(s)
 
     jobs:
