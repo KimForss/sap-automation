@@ -444,6 +444,10 @@ stages:
               boldred="\e[1;31m"
               cyan="\e[1;36m"
 
+              printenv
+
+              exit 0
+
               ENVIRONMENT=$(echo "$(deployerfolder)" | awk -F'-' '{print $1}' | xargs)
               LOCATION=$(echo "$(deployerfolder)" | awk -F'-' '{print $2}' | xargs)
               deployer_environment_file_name=${CONFIG_REPO_PATH}/.sap_deployment_automation/"${ENVIRONMENT}${LOCATION}"
