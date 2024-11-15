@@ -236,6 +236,8 @@ fi
 
 allParameters=$(printf " -var-file=%s %s " "${var_file}" "${extra_vars}")
 
+echo "Parameters:                          $allParameters"
+
 terraform -chdir="${terraform_module_directory}" refresh
 
 echo ""
