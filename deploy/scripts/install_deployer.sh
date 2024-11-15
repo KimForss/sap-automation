@@ -230,7 +230,10 @@ if [ -f terraform.tfvars ]; then
   extra_vars=" -var-file=${param_dirname}/terraform.tfvars "
 fi
 
-terraform -chdir="${terraform_module_directory}" refresh -var-file="${var_file}" "${extra_vars}"
+
+allParameters=$(printf " -var-file=%s %s " "${var_file}" "${extra_vars}")
+
+terraform -chdir="${terraform_module_directory}" refresh
 
 echo ""
 echo "#########################################################################################"
@@ -240,7 +243,8 @@ echo "#                                                                         
 echo "#########################################################################################"
 echo ""
 
-terraform -chdir="${terraform_module_directory}" plan -detailed-exitcode -var-file="${var_file}" "${extra_vars}" | tee -a plan_output.log
+# shellcheck disable=SC2086
+terraform -chdir="${terraform_module_directory}" plan -detailed-exitcode $allParameters | tee -a plan_output.log
 
 return_value=$?
 if [ 1 == $return_value ]; then
@@ -278,9 +282,10 @@ if [[ -n "${TF_PARALLELLISM}" ]]; then
   parallelism=$TF_PARALLELLISM
 fi
 if [ -n "${approve}" ]; then
-  terraform -chdir="${terraform_module_directory}" apply "${approve}" -parallelism="${parallelism}" -var-file="${var_file}" "${extra_vars}" -json | tee -a apply_output.json
+  # shellcheck disable=SC2086
+  terraform -chdir="${terraform_module_directory}" apply "${approve}" -parallelism="${parallelism}" $allParameters -json | tee -a apply_output.json
 else
-  terraform -chdir="${terraform_module_directory}" apply "${approve}" -parallelism="${parallelism}" -var-file="${var_file}" "${extra_vars}"
+  terraform -chdir="${terraform_module_directory}" apply "${approve}" -parallelism="${parallelism}" $allParameters
 fi
 return_value=$?
 
@@ -298,7 +303,8 @@ if [ -f apply_output.json ]; then
       echo "Trying to import $resourceID into $moduleID"
 
       echo terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" "${extra_vars}" "${moduleID}" "${resourceID}"
-      terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" "${extra_vars}" "${moduleID}" "${resourceID}"
+      # shellcheck disable=SC2086
+      terraform -chdir="${terraform_module_directory}" import $allParameters "${moduleID}" "${resourceID}"
     done
     rerun_apply=1
   fi
@@ -333,7 +339,8 @@ if [ -f apply_output.json ]; then
         echo "Trying to import $resourceID into $moduleID"
 
         echo terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" "${extra_vars}" "${moduleID}" "${resourceID}"
-        terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" "${extra_vars}" "${moduleID}" "${resourceID}"
+        # shellcheck disable=SC2086
+        terraform -chdir="${terraform_module_directory}" import $allParameters "${moduleID}" "${resourceID}"
       done
       rerun_apply=1
     fi
@@ -349,7 +356,8 @@ if [ -f apply_output.json ]; then
       echo "#                                                                                       #"
       echo "#########################################################################################"
       echo ""
-      terraform -chdir="${terraform_module_directory}" apply "${approve}" -parallelism="${parallelism}" -var-file="${var_file}" "${extra_vars}" -json | tee -a apply_output.json
+      # shellcheck disable=SC2086
+      terraform -chdir="${terraform_module_directory}" apply "${approve}" -parallelism="${parallelism}" $allParameters -json | tee -a apply_output.json
       return_value=$?
     fi
 
