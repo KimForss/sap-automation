@@ -204,11 +204,11 @@ init "${automation_config_directory}" "${generic_config_information}" "${deploye
 this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
 
 export TF_IN_AUTOMATION="true"
-echo "Deployer environment:                  $deployer_environment"
+echo "Deployer environment:                  $environment"
 
 this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
 export TF_VAR_Agent_IP=$this_ip
-echo "Agent IP:                            $this_ip"
+echo "Agent IP:                              $this_ip"
 
 if [ -n "${subscription}" ]; then
   export ARM_SUBSCRIPTION_ID=$subscription
