@@ -248,8 +248,14 @@ echo "#                                                                         
 echo "#########################################################################################"
 echo ""
 
+
+set -x
 # shellcheck disable=SC2086
-terraform -chdir="${terraform_module_directory}" plan -detailed-exitcode $allParameters | tee -a plan_output.log
+
+terraform -chdir="$terraform_module_directory" plan -detailed-exitcode $allParameters | tee -a plan_output.log
+
+return_value=$?
+echo "Terraform Plan return code:          $return_value"
 
 return_value=$?
 if [ 1 == $return_value ]; then
