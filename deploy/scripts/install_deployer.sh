@@ -237,7 +237,6 @@ fi
 allParameters=$(printf " -var-file=%s %s " "${var_file}" "${extra_vars}")
 
 echo "Parameters:                          $allParameters"
-cat "${var_file}"
 terraform -chdir="${terraform_module_directory}" refresh  $allParameters
 
 echo ""
@@ -248,8 +247,6 @@ echo "#                                                                         
 echo "#########################################################################################"
 echo ""
 
-
-set -x
 # shellcheck disable=SC2086
 
 terraform -chdir="$terraform_module_directory" plan -detailed-exitcode $allParameters | tee -a plan_output.log
