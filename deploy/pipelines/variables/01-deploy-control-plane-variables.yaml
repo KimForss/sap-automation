@@ -35,6 +35,11 @@ parameters:
     type:                              string
     default:                           Control_Plane_Service_Connection
 
+  - name:                              force_reset
+    displayName:                       Force a re-install - may require multiple re-runs
+    type:                              boolean
+    default:                           false
+
 variables:
   - group:                             "SDAF-General"
 
