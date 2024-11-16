@@ -139,8 +139,6 @@ stages:
                   echo "  Deployer Agent Pool:               $(POOL)"
                 fi
                 echo ""
-                echo "ARM_CLIENT_ID                        $ARM_CLIENT_ID"
-                echo ""
                 if [ "$(use_webapp)" = "true" ]; then
                   echo "Deploy Web App:                      true"
 
