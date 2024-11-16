@@ -57,7 +57,7 @@ function configureNonDeployer() {
   sudo mv terraform /bin/
   rm -f "terraform_${tf_version}_linux_amd64.zip"
 
-  az extension add --name storage-blob-preview >/dev/null
+  az extension add --name storage-blob-preview --allow-preview true --output none >/dev/null
 
 }
 

@@ -82,9 +82,6 @@ stages:
               addSpnToEnvironment: true
               inlineScript: |
                 #!/bin/bash
-
-                ls '$(System.DefaultWorkingDirectory)'
-
                 echo "##vso[build.updatebuildnumber]Deploying the control plane defined in $(deployerfolder) $(libraryfolder)"
                 green="\e[1;32m"
                 reset="\e[0m"
@@ -116,7 +113,6 @@ stages:
                 az config set extension.use_dynamic_install=yes_without_prompt --only-show-errors
 
                 az extension add --name azure-devops --output none --only-show-errors
-
 
                 echo -e "$green--- File Validations ---$reset"
                 if [ ! -f "${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig)" ]; then
@@ -166,7 +162,6 @@ stages:
                 printf -v val '%-20s' "${tempval}"
                 echo "$val                 $VARIABLE_GROUP_ID"
 
-
                 az account set --subscription "$ARM_SUBSCRIPTION_ID"
                 echo "Deployer subscription:               $ARM_SUBSCRIPTION_ID"
 
@@ -183,9 +178,12 @@ stages:
                 # Check if running on deployer
                 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
                   configureNonDeployer "$(tf_version)"
-                  echo -e "$green--- az login ---$reset"
-                  LogonToAzure false
+                  export ARM_CLIENT_ID="$servicePrincipalId"
+                  export ARM_OIDC_TOKEN="$idToken"
+                  export ARM_TENANT_ID="$tenantId"
+                  export ARM_USE_OIDC=true
                 else
+                  echo -e "$green--- az login ---$reset"
                   LogonToAzure "$USE_MSI"
                 fi
                 return_code=$?
