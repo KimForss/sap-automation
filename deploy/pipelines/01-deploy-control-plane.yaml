@@ -88,12 +88,19 @@ stages:
                 reset="\e[0m"
                 boldred="\e[1;31m"
                 cyan="\e[1;36m"
+
+                #External helper functions
+                #. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
+                full_script_path="$(realpath "${BASH_SOURCE[0]}")"
+                script_directory="$(dirname "${full_script_path}")"
+
+                #helper files
+                source "${script_directory}/helper.sh"
+                set -eu
+
                 if [ "$SYSTEM_DEBUG" = True ]; then
                   set -x
                 fi
-
-                set -eu
-
                 file_deployer_tfstate_key=$(deployerfolder).tfstate
                 deployer_tfstate_key="$(deployerfolder).terraform.tfstate"
 
