@@ -90,7 +90,7 @@ stages:
                 cyan="\e[1;36m"
 
                 #External helper functions
-                #. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
+                #. "$(dirname "${BASH_SOURCE[0]}")/helper.sh"
                 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
                 script_directory="$(dirname "${full_script_path}")"
 
@@ -418,7 +418,7 @@ stages:
               set -u
 
               #External helper functions
-              #. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
+              #. "$(dirname "${BASH_SOURCE[0]}")/helper.sh"
               full_script_path="$(realpath "${BASH_SOURCE[0]}")"
               script_directory="$(dirname "${full_script_path}")"
 
