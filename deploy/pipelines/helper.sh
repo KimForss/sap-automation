@@ -22,6 +22,19 @@ function getVariableFromVariableGroup() {
   exit "$return_value"
 }
 
+function saveVariableInVariableGroup() {
+  local variable_group_id="$1"
+  local variable_name="$2"
+  local variable_value="$3"
+  az_var=$(az pipelines variable-group variable list --group-id "${variable_group_id}" --query --query "[?name=='$variable_name'].value" --out tsv)
+  if [ -z "${az_var}" ]; then
+    az pipelines variable-group variable create --group-id "${variable_group_id}" --name "$variable_name" --value "${variable_value}" --output none --only-show-errors
+  else
+    az pipelines variable-group variable update --group-id "${variable_group_id}" --name "$variable_name" --value "${variable_value}" --output none --only-show-errors
+  fi
+
+}
+
 function configureNonDeployer() {
   green="\e[1;32m"
   reset="\e[0m"
@@ -59,7 +72,5 @@ function LogonToAzure() {
     echo "Deployment credentials:              Managed Service Identity"
     source "/etc/profile.d/deploy_server.sh"
   fi
-  az account set --subscription "$ARM_SUBSCRIPTION_ID"
-  echo "Deployer subscription:               $ARM_SUBSCRIPTION_ID"
 
 }

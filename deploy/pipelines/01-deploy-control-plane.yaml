@@ -892,14 +892,14 @@ stages:
               zipAfterPublish: true
               modifyOutputPath: true
 
-          - task: AzureWebApp@1
-            displayName: "Deploy the Configuration Web Application"
+          - task:                      AzureWebApp@1
+            displayName:               "Deploy the Configuration Web Application"
             inputs:
-              azureSubscription: ${{parameters.connection_name}}
-              appType: "webApp"
-              appName: $(WEBAPP_URL_BASE)
-              package: "$(Build.ArtifactStagingDirectory)/WebApp/*.zip"
-              deploymentMethod: "auto"
+              azureSubscription:       ${{parameters.connection_name}}
+              appType:                 "webApp"
+              appName:                 $(WEBAPP_URL_BASE)
+              package:                 "$(Build.ArtifactStagingDirectory)/WebApp/*.zip"
+              deploymentMethod:        "auto"
               appSettings: '-CollectionUri $(System.CollectionUri)
                 -ProjectName "$(System.TeamProject)"
                 -RepositoryId $(Build.Repository.ID)
@@ -912,46 +912,47 @@ stages:
                 -CONTROLPLANE_ENV $(ControlPlaneEnvironment)
                 -CONTROLPLANE_LOC $(ControlPlaneLocation)'
             env:
-              ARM_SUBSCRIPTION_ID: $(CP_ARM_SUBSCRIPTION_ID)
-              SYSTEM_PIPELINE_ID: $(SYSTEM_PIPELINE_ID)
+              ARM_SUBSCRIPTION_ID:     $(CP_ARM_SUBSCRIPTION_ID)
+              SYSTEM_PIPELINE_ID:      $(SYSTEM_PIPELINE_ID)
               WORKLOADZONE_PIPELINE_ID: $(WORKLOADZONE_PIPELINE_ID)
               SAP_INSTALL_PIPELINE_ID: $(SAP_INSTALL_PIPELINE_ID)
-              SDAF_GENERAL_GROUP_ID: $(SDAF_GENERAL_GROUP_ID)
-              WEBAPP_URL_BASE: $(WEBAPP_URL_BASE)
-              WEBAPP_RESOURCE_GROUP: $(WEBAPP_RESOURCE_GROUP)
-              WEBAPP_ID: $(WEBAPP_ID)
+              SDAF_GENERAL_GROUP_ID:   $(SDAF_GENERAL_GROUP_ID)
+              WEBAPP_URL_BASE:         $(WEBAPP_URL_BASE)
+              WEBAPP_RESOURCE_GROUP:   $(WEBAPP_RESOURCE_GROUP)
+              WEBAPP_ID:               $(WEBAPP_ID)
               APP_REGISTRATION_APP_ID: $(APP_REGISTRATION_APP_ID)
               APP_REGISTRATION_OBJECTID: $(APP_REGISTRATION_OBJECTID)
-              APP_TENANT_ID: $(APP_TENANT_ID)
-              AZURE_CONNECTION_NAME: ${{variables.connection_name}}
+              APP_TENANT_ID:           $(APP_TENANT_ID)
+              AZURE_CONNECTION_NAME:   ${{variables.connection_name}}
 
           - bash: |
               #!/bin/bash
-              printf "Configure the Web Application authentication using the following script.\n" > "$(Build.Repository.LocalPath)/Web Application Configuration.md"
-              printf "\n\n" >> "$(Build.Repository.LocalPath)/Web Application Configuration.md"
+              printf "Configure the Web Application authentication using the following script.\n" >"$(Build.Repository.LocalPath)/Web Application Configuration.md"
+              printf "\n\n" >>"$(Build.Repository.LocalPath)/Web Application Configuration.md"
 
-              printf "az ad app update --id %s --web-home-page-url https://%s.azurewebsites.net --web-redirect-uris https://%s.azurewebsites.net/ https://%s.azurewebsites.net/.auth/login/aad/callback\n\n" $(APP_REGISTRATION_APP_ID) $(WEBAPP_URL_BASE) $(WEBAPP_URL_BASE) $(WEBAPP_URL_BASE) >> "$(Build.Repository.LocalPath)/Web Application Configuration.md"
+              printf "az ad app update --id %s --web-home-page-url https://%s.azurewebsites.net --web-redirect-uris https://%s.azurewebsites.net/ https://%s.azurewebsites.net/.auth/login/aad/callback\n\n" "$(APP_REGISTRATION_APP_ID)" "$(WEBAPP_URL_BASE)" "$(WEBAPP_URL_BASE)" "$(WEBAPP_URL_BASE)" >>"$(Build.Repository.LocalPath)/Web Application Configuration.md"
 
-              printf "\n" >> "$(Build.Repository.LocalPath)/Web Application Configuration.md"
-              printf "az role assignment create --assignee %s --role reader --subscription %s --scope /subscriptions/%s\n" $(WEBAPP_IDENTITY) $ARM_SUBSCRIPTION_ID $ARM_SUBSCRIPTION_ID >> "$(Build.Repository.LocalPath)/Web Application Configuration.md"
-              printf "Run the above command for all subscriptions you want to use in the Web Application\n" >> "$(Build.Repository.LocalPath)/Web Application Configuration.md"
+              printf "\n" >>"$(Build.Repository.LocalPath)/Web Application Configuration.md"
+              printf "az role assignment create --assignee %s --role reader --subscription %s --scope /subscriptions/%s\n" "$(WEBAPP_IDENTITY)" "$ARM_SUBSCRIPTION_ID" "$ARM_SUBSCRIPTION_ID" >>"$(Build.Repository.LocalPath)/Web Application Configuration.md"
+              printf "Run the above command for all subscriptions you want to use in the Web Application\n" >>"$(Build.Repository.LocalPath)/Web Application Configuration.md"
 
-              printf "\n" >> "$(Build.Repository.LocalPath)/Web Application Configuration.md"
-              printf "az role assignment create --assignee %s --role 'Storage Blob Data Contributor' --subscription %s --scope /subscriptions/%s/resourceGroups/%s\n" $(WEBAPP_IDENTITY) $ARM_SUBSCRIPTION_ID $ARM_SUBSCRIPTION_ID $(Terraform_Remote_Storage_Resource_Group_Name) >> "$(Build.Repository.LocalPath)/Web Application Configuration.md"
-              printf "az role assignment create --assignee %s --role 'Storage Table Data Contributor' --subscription %s --scope /subscriptions/%s/resourceGroups/%s \n\n" $(WEBAPP_IDENTITY) $ARM_SUBSCRIPTION_ID $ARM_SUBSCRIPTION_ID $(Terraform_Remote_Storage_Resource_Group_Name) >> "$(Build.Repository.LocalPath)/Web Application Configuration.md"
+              printf "\n" >>"$(Build.Repository.LocalPath)/Web Application Configuration.md"
+              printf "az role assignment create --assignee %s --role 'Storage Blob Data Contributor' --subscription %s --scope /subscriptions/%s/resourceGroups/%s\n" "$(WEBAPP_IDENTITY)" "$ARM_SUBSCRIPTION_ID" "$ARM_SUBSCRIPTION_ID" "$(Terraform_Remote_Storage_Resource_Group_Name)" >>"$(Build.Repository.LocalPath)/Web Application Configuration.md"
+              printf "az role assignment create --assignee %s --role 'Storage Table Data Contributor' --subscription %s --scope /subscriptions/%s/resourceGroups/%s \n\n" "$(WEBAPP_IDENTITY)" "$ARM_SUBSCRIPTION_ID" "$ARM_SUBSCRIPTION_ID" "$(Terraform_Remote_Storage_Resource_Group_Name)" >>"$(Build.Repository.LocalPath)/Web Application Configuration.md"
 
-              printf "\n" >> "$(Build.Repository.LocalPath)/Web Application Configuration.md"
+              printf "\n" >>"$(Build.Repository.LocalPath)/Web Application Configuration.md"
 
-              printf "az rest --method POST --uri \"https://graph.microsoft.com/beta/applications/%s/federatedIdentityCredentials\" --body \"{'name': 'ManagedIdentityFederation', 'issuer': 'https://login.microsoftonline.com/%s/v2.0', 'subject': '%s', 'audiences': [ 'api://AzureADTokenExchange' ]}\"" $(APP_REGISTRATION_OBJECTID)  $(APP_TENANT_ID) $(MSI_ID) >> "$(Build.Repository.LocalPath)/Web Application Configuration.md"
-              printf "\n" >> "$(Build.Repository.LocalPath)/Web Application Configuration.md"
+              printf "az rest --method POST --uri \"https://graph.microsoft.com/beta/applications/%s/federatedIdentityCredentials\" --body \"{'name': 'ManagedIdentityFederation', 'issuer': 'https://login.microsoftonline.com/%s/v2.0', 'subject': '%s', 'audiences': [ 'api://AzureADTokenExchange' ]}\"" $(APP_REGISTRATION_OBJECTID) $(APP_TENANT_ID) $(MSI_ID) >>"$(Build.Repository.LocalPath)/Web Application Configuration.md"
+              printf "\n" >>"$(Build.Repository.LocalPath)/Web Application Configuration.md"
 
-              printf "az webapp restart --ids %s\n\n" $(WEBAPP_ID) >> "$(Build.Repository.LocalPath)/Web Application Configuration.md"
-              printf "\n" >> "$(Build.Repository.LocalPath)/Web Application Configuration.md"
+              printf "az webapp restart --ids %s\n\n $(WEBAPP_ID)" >>"$(Build.Repository.LocalPath)/Web Application Configuration.md"
+              printf "\n" >>"$(Build.Repository.LocalPath)/Web Application Configuration.md"
 
-              printf "[Access the Web App](https://%s.azurewebsites.net)"    $(WEBAPP_URL_BASE) >> "$(Build.Repository.LocalPath)/Web Application Configuration.md"
+              printf "[Access the Web App](https://%s.azurewebsites.net) $(WEBAPP_URL_BASE)" >>"$(Build.Repository.LocalPath)/Web Application Configuration.md"
 
               echo "##vso[task.uploadsummary]$(Build.Repository.LocalPath)/Web Application Configuration.md"
-            displayName: "Documentation"
+
+          - displayName: "Documentation"
             env:
               ARM_SUBSCRIPTION_ID: $(CP_ARM_SUBSCRIPTION_ID)
               SYSTEM_PIPELINE_ID: $(SYSTEM_PIPELINE_ID)
