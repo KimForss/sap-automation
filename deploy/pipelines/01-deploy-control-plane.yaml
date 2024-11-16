@@ -470,7 +470,7 @@ stages:
               echo "Organization:                          $(System.CollectionUri)"
               echo "Project:                               $(System.TeamProject)"
               if [ -n "$(POOL)" ]; then
-                echo "Deployer Agent Pool:                 $(POOL)"
+                echo "Deployer Agent Pool:                   $(POOL)"
               fi
 
               echo ""
@@ -513,7 +513,7 @@ stages:
 
               printf -v tempval '%s id:' "$(variable_group)"
               printf -v val '%-20s' "${tempval}"
-              echo "$val                  $VARIABLE_GROUP_ID"
+              echo "$val                 $VARIABLE_GROUP_ID"
 
               # Set logon variables
               ARM_CLIENT_ID="$CP_ARM_CLIENT_ID"

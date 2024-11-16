@@ -110,6 +110,7 @@ while :; do
     ;;
   -v | --ado)
     ado_flag="--ado"
+    approve="--auto-approve"
     shift
     ;;
   -h | --help)
