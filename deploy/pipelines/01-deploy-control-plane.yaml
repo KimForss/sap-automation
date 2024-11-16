@@ -99,7 +99,7 @@ stages:
 
                 # shellcheck disable=SC2005
                 ENVIRONMENT=$(echo "$(deployerfolder)" | awk -F'-' '{print $1}' | xargs)
-                shellcheck disable=SC2005
+                # shellcheck disable=SC2005
                 LOCATION=$(echo "$(deployerfolder)" | awk -F'-' '{print $2}' | xargs)
 
                 deployer_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}"
