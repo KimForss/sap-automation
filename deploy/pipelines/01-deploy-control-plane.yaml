@@ -816,33 +816,33 @@ stages:
               fi
               exit $return_code
 
-          - displayName: Deploy control plane
+            displayName: Deploy control plane
             env:
-              SYSTEM_ACCESSTOKEN: $(System.AccessToken)
-              CP_ARM_SUBSCRIPTION_ID: $(CP_ARM_SUBSCRIPTION_ID)
-              CP_ARM_CLIENT_ID: $(CP_ARM_CLIENT_ID)
-              CP_ARM_CLIENT_SECRET: $(CP_ARM_CLIENT_SECRET)
-              CP_ARM_TENANT_ID: $(CP_ARM_TENANT_ID)
-              TF_VAR_spn_id: $(CP_ARM_OBJECT_ID)
-              TF_VAR_agent_pool: $(POOL)
-              TF_VAR_agent_ado_url: $(System.CollectionUri)
-              TF_VAR_tf_version: $(tf_version)
-              TF_VAR_agent_pat: $(PAT)
+              SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
+              CP_ARM_SUBSCRIPTION_ID:  $(CP_ARM_SUBSCRIPTION_ID)
+              CP_ARM_CLIENT_ID:        $(CP_ARM_CLIENT_ID)
+              CP_ARM_CLIENT_SECRET:    $(CP_ARM_CLIENT_SECRET)
+              CP_ARM_TENANT_ID:        $(CP_ARM_TENANT_ID)
+              TF_VAR_spn_id:           $(CP_ARM_OBJECT_ID)
+              TF_VAR_agent_pool:       $(POOL)
+              TF_VAR_agent_ado_url:    $(System.CollectionUri)
+              TF_VAR_tf_version:       $(tf_version)
+              TF_VAR_agent_pat:        $(PAT)
               IS_PIPELINE_DEPLOYMENT: true
-              WEB_APP_CLIENT_SECRET: $(WEB_APP_CLIENT_SECRET)
+              WEB_APP_CLIENT_SECRET:   $(WEB_APP_CLIENT_SECRET)
               APP_REGISTRATION_APP_ID: $(APP_REGISTRATION_APP_ID)
-              keyvault: $(Deployer_Key_Vault)
-              POOL: $(POOL)
+              keyvault:                $(Deployer_Key_Vault)
+              POOL:                    $(POOL)
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
-              CONFIG_REPO_PATH: ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+              CONFIG_REPO_PATH:        ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
               TF_VAR_ansible_core_version: $(ansible_core_version)
-              TF_LOG: $(TF_LOG)
+              TF_LOG:                  $(TF_LOG)
               TF_IN_AUTOMATION: true
-              DEPLOYER_TFSTATE_KEY: "${{ parameters.deployer }}.terraform.tfstate"
-              LOGON_USING_SPN: $(Logon_Using_SPN)
-              USE_MSI: $(Use_MSI)
+              DEPLOYER_TFSTATE_KEY:    "${{ parameters.deployer }}.terraform.tfstate"
+              LOGON_USING_SPN:         $(Logon_Using_SPN)
+              USE_MSI:                 $(Use_MSI)
               DEPLOYER_RANDOM_ID_SEED: $(DEPLOYER_RANDOM_ID_SEED)
-              AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
+              AZURE_DEVOPS_EXT_PAT:    $(System.AccessToken)
 
             failOnStderr: false
 
@@ -951,8 +951,9 @@ stages:
               printf "[Access the Web App](https://%s.azurewebsites.net) $(WEBAPP_URL_BASE)" >>"$(Build.Repository.LocalPath)/Web Application Configuration.md"
 
               echo "##vso[task.uploadsummary]$(Build.Repository.LocalPath)/Web Application Configuration.md"
+              exit 0
 
-          - displayName: "Documentation"
+            displayName: "Documentation"
             env:
               ARM_SUBSCRIPTION_ID: $(CP_ARM_SUBSCRIPTION_ID)
               SYSTEM_PIPELINE_ID: $(SYSTEM_PIPELINE_ID)
