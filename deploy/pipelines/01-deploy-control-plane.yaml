@@ -439,6 +439,7 @@ stages:
               file_REMOTE_STATE_RG=$(deployerfolder)
               REMOTE_STATE_SA=""
               REMOTE_STATE_RG=$(deployerfolder)
+              sourced_from_file=0
 
               if [[ -f /etc/profile.d/deploy_server.sh ]]; then
                 path=$(grep -m 1 "export PATH=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
