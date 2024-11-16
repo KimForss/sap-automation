@@ -106,6 +106,16 @@ stages:
 
                 deployer_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}"
 
+                if [ -f "${deployer_environment_file_name}" ]; then
+                  step=$(grep -m1 "^step=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs)
+                  echo "Step:                              $step"
+                  if [ "0" != "${step}" ]; then
+                    echo "##vso[task.logissue type=warning]Already prepared"
+                    exit 0
+                  fi
+                fi
+
+
                 echo -e "$green--- Checkout $(Build.SourceBranchName) ---$reset"
                 cd "$CONFIG_REPO_PATH" || exit
                 git checkout -q "$(Build.SourceBranchName)"
@@ -233,15 +243,6 @@ stages:
                   export REINSTALL_SUBSCRIPTION
                   REINSTALL_RESOURCE_GROUP=$(Terraform_Remote_Storage_Resource_Group_Name)
                   export REINSTALL_RESOURCE_GROUP
-                  step=0
-                else
-                  if [ -f "${deployer_environment_file_name}" ]; then
-                    step=$(grep -m1 "^step=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs)
-                    echo "Step:                              $step"
-                    if [ "0" != "${step}" ]; then
-                      exit 0
-                    fi
-                  fi
                 fi
 
                 echo -e "$green--- Variables ---$reset"
@@ -411,26 +412,19 @@ stages:
               getLatestFromBranch: true
           - bash: |
               #!/bin/bash
-
-
-              #External helper functions
-              #. "$(dirname "${BASH_SOURCE[0]}")/helper.sh"
-              full_script_path="$(realpath "${BASH_SOURCE[0]}")"
-              script_directory="$(dirname "${full_script_path}")"
-
-              #helper files
-              source "${script_directory}/helper.sh"
-
               echo "##vso[build.updatebuildnumber]Deploying the control plane defined in $(deployerfolder) $(libraryfolder)"
               green="\e[1;32m"
               reset="\e[0m"
               boldred="\e[1;31m"
               cyan="\e[1;36m"
 
+              #External helper functions
+              source "sap-automation/deploy/pipelines/helper.sh"
+
               if [ "$SYSTEM_DEBUG" = True ]; then
                 set -x
               fi
-              set -u
+              set -eu
 
               ENVIRONMENT=$(echo "$(deployerfolder)" | awk -F'-' '{print $1}' | xargs)
               LOCATION=$(echo "$(deployerfolder)" | awk -F'-' '{print $2}' | xargs)
