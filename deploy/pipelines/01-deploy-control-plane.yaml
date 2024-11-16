@@ -549,21 +549,21 @@ stages:
 
               echo -e "$green--- Variables ---$reset"
               key_vault=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_Key_Vault" "${deployer_environment_file_name}" "keyvault")
-              if [ $? -eq 1 ]; then
+              if [ "$sourced_from_file" == 1 ]; then
                 az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name Deployer_Key_Vault --value "${key_vault}" --output none --only-show-errors
               fi
-              echo "Deployer Key Vault:                   ${key_vault}"
               echo "Deployer TFvars:                      $(deployerconfig)"
 
               if [ -n "${key_vault}" ]; then
+                echo "Deployer Key Vault:                   ${key_vault}"
                 keyvault_parameter=" --keyvault ${key_vault} "
+              else
+                echo "Deployer Key Vault:                   undefined"
+                exit 2
+
               fi
 
-              STATE_SUBSCRIPTION=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Terraform_Remote_Storage_Subscription" "${deployer_environment_file_name}" "STATE_SUBSCRIPTION")
-              if [ $? -eq 1 ]; then
-                az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name Terraform_Remote_Storage_Subscription --value "${STATE_SUBSCRIPTION}" --output none --only-show-errors
-              fi
-              export STATE_SUBSCRIPTION
+              STATE_SUBSCRIPTION=$ARM_SUBSCRIPTION_ID
 
               echo "Terraform state subscription:         $STATE_SUBSCRIPTION"
 
@@ -573,8 +573,8 @@ stages:
                 echo "Terraform storage account:            $REMOTE_STATE_SA"
                 storage_account_parameter=" --storageaccountname ${REMOTE_STATE_SA} "
               else
-                sed -i 's/step=2/step=1/' "$deployer_environment_file_name"
-                sed -i 's/step=3/step=1/' "$deployer_environment_file_name"
+                echo "Terraform storage account:            undefined"
+                exit 2
               fi
 
               REMOTE_STATE_RG=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Terraform_Remote_Storage_Resource_Group_Name" "${deployer_environment_file_name}" "REMOTE_STATE_RG")
