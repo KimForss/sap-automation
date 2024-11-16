@@ -11,11 +11,12 @@ function getVariableFromVariableGroup() {
   if [ -z "${variable_value}" ]; then
     if [ -f "${environment_file_name}" ]; then
       variable_value=$(grep "^$environment_variable_name" "${environment_file_name}" | awk -F'=' '{print $2}' | xargs)
-      echo "Variable $variable_name found in environment file $environment_file_name"
+      sourced_from_file=1
+      export sourced_from_file
+
       return_value=0
     fi
   else
-    echo "Variable $variable_name found in variable group $variable_group_id"
     return_value=0
   fi
 
