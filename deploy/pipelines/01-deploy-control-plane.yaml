@@ -83,6 +83,8 @@ stages:
               inlineScript: |
                 #!/bin/bash
 
+                ls '$(System.DefaultWorkingDirectory)'
+
                 echo "##vso[build.updatebuildnumber]Deploying the control plane defined in $(deployerfolder) $(libraryfolder)"
                 green="\e[1;32m"
                 reset="\e[0m"
@@ -415,7 +417,7 @@ stages:
               getLatestFromBranch: true
           - bash: |
               #!/bin/bash
-              set -u
+
 
               #External helper functions
               #. "$(dirname "${BASH_SOURCE[0]}")/helper.sh"
@@ -434,6 +436,7 @@ stages:
               if [ "$SYSTEM_DEBUG" = True ]; then
                 set -x
               fi
+              set -u
 
               ENVIRONMENT=$(echo "$(deployerfolder)" | awk -F'-' '{print $1}' | xargs)
               LOCATION=$(echo "$(deployerfolder)" | awk -F'-' '{print $2}' | xargs)
