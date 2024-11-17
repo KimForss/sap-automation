@@ -3,7 +3,7 @@
 #error codes include those from /usr/include/sysexits.h
 
 #colors for terminal
-boldreduscore="\e[1;4;31m"
+
 boldred="\e[1;31m"
 cyan="\e[1;36m"
 resetformatting="\e[0m"

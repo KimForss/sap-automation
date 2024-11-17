@@ -272,7 +272,7 @@ if [ -n "${subscription}" ]; then
   echo "#########################################################################################"
   echo ""
 
-  if [ -z $keyvault ]; then
+  if [ -z "$keyvault" ]; then
     load_config_vars "${deployer_config_information}" "keyvault"
   fi
 
@@ -313,7 +313,7 @@ fi
 if [ $recover == 1 ]; then
   if [ -n "$REMOTE_STATE_SA" ]; then
     save_config_var "REMOTE_STATE_SA" "${deployer_config_information}"
-    get_and_store_sa_details ${REMOTE_STATE_SA} "${deployer_config_information}"
+    get_and_store_sa_details "${REMOTE_STATE_SA}" "${deployer_config_information}"
     #Support running deploy_controlplane on new host when the resources are already deployed
     step=3
     save_config_var "step" "${deployer_config_information}"
@@ -358,6 +358,7 @@ if [ 0 == $step ]; then
   echo "Calling install_deployer.sh:         $allParams"
   echo "Deployer State File:                 ${deployer_tfstate_key}"
 
+  # shellcheck disable=SC2086
   "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer.sh" $allParams
   return_code=$?
   if [ 0 != $return_code ]; then
@@ -442,7 +443,7 @@ if [ 1 == $step ] || [ 3 == $step ]; then
   echo ""
 
   kv_name_check=$(az keyvault list --query "[?name=='$keyvault'].name | [0]" --subscription "${subscription}")
-  if [ -z $kv_name_check ]; then
+  if [ -z "$kv_name_check" ]; then
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #"
@@ -454,7 +455,7 @@ if [ 1 == $step ] || [ 3 == $step ]; then
     kv_name_check=$(az keyvault list --query "[?name=='$keyvault'].name | [0]" --subscription "${subscription}")
   fi
 
-  if [ -z $kv_name_check ]; then
+  if [ -z "$kv_name_check" ]; then
     echo "#########################################################################################"
     echo "#                                                                                       #"
     echo -e "#                               $boldred  Unable to access keyvault: $keyvault $resetformatting                            #"
@@ -473,6 +474,7 @@ if [ 1 == $step ] || [ 3 == $step ]; then
     if [ -n "$spn_secret" ]; then
       allParams=$(printf " -e %s -r %s -v %s --spn_secret %s " "${environment}" "${region_code}" "${keyvault}" "${spn_secret}")
 
+      # shellcheck disable=SC2086
       "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/set_secrets.sh $allParams
       if [ -f secret.err ]; then
         error_message=$(cat secret.err)
@@ -497,6 +499,7 @@ if [ 1 == $step ] || [ 3 == $step ]; then
           #$allParams as an array (); array math can be done in shell, allowing dynamic parameter lists to be created
           #"${allParams[@]}" - quotes all elements of the array
 
+          # shellcheck disable=SC2086
           "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/set_secrets.sh $allParams
           return_code=$?
           if [ 0 != $return_code ]; then
@@ -506,6 +509,7 @@ if [ 1 == $step ] || [ 3 == $step ]; then
       else
         allParams=$(printf " -e %s -r %s -v %s --subscription %s --msi " "${environment}" "${region_code}" "${keyvault}" "${subscription}")
 
+        # shellcheck disable=SC2086
         "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/set_secrets.sh $allParams
         if [ -f secret.err ]; then
           error_message=$(cat secret.err)
@@ -581,6 +585,7 @@ if [ 2 == $step ]; then
   allParams=$(printf " -p %s -d %s %s" "${library_file_parametername}" "${relative_path}" "${approveparam}")
   echo "Calling install_library.sh with:    $allParams"
 
+  # shellcheck disable=SC2086
   "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/install_library.sh $allParams
   return_code=$?
   if [ 0 != $return_code ]; then
@@ -726,6 +731,7 @@ if [ 4 == $step ]; then
 
   echo "Calling installer.sh with:          $allParams"
 
+  # shellcheck disable=SC2086
   "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/installer.sh $allParams
   return_code=$?
   if [ 0 != $return_code ]; then

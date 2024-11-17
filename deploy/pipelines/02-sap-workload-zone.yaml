@@ -244,15 +244,12 @@ stages:
               LOCATION=$(grep -m1 "^location" "LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file)" | awk -F'=' '{print $2}' | xargs | tr 'A-Z' 'a-z')
               NETWORK=$(grep -m1 "^network_logical_name" "LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file)" | awk -F'=' '{print $2}' | xargs)
 
-              # shellcheck disable=SC2005
-              ENVIRONMENT_IN_FILENAME=$(echo "$(workload_zone_folder)" | awk -F'-' '{print $1}' | xargs)
+              ENVIRONMENT_IN_FILENAME=$(echo $(workload_zone_folder) | awk -F'-' '{print $1}' | xargs)
 
-              # shellcheck disable=SC2005
-              LOCATION_CODE=$(echo "$(workload_zone_folder)" | awk -F'-' '{print $2}' | xargs)
+              LOCATION_CODE=$(echo $(workload_zone_folder) | awk -F'-' '{print $2}' | xargs)
               LOCATION_IN_FILENAME=$(get_region_from_code "$LOCATION_CODE")
 
-              # shellcheck disable=SC2005
-              NETWORK_IN_FILENAME=$(echo "$(workload_zone_folder)" | awk -F'-' '{print $3}' | xargs)
+              NETWORK_IN_FILENAME=$(echo $(workload_zone_folder) | awk -F'-' '{print $3}' | xargs)
 
               echo "Environment:                         $ENVIRONMENT"
               echo "Location:                            $LOCATION"
