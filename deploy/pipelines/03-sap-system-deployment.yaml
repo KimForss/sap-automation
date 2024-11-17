@@ -288,7 +288,6 @@ stages:
                   echo "##vso[task.logissue type=error]Return code from installer $return_code."
               fi
 
-              az logout --output none
               echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
               cd "$(Build.Repository.LocalPath)" || exit
               git pull
@@ -301,9 +300,13 @@ stages:
               git pull
               echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
 
+              if [ -f stdout.az ]; then
+                  rm stdout.az
+              fi
+
               added=0
 
-              if [ -f $.terraform/terraform.tfstate ]; then
+              if [ -f .terraform/terraform.tfstate ]; then
                   git add -f .terraform/terraform.tfstate
                   added=1
               fi
@@ -375,7 +378,7 @@ stages:
               exit $return_code
             displayName:               Deploy_SAP_infrastructure
             env:
-              CONFIG_REPO_PATH:        ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+              CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
               LOGON_USING_SPN:          $(Logon_Using_SPN)
               AZURE_DEVOPS_EXT_PAT:     $(System.AccessToken)
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}

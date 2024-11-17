@@ -6,22 +6,17 @@ function getVariableFromVariableGroup() {
   local environment_file_name="$3"
   local environment_variable_name="$4"
   local variable_value
-  local return_value=0
+
   variable_value=$(az pipelines variable-group variable list --group-id "${variable_group_id}" --query "${variable_name}.value" --output tsv)
   if [ -z "${variable_value}" ]; then
     if [ -f "${environment_file_name}" ]; then
       variable_value=$(grep "^$environment_variable_name" "${environment_file_name}" | awk -F'=' '{print $2}' | tr -d ' \t\n\r\f"' )
       sourced_from_file=1
       export sourced_from_file
-
-      return_value=0
     fi
-  else
-    return_value=0
   fi
 
   echo "$variable_value"
-  exit "$return_value"
 }
 
 function saveVariableInVariableGroup() {
