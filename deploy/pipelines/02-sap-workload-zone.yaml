@@ -369,10 +369,10 @@ stages:
                       --tenant_id "$WL_ARM_TENANT_ID" --keyvault_subscription "$STATE_SUBSCRIPTION"
               else
                   "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets.sh" --workload --vault "${key_vault}" --environment "${ENVIRONMENT}" \
-                      --region "${LOCATION}" --subscription "$WL_ARM_SUBSCRIPTION_ID" --keyvault_subscription "$STATE_SUBSCRIPTION" --msi"
+                      --region "${LOCATION}" --subscription "$WL_ARM_SUBSCRIPTION_ID" --keyvault_subscription "$STATE_SUBSCRIPTION" --msi
               fi
               secrets_set=$?
-              echo "Set Secrets returned:                $secrets_set"
+              echo "Set Secrets returned: $secrets_set"
 
               debug_variable='--output none'
               debug_variable=''
@@ -397,7 +397,7 @@ stages:
 
                       resource_group_id=$(az group show --name "${REMOTE_STATE_SA}" --subscription "$STATE_SUBSCRIPTION" query "id" -o tsv)
                       perms=$(az role assignment list --subscription "$STATE_SUBSCRIPTION" --role "Storage Blob Data Contributor" --scope "${resource_group_id}" --assignee "$ARM_OBJECT_ID" --query "[].principalName | [0]" --only-show-errors)
-                      if [ -z "$perms" ]; then
+                      if [ -z $perms ]; then
                           echo "Assigning Storage Blob Data Contributor permissions for $ARM_OBJECT_ID to ${resource_group_id}"
                           az role assignment create --assignee "$ARM_OBJECT_ID" --role "Storage Blob Data Contributor" --scope "${resource_group_id}" --output none
                       fi
@@ -410,10 +410,10 @@ stages:
 
                       resource_group_name=$(az resource show --id "${tfstate_resource_id}" --query resourceGroup -o tsv)
 
-                      if [ -n "${resource_group_name}" ]; then
+                      if [ -n "$resource_group_name" ]; then
                           for scope in $(az resource list --resource-group "${resource_group_name}" --subscription "$STATE_SUBSCRIPTION" --resource-type Microsoft.Network/privateDnsZones --query "[].id" --output tsv); do
                               perms=$(az role assignment list --subscription "$STATE_SUBSCRIPTION" --role "Private DNS Zone Contributor" --scope "$scope" --assignee "$ARM_OBJECT_ID" --query "[].principalName | [0]" --output tsv --only-show-errors)
-                              if [ -z "$perms" ]; then
+                              if [ -z $perms ]; then
                                   echo "Assigning DNS Zone Contributor permissions for $ARM_OBJECT_ID to ${scope}"
                                   az role assignment create --assignee "$ARM_OBJECT_ID" --role "Private DNS Zone Contributor" --scope "$scope" --output none
                               fi
@@ -429,14 +429,14 @@ stages:
                           if [ -n "${vnet_resource_id}" ]; then
                               perms=$(az role assignment list --subscription "$STATE_SUBSCRIPTION" --role "Network Contributor" --scope "$vnet_resource_id" --query "[].principalName | [0]" --assignee "$ARM_OBJECT_ID" --output tsv --only-show-errors)
 
-                              if [ -z "$perms" ]; then
+                              if [ -z $perms ]; then
                                   echo "Assigning Network Contributor rights for $ARM_OBJECT_ID to ${vnet_resource_id}"
                                   az role assignment create --assignee "$ARM_OBJECT_ID" --role "Network Contributor" --scope "$vnet_resource_id" --output none
                               fi
                           fi
                       fi
                   else
-                      echo "##vso[task.logissue type=warning]Service Principal $WL_ARM_CLIENT_ID does not have 'User Access Administrator' permissions. Please ensure that the service principal $WL_ARM_CLIENT_ID has permissions on the Terrafrom state storage account and if needed on the Private DNS zone and the source management network resource"
+                      echo " ##vso[task.logissue type=warning]Service Principal $WL_ARM_CLIENT_ID does not have 'User Access Administrator' permissions. Please ensure that the service principal $WL_ARM_CLIENT_ID has permissions on the Terrafrom state storage account and if needed on the Private DNS zone and the source management network resource"
                   fi
               fi
 
@@ -470,7 +470,7 @@ stages:
               az account set --subscription "$ARM_SUBSCRIPTION_ID"
 
               "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/install_workloadzone.sh" --parameterfile "$(workload_zone_configuration_file)" \
-                  --deployer_environment "$(deployer_environment)" --subscription "$WL_ARM_SUBSCRIPTION_ID"                            \
+                  --deployer_environment "$(deployer_environment)" --subscription "$WL_ARM_SUBSCRIPTION_ID" \
                   --deployer_tfstate_key "${deployer_tfstate_key}" --keyvault "${key_vault}" --storageaccountname "${REMOTE_STATE_SA}" \
                   --state_subscription "${STATE_SUBSCRIPTION}" --auto-approve --ado --msi
 
@@ -478,7 +478,7 @@ stages:
               echo "Return code from deployment:         ${return_code}"
 
               if [ -f "${workload_environment_file_name}" ]; then
-                  workload_key_vault=$(grep "workloadkeyvault=" ${workload_environment_file_name}  | awk -F'=' '{print $2}' | xargs)
+                  workload_key_vault=$(grep "workloadkeyvault=" ${workload_environment_file_name} | awk -F'=' '{print $2}' | xargs)
                   export workload_key_vault
                   echo "Workload zone key vault:             ${workload_key_vault}"
 
