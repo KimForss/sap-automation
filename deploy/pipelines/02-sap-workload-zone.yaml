@@ -537,7 +537,7 @@ stages:
               fi
 
               if [ -f ".sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE}${NETWORK}.md" ]; then
-                  echo "##vso[task.uploadsummary].sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE}${NETWORK}.md""
+                  echo "##vso[task.uploadsummary].sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE}${NETWORK}.md"
               fi
               echo -e "$green--- Adding variables to the variable group" "$(variable_group)" "---$reset"
               if [ -n "${VARIABLE_GROUP_ID}" ]; then
