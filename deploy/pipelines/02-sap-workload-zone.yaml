@@ -522,11 +522,15 @@ stages:
                   git add ".sap_deployment_automation/${prefix}"
                   added=1
               fi
-              if [ -f ".sap_deployment_automation/${prefix}.md" ]; then
-                  git add ".sap_deployment_automation/${prefix}.md"
+
+              cd "$CONFIG_REPO_PATH/LANDSCAPE/$(workload_zone_folder)" || exit
+
+              if [ -f "${prefix}.md" ]; then
+                  git add "${prefix}.md"
                   added=1
               fi
-              if [ -f "LANDSCAPE/$(workload_zone_folder)/.terraform/terraform.tfstate" ]; then
+
+              if [ -f "/.terraform/terraform.tfstate" ]; then
                   git add -f "LANDSCAPE/$(workload_zone_folder)/.terraform/terraform.tfstate"
                   added=1
               fi
