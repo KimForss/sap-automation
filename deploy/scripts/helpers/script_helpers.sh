@@ -433,9 +433,8 @@ function validate_dependencies {
   fi
   # Set Terraform Plug in cache
 
-  az --version >stdout.az 2>&1
-  az=$(grep "azure-cli" stdout.az)
-  if [ -z "${az}" ]; then
+  az_version=$(az --version | grep "azure-cli" )
+  if [ -z "${az_version}" ]; then
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #"
@@ -443,25 +442,7 @@ function validate_dependencies {
     echo "#                                                                                       #"
     echo "#########################################################################################"
     echo ""
-    if [ -f stdout.az ]; then
-      rm stdout.az
-    fi
     return 2 #No such file or directory
-  fi
-  # Checking for valid az session
-  temp=$(grep "az login" stdout.az)
-  if [ -n "${temp}" ]; then
-    echo ""
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo -e "#                          $boldred Please login using az login! $resetformatting                               #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    echo ""
-    if [ -f stdout.az ]; then
-      rm stdout.az
-    fi
-    exit 67 #addressee unknown
   fi
   cloudIDUsed=$(az account show | grep "cloudShellID")
   if [ -n "${cloudIDUsed}" ]; then

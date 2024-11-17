@@ -221,7 +221,7 @@ stages:
               echo "Workload Zone Environment File:      $workload_environment_file_name"
 
               echo -e "$green--- Configure devops CLI extension ---$reset"
-              az config set extension.use_dynamic_install=yes_without_prompt --output none
+              az config set extension.use_dynamic_install=yes_without_prompt --output none --only-show-errors
 
               az extension add --name azure-devops --output none --only-show-errors
 
