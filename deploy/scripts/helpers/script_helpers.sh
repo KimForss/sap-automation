@@ -426,8 +426,8 @@ function validate_dependencies {
     mkdir -p "${HOME}/.terraform.d/plugin-cache"
     export TF_PLUGIN_CACHE_DIR="${HOME}/.terraform.d/plugin-cache"
   else
-    if [ ! -d /opt/terraform/.terraform.d/plugin-cache ]; then
-      mkdir -p /opt/terraform/.terraform.d/plugin-cache
+    if [ ! -d "/opt/terraform/.terraform.d/plugin-cache" ]; then
+      mkdir -p "/opt/terraform/.terraform.d/plugin-cache"
     fi
     export TF_PLUGIN_CACHE_DIR=/opt/terraform/.terraform.d/plugin-cache
   fi
