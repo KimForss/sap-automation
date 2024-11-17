@@ -680,9 +680,9 @@ stages:
                 "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/deploy_controlplane.sh" \
                   --deployer_parameter_file "${deployer_configfile}" \
                   --library_parameter_file "${library_configfile}" \
-                  --subscription "$ARM_SUBSCRIPTION_ID" --ado --msi \
-                  "${storage_account_parameter}" "${keyvault_parameter}" \
-                  --auto-approve
+                  --subscription "$ARM_SUBSCRIPTION_ID" \
+                  --auto-approve --ado --msi \
+                  "${storage_account_parameter}" "${keyvault_parameter}"
 
               fi
 
