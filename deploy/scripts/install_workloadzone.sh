@@ -184,7 +184,7 @@ fi
 echo "Region code:                         ${region_code}"
 
 load_config_vars "$workload_file_parametername" "network_logical_name"
-network_logical_name=$(echo "${network_logical_name}" | tr "[:lower:]" "[:upper:]" | xargs)
+network_logical_name=$(echo "${network_logical_name}" | tr "[:lower:]" "[:upper:]" | tr ' \t\n\r\f"')
 
 if [ -z "${network_logical_name}" ]; then
   echo "#########################################################################################"
