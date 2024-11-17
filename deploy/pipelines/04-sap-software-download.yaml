@@ -78,6 +78,8 @@ stages:
               AZURE_DEVOPS_EXT_PAT=$(System.AccessToken)
               export AZURE_DEVOPS_EXT_PAT
 
+              cd "$CONFIG_REPO_PATH" || exit
+
               environment_file_name=".sap_deployment_automation/$(environment_code)$(location_code)"
 
               az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)' --output none --only-show-errors
