@@ -103,7 +103,7 @@ while :; do
         -h | --help)
             showhelp
             exit 3
-            shift
+
         ;;
         --)
             shift
@@ -122,7 +122,7 @@ done
 
 if [ -z "${region_code}" ]; then
     # Convert the region to the correct code
-    get_region_code $region
+    get_region_code "$region"
 fi
 
 # if ! valid_environment "${environment}"; then
@@ -215,7 +215,7 @@ if [ 0 = "${deploy_using_msi_only:-}" ]; then
         fi
     fi
 
-    if [ ! -n "$client_secret" ]; then
+    if [ -z "$client_secret" ]; then
         #do not output the secret to screen
         read -rs -p "        -> Kindly provide SPN Password: " client_secret
         echo "********"
@@ -398,7 +398,7 @@ if [ 0 = "${deploy_using_msi_only:-}" ]; then
     deleted=$(az keyvault secret list-deleted --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --query "[].{Name:name} | [? contains(Name,'${secretname}')] | [0]" -o tsv)
     if [ "${deleted}" == "${secretname}"  ]; then
         echo -e "\t $cyan Recovering secret ${secretname} in keyvault ${keyvault} $resetformatting \n"
-        az keyvault secret recover --name "${secretname}" --vault-name "${keyvault}" --subscription $STATE_SUBSCRIPTION
+        az keyvault secret recover --name "${secretname}" --vault-name "${keyvault}" --subscription "$STATE_SUBSCRIPTION"
         sleep 10
     fi
     v=""
@@ -417,7 +417,7 @@ if [ 0 = "${deploy_using_msi_only:-}" ]; then
     deleted=$(az keyvault secret list-deleted --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --query "[].{Name:name} | [? contains(Name,'${secretname}')] | [0]" -o tsv)
     if [ "${deleted}" == "${secretname}"  ]; then
         echo -e "\t $cyan Recovering secret ${secretname} in keyvault ${keyvault} $resetformatting \n"
-        az keyvault secret recover --name "${secretname}" --vault-name "${keyvault}" --subscription $STATE_SUBSCRIPTION
+        az keyvault secret recover --name "${secretname}" --vault-name "${keyvault}" --subscription "$STATE_SUBSCRIPTION"
         sleep 10
     fi
 

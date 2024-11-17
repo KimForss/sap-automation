@@ -80,7 +80,7 @@ function LogonToAzure() {
 
 
 function get_region_from_code() {
-code_upper=$(echo "${$1}" | tr [:lower:] [:upper:] | xargs | tr -d '\r')
+code_upper=$(echo "$1" | tr [:lower:] [:upper:] | xargs | tr -d '\r')
 case "$code_upper" in
 "AUCE") LOCATION_IN_FILENAME="australiacentral" ;;
 "AUC2") LOCATION_IN_FILENAME="australiacentral2" ;;
