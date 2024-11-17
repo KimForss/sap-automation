@@ -233,7 +233,7 @@ if [ "${force}" == 1 ]; then
 fi
 
 echo ""
-echo "Configuration file:                  ${environment}${region_code}${network_logical_name}"
+echo "Configuration file:                  $workload_config_information"
 echo "Deployment region:                   $region"
 echo "Deployment region code:              $region_code"
 echo "Deployment environment:              $deployer_environment"
