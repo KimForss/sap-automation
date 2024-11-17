@@ -462,9 +462,9 @@ resource "azurerm_storage_share" "fileshare_sapbits" {
   provider                             = azurerm.main
   count                                = !var.storage_account_sapbits.file_share.is_existing ? 0 : 0
   name                                 = var.storage_account_sapbits.file_share.name
-                                           storage_account_name = local.sa_sapbits_exists ? (
-                                             data.azurerm_storage_account.storage_sapbits[0].name) : (
-                                             azurerm_storage_account.storage_sapbits[0].name
+  storage_account_id                   = local.sa_sapbits_exists ? (
+                                             data.azurerm_storage_account.storage_sapbits[0].id) : (
+                                             azurerm_storage_account.storage_sapbits[0].id
                                            )
   quota                                = 1024
 }
