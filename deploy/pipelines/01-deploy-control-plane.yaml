@@ -542,6 +542,8 @@ stages:
               fi
               ARM_SUBSCRIPTION_ID=$CP_ARM_SUBSCRIPTION_ID
               export ARM_SUBSCRIPTION_ID
+              TF_VAR_subscription_id=ARM_SUBSCRIPTION_ID
+              export TF_VAR_subscription_id
 
               az account set --subscription "$ARM_SUBSCRIPTION_ID"
               echo "Deployer subscription:               $ARM_SUBSCRIPTION_ID"

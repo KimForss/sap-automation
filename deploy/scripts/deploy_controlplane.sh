@@ -489,7 +489,7 @@ if [ 1 == $step ] || [ 3 == $step ]; then
     else
       if [ 0 = "${deploy_using_msi_only:-}" ]; then
 
-        read -p "Do you want to specify the SPN Details Y/N?" ans
+        read -p -r "Do you want to specify the SPN Details Y/N?" ans
         answer=${ans^^}
         if [ "$answer" == 'Y' ]; then
           allParams=$(printf " -e %s -r %s -v %s " "${environment}" "${region_code}" "${keyvault}")

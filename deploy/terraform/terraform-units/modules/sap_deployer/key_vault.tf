@@ -402,3 +402,24 @@ resource "azurerm_management_lock" "keyvault" {
             }
 }
 
+resource "azurerm_key_vault_secret" "subscription" {
+  count                                = !var.key_vault.kv_exists ? (1) : (0)
+
+  depends_on                           = [
+                                           azurerm_key_vault_access_policy.kv_user_pre_deployer[0],
+                                           azurerm_key_vault_access_policy.kv_user_msi,
+                                           azurerm_key_vault_access_policy.kv_user_systemidentity
+                                         ]
+
+  name                                 = format("%s-subscription-id", upper(var.infrastructure.environment))
+  value                                = data.azurerm_client_config.deployer.subscription_id
+  key_vault_id                         = var.key_vault.kv_exists ? (
+                                           var.key_vault.kv_user_id) : (
+                                           azurerm_key_vault.kv_user[0].id
+                                         )
+
+  expiration_date                      = var.set_secret_expiry ? (
+                                           time_offset.secret_expiry_date.rfc3339) : (
+                                           null
+                                         )
+}
