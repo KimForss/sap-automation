@@ -546,6 +546,8 @@ fi
 terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/run/"${deployment_system}"/
 export TF_DATA_DIR="${param_dirname}/.terraform"
 
+new_deployment=0
+
 if [ ! -d ./.terraform/ ]; then
   echo "New deployment"
   deployment_parameter=" -var deployment=new "
@@ -559,6 +561,7 @@ if [ ! -d ./.terraform/ ]; then
   return_value=$?
 
 else
+  new_deployment=1
 
   temp=$(grep "\"type\": \"local\"" .terraform/terraform.tfstate)
   if [ -n "${temp}" ]; then
@@ -611,6 +614,7 @@ if [ 1 == $check_output ]; then
     echo "#########################################################################################"
 
     deployment_parameter=" -var deployment=new "
+    new_deployment=1
 
   else
     echo ""
@@ -623,130 +627,132 @@ if [ 1 == $check_output ]; then
     # allParameters=$(printf " -var-file=%s %s %s %s %s %s %s" "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}" )
     # terraform -chdir="${terraform_module_directory}" refresh -var-file="${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}" "${approve}"
 
-    deployment_parameter=" "
+    deployment_parameter=""
+    new_deployment=0
   fi
 fi
 
-deployed_using_version=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw automation_version | tr -d \")
-
-if [ -z "${deployed_using_version}" ]; then
-  echo ""
-  echo "#########################################################################################"
-  echo "#                                                                                       #"
-  echo -e "#   $boldred The environment was deployed using an older version of the Terrafrom templates$resetformatting     #"
-  echo "#                                                                                       #"
-  echo "#                               !!! Risk for Data loss !!!                              #"
-  echo "#                                                                                       #"
-  echo "#        Please inspect the output of Terraform plan carefully before proceeding        #"
-  echo "#                                                                                       #"
-  echo "#########################################################################################"
-
-  if [ 1 == $called_from_ado ]; then
-    unset TF_DATA_DIR
-    exit 1
-  fi
-  read -p -r "Do you want to continue Y/N?" ans
-  answer=${ans^^}
-  if [ "$answer" == 'Y' ]; then
-    ok_to_proceed=true
-  else
-    unset TF_DATA_DIR
-    exit 1
-  fi
-else
-  version_parameter="-var terraform_template_version=${deployed_using_version}"
-
-  printf -v val %-.20s "$deployed_using_version"
-  echo ""
-  echo "#########################################################################################"
-  echo "#                                                                                       #"
-  echo -e "#              $cyan Deployed using the Terraform templates version: $val $resetformatting               #"
-  echo "#                                                                                       #"
-  echo "#########################################################################################"
-  echo ""
-  version_compare "${deployed_using_version}" "3.13.2.0"
-  older_version=$?
-  if [ 2 == $older_version ]; then
+if [ 0 != $new_deployment ]; then
+  deployed_using_version=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw automation_version | tr -d \")
+  if [ -z "${deployed_using_version}" ]; then
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo -e "#           $boldred  Deployed using an older version $resetformatting                                          #"
+    echo -e "#   $boldred The environment was deployed using an older version of the Terrafrom templates$resetformatting     #"
+    echo "#                                                                                       #"
+    echo "#                               !!! Risk for Data loss !!!                              #"
+    echo "#                                                                                       #"
+    echo "#        Please inspect the output of Terraform plan carefully before proceeding        #"
     echo "#                                                                                       #"
     echo "#########################################################################################"
-    echo ""
-    echo "##vso[task.logissue type=warning]Deployed using an older version ${deployed_using_version}. Performing state management operations"
 
-    # Remeadiating the Storage Accounts and File Shares
-    if [ "${deployment_system}" == sap_library ]; then
-      moduleID='module.sap_library.azurerm_storage_account.storage_sapbits[0]'
-      azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 " id " | xargs | cut -d "=" -f2 | xargs)
-      ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "id"
-
-      resourceGroupName=$(az resource show --ids "${azureResourceID}" --query "resourceGroup" --output tsv)
-      resourceType=$(az resource show --ids "${azureResourceID}" --query "type" --output tsv)
-      resourceName=$(az resource show --ids "${azureResourceID}" --query "name" --output tsv)
-      az resource lock create --lock-type CanNotDelete -n "SAP Media account delete lock" --resource-group "${resourceGroupName}" --resource "${resourceName}" --resource-type "${resourceType}" --output none
-
-      moduleID='module.sap_library.azurerm_storage_container.storagecontainer_sapbits[0]'
-      ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "resource_manager_id"
-
-      moduleID='module.sap_library.azurerm_storage_account.storage_tfstate[0]'
-      azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 " id " | xargs | cut -d "=" -f2 | xargs)
-      ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "id"
-
-      resourceGroupName=$(az resource show --ids "${azureResourceID}" --query "resourceGroup" --output tsv)
-      resourceType=$(az resource show --ids "${azureResourceID}" --query "type" --output tsv)
-      resourceName=$(az resource show --ids "${azureResourceID}" --query "name" --output tsv)
-      az resource lock create --lock-type CanNotDelete -n "Terraform state account delete lock" --resource-group "${resourceGroupName}" --resource "${resourceName}" --resource-type "${resourceType}" --output none
-
-      moduleID='module.sap_library.azurerm_storage_container.storagecontainer_tfstate[0]'
-      ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "resource_manager_id"
-
-      moduleID='module.sap_library.azurerm_storage_container.storagecontainer_tfvars[0]'
-      ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "resource_manager_id"
-
+    if [ 1 == $called_from_ado ]; then
+      unset TF_DATA_DIR
+      exit 1
     fi
+    read -p -r "Do you want to continue Y/N?" ans
+    answer=${ans^^}
+    if [ "$answer" == 'Y' ]; then
+      ok_to_proceed=true
+    else
+      unset TF_DATA_DIR
+      exit 1
+    fi
+  else
+    version_parameter="-var terraform_template_version=${deployed_using_version}"
 
-    if [ "${deployment_system}" == sap_deployer ]; then
+    printf -v val %-.20s "$deployed_using_version"
+    echo ""
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo -e "#              $cyan Deployed using the Terraform templates version: $val $resetformatting               #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    echo ""
+    version_compare "${deployed_using_version}" "3.13.2.0"
+    older_version=$?
+    if [ 2 == $older_version ]; then
+      echo ""
+      echo "#########################################################################################"
+      echo "#                                                                                       #"
+      echo -e "#           $boldred  Deployed using an older version $resetformatting                                          #"
+      echo "#                                                                                       #"
+      echo "#########################################################################################"
+      echo ""
+      echo "##vso[task.logissue type=warning]Deployed using an older version ${deployed_using_version}. Performing state management operations"
 
-      moduleID='module.sap_deployer.azurerm_storage_account.deployer[0]'
-      azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 " id " | xargs | cut -d "=" -f2 | xargs)
-      echo "Terraform resource ID:  $moduleID"
-      echo "Azure resource ID:      $azureResourceID"
-      if [ -n "${azureResourceID}" ]; then
-        echo "Removing storage account state object:           ${moduleID} "
-        if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
-          echo "Importing storage account state object:           ${moduleID}"
-          echo "terraform -chdir=${terraform_module_directory} import -var-file=${var_file} -var tfstate_resource_id=${tfstate_resource_id} ${moduleID} ${azureResourceID}"
-          if ! terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var "tfstate_resource_id=${tfstate_resource_id}" "${moduleID}" "${azureResourceID}"; then
-            echo -e "$boldred Importing storage account state object:           ${moduleID} failed $resetformatting"
-            exit 65
+      # Remeadiating the Storage Accounts and File Shares
+      if [ "${deployment_system}" == sap_library ]; then
+        moduleID='module.sap_library.azurerm_storage_account.storage_sapbits[0]'
+        azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 " id " | xargs | cut -d "=" -f2 | xargs)
+        ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "id"
+
+        resourceGroupName=$(az resource show --ids "${azureResourceID}" --query "resourceGroup" --output tsv)
+        resourceType=$(az resource show --ids "${azureResourceID}" --query "type" --output tsv)
+        resourceName=$(az resource show --ids "${azureResourceID}" --query "name" --output tsv)
+        az resource lock create --lock-type CanNotDelete -n "SAP Media account delete lock" --resource-group "${resourceGroupName}" --resource "${resourceName}" --resource-type "${resourceType}" --output none
+
+        moduleID='module.sap_library.azurerm_storage_container.storagecontainer_sapbits[0]'
+        ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "resource_manager_id"
+
+        moduleID='module.sap_library.azurerm_storage_account.storage_tfstate[0]'
+        azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 " id " | xargs | cut -d "=" -f2 | xargs)
+        ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "id"
+
+        resourceGroupName=$(az resource show --ids "${azureResourceID}" --query "resourceGroup" --output tsv)
+        resourceType=$(az resource show --ids "${azureResourceID}" --query "type" --output tsv)
+        resourceName=$(az resource show --ids "${azureResourceID}" --query "name" --output tsv)
+        az resource lock create --lock-type CanNotDelete -n "Terraform state account delete lock" --resource-group "${resourceGroupName}" --resource "${resourceName}" --resource-type "${resourceType}" --output none
+
+        moduleID='module.sap_library.azurerm_storage_container.storagecontainer_tfstate[0]'
+        ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "resource_manager_id"
+
+        moduleID='module.sap_library.azurerm_storage_container.storagecontainer_tfvars[0]'
+        ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "resource_manager_id"
+
+      fi
+
+      if [ "${deployment_system}" == sap_deployer ]; then
+
+        moduleID='module.sap_deployer.azurerm_storage_account.deployer[0]'
+        azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 " id " | xargs | cut -d "=" -f2 | xargs)
+        echo "Terraform resource ID:  $moduleID"
+        echo "Azure resource ID:      $azureResourceID"
+        if [ -n "${azureResourceID}" ]; then
+          echo "Removing storage account state object:           ${moduleID} "
+          if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
+            echo "Importing storage account state object:           ${moduleID}"
+            echo "terraform -chdir=${terraform_module_directory} import -var-file=${var_file} -var tfstate_resource_id=${tfstate_resource_id} ${moduleID} ${azureResourceID}"
+            if ! terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var "tfstate_resource_id=${tfstate_resource_id}" "${moduleID}" "${azureResourceID}"; then
+              echo -e "$boldred Importing storage account state object:           ${moduleID} failed $resetformatting"
+              exit 65
+            fi
           fi
         fi
+
+      fi
+
+      if [ "${deployment_system}" == sap_system ]; then
+
+        moduleID='module.common_infrastructure.azurerm_storage_account.sapmnt[0]'
+        ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "id" "${landscape_tfstate_key_parameter}"
+
+        moduleID='module.common_infrastructure.azurerm_storage_share.sapmnt[0]'
+        ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "resource_manager_id" "${landscape_tfstate_key_parameter}"
+
+        moduleID='module.hdb_node.azurerm_storage_account.hanashared[0]'
+        ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "id" "${landscape_tfstate_key_parameter}"
+        moduleID='module.hdb_node.azurerm_storage_share.hanashared[0]'
+        ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "resource_manager_id" "${landscape_tfstate_key_parameter}"
+
+        moduleID='module.hdb_node.azurerm_storage_account.hanashared[1]'
+        ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "id" "${landscape_tfstate_key_parameter}"
+        moduleID='module.hdb_node.azurerm_storage_share.hanashared[1]'
+        ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "resource_manager_id" "${landscape_tfstate_key_parameter}"
+
       fi
 
     fi
-
-    if [ "${deployment_system}" == sap_system ]; then
-
-      moduleID='module.common_infrastructure.azurerm_storage_account.sapmnt[0]'
-      ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "id" "${landscape_tfstate_key_parameter}"
-
-      moduleID='module.common_infrastructure.azurerm_storage_share.sapmnt[0]'
-      ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "resource_manager_id" "${landscape_tfstate_key_parameter}"
-
-      moduleID='module.hdb_node.azurerm_storage_account.hanashared[0]'
-      ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "id" "${landscape_tfstate_key_parameter}"
-      moduleID='module.hdb_node.azurerm_storage_share.hanashared[0]'
-      ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "resource_manager_id" "${landscape_tfstate_key_parameter}"
-
-      moduleID='module.hdb_node.azurerm_storage_account.hanashared[1]'
-      ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "id" "${landscape_tfstate_key_parameter}"
-      moduleID='module.hdb_node.azurerm_storage_share.hanashared[1]'
-      ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "resource_manager_id" "${landscape_tfstate_key_parameter}"
-
-    fi
-
   fi
 fi
 
