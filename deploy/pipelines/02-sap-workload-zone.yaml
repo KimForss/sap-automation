@@ -133,6 +133,8 @@ stages:
 
               echo "##vso[build.updatebuildnumber]Deploying the SAP Workload zone defined in $(workload_zone_folder)"
 
+              tfvarsFile="LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file)"
+
               if [ ! -f "$CONFIG_REPO_PATH/LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file)" ]; then
                   echo -e "$boldred--- $(workload_zone_configuration_file) was not found ---$reset"
                   echo "##vso[task.logissue type=error]File $(workload_zone_configuration_file) was not found."
@@ -239,10 +241,11 @@ stages:
               az account set --subscription $ARM_SUBSCRIPTION_ID
 
               echo -e "$green--- Read deployment details ---$reset"
+              dos2unix -q tfvarsFile
 
-              ENVIRONMENT=$(grep -m1 "^environment" "LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file)" | awk -F'=' '{print $2}' | xargs)
-              LOCATION=$(grep -m1 "^location" "LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file)" | awk -F'=' '{print $2}' | xargs | tr 'A-Z' 'a-z')
-              NETWORK=$(grep -m1 "^network_logical_name" "LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file)" | awk -F'=' '{print $2}' | xargs)
+              ENVIRONMENT=$(grep -m1 "^environment" "$tfvarsFile" | awk -F'=' '{print $2}' | xargs | tr 'a-z' 'A-Z')
+              LOCATION=$(grep -m1 "^location" "$tfvarsFile" | awk -F'=' '{print $2}' | xargs | tr 'A-Z' 'a-z')
+              NETWORK=$(grep -m1 "^network_logical_name" "$tfvarsFile" | awk -F'=' '{print $2}' | xargs)
 
               ENVIRONMENT_IN_FILENAME=$(echo $(workload_zone_folder) | awk -F'-' '{print $1}' | xargs)
 
