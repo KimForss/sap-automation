@@ -444,7 +444,7 @@ function validate_dependencies {
     echo ""
     return 2 #No such file or directory
   fi
-  cloudIDUsed=$(az account show | grep "cloudShellID")
+  cloudIDUsed=$(az account show | grep "cloudShellID" || true)
   if [ -n "${cloudIDUsed}" ]; then
     echo ""
     echo "#########################################################################################"
