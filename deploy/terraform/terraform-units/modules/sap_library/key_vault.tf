@@ -43,7 +43,7 @@ resource "azurerm_key_vault_secret" "sapbits_location_base_path" {
                                               "/[^a-z0-9]/",
                                               ""
                                             ),
-                                            local.resource_suffixes.storage_sapbits_volume
+                                            var.storage_account_sapbits.sapbits_blob_container.name
                                             )) : (
                                             format("%s.file.core.windows.net:/%s/%s", local.sa_sapbits_name,
                                               length(var.storage_account_sapbits.arm_id) > 0 ? split("/", var.storage_account_sapbits.arm_id)[8] : replace(
