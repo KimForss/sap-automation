@@ -34,7 +34,7 @@ resource "azurerm_key_vault_secret" "sapbits_location_base_path" {
   count                                = length(try(var.key_vault.kv_spn_id, "")) > 0 ? 1 : 0
   name                                 = "sapbits-location-base-path"
   value                                = var.use_private_endpoint ? (
-                                          format("%s:/%s/%s", try(azurerm_private_endpoint.storage_sapbits[0].private_dns_zone_configs[0].record_sets[0].fqdn,
+                                          format("https://%s:/%s/%s", try(azurerm_private_endpoint.storage_sapbits[0].private_dns_zone_configs[0].record_sets[0].fqdn,
                                             try(azurerm_private_endpoint.storage_sapbits[0].private_service_connection[0].private_ip_address, "")),
                                             length(var.storage_account_sapbits.arm_id) > 0 ? split("/", var.storage_account_sapbits.arm_id)[8] : replace(
                                               lower(
@@ -45,7 +45,7 @@ resource "azurerm_key_vault_secret" "sapbits_location_base_path" {
                                             ),
                                             var.storage_account_sapbits.sapbits_blob_container.name
                                             )) : (
-                                            format("%s.file.core.windows.net:/%s/%s", local.sa_sapbits_name,
+                                            format("https://%s.file.core.windows.net:/%s/%s", local.sa_sapbits_name,
                                               length(var.storage_account_sapbits.arm_id) > 0 ? split("/", var.storage_account_sapbits.arm_id)[8] : replace(
                                                 lower(
                                                   format("%s", local.sa_sapbits_name)
