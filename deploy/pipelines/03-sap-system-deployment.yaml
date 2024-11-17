@@ -352,7 +352,7 @@ stages:
               fi
 
               if [ -f "${SID}.md" ]; then
-                  echo "##vso[task.uploadsummary]$HOME_CONFIG/SYSTEM/$(sap_system_folder)/${SID}.md"
+                  echo "##vso[task.uploadsummary]${CONFIG_REPO_PATH}/SYSTEM/$(sap_system_folder)/${SID}.md"
               fi
 
               # file_name=${SID}_inventory.md
