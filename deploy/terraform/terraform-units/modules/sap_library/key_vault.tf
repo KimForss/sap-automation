@@ -34,8 +34,8 @@ resource "azurerm_key_vault_secret" "sapbits_location_base_path" {
   count                                = length(try(var.key_vault.kv_spn_id, "")) > 0 ? 1 : 0
   name                                 = "sapbits-location-base-path"
   value                                = var.storage_account_sapbits.sapbits_blob_container.is_existing ? (
-                                          data.azurerm_storage_container.storagecontainer_sapbits[0].id) : (
-                                          azurerm_storage_container.storagecontainer_sapbits[0].id
+                                          data.azurerm_storage_container.storagecontainer_sapbits[0].name) : (
+                                          azurerm_storage_container.storagecontainer_sapbits[0].name
                                         )
   key_vault_id                         = var.key_vault.kv_spn_id
   expiration_date                      = try(var.deployer_tfstate.set_secret_expiry, false) ? (
