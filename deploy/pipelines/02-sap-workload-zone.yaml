@@ -336,6 +336,9 @@ stages:
               dos2unix -q "${deployer_environment_file_name}"
               dos2unix -q "${workload_environment_file_name}"
 
+              landscape_tfstate_key=$(workload_zone_folder).terraform.tfstate
+              export landscape_tfstate_key
+
               deployer_tfstate_key=$(getVariableFromVariableGroup "${PARENT_VARIABLE_GROUP_ID}" "Deployer_State_FileName" "${workload_environment_file_name}" "deployer_tfstate_key")
               export deployer_tfstate_key
 
