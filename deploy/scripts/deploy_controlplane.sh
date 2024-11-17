@@ -123,6 +123,11 @@ while :; do
   esac
 done
 
+if [ "$debug" = True ]; then
+  set -x
+fi
+
+
 echo "ADO flag:                            ${ado_flag}"
 
 key=$(basename "${deployer_parameter_file}" | cut -d. -f1)

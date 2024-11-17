@@ -60,6 +60,7 @@ while :; do
     ;;
   -a | --ado)
     called_from_ado=1
+    approve="--auto-approve"
     shift
     ;;
   -f | --force)
@@ -80,6 +81,10 @@ while :; do
     ;;
   esac
 done
+
+if [ "$debug" = True ]; then
+  set -x
+fi
 
 echo "Parameter file:                      $parameterfile"
 echo "Current directory:                   $(pwd)"
