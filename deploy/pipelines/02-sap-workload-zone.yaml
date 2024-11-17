@@ -515,13 +515,15 @@ stages:
               echo -e "$green--- Pull latest ---$reset"
               cd "$CONFIG_REPO_PATH" || exit
 
+              prefix="${ENVIRONMENT}${LOCATION_CODE}${NETWORK}"
+
               added=0
-              if [ -f ".sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE}${NETWORK}" ]; then
-                  git add ".sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE}${NETWORK}"
+              if [ -f ".sap_deployment_automation/${prefix}" ]; then
+                  git add ".sap_deployment_automation/${prefix}"
                   added=1
               fi
-              if [ -f ".sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE}${NETWORK}.md" ]; then
-                  git add ".sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE}${NETWORK}.md"
+              if [ -f ".sap_deployment_automation/${prefix}.md" ]; then
+                  git add ".sap_deployment_automation/${prefix}.md"
                   added=1
               fi
               if [ -f "LANDSCAPE/$(workload_zone_folder)/.terraform/terraform.tfstate" ]; then
@@ -535,12 +537,12 @@ stages:
                   git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set-upstream origin "$(Build.SourceBranchName)"
               fi
 
-              if [ -f ".sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE}${NETWORK}.md" ]; then
-                  echo "##vso[task.uploadsummary].sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE}${NETWORK}.md"
+              if [ -f "${prefix}.md" ]; then
+                  echo "##vso[task.uploadsummary]/${prefix}.md"
               fi
               echo -e "$green--- Adding variables to the variable group" "$(variable_group)" "---$reset"
               if [ -n "${VARIABLE_GROUP_ID}" ]; then
-                  prefix="${ENVIRONMENT}${LOCATION_CODE}${NETWORK}"
+
                   saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Terraform_Remote_Storage_Account_Name" "${REMOTE_STATE_SA}"
                   saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Terraform_Remote_Storage_Subscription" "${STATE_SUBSCRIPTION}"
                   saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_State_FileName" "${deployer_tfstate_key}"
