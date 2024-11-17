@@ -354,9 +354,9 @@ stages:
                   git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set-upstream origin "$(Build.SourceBranchName)"
               fi
 
-              if [ -f "${SID}.md" ]; then
-                  echo "##vso[task.uploadsummary]${CONFIG_REPO_PATH}/SYSTEM/$(sap_system_folder)/${SID}.md"
-              fi
+              # if [ -f "${SID}.md" ]; then
+              #     echo "##vso[task.uploadsummary]${CONFIG_REPO_PATH}/SYSTEM/$(sap_system_folder)/${SID}.md"
+              # fi
 
               # file_name=${SID}_inventory.md
               # if [ -f ${SID}_inventory.md ]; then
