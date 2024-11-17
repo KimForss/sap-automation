@@ -197,7 +197,9 @@ function checkIfCloudShell() {
     isRunInCloudShell=0
   fi
 
-  return $isRunInCloudShell
+  export isRunInCloudShell
+  print "$isRunInCloudShell"
+
 }
 
 function set_azure_cloud_environment() {

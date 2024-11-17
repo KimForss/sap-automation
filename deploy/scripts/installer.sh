@@ -198,9 +198,9 @@ if [ 1 == $called_from_ado ]; then
 fi
 
 #Plugins
-isInCloudShellCheck=$(checkIfCloudShell)
+isInCloudShellCheck=$(checkIfCloudShell || true)
 
-if checkIfCloudShell; then
+if [ "$isInCloudShellCheck" == 1 ]; then
   mkdir -p "${HOME}/.terraform.d/plugin-cache"
   export TF_PLUGIN_CACHE_DIR="${HOME}/.terraform.d/plugin-cache"
 else
