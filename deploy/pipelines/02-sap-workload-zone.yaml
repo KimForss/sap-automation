@@ -238,9 +238,6 @@ stages:
               export ARM_SUBSCRIPTION_ID
               az account set --subscription $ARM_SUBSCRIPTION_ID
 
-              dos2unix -q "${deployer_environment_file_name}"
-              dos2unix -q "${workload_environment_file_name}"
-
               echo -e "$green--- Read deployment details ---$reset"
 
               ENVIRONMENT=$(grep -m1 "^environment" "LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file)" | awk -F'=' '{print $2}' | xargs)
@@ -339,6 +336,9 @@ stages:
               echo "$val                 $PARENT_VARIABLE_GROUP_ID"
 
               echo -e "$green--- Read parameter values ---$reset"
+
+              dos2unix -q "${deployer_environment_file_name}"
+              dos2unix -q "${workload_environment_file_name}"
 
               deployer_tfstate_key=$(getVariableFromVariableGroup "${PARENT_VARIABLE_GROUP_ID}" "Deployer_State_FileName" "${workload_environment_file_name}" "deployer_tfstate_key")
               export deployer_tfstate_key
