@@ -299,6 +299,7 @@ stages:
               fi
               workload_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE}${NETWORK}"
               echo "Workload Zone Environment File:      $workload_environment_file_name"
+              touch "${workload_environment_file_name}"
 
               echo -e "$green--- Configure devops CLI extension ---$reset"
               az config set extension.use_dynamic_install=yes_without_prompt --output none
@@ -514,19 +515,18 @@ stages:
 
               echo -e "$green--- Pull latest ---$reset"
               cd "$CONFIG_REPO_PATH" || exit
-              git pull
 
               added=0
-              if [ -f "${workload_environment_file_name}" ]; then
-                  git add "${workload_environment_file_name}"
+              if [ -f ".sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE}${NETWORK}" ]; then
+                  git add ".sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE}${NETWORK}"
                   added=1
               fi
-              if [ -f "${workload_environment_file_name}.md" ]; then
-                  git add "${workload_environment_file_name}.md"
+              if [ -f ".sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE}${NETWORK}.md" ]; then
+                  git add ".sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE}${NETWORK}.md"
                   added=1
               fi
-              if [ -f "$(Deployment_Configuration_Path)/LANDSCAPE/$(workload_zone_folder)/.terraform/terraform.tfstate" ]; then
-                  git add -f "$(Deployment_Configuration_Path)/LANDSCAPE/$(workload_zone_folder)/.terraform/terraform.tfstate"
+              if [ -f "LANDSCAPE/$(workload_zone_folder)/.terraform/terraform.tfstate" ]; then
+                  git add -f "LANDSCAPE/$(workload_zone_folder)/.terraform/terraform.tfstate"
                   added=1
               fi
               if [ 1 == $added ]; then
@@ -536,8 +536,8 @@ stages:
                   git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set-upstream origin "$(Build.SourceBranchName)"
               fi
 
-              if [ -f "${workload_environment_file_name}.md" ]; then
-                  echo "##vso[task.uploadsummary]${workload_environment_file_name}.md"
+              if [ -f ".sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE}${NETWORK}.md" ]; then
+                  echo "##vso[task.uploadsummary].sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE}${NETWORK}.md""
               fi
               echo -e "$green--- Adding variables to the variable group" "$(variable_group)" "---$reset"
               if [ -n "${VARIABLE_GROUP_ID}" ]; then
