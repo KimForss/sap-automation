@@ -480,6 +480,9 @@ stages:
 
               return_code=$?
               echo "Return code from deployment:         ${return_code}"
+              cd "$CONFIG_REPO_PATH" || exit
+
+              workload_environment_file_name=".sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE}${NETWORK}"
 
               if [ -f "${workload_environment_file_name}" ]; then
                   workload_key_vault=$(grep "workloadkeyvault=" ${workload_environment_file_name} | awk -F'=' '{print $2}' | xargs)
@@ -490,9 +493,6 @@ stages:
                   export workload_prefix
                   echo "Workload zone prefix:                ${workload_prefix}"
 
-                  landscape_tfstate_key=$(grep "landscape_tfstate_key=" ${workload_environment_file_name} | awk -F'=' '{print $2}' | xargs)
-                  export landscape_tfstate_key
-                  echo "Workload zone state file:            ${landscape_tfstate_key}"
               fi
 
               expiry_date=$(date -d "+365 days" +%Y-%m-%d)
