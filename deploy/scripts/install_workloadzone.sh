@@ -25,6 +25,12 @@ source "${script_directory}/deploy_utils.sh"
 # shellcheck disable=SC1091
 source "${script_directory}/helpers/script_helpers.sh"
 
+if [ "$debug" = True ]; then
+  set -x
+  set -o errexit
+fi
+
+
 force=0
 called_from_ado=0
 deploy_using_msi_only=0

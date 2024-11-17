@@ -84,6 +84,7 @@ done
 
 if [ "$debug" = True ]; then
   set -x
+  set -o errexit
 fi
 
 echo "Parameter file:                      $parameterfile"
