@@ -139,21 +139,6 @@ stages:
                   exit 2
               fi
 
-              deployer_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$(deployer_environment)$(deployer_region)"
-              echo "Deployer Environment File:           $deployer_environment_file_name"
-              if [ ! -f "${deployer_environment_file_name}" ]; then
-                  echo -e "$boldred--- $(deployer_environment)$(deployer_region) was not found ---$reset"
-                  echo "##vso[task.logissue type=error]Control plane configuration file $(deployer_environment)$(deployer_region) was not found."
-                  exit 2
-              fi
-              workload_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE}${NETWORK}"
-              echo "Workload Zone Environment File:      $workload_environment_file_name"
-              if [ ! -f "${workload_environment_file_name}" ]; then
-                  echo -e "$boldred--- ${ENVIRONMENT}${LOCATION_CODE}${NETWORK} was not found ---$reset"
-                  echo "##vso[task.logissue type=error]Workload zone configuration file ${ENVIRONMENT}${LOCATION_CODE}${NETWORK} was not found."
-                  exit 2
-              fi
-
               echo -e "$green--- Checkout $(Build.SourceBranchName) ---$reset"
 
               cd "${CONFIG_REPO_PATH}" || exit
@@ -304,6 +289,21 @@ stages:
 
               if [ "$NETWORK" != "$NETWORK_IN_FILENAME" ]; then
                   echo "##vso[task.logissue type=error]The network_logical_name setting in $(workload_zone_configuration_file) '$NETWORK' does not match the $(workload_zone_configuration_file) file name '$NETWORK_IN_FILENAME-. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
+                  exit 2
+              fi
+
+              deployer_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$(deployer_environment)$(deployer_region)"
+              echo "Deployer Environment File:           $deployer_environment_file_name"
+              if [ ! -f "${deployer_environment_file_name}" ]; then
+                  echo -e "$boldred--- $(deployer_environment)$(deployer_region) was not found ---$reset"
+                  echo "##vso[task.logissue type=error]Control plane configuration file $(deployer_environment)$(deployer_region) was not found."
+                  exit 2
+              fi
+              workload_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE}${NETWORK}"
+              echo "Workload Zone Environment File:      $workload_environment_file_name"
+              if [ ! -f "${workload_environment_file_name}" ]; then
+                  echo -e "$boldred--- ${ENVIRONMENT}${LOCATION_CODE}${NETWORK} was not found ---$reset"
+                  echo "##vso[task.logissue type=error]Workload zone configuration file ${ENVIRONMENT}${LOCATION_CODE}${NETWORK} was not found."
                   exit 2
               fi
 
