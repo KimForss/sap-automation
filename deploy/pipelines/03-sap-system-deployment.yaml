@@ -45,7 +45,7 @@ stages:
         steps:
           - template:                  templates\download.yaml
           - task:                      PostBuildCleanup@4
-          - script: |
+          - bash: |
               #!/bin/bash
               green="\e[1;32m"
               reset="\e[0m"
