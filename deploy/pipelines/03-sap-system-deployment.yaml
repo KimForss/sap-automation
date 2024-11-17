@@ -67,17 +67,17 @@ stages:
 
               tfvarsFile="SYSTEM/$(sap_system_folder)/$(sap_system_configuration)"
 
-              if [ ! -f "$CONFIG_REPO_PATH/SYSTEM/$(sap_system_folder)/$(sap_system_configuration)" ]; then
-                  echo -e "$boldred--- $(sap_system_configuration) was not found ---$reset"
-                  echo "##vso[task.logissue type=error]File $(sap_system_configuration) was not found."
-                  exit 2
-              fi
-
               echo -e "$green--- Checkout $(Build.SourceBranchName) ---$reset"
 
               cd "${CONFIG_REPO_PATH}" || exit
               mkdir -p .sap_deployment_automation
               git checkout -q "$(Build.SourceBranchName)"
+
+              if [ ! -f "$CONFIG_REPO_PATH/SYSTEM/$(sap_system_folder)/$(sap_system_configuration)" ]; then
+                  echo -e "$boldred--- $(sap_system_configuration) was not found ---$reset"
+                  echo "##vso[task.logissue type=error]File $(sap_system_configuration) was not found."
+                  exit 2
+              fi
 
               echo -e "$green--- Validations ---$reset"
               if [ "$USE_MSI" != "true" ]; then
@@ -374,7 +374,7 @@ stages:
               exit $return_code
             displayName:               Deploy_SAP_infrastructure
             env:
-              CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}
+              CONFIG_REPO_PATH:        ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
               LOGON_USING_SPN:          $(Logon_Using_SPN)
               AZURE_DEVOPS_EXT_PAT:     $(System.AccessToken)
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
