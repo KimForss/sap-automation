@@ -246,10 +246,11 @@ stages:
 
               # shellcheck disable=SC2005
               ENVIRONMENT_IN_FILENAME=$(echo "$(workload_zone_folder)" | awk -F'-' '{print $1}' | xargs)
+
               # shellcheck disable=SC2005
               LOCATION_CODE=$(echo "$(workload_zone_folder)" | awk -F'-' '{print $2}' | xargs)
+              LOCATION_IN_FILENAME=$(get_region_from_code "$LOCATION_CODE")
 
-              LOCATION=$(get_region_from_code "$LOCATION_CODE")
               # shellcheck disable=SC2005
               NETWORK_IN_FILENAME=$(echo "$(workload_zone_folder)" | awk -F'-' '{print $3}' | xargs)
 
