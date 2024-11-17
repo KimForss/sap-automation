@@ -45,9 +45,9 @@
 - name:                                   "Parameter review..."
   ansible.builtin.debug:
     msg:                                  # Best method for formatting output with Azure Devops Logs
-                                          - "kv_name:                         {{ kv_name }}"
-                                          - "deployer_kv_name_secret:         {{ deployer_kv_name_secret }}"
-                                          - "deployer_kv_name:                {{ deployer_kv_name }}"
+                                          - "Workload Key Vault:              {{ kv_name }}"
+                                          - "Secret with deployer keyvault:   {{ deployer_kv_name_secret }}"
+                                          - "Deployer Key Vault:              {{ deployer_kv_name }}"
     verbosity:                            2
 
 - name:                                "0.4 Installation Media: - Get Control Plane Subscription"

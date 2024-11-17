@@ -33,10 +33,31 @@ resource "azurerm_key_vault_secret" "sapbits_location_base_path" {
   provider                             = azurerm.deployer
   count                                = length(try(var.key_vault.kv_spn_id, "")) > 0 ? 1 : 0
   name                                 = "sapbits-location-base-path"
-  value                                = var.storage_account_sapbits.sapbits_blob_container.is_existing ? (
-                                          data.azurerm_storage_container.storagecontainer_sapbits[0].name) : (
-                                          azurerm_storage_container.storagecontainer_sapbits[0].name
-                                        )
+  value                                = var.use_private_endpoint ? (
+                                          format("%s:/%s/%s", try(azurerm_private_endpoint.storage_sapbits[0].private_dns_zone_configs[0].record_sets[0].fqdn,
+                                            try(azurerm_private_endpoint.storage_sapbits[0].private_service_connection[0].private_ip_address, "")),
+                                            length(var.storage_account_sapbits.arm_id) > 0 ? split("/", var.storage_account_sapbits.arm_id)[8] : replace(
+                                              lower(
+                                                azurerm_storage_account.storage_sapbits[0].name
+                                              ),
+                                              "/[^a-z0-9]/",
+                                              ""
+                                            ),
+                                            local.resource_suffixes.storage_sapbits_volume
+                                            )) : (
+                                            format("%s.file.core.windows.net:/%s/%s", local.sa_sapbits_name,
+                                              length(var.storage_account_sapbits.arm_id) > 0 ? split("/", var.storage_account_sapbits.arm_id)[8] : replace(
+                                                lower(
+                                                  format("%s", local.sa_sapbits_name)
+                                                ),
+                                                "/[^a-z0-9]/",
+                                                ""
+                                              ),
+                                              var.storage_account_sapbits.sapbits_blob_container.name
+                                            )
+
+                                          )
+
   key_vault_id                         = var.key_vault.kv_spn_id
   expiration_date                      = try(var.deployer_tfstate.set_secret_expiry, false) ? (
                                            time_offset.secret_expiry_date.rfc3339) : (
