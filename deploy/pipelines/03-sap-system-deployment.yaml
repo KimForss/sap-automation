@@ -295,7 +295,7 @@ stages:
 
               # Pull changes if there are other deployment jobs
 
-              cd "$HOME_CONFIG/SYSTEM/$(sap_system_folder)" || exit
+              cd "${CONFIG_REPO_PATH}/SYSTEM/$(sap_system_folder)" || exit
 
               echo -e "$green--- Pull the latest content from DevOps ---$reset"
               git pull
