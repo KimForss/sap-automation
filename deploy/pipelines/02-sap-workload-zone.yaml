@@ -369,7 +369,7 @@ stages:
                       --tenant_id "$WL_ARM_TENANT_ID" --keyvault_subscription "$STATE_SUBSCRIPTION"
               else
                   "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets.sh" --workload --vault "${key_vault}" --environment "${ENVIRONMENT}" \
-                      --region "${LOCATION}" --subscription "$WL_ARM_SUBSCRIPTION_ID" --keyvault_subscription "$STATE_SUBSCRIPTION --msi"
+                      --region "${LOCATION}" --subscription "$WL_ARM_SUBSCRIPTION_ID" --keyvault_subscription "$STATE_SUBSCRIPTION" --msi"
               fi
               secrets_set=$?
               echo "Set Secrets returned:                $secrets_set"
