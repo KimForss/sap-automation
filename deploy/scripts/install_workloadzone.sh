@@ -30,7 +30,6 @@ if [ "$debug" = True ]; then
   set -o errexit
 fi
 
-
 force=0
 called_from_ado=0
 deploy_using_msi_only=0
@@ -988,14 +987,14 @@ if [ 1 == $ok_to_proceed ]; then
 
   if [ 1 == $called_from_ado ]; then
     # shellcheck disable=SC2086
-    terraform -chdir="${terraform_module_directory}" apply "${approve}" -parallelism="${parallelism}" -no-color -json $allParams | tee -a apply_output.json
+    terraform -chdir="${terraform_module_directory}" apply "${approve}" -parallelism="${parallelism}" -no-color -json $allParams  || true | tee -a apply_output.json
   else
     if [ -n "${approve}" ]; then
       # shellcheck disable=SC2086
-      terraform -chdir="${terraform_module_directory}" apply "${approve}" -parallelism="${parallelism}" -no-color -json $allParams | tee -a apply_output.json
+      terraform -chdir="${terraform_module_directory}" apply "${approve}" -parallelism="${parallelism}" -no-color -json $allParams  || true | tee -a apply_output.json
     else
       # shellcheck disable=SC2086
-      terraform -chdir="${terraform_module_directory}" apply "${approve}" -parallelism="${parallelism}" $allParams
+      terraform -chdir="${terraform_module_directory}" apply "${approve}" -parallelism="${parallelism}" $allParams  || true
     fi
 
   fi
