@@ -264,7 +264,6 @@ stages:
               return_code=$?
               echo "##[endgroup]"
               exit $return_code
-          displayName:                   Download
 
             displayName:               Download
             name:                      download
