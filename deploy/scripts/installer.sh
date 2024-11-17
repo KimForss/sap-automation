@@ -773,7 +773,7 @@ fi
 allParameters=$(printf " -var-file=%s %s %s %s %s %s %s %s" "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}" "${deployer_parameter}")
 
 # shellcheck disable=SC2086
-terraform -chdir="$terraform_module_directory" plan -detailed-exitcode $allParameters | tee -a plan_output.log
+terraform -chdir="$terraform_module_directory" plan -detailed-exitcode $allParameters || true | tee -a plan_output.log
 
 return_value=$?
 echo "Terraform Plan return code:          $return_value"
@@ -1222,16 +1222,16 @@ if [ 1 == $ok_to_proceed ]; then
   if [ 1 == $called_from_ado ]; then
     # shellcheck disable=SC2086
     terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json \
-      $allParameters | tee -a apply_output.json
+      $allParameters || true | tee -a apply_output.json
   else
     if [ -n "${approve}" ]; then
       # shellcheck disable=SC2086
       terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json \
-        $allParameters | tee -a apply_output.json
+        $allParameters  || true | tee -a apply_output.json
     else
       # shellcheck disable=SC2086
       terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" \
-        $allParameters
+        $allParameters  || true
     fi
   fi
   return_value=$?
@@ -1275,7 +1275,7 @@ if [ 1 == $ok_to_proceed ]; then
           echo ""
           # shellcheck disable=SC2086
           terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json \
-            $allParameters | tee -a apply_output.json
+            $allParameters  || true | tee -a apply_output.json
           return_value=$?
         fi
       fi
