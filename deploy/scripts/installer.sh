@@ -182,7 +182,7 @@ fi
 
 automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
 generic_config_information="${automation_config_directory}"config
-system_config_information="${automation_config_directory}""${environment}""${region_code}""${network_logical_name}"
+system_config_information="${automation_config_directory}${environment}${region_code}${network_logical_name}"
 
 echo "Configuration file:                  $system_config_information"
 echo "Deployment region:                   $region"
@@ -512,6 +512,7 @@ echo ""
 
 check_output=0
 if [ -f terraform.tfstate ]; then
+  echo "Local Terraform state file exists"
   if [ -f ./.terraform/terraform.tfstate ]; then
     if grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate; then
       echo ""
