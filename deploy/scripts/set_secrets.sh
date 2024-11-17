@@ -112,6 +112,12 @@ while :; do
     esac
 done
 
+if [ "$debug" = True ]; then
+  set -x
+fi
+
+
+
 while [ -z "${environment}" ]; do
     read -r -p "Environment name: " environment
 done
