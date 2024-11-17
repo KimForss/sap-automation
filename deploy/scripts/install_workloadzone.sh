@@ -184,7 +184,7 @@ fi
 echo "Region code:                         ${region_code}"
 
 load_config_vars "$workload_file_parametername" "network_logical_name"
-network_logical_name=$(echo "${network_logical_name}" | tr "[:lower:]" "[:upper:]" | tr ' \t\n\r\f"')
+network_logical_name=$(echo "${network_logical_name}" | tr "[:lower:]" "[:upper:]" | tr -d ' \t\n\r\f"')
 
 if [ -z "${network_logical_name}" ]; then
   echo "#########################################################################################"
@@ -207,16 +207,17 @@ else
   unset extra_vars
 fi
 
-
 #Persisting the parameters across executions
 
 automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation
 generic_config_information="${automation_config_directory}"/config
 
 if [ "$deployer_environment" != "$environment" ]; then
-  if [ -f "${automation_config_directory}"/"${environment}""${region_code}" ]; then
+  if [ -f "${automation_config_directory}/${environment}${region_code}" ]; then
     # Add support for having multiple vnets in the same environment and zone - rename exiting file to support seamless transition
-    mv "${automation_config_directory}"/"${environment}""${region_code}" "${automation_config_directory}"/"${environment}""${region_code}""${network_logical_name}"
+    if [ -f "${automation_config_directory}/${environment}${region_code}${network_logical_name}" ]; then
+      mv "${automation_config_directory}/${environment}${region_code}" "${automation_config_directory}/${environment}${region_code}${network_logical_name}"
+    fi
   fi
 fi
 
@@ -824,7 +825,7 @@ if [ -n "${deployed_using_version}" ]; then
     ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "id"
 
     moduleID='module.sap_landscape.azurerm_storage_account.witness_storage[0]'
-    ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}"  "id"
+    ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "id"
 
     moduleID='module.sap_landscape.azurerm_storage_account.install[0]'
     azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 " id " | xargs | cut -d "=" -f2 | xargs)
@@ -835,7 +836,7 @@ if [ -n "${deployed_using_version}" ]; then
     az resource lock create --lock-type CanNotDelete -n "SAP Installation Media account delete lock" --subscription "${subscription}" \
       --resource-group "${resourceGroupName}" --resource "${resourceName}" --resource-type "${resourceType}"
 
-    ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}"  "id"
+    ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "id"
 
     moduleID='module.sap_landscape.azurerm_storage_account.transport[0]'
     ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "id"
@@ -860,7 +861,7 @@ echo "#                                                                         
 echo "#########################################################################################"
 echo ""
 
-allParams=$(printf " -var-file=%s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${deployer_tfstate_key_parameter}" )
+allParams=$(printf " -var-file=%s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${deployer_tfstate_key_parameter}")
 
 # shellcheck disable=SC2086
 terraform -chdir="$terraform_module_directory" plan -no-color -detailed-exitcode $allParams | tee -a plan_output.log
@@ -975,7 +976,7 @@ if [ 1 == $ok_to_proceed ]; then
     parallelism=$TF_PARALLELLISM
   fi
 
-  allParams=$(printf " -var-file=%s %s %s %s" "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${deployer_tfstate_key_parameter}" )
+  allParams=$(printf " -var-file=%s %s %s %s" "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${deployer_tfstate_key_parameter}")
 
   # shellcheck disable=SC2086
 
