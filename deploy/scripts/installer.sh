@@ -83,6 +83,7 @@ while :; do
 done
 
 if [ "$debug" = True ]; then
+  echo -e "$cyanEnabling debug mode$resetformatting"
   set -x
   set -o errexit
 fi
