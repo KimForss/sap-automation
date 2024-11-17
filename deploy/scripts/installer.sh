@@ -565,7 +565,7 @@ if [ ! -d ./.terraform/ ]; then
 else
   new_deployment=1
 
-  temp=$(grep "\"type\": \"local\"" .terraform/terraform.tfstate)
+  temp=$(grep "\"type\": \"local\"" .terraform/terraform.tfstate || true)
   if [ -n "${temp}" ]; then
     terraform -chdir="${terraform_module_directory}" init -upgrade=true -force-copy \
       --backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
