@@ -241,7 +241,7 @@ stages:
 
               dos2unix -q "${workload_environment_file_name}"
 
-              prefix="${ENVIRONMENT}-${LOCATION_CODE}-${NETWORK}"
+              prefix="${ENVIRONMENT}${LOCATION_CODE}${NETWORK}"
 
               deployer_tfstate_key=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_State_FileName" "${workload_environment_file_name}" "deployer_tfstate_key")
               export deployer_tfstate_key
