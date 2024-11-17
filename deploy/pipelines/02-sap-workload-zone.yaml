@@ -299,11 +299,6 @@ stages:
               fi
               workload_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE}${NETWORK}"
               echo "Workload Zone Environment File:      $workload_environment_file_name"
-              if [ ! -f "${workload_environment_file_name}" ]; then
-                  echo -e "$boldred--- ${ENVIRONMENT}${LOCATION_CODE}${NETWORK} was not found ---$reset"
-                  echo "##vso[task.logissue type=error]Workload zone configuration file ${ENVIRONMENT}${LOCATION_CODE}${NETWORK} was not found."
-                  exit 2
-              fi
 
               echo -e "$green--- Configure devops CLI extension ---$reset"
               az config set extension.use_dynamic_install=yes_without_prompt --output none
