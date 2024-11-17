@@ -500,7 +500,7 @@ stages:
               if [ -z "${az_var}" ]; then
                   echo "##vso[task.logissue type=warning]Variable FENCING_SPN_ID is not set. Required for highly available deployments when using Service Principals for fencing."
               else
-                  fencing_id=$(az keyvault secret list --vault-name "$workload_key_vault" --subscription "$STATE_SUBSCRIPTION" --query [].name -o tsv | grep "${workload_prefix}-fencing-spn-id" | xargs)
+                  fencing_id=$(az keyvault secret list --vault-name "$workload_key_vault" --subscription "$STATE_SUBSCRIPTION" --query [].name -o tsv | grep "${workload_prefix}-fencing-spn-id" | xargs || true)
                   if [ -z "$fencing_id" ]; then
                       az keyvault secret set --name "${workload_prefix}-fencing-spn-id" --vault-name "$workload_key_vault" --value "$(FENCING_SPN_ID)" --subscription "$STATE_SUBSCRIPTION" --expires "$(date -d '+1 year' -u +%Y-%m-%dT%H:%M:%SZ)" --output none
                       az keyvault secret set --name "${workload_prefix}-fencing-spn-pwd" --vault-name "$workload_key_vault" --value="$FENCING_SPN_PWD" --subscription "$STATE_SUBSCRIPTION" --expires "$(date -d '+1 year' -u +%Y-%m-%dT%H:%M:%SZ)" --output none
