@@ -299,7 +299,7 @@ function set_executing_user_environment_variables() {
   az_exec_user_name=$(az account show --query user.name --output tsv)
   az_tenant_id=$(az account show --query tenantId --output tsv)
 
-  echo -e "\t\t[set_executing_user_environment_variables]: User type: "${az_exec_user_type}""
+  echo -e "\t\t[set_executing_user_environment_variables]: User type: ${az_exec_user_type}"
 
   # if you are executing as user, we do not want to set any exports to run Terraform
   # else, if you are executing as service principal, we need to export the ARM variables
@@ -330,7 +330,7 @@ function set_executing_user_environment_variables() {
     az_client_id=$(az account show --query user.name -o tsv)
     az_subscription_id=$(az account show --query id -o tsv)
 
-    echo -e "\t\t[set_executing_user_environment_variables]: client id: "${az_client_id}""
+    echo -e "\t\t[set_executing_user_environment_variables]: client id: ${az_client_id}"
 
     #do we need to get details of the service principal?
     if [ "${az_client_id}" == "null" ]; then
