@@ -109,14 +109,12 @@ while :; do
     shift
     ;;
   -v | --ado)
-    ado_flag="--ado"
-    approve="--auto-approve"
+    ado_flag="--ado"; approveparam=" --auto-approve"
     shift
     ;;
   -h | --help)
     control_plane_showhelp
     exit 3
-    shift
     ;;
   --)
     shift
@@ -148,7 +146,9 @@ fi
 
 if [ -n "$approve" ]; then
   approveparam=" --auto-approve"
+  echo "Approve:                             Automatically"
 fi
+
 
 if [ ! -f "$deployer_parameter_file" ]; then
   control_plane_missing 'deployer parameter file'
