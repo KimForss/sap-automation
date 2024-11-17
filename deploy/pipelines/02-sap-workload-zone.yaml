@@ -538,13 +538,14 @@ stages:
               fi
               echo -e "$green--- Adding variables to the variable group" "$(variable_group)" "---$reset"
               if [ -n "${VARIABLE_GROUP_ID}" ]; then
+                  prefix="${ENVIRONMENT}-${LOCATION_CODE$}-{NETWORK}"
                   saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Terraform_Remote_Storage_Account_Name" "${REMOTE_STATE_SA}"
                   saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Terraform_Remote_Storage_Subscription" "${STATE_SUBSCRIPTION}"
                   saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_State_FileName" "${deployer_tfstate_key}"
                   saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_Key_Vault" "${key_vault}"
-                  saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "${NETWORK}Workload_Key_Vault" "${workload_key_vault}"
-                  saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "${NETWORK}Workload_Secret_Prefix" "${workload_prefix}"
-                  saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "${NETWORK}Workload_Zone_State_FileName" "${landscape_tfstate_key}"
+                  saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "${prefix}Workload_Key_Vault" "${workload_key_vault}"
+                  saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "${prefix}Workload_Secret_Prefix" "${prefix}"
+                  saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "${prefix}Workload_Zone_State_FileName" "${landscape_tfstate_key}"
 
               fi
 
