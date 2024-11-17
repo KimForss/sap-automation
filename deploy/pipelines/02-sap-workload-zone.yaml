@@ -243,16 +243,16 @@ stages:
               echo -e "$green--- Read deployment details ---$reset"
               dos2unix -q tfvarsFile
 
-              ENVIRONMENT=$(grep -m1 "^environment" "$tfvarsFile" | awk -F'=' '{print $2}' | xargs | tr 'a-z' 'A-Z')
-              LOCATION=$(grep -m1 "^location" "$tfvarsFile" | awk -F'=' '{print $2}' | xargs | tr 'A-Z' 'a-z')
-              NETWORK=$(grep -m1 "^network_logical_name" "$tfvarsFile" | awk -F'=' '{print $2}' | xargs)
+              ENVIRONMENT=$(grep -m1 "^environment" "$tfvarsFile" | awk -F'=' '{print $2}' | tr -d ' \t\n\r\f')
+              LOCATION=$(grep -m1 "^location" "$tfvarsFile" | awk -F'=' '{print $2}' | tr 'A-Z' 'a-z' | tr -d ' \t\n\r\f')
+              NETWORK=$(grep -m1 "^network_logical_name" "$tfvarsFile" | awk -F'=' '{print $2}' | tr -d ' \t\n\r\f')
 
-              ENVIRONMENT_IN_FILENAME=$(echo $(workload_zone_folder) | awk -F'-' '{print $1}' | xargs)
+              ENVIRONMENT_IN_FILENAME=$(echo $(workload_zone_folder) | awk -F'-' '{print $1}')
 
-              LOCATION_CODE=$(echo $(workload_zone_folder) | awk -F'-' '{print $2}' | xargs)
+              LOCATION_CODE=$(echo $(workload_zone_folder) | awk -F'-' '{print $2}')
               LOCATION_IN_FILENAME=$(get_region_from_code "$LOCATION_CODE")
 
-              NETWORK_IN_FILENAME=$(echo $(workload_zone_folder) | awk -F'-' '{print $3}' | xargs)
+              NETWORK_IN_FILENAME=$(echo $(workload_zone_folder) | awk -F'-' '{print $3}')
 
               echo "Environment:                         $ENVIRONMENT"
               echo "Location:                            $LOCATION"
