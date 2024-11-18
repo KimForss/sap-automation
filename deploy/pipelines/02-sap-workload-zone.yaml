@@ -494,6 +494,19 @@ stages:
 
               fi
 
+              echo -e "$green--- Adding variables to the variable group" "$(variable_group)" "---$reset"
+              if [ -n "${VARIABLE_GROUP_ID}" ]; then
+
+                  saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Terraform_Remote_Storage_Account_Name" "${REMOTE_STATE_SA}"
+                  saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Terraform_Remote_Storage_Subscription" "${STATE_SUBSCRIPTION}"
+                  saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_State_FileName" "${deployer_tfstate_key}"
+                  saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_Key_Vault" "${key_vault}"
+                  saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "${prefix}Workload_Key_Vault" "${workload_key_vault}"
+                  saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "${prefix}Workload_Secret_Prefix" "${prefix}"
+                  saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "${prefix}Workload_Zone_State_FileName" "${landscape_tfstate_key}"
+
+              fi
+
               expiry_date=$(date -d "+365 days" +%Y-%m-%d)
 
               az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "FENCING_SPN_ID.value")
@@ -530,6 +543,7 @@ stages:
 
                   mv "${workload_prefix}.md" "${normalizedName}.md"
                   git add "${normalizedName}.md"
+                  echo "##vso[task.uploadsummary]${normalizedName}.md"
                   added=1
               fi
 
@@ -541,31 +555,10 @@ stages:
                   git config --global user.email "$(Build.RequestedForEmail)"
                   git config --global user.name "$(Build.RequestedFor)"
                   git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"
-                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set-upstream origin "$(Build.SourceBranchName)"
-              fi
-
-              set +o errexit
-              if [ -f "${normalizedName}.md" ]; then
-                  echo "##vso[task.uploadsummary]$(realpath ${normalizedName}.md)"
-              fi
-              echo -e "$green--- Adding variables to the variable group" "$(variable_group)" "---$reset"
-              if [ -n "${VARIABLE_GROUP_ID}" ]; then
-
-                  saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Terraform_Remote_Storage_Account_Name" "${REMOTE_STATE_SA}"
-                  saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Terraform_Remote_Storage_Subscription" "${STATE_SUBSCRIPTION}"
-                  saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_State_FileName" "${deployer_tfstate_key}"
-                  saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_Key_Vault" "${key_vault}"
-                  saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "${prefix}Workload_Key_Vault" "${workload_key_vault}"
-                  saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "${prefix}Workload_Secret_Prefix" "${prefix}"
-                  saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "${prefix}Workload_Zone_State_FileName" "${landscape_tfstate_key}"
-
-              fi
-
-              if [ 0 != $return_code ]; then
-                  echo "##vso[task.logissue type=error]Return code from install_workloadzone $return_code."
-                  if [ -f "${workload_environment_file_name}.err" ]; then
-                      error_message=$(cat "${workload_environment_file_name}.err")
-                      echo "##vso[task.logissue type=error]Error message: $error_message."
+                  if git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set-upstream origin "$(Build.SourceBranchName)" --force; then
+                      echo "##vso[task.logissue type=warning]Changes pushed to $(Build.SourceBranchName)"
+                  else
+                      echo "##vso[task.logissue type=error]Failed to push changes to $(Build.SourceBranchName)"
                   fi
 
               fi
