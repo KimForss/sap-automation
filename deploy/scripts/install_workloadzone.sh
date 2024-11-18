@@ -711,7 +711,7 @@ save_config_var "STATE_SUBSCRIPTION" "${workload_config_information}"
 save_config_var "tfstate_resource_id" "${workload_config_information}"
 
 if [ 1 == $check_output ]; then
-  $(terraform -chdir="${terraform_module_directory}" output)
+  terraform -chdir="${terraform_module_directory}" output -no-color -raw
   outputs=$(terraform -chdir="${terraform_module_directory}" output)
   if echo "${outputs}" | grep "No outputs"; then
     check_output=0
