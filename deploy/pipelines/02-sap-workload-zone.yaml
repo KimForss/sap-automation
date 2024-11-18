@@ -127,8 +127,11 @@ stages:
 
               if [ "$SYSTEM_DEBUG" = True ]; then
                   set -x
+                  set -o errexit
                   debug=True
               fi
+              export debug
+
               set -eu
 
               echo "##vso[build.updatebuildnumber]Deploying the SAP Workload zone defined in $(workload_zone_folder)"
@@ -520,7 +523,9 @@ stages:
                       az keyvault secret set --name "${workload_prefix}-fencing-spn-tenant" --vault-name "$workload_key_vault" --value "$(FENCING_SPN_TENANT)" --subscription "$STATE_SUBSCRIPTION" --expires "$(date -d '+1 year' -u +%Y-%m-%dT%H:%M:%SZ)" --output none
                   fi
               fi
-              az logout --output none
+
+              set +o errexit
+
               echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
               cd "$(Build.Repository.LocalPath)" || exit
               git pull

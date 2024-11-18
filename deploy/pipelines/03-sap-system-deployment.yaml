@@ -289,6 +289,8 @@ stages:
                   echo "##vso[task.logissue type=error]Return code from installer $return_code."
               fi
 
+              set +o errexit
+
               echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
               cd "$(Build.Repository.LocalPath)" || exit
               git pull
