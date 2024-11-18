@@ -279,7 +279,7 @@ stages:
               echo -e "$green--- Get connection details ---$reset"
               mkdir -p artifacts
 
-              prefix="${ENVIRONMENT}${LOCATION_CODE}${NETWORK}"
+              prefix="${ENVIRONMENT}${LOCATION}${NETWORK}"
 
               workload_key_vault=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "${prefix}Workload_Key_Vault" "${environment_file_name}" "workloadkeyvault" || true)
               workload_prefix=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "${prefix}Workload_Secret_Prefix" "${environment_file_name}" "workload_zone_prefix" || true)
