@@ -164,6 +164,7 @@ if [ 0 != $return_code ]; then
   echo "Missing parameters in $parameterfile_name" >"${system_config_information}".err
   exit $return_code
 fi
+
 region=$(echo "${region}" | tr "[:upper:]" "[:lower:]")
 if valid_region_name "${region}"; then
   # Convert the region to the correct code
@@ -172,7 +173,6 @@ else
   echo "Invalid region: $region"
   exit 2
 fi
-
 key=$(echo "${parameterfile_name}" | cut -d. -f1)
 
 network_logical_name=""
@@ -241,33 +241,6 @@ if [ "${deployment_system}" == sap_deployer ]; then
 fi
 if [[ -z $STATE_SUBSCRIPTION ]]; then
   STATE_SUBSCRIPTION=$ARM_SUBSCRIPTION_ID
-fi
-
-if [[ -n $STATE_SUBSCRIPTION ]]; then
-  echo ""
-  echo "#########################################################################################"
-  echo "#                                                                                       #"
-  echo -e "#       $cyan Changing the subscription to: $STATE_SUBSCRIPTION $resetformatting            #"
-  echo "#                                                                                       #"
-  echo "#########################################################################################"
-  echo ""
-  az account set --sub "${STATE_SUBSCRIPTION}"
-
-  return_code=$?
-  if [ 0 != $return_code ]; then
-
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo -e "#         $boldred  The deployment account (MSI or SPN) does not have access to $resetformatting                #"
-    echo -e "#                      $boldred ${STATE_SUBSCRIPTION} $resetformatting                           #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-
-    echo "##vso[task.logissue type=error]The deployment account (MSI or SPN) does not have access to ${STATE_SUBSCRIPTION}"
-    exit $return_code
-  fi
-
-  account_set=1
 fi
 
 if [[ -n $STATE_SUBSCRIPTION ]]; then
@@ -518,9 +491,7 @@ check_output=0
 if [ -f terraform.tfstate ]; then
   echo "Local Terraform state file exists"
   if [ -f ./.terraform/terraform.tfstate ]; then
-    if grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate; then
-      echo ""
-    else
+    if ! grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate; then
 
       if [ "${deployment_system}" == sap_deployer ]; then
 
@@ -562,6 +533,7 @@ new_deployment=0
 if [ ! -d ./.terraform/ ]; then
   echo "New deployment"
   deployment_parameter=" -var deployment=new "
+  check_output=false
 
   if ! terraform -chdir="${terraform_module_directory}" init -upgrade=true -input=false \
     --backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
@@ -577,6 +549,7 @@ if [ ! -d ./.terraform/ ]; then
 
 else
   new_deployment=1
+  check_output=true
 
   temp=$(grep "\"type\": \"local\"" .terraform/terraform.tfstate || true)
   if [ -n "${temp}" ]; then
@@ -601,7 +574,7 @@ else
     echo "#########################################################################################"
     echo ""
 
-    check_output=0
+    check_output=true
     if ! terraform -chdir="${terraform_module_directory}" init -upgrade=true -reconfigure \
       --backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
       --backend-config "resource_group_name=${REMOTE_STATE_RG}" \
@@ -612,25 +585,12 @@ else
       echo "Error when initializing Terraform"
     else
       return_value=$?
-      check_output=1
     fi
 
   fi
 fi
-# if [ 0 != $return_value ]; then
-#   echo "#########################################################################################"
-#   echo "#                                                                                       #"
-#   echo -e "#                            $boldreduscore!!! Error when Initializing !!!$resetformatting                            #"
-#   echo "#                                                                                       #"
-#   echo "#########################################################################################"
-#   echo ""
-#   echo "Error when initializing Terraform" >"${system_config_information}".err
-#   exit $return_value
-# fi
-if [ 1 == $check_output ]; then
-  outputs=$(terraform -chdir="${terraform_module_directory}" output)
-  if echo "${outputs}" | grep "No outputs"; then
-    apply_needed=1
+if [ "true" == "$check_output" ]; then
+  if terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
     echo "#########################################################################################"
     echo "#                                                                                       #"
     echo -e "#                                 $cyan  New deployment $resetformatting                                      #"
@@ -639,6 +599,7 @@ if [ 1 == $check_output ]; then
 
     deployment_parameter=" -var deployment=new "
     new_deployment=1
+    check_output=false
 
   else
     echo ""
@@ -648,15 +609,16 @@ if [ 1 == $check_output ]; then
     echo "#                                                                                       #"
     echo "#########################################################################################"
     echo ""
-    # allParameters=$(printf " -var-file=%s %s %s %s %s %s %s" "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}" )
-    # terraform -chdir="${terraform_module_directory}" refresh -var-file="${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}" "${approve}"
 
     deployment_parameter=""
     new_deployment=0
+    check_output=true
   fi
+else
+  new_deployment=1
 fi
 
-if [ 0 != $new_deployment ]; then
+if [ 0 == $new_deployment ]; then
   deployed_using_version=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw automation_version | tr -d \" || true)
   if [ -z "${deployed_using_version}" ]; then
     echo ""
@@ -1507,23 +1469,23 @@ if [ "${deployment_system}" == sap_deployer ]; then
         fi
       fi
     fi
-
   fi
 
-  if valid_kv_name "$keyvault"; then
-    save_config_var "keyvault" "${system_config_information}"
-  else
-    printf -v val %-40.40s "$keyvault"
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo -e "#       The provided keyvault is not valid:$boldred ${val} $resetformatting  #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    echo "The provided keyvault is not valid " "${val}" >secret.err
-  fi
-
-  save_config_var "deployer_public_ip_address" "${system_config_information}"
 fi
+
+if valid_kv_name "$keyvault"; then
+  save_config_var "keyvault" "${system_config_information}"
+else
+  printf -v val %-40.40s "$keyvault"
+  echo "#########################################################################################"
+  echo "#                                                                                       #"
+  echo -e "#       The provided keyvault is not valid:$boldred ${val} $resetformatting  #"
+  echo "#                                                                                       #"
+  echo "#########################################################################################"
+  echo "The provided keyvault is not valid " "${val}" >secret.err
+fi
+
+save_config_var "deployer_public_ip_address" "${system_config_information}"
 
 if [ "${deployment_system}" == sap_system ]; then
 
