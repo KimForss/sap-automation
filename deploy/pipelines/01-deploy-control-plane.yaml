@@ -200,7 +200,7 @@ stages:
                   ARM_USE_OIDC=true
                   export ARM_USE_OIDC
 
-                  ARM_USE_AZUREAD = true
+                  ARM_USE_AZUREAD=true
                   export ARM_USE_AZUREAD
 
                   unset ARM_CLIENT_SECRET
