@@ -617,16 +617,16 @@ else
 
   fi
 fi
-if [ 0 != $return_value ]; then
-  echo "#########################################################################################"
-  echo "#                                                                                       #"
-  echo -e "#                            $boldreduscore!!! Error when Initializing !!!$resetformatting                            #"
-  echo "#                                                                                       #"
-  echo "#########################################################################################"
-  echo ""
-  echo "Error when initializing Terraform" >"${system_config_information}".err
-  exit $return_value
-fi
+# if [ 0 != $return_value ]; then
+#   echo "#########################################################################################"
+#   echo "#                                                                                       #"
+#   echo -e "#                            $boldreduscore!!! Error when Initializing !!!$resetformatting                            #"
+#   echo "#                                                                                       #"
+#   echo "#########################################################################################"
+#   echo ""
+#   echo "Error when initializing Terraform" >"${system_config_information}".err
+#   exit $return_value
+# fi
 if [ 1 == $check_output ]; then
   outputs=$(terraform -chdir="${terraform_module_directory}" output)
   if echo "${outputs}" | grep "No outputs"; then
