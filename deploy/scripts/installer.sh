@@ -773,9 +773,13 @@ fi
 allParameters=$(printf " -var-file=%s %s %s %s %s %s %s %s" "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}" "${deployer_parameter}")
 
 # shellcheck disable=SC2086
-terraform -chdir="$terraform_module_directory" plan -detailed-exitcode $allParameters || true | tee -a plan_output.log
+if terraform -chdir="$terraform_module_directory" plan -detailed-exitcode $allParameters || true | tee -a plan_output.log; then
+  return_value=$?
+else
+  return_value=$?
+  echo "Errors when running Terraform apply"
+fi
 
-return_value=$?
 echo "Terraform Plan return code:          $return_value"
 
 if [ 1 == $return_value ]; then
@@ -916,8 +920,8 @@ fi
 fatal_errors=0
 
 # SAP Library
-test=$(grep module.sap_library.azurerm_storage_account.storage_sapbits plan_output.log | grep -m1 replaced)
-if [ -n "${test}" ]; then
+testIfResourceWouldBeRecreated=$(grep module.sap_library.azurerm_storage_account.storage_sapbits plan_output.log | grep -m1 replaced || true)
+if [ -n "${testIfResourceWouldBeRecreated}" ]; then
   echo ""
   echo "#########################################################################################"
   echo "#                                                                                       #"
@@ -933,8 +937,8 @@ if [ -n "${test}" ]; then
 fi
 
 # SAP Library sapbits
-test=$(grep module.sap_library.azurerm_storage_container.storagecontainer_sapbits plan_output.log | grep -m1 replaced)
-if [ -n "${test}" ]; then
+testIfResourceWouldBeRecreated=$(grep module.sap_library.azurerm_storage_container.storagecontainer_sapbits plan_output.log | grep -m1 replaced || true)
+if [ -n "${testIfResourceWouldBeRecreated}" ]; then
   echo ""
   echo "#########################################################################################"
   echo "#                                                                                       #"
@@ -950,8 +954,8 @@ if [ -n "${test}" ]; then
 fi
 
 # Terraform State Library
-test=$(grep module.sap_library.azurerm_storage_account.storage_tfstate plan_output.log | grep -m1 replaced)
-if [ -n "${test}" ]; then
+testIfResourceWouldBeRecreated=$(grep module.sap_library.azurerm_storage_account.storage_tfstate plan_output.log | grep -m1 replaced || true)
+if [ -n "${testIfResourceWouldBeRecreated}" ]; then
   echo ""
   echo "#########################################################################################"
   echo "#                                                                                       #"
@@ -967,8 +971,8 @@ if [ -n "${test}" ]; then
 fi
 
 # Terraform state container
-test=$(grep module.sap_library.azurerm_storage_container.storagecontainer_tfstate plan_output.log | grep -m1 replaced)
-if [ -n "${test}" ]; then
+testIfResourceWouldBeRecreated=$(grep module.sap_library.azurerm_storage_container.storagecontainer_tfstate plan_output.log | grep -m1 replaced || true)
+if [ -n "${testIfResourceWouldBeRecreated}" ]; then
   echo ""
   echo "#########################################################################################"
   echo "#                                                                                       #"
@@ -984,8 +988,8 @@ if [ -n "${test}" ]; then
 fi
 
 # HANA VM
-test=$(grep vm_dbnode plan_output.log | grep -m1 replaced)
-if [ -n "${test}" ]; then
+testIfResourceWouldBeRecreated=$(grep vm_dbnode plan_output.log | grep -m1 replaced || true)
+if [ -n "${testIfResourceWouldBeRecreated}" ]; then
   echo ""
   echo "#########################################################################################"
   echo "#                                                                                       #"
@@ -1000,8 +1004,8 @@ if [ -n "${test}" ]; then
   fatal_errors=1
 fi
 # HANA VM disks
-test=$(grep azurerm_managed_disk.data_disk plan_output.log | grep -m1 replaced)
-if [ -n "${test}" ]; then
+testIfResourceWouldBeRecreated=$(grep azurerm_managed_disk.data_disk plan_output.log | grep -m1 replaced || true)
+if [ -n "${testIfResourceWouldBeRecreated}" ]; then
   echo ""
   echo "#########################################################################################"
   echo "#                                                                                       #"
@@ -1016,8 +1020,8 @@ if [ -n "${test}" ]; then
 fi
 
 # AnyDB server
-test=$(grep dbserver plan_output.log | grep -m1 replaced)
-if [ -n "${test}" ]; then
+testIfResourceWouldBeRecreated=$(grep dbserver plan_output.log | grep -m1 replaced || true)
+if [ -n "${testIfResourceWouldBeRecreated}" ]; then
   echo ""
   echo "#########################################################################################"
   echo "#                                                                                       #"
@@ -1032,8 +1036,8 @@ if [ -n "${test}" ]; then
   fatal_errors=1
 fi
 # AnyDB disks
-test=$(grep azurerm_managed_disk.disks plan_output.log | grep -m1 replaced)
-if [ -n "${test}" ]; then
+testIfResourceWouldBeRecreated=$(grep azurerm_managed_disk.disks plan_output.log | grep -m1 replaced || true)
+if [ -n "${testIfResourceWouldBeRecreated}" ]; then
   echo ""
   echo "#########################################################################################"
   echo "#                                                                                       #"
@@ -1049,8 +1053,8 @@ if [ -n "${test}" ]; then
 fi
 
 # App server
-test=$(grep virtual_machine.app plan_output.log | grep -m1 replaced)
-if [ -n "${test}" ]; then
+testIfResourceWouldBeRecreated=$(grep virtual_machine.app plan_output.log | grep -m1 replaced || true)
+if [ -n "${testIfResourceWouldBeRecreated}" ]; then
   echo ""
   echo "#########################################################################################"
   echo "#                                                                                       #"
@@ -1065,8 +1069,8 @@ if [ -n "${test}" ]; then
   fatal_errors=1
 fi
 # App server disks
-test=$(grep azurerm_managed_disk.app plan_output.log | grep -m1 replaced)
-if [ -n "${test}" ]; then
+testIfResourceWouldBeRecreated=$(grep azurerm_managed_disk.app plan_output.log | grep -m1 replaced || true)
+if [ -n "${testIfResourceWouldBeRecreated}" ]; then
   echo ""
   echo "#########################################################################################"
   echo "#                                                                                       #"
@@ -1082,8 +1086,8 @@ if [ -n "${test}" ]; then
 fi
 
 # SCS server
-test=$(grep virtual_machine.scs plan_output.log | grep -m1 replaced)
-if [ -n "${test}" ]; then
+testIfResourceWouldBeRecreated=$(grep virtual_machine.scs plan_output.log | grep -m1 replaced || true)
+if [ -n "${testIfResourceWouldBeRecreated}" ]; then
   echo ""
   echo "#########################################################################################"
   echo "#                                                                                       #"
@@ -1099,8 +1103,8 @@ if [ -n "${test}" ]; then
 fi
 
 # SCS server disks
-test=$(grep azurerm_managed_disk.scs plan_output.log | grep -m1 replaced)
-if [ -n "${test}" ]; then
+testIfResourceWouldBeRecreated=$(grep azurerm_managed_disk.scs plan_output.log | grep -m1 replaced || true)
+if [ -n "${testIfResourceWouldBeRecreated}" ]; then
   echo ""
   echo "#########################################################################################"
   echo "#                                                                                       #"
@@ -1116,8 +1120,8 @@ if [ -n "${test}" ]; then
 fi
 
 # Web server
-test=$(grep virtual_machine.web plan_output.log | grep -m1 replaced)
-if [ -n "${test}" ]; then
+testIfResourceWouldBeRecreated=$(grep virtual_machine.web plan_output.log | grep -m1 replaced || true)
+if [ -n "${testIfResourceWouldBeRecreated}" ]; then
   echo ""
   echo "#########################################################################################"
   echo "#                                                                                       #"
@@ -1132,8 +1136,8 @@ if [ -n "${test}" ]; then
   fatal_errors=1
 fi
 # Web dispatcher server disks
-test=$(grep azurerm_managed_disk.web plan_output.log | grep -m1 "must be replaced")
-if [ -n "${test}" ]; then
+testIfResourceWouldBeRecreated=$(grep azurerm_managed_disk.web plan_output.log | grep -m1 "must be replaced")
+if [ -n "${testIfResourceWouldBeRecreated}" ]; then
   echo ""
   echo "#########################################################################################"
   echo "#                                                                                       #"
@@ -1219,22 +1223,22 @@ if [ 1 == $ok_to_proceed ]; then
   allParameters=$(printf " -var-file=%s %s %s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}" "${approve}")
   allImportParameters=$(printf " -var-file=%s %s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}")
 
-  if [ 1 == $called_from_ado ]; then
+  if [ -n "${approve}" ]; then
     # shellcheck disable=SC2086
-    terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json \
-      $allParameters || true | tee -a apply_output.json
+    if ! terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json \
+      $allParameters | tee -a apply_output.json; then
+      return_value=$?
+      echo "Errors when running Terraform apply"
+    fi
+
   else
-    if [ -n "${approve}" ]; then
-      # shellcheck disable=SC2086
-      terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json \
-        $allParameters  || true | tee -a apply_output.json
-    else
-      # shellcheck disable=SC2086
-      terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" \
-        $allParameters  || true
+    # shellcheck disable=SC2086
+    if ! terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" \
+      $allParameters; then
+      return_value=$?
+      echo "Errors when running Terraform apply"
     fi
   fi
-  return_value=$?
 
   if [ -f apply_output.json ]; then
     errors_occurred=$(jq 'select(."@level" == "error") | length' apply_output.json)
@@ -1257,7 +1261,9 @@ if [ 1 == $ok_to_proceed ]; then
           # shellcheck disable=SC2086
           echo terraform -chdir="${terraform_module_directory}" import $allImportParameters "${moduleID}" "${azureResourceID}"
           # shellcheck disable=SC2086
-          terraform -chdir="${terraform_module_directory}" import $allImportParameters "${moduleID}" "${azureResourceID}"
+          if ! terraform -chdir="${terraform_module_directory}" import $allImportParameters "${moduleID}" "${azureResourceID}"; then
+            echo "Error when importing resource"
+          fi
         done
         rm apply_output.json
 
@@ -1274,9 +1280,13 @@ if [ 1 == $ok_to_proceed ]; then
           echo ""
           echo ""
           # shellcheck disable=SC2086
-          terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json \
-            $allParameters  || true | tee -a apply_output.json
-          return_value=$?
+          if ! terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" \
+            $allParameters -no-color -compact-warnings -json; then
+            return_value=$?
+            echo "Errors when running Terraform apply"
+          else
+            return_value=$?
+          fi
         fi
       fi
 
@@ -1293,8 +1303,9 @@ if [ 1 == $ok_to_proceed ]; then
             # shellcheck disable=SC2086
             echo terraform -chdir="${terraform_module_directory}" import $allImportParameters "${moduleID}" "${azureResourceID}"
             # shellcheck disable=SC2086
-            terraform -chdir="${terraform_module_directory}" import $allImportParameters "${moduleID}" "${azureResourceID}"
-            return_value=$?
+            if ! terraform -chdir="${terraform_module_directory}" import $allImportParameters "${moduleID}" "${azureResourceID}"; then
+              echo "Error when importing resource"
+            fi
           done
 
           rm apply_output.json
@@ -1310,7 +1321,7 @@ if [ 1 == $ok_to_proceed ]; then
           echo ""
           # shellcheck disable=SC2086
           terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json \
-            $allParameters | tee -a apply_output.json
+            $allParameters -no-color -compact-warnings -json | tee -a apply_output.json
           return_value=$?
         fi
 
@@ -1403,11 +1414,6 @@ if [ "${deployment_system}" == sap_deployer ]; then
   echo ""
   echo ""
 
-  if [ -n "${ARM_CLIENT_SECRET}" ]; then
-    az login --service-principal --username "${ARM_CLIENT_ID}" --password="$ARM_CLIENT_SECRET" --tenant "${ARM_TENANT_ID}" --output none
-  else
-    az login --identity --output none
-  fi
   full_script_path="$(realpath "${BASH_SOURCE[0]}")"
   script_directory="$(dirname "${full_script_path}")"
   az deployment group create --resource-group "${created_resource_group_name}" --name "ControlPlane_Deployer_${created_resource_group_name}" \
