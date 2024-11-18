@@ -944,7 +944,7 @@ if [ 0 == $return_value ]; then
 fi
 
 if [ 2 == $return_value ]; then
-  test=$(grep kv_user plan_output.log | grep -m1 replaced || true)
+  test=$(grep -m1 "replaced" kv_user plan_output.log || true)
   if [ -n "${test}" ]; then
     echo ""
     echo "#########################################################################################"
