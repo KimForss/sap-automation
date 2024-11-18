@@ -198,7 +198,7 @@ function checkIfCloudShell() {
   fi
 
   export isRunInCloudShell
-  print "$isRunInCloudShell"
+  echo "$isRunInCloudShell"
 
 }
 
