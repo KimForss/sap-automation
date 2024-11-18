@@ -643,7 +643,6 @@ fi
 
 root_dirname=$(pwd)
 
-
 echo ""
 echo "Terraform details"
 echo "-------------------------------------------------------------------------"
@@ -660,8 +659,13 @@ if [ ! -d .terraform/ ]; then
     --backend-config "storage_account_name=${REMOTE_STATE_SA}" \
     --backend-config "container_name=tfstate" \
     --backend-config "key=${key}.terraform.tfstate"
-  check_output=0
   return_value=$?
+  check_output=0
+  echo "#########################################################################################"
+  echo "#                                                                                       #"
+  echo -e "#                                  $cyan New deployment $resetformatting                                     #"
+  echo "#                                                                                       #"
+  echo "#########################################################################################"
 else
   check_output=1
   temp=$(grep "\"type\": \"local\"" .terraform/terraform.tfstate || true)
@@ -695,24 +699,13 @@ if [ 0 != $return_value ]; then
   exit $return_value
 fi
 
-
-echo ""
-echo "#########################################################################################"
-echo "#                                                                                       #"
-echo -e "#       $cyan Changing the subscription to: ${subscription} $resetformatting            #"
-echo "#                                                                                       #"
-echo "#########################################################################################"
-echo ""
-#az account set --sub "${subscription}"
-
 save_config_var "REMOTE_STATE_SA" "${workload_config_information}"
 save_config_var "subscription" "${workload_config_information}"
 save_config_var "STATE_SUBSCRIPTION" "${workload_config_information}"
 save_config_var "tfstate_resource_id" "${workload_config_information}"
 
 if [ 1 == $check_output ]; then
-  terraform -chdir="${terraform_module_directory}" output -no-color -raw
-  outputs=$(terraform -chdir="${terraform_module_directory}" output)
+  outputs=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw)
   if echo "${outputs}" | grep "No outputs"; then
     check_output=0
     apply_needed=true
@@ -807,58 +800,60 @@ fi
 
 export TF_VAR_tfstate_resource_id="${tfstate_resource_id}"
 
-deployed_using_version=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw automation_version)
-if [ -n "${deployed_using_version}" ]; then
-  printf -v val %-.20s "$deployed_using_version"
-  echo ""
-  echo "#########################################################################################"
-  echo "#                                                                                       #"
-  echo -e "#             $cyan Deployed using the Terraform templates version: $val $resetformatting               #"
-  echo "#                                                                                       #"
-  echo "#########################################################################################"
-  echo ""
-  version_compare "${deployed_using_version}" "3.13.2.0"
-  older_version=$?
-  if [ 2 == $older_version ]; then
+if [ 1 == $check_output ]; then
+  deployed_using_version=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw automation_version)
+  if [ -n "${deployed_using_version}" ]; then
+    printf -v val %-.20s "$deployed_using_version"
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo -e "#           $boldred  Deployed using an older version $resetformatting                                          #"
+    echo -e "#             $cyan Deployed using the Terraform templates version: $val $resetformatting               #"
     echo "#                                                                                       #"
     echo "#########################################################################################"
     echo ""
+    version_compare "${deployed_using_version}" "3.13.2.0"
+    older_version=$?
+    if [ 2 == $older_version ]; then
+      echo ""
+      echo "#########################################################################################"
+      echo "#                                                                                       #"
+      echo -e "#           $boldred  Deployed using an older version $resetformatting                                          #"
+      echo "#                                                                                       #"
+      echo "#########################################################################################"
+      echo ""
 
-    # Remeadiating the Storage Accounts and File Shares
+      # Remeadiating the Storage Accounts and File Shares
 
-    moduleID='module.sap_landscape.azurerm_storage_account.storage_bootdiag[0]'
-    ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "id"
+      moduleID='module.sap_landscape.azurerm_storage_account.storage_bootdiag[0]'
+      ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "id"
 
-    moduleID='module.sap_landscape.azurerm_storage_account.witness_storage[0]'
-    ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "id"
+      moduleID='module.sap_landscape.azurerm_storage_account.witness_storage[0]'
+      ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "id"
 
-    moduleID='module.sap_landscape.azurerm_storage_account.install[0]'
-    azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 " id " | xargs | cut -d "=" -f2 | xargs)
+      moduleID='module.sap_landscape.azurerm_storage_account.install[0]'
+      azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 " id " | xargs | cut -d "=" -f2 | xargs)
 
-    resourceGroupName=$(az resource show --ids "${azureResourceID}" --query "resourceGroup" --output tsv)
-    resourceType=$(az resource show --ids "${azureResourceID}" --query "type" --output tsv)
-    resourceName=$(az resource show --ids "${azureResourceID}" --query "name" --output tsv)
-    az resource lock create --lock-type CanNotDelete -n "SAP Installation Media account delete lock" --subscription "${subscription}" \
-      --resource-group "${resourceGroupName}" --resource "${resourceName}" --resource-type "${resourceType}"
+      resourceGroupName=$(az resource show --ids "${azureResourceID}" --query "resourceGroup" --output tsv)
+      resourceType=$(az resource show --ids "${azureResourceID}" --query "type" --output tsv)
+      resourceName=$(az resource show --ids "${azureResourceID}" --query "name" --output tsv)
+      az resource lock create --lock-type CanNotDelete -n "SAP Installation Media account delete lock" --subscription "${subscription}" \
+        --resource-group "${resourceGroupName}" --resource "${resourceName}" --resource-type "${resourceType}"
 
-    ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "id"
+      ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "id"
 
-    moduleID='module.sap_landscape.azurerm_storage_account.transport[0]'
-    ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "id"
+      moduleID='module.sap_landscape.azurerm_storage_account.transport[0]'
+      ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "id"
 
-    moduleID='module.sap_landscape.azurerm_storage_share.transport[0]'
-    ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "resource_manager_id"
+      moduleID='module.sap_landscape.azurerm_storage_share.transport[0]'
+      ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "resource_manager_id"
 
-    moduleID='module.sap_landscape.azurerm_storage_share.install[0]'
-    ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "resource_manager_id"
+      moduleID='module.sap_landscape.azurerm_storage_share.install[0]'
+      ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "resource_manager_id"
 
-    moduleID='module.sap_landscape.azurerm_storage_share.install_smb[0]'
-    ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "resource_manager_id"
+      moduleID='module.sap_landscape.azurerm_storage_share.install_smb[0]'
+      ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "resource_manager_id"
 
+    fi
   fi
 fi
 
