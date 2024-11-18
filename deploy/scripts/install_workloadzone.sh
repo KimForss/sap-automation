@@ -883,6 +883,10 @@ else
   return_value=$?
 fi
 
+if [ $check_output == 0 ]; then
+  return_code=2
+fi
+
 echo "Terraform Plan return code:          $return_value"
 apply_needed=0
 
