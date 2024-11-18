@@ -917,7 +917,7 @@ fi
 
 if [ -f plan_output.log ]; then
   cat plan_output.log
-  LASTERROR=$(grep -m1 'Error: ' plan_output.log)
+  LASTERROR=$(grep -m1 'Error: ' plan_output.log || true)
 
   if [ -n "${LASTERROR}" ]; then
     echo "3"
@@ -1215,7 +1215,7 @@ if [ -f apply_output.json ]; then
             echo -e "#                          $boldreduscore  $report $resetformatting"
             if [ 1 == $called_from_ado ]; then
 
-              roleAssignmentExists=$(echo "${report}" | grep -m1 "RoleAssignmentExists")
+              roleAssignmentExists=$(echo "${report}" | grep -m1 "RoleAssignmentExists" || true)
               if [ -z "${roleAssignmentExists}" ]; then
                 echo "##vso[task.logissue type=error]${report}"
               fi
@@ -1223,7 +1223,7 @@ if [ -f apply_output.json ]; then
           else
             echo -e "#                          $boldreduscore  $string_to_report $resetformatting"
             if [ 1 == $called_from_ado ]; then
-              roleAssignmentExists=$(echo "${string_to_report}" | grep -m1 "RoleAssignmentExists")
+              roleAssignmentExists=$(echo "${string_to_report}" | grep -m1 "RoleAssignmentExists" || true)
               if [ -z "${roleAssignmentExists}" ]; then
                 echo "##vso[task.logissue type=error]${string_to_report}"
               fi
