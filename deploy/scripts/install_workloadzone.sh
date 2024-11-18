@@ -624,7 +624,7 @@ if [ ! -d "${terraform_module_directory}" ]; then
   exit 1
 fi
 
-ok_to_proceed=false
+apply_needed=false
 new_deployment=false
 
 #Plugins
@@ -711,7 +711,7 @@ save_config_var "tfstate_resource_id" "${workload_config_information}"
 if [ 1 == $check_output ]; then
   outputs=$(terraform -chdir="${terraform_module_directory}" output)
   if echo "${outputs}" | grep "No outputs"; then
-    ok_to_proceed=true
+    apply_needed=true
     new_deployment=true
     echo "#########################################################################################"
     echo "#                                                                                       #"
@@ -754,7 +754,7 @@ if [ 1 == $check_output ]; then
       read -p -r "Do you want to continue Y/N?" ans
       answer=${ans^^}
       if [ "$answer" == 'Y' ]; then
-        ok_to_proceed=true
+        apply_needed=true
       else
         unset TF_DATA_DIR
         exit 1
@@ -881,6 +881,7 @@ else
 fi
 
 echo "Terraform Plan return code:          $return_value"
+apply_needed=0
 
 if [ 0 == $return_value ]; then
   echo ""
@@ -893,8 +894,15 @@ if [ 0 == $return_value ]; then
 
   unset TF_DATA_DIR
   rm plan_output.log
+
+  if [ -f apply_output.json ]; then
+    rm apply_output.json
+  fi
   # exit $return_value
+else
+  apply_needed=1
 fi
+
 
 if [ "${TEST_ONLY}" == "True" ]; then
   echo ""
@@ -909,7 +917,7 @@ if [ "${TEST_ONLY}" == "True" ]; then
   exit 0
 fi
 
-ok_to_proceed=0
+
 if [ -f plan_output.log ]; then
   cat plan_output.log
   LASTERROR=$(grep -m1 'Error: ' plan_output.log)
@@ -935,11 +943,11 @@ if [ 0 == $return_value ]; then
   fi
   save_config_vars "landscape_tfstate_key" "${workload_config_information}"
 
-  ok_to_proceed=1
+  apply_needed=1
 fi
 
 if [ 2 == $return_value ]; then
-  test=$(grep kv_user plan_output.log | grep -m1 replaced)
+  test=$(grep kv_user plan_output.log | grep -m1 replaced || true)
   if [ -n "${test}" ]; then
     echo ""
     echo "#########################################################################################"
@@ -952,7 +960,7 @@ if [ 2 == $return_value ]; then
     echo ""
     if [ 1 == $called_from_ado ]; then
       unset TF_DATA_DIR
-      exit 1
+      exit 11
     fi
     read -n 1 -r -s -p $'Press enter to continue...\n'
 
@@ -960,18 +968,18 @@ if [ 2 == $return_value ]; then
     read -p -r "Do you want to continue with the deployment Y/N?" ans
     answer=${ans^^}
     if [ "${answer}" == 'Y' ]; then
-      ok_to_proceed=1
+      apply_needed=1
     else
       unset TF_DATA_DIR
 
       exit 0
     fi
   else
-    ok_to_proceed=1
+    apply_needed=1
   fi
 fi
 
-if [ 1 == $ok_to_proceed ]; then
+if [ 1 == $apply_needed ]; then
   echo ""
   echo "#########################################################################################"
   echo "#                                                                                       #"
