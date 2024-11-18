@@ -920,7 +920,7 @@ fi
 fatal_errors=0
 
 # SAP Library
-testIfResourceWouldBeRecreated=$(grep module.sap_library.azurerm_storage_account.storage_sapbits plan_output.log | grep -m1 replaced || true)
+testIfResourceWouldBeRecreated=$(grep module.sap_library.azurerm_storage_account.storage_sapbits plan_output.log | grep -m1 "must be replaced" || true)
 if [ -n "${testIfResourceWouldBeRecreated}" ]; then
   echo ""
   echo "#########################################################################################"
@@ -937,7 +937,7 @@ if [ -n "${testIfResourceWouldBeRecreated}" ]; then
 fi
 
 # SAP Library sapbits
-testIfResourceWouldBeRecreated=$(grep module.sap_library.azurerm_storage_container.storagecontainer_sapbits plan_output.log | grep -m1 replaced || true)
+testIfResourceWouldBeRecreated=$(grep module.sap_library.azurerm_storage_container.storagecontainer_sapbits plan_output.log | grep -m1 "must be replaced" || true)
 if [ -n "${testIfResourceWouldBeRecreated}" ]; then
   echo ""
   echo "#########################################################################################"
@@ -954,7 +954,7 @@ if [ -n "${testIfResourceWouldBeRecreated}" ]; then
 fi
 
 # Terraform State Library
-testIfResourceWouldBeRecreated=$(grep module.sap_library.azurerm_storage_account.storage_tfstate plan_output.log | grep -m1 replaced || true)
+testIfResourceWouldBeRecreated=$(grep module.sap_library.azurerm_storage_account.storage_tfstate plan_output.log | grep -m1 "must be replaced" || true)
 if [ -n "${testIfResourceWouldBeRecreated}" ]; then
   echo ""
   echo "#########################################################################################"
@@ -971,7 +971,7 @@ if [ -n "${testIfResourceWouldBeRecreated}" ]; then
 fi
 
 # Terraform state container
-testIfResourceWouldBeRecreated=$(grep module.sap_library.azurerm_storage_container.storagecontainer_tfstate plan_output.log | grep -m1 replaced || true)
+testIfResourceWouldBeRecreated=$(grep module.sap_library.azurerm_storage_container.storagecontainer_tfstate plan_output.log | grep -m1 "must be replaced" || true)
 if [ -n "${testIfResourceWouldBeRecreated}" ]; then
   echo ""
   echo "#########################################################################################"
@@ -988,7 +988,7 @@ if [ -n "${testIfResourceWouldBeRecreated}" ]; then
 fi
 
 # HANA VM
-testIfResourceWouldBeRecreated=$(grep vm_dbnode plan_output.log | grep -m1 replaced || true)
+testIfResourceWouldBeRecreated=$(grep vm_dbnode plan_output.log | grep -m1 "must be replaced" || true)
 if [ -n "${testIfResourceWouldBeRecreated}" ]; then
   echo ""
   echo "#########################################################################################"
@@ -1004,7 +1004,7 @@ if [ -n "${testIfResourceWouldBeRecreated}" ]; then
   fatal_errors=1
 fi
 # HANA VM disks
-testIfResourceWouldBeRecreated=$(grep azurerm_managed_disk.data_disk plan_output.log | grep -m1 replaced || true)
+testIfResourceWouldBeRecreated=$(grep azurerm_managed_disk.data_disk plan_output.log | grep -m1 "must be replaced" || true)
 if [ -n "${testIfResourceWouldBeRecreated}" ]; then
   echo ""
   echo "#########################################################################################"
@@ -1020,7 +1020,7 @@ if [ -n "${testIfResourceWouldBeRecreated}" ]; then
 fi
 
 # AnyDB server
-testIfResourceWouldBeRecreated=$(grep dbserver plan_output.log | grep -m1 replaced || true)
+testIfResourceWouldBeRecreated=$(grep dbserver plan_output.log | grep -m1 "must be replaced" || true)
 if [ -n "${testIfResourceWouldBeRecreated}" ]; then
   echo ""
   echo "#########################################################################################"
@@ -1036,7 +1036,7 @@ if [ -n "${testIfResourceWouldBeRecreated}" ]; then
   fatal_errors=1
 fi
 # AnyDB disks
-testIfResourceWouldBeRecreated=$(grep azurerm_managed_disk.disks plan_output.log | grep -m1 replaced || true)
+testIfResourceWouldBeRecreated=$(grep azurerm_managed_disk.disks plan_output.log | grep -m1 "must be replaced" || true)
 if [ -n "${testIfResourceWouldBeRecreated}" ]; then
   echo ""
   echo "#########################################################################################"
@@ -1053,7 +1053,7 @@ if [ -n "${testIfResourceWouldBeRecreated}" ]; then
 fi
 
 # App server
-testIfResourceWouldBeRecreated=$(grep virtual_machine.app plan_output.log | grep -m1 replaced || true)
+testIfResourceWouldBeRecreated=$(grep virtual_machine.app plan_output.log | grep -m1 "must be replaced" || true)
 if [ -n "${testIfResourceWouldBeRecreated}" ]; then
   echo ""
   echo "#########################################################################################"
@@ -1069,7 +1069,7 @@ if [ -n "${testIfResourceWouldBeRecreated}" ]; then
   fatal_errors=1
 fi
 # App server disks
-testIfResourceWouldBeRecreated=$(grep azurerm_managed_disk.app plan_output.log | grep -m1 replaced || true)
+testIfResourceWouldBeRecreated=$(grep azurerm_managed_disk.app plan_output.log | grep -m1 "must be replaced" || true)
 if [ -n "${testIfResourceWouldBeRecreated}" ]; then
   echo ""
   echo "#########################################################################################"
@@ -1086,7 +1086,7 @@ if [ -n "${testIfResourceWouldBeRecreated}" ]; then
 fi
 
 # SCS server
-testIfResourceWouldBeRecreated=$(grep virtual_machine.scs plan_output.log | grep -m1 replaced || true)
+testIfResourceWouldBeRecreated=$(grep virtual_machine.scs plan_output.log | grep -m1 "must be replaced" || true)
 if [ -n "${testIfResourceWouldBeRecreated}" ]; then
   echo ""
   echo "#########################################################################################"
@@ -1103,7 +1103,7 @@ if [ -n "${testIfResourceWouldBeRecreated}" ]; then
 fi
 
 # SCS server disks
-testIfResourceWouldBeRecreated=$(grep azurerm_managed_disk.scs plan_output.log | grep -m1 replaced || true)
+testIfResourceWouldBeRecreated=$(grep azurerm_managed_disk.scs plan_output.log | grep -m1 "must be replaced" || true)
 if [ -n "${testIfResourceWouldBeRecreated}" ]; then
   echo ""
   echo "#########################################################################################"
@@ -1120,7 +1120,7 @@ if [ -n "${testIfResourceWouldBeRecreated}" ]; then
 fi
 
 # Web server
-testIfResourceWouldBeRecreated=$(grep virtual_machine.web plan_output.log | grep -m1 replaced || true)
+testIfResourceWouldBeRecreated=$(grep virtual_machine.web plan_output.log | grep -m1 "must be replaced" || true)
 if [ -n "${testIfResourceWouldBeRecreated}" ]; then
   echo ""
   echo "#########################################################################################"
@@ -1136,7 +1136,7 @@ if [ -n "${testIfResourceWouldBeRecreated}" ]; then
   fatal_errors=1
 fi
 # Web dispatcher server disks
-testIfResourceWouldBeRecreated=$(grep azurerm_managed_disk.web plan_output.log | grep -m1 "must be replaced")
+testIfResourceWouldBeRecreated=$(grep azurerm_managed_disk.web plan_output.log | grep -m1 "must be replaced" || true)
 if [ -n "${testIfResourceWouldBeRecreated}" ]; then
   echo ""
   echo "#########################################################################################"
