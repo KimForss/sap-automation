@@ -893,7 +893,7 @@ if [ 0 == $return_value ]; then
 
   unset TF_DATA_DIR
   rm plan_output.log
-  exit $return_value
+  # exit $return_value
 fi
 
 if [ "${TEST_ONLY}" == "True" ]; then
