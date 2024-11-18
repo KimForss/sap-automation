@@ -61,6 +61,8 @@ while :; do
   -a | --ado)
     called_from_ado=1
     approve="--auto-approve"
+    TF_IN_AUTOMATION=true
+    export TF_IN_AUTOMATION
     shift
     ;;
   -f | --force)
@@ -526,7 +528,7 @@ if [ -f terraform.tfstate ]; then
         echo -e "$cyan Reinitializing deployer in case of on a new deployer $resetformatting"
 
         terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/"${deployment_system}"/
-        if ! terraform -chdir="${terraform_module_directory}" init -backend-config "path=${param_dirname}/terraform.tfstate" -reconfigure; then
+        if ! terraform -chdir="${terraform_module_directory}" init -backend-config "path=${param_dirname}/terraform.tfstate" -reconfigure -input=false; then
           echo "Error when initializing Terraform"
         fi
         echo ""
@@ -542,7 +544,7 @@ if [ -f terraform.tfstate ]; then
         echo "Reinitializing library in case of on a new deployer"
         terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/"${deployment_system}"/
 
-        if ! terraform -chdir="${terraform_module_directory}" init -backend-config "path=${param_dirname}/terraform.tfstate" -reconfigure; then
+        if ! terraform -chdir="${terraform_module_directory}" init -backend-config "path=${param_dirname}/terraform.tfstate" -reconfigure -input=false; then
           return_value=$?
           echo "Error when initializing Terraform"
         else
@@ -561,7 +563,7 @@ if [ ! -d ./.terraform/ ]; then
   echo "New deployment"
   deployment_parameter=" -var deployment=new "
 
-  if ! terraform -chdir="${terraform_module_directory}" init -upgrade=true \
+  if ! terraform -chdir="${terraform_module_directory}" init -upgrade=true -input=false \
     --backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
     --backend-config "resource_group_name=${REMOTE_STATE_RG}" \
     --backend-config "storage_account_name=${REMOTE_STATE_SA}" \
@@ -792,7 +794,7 @@ fi
 allParameters=$(printf " -var-file=%s %s %s %s %s %s %s %s" "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}" "${deployer_parameter}")
 
 # shellcheck disable=SC2086
-if terraform -chdir="$terraform_module_directory" plan -detailed-exitcode $allParameters || true | tee -a plan_output.log; then
+if terraform -chdir="$terraform_module_directory" plan -detailed-exitcode $allParameters -input=false | tee -a plan_output.log; then
   return_value=$?
 else
   return_value=$?
@@ -1244,16 +1246,14 @@ if [ 1 == $ok_to_proceed ]; then
 
   if [ -n "${approve}" ]; then
     # shellcheck disable=SC2086
-    if ! terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json \
-      $allParameters | tee -a apply_output.json; then
+    if ! terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json -input=false $allParameters | tee -a apply_output.json; then
       return_value=$?
       echo "Errors when running Terraform apply"
     fi
 
   else
     # shellcheck disable=SC2086
-    if ! terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" \
-      $allParameters; then
+    if ! terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -input=false $allParameters; then
       return_value=$?
       echo "Errors when running Terraform apply"
     fi
