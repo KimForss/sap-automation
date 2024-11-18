@@ -276,11 +276,6 @@ stages:
               echo -e "$green--- Add BOM Base Name and SAP FQDN to sap-parameters.yaml ---$reset"
               sed -i 's|bom_base_name:.*|bom_base_name:                 '"$BOM_BASE_NAME"'|' sap-parameters.yaml
 
-              fqdn=$(grep -m1 "$sap_fqdn:" sap-parameters.yaml | cut -d':' -f2- | tr -d ' ' | tr -d '"' || true)
-              if [ -z "$fqdn" ]; then
-                sed -i 's|sap_fqdn:.*|sap_fqdn:                      '"$(sap_fqdn)"'|' sap-parameters.yaml
-              fi
-
               echo -e "$green--- Get connection details ---$reset"
               mkdir -p artifacts
 
