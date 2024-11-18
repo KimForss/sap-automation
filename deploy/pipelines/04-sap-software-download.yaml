@@ -144,8 +144,11 @@ stages:
               echo " ##vso[task.setvariable variable=KV_NAME;isOutput=true]$key_vault"
 
               echo -e "$green--- BoM $(bom) ---$reset"
-              echo "##vso[build.updatebuildnumber]Downloading BoM defined in $(bom)"
-              echo "##vso[task.setvariable variable=BOM_NAME;isOutput=true]$(bom)"
+              bomName=$(echo $(bom) | tr -d ' \t\n\r\f"' )
+              echo "##vso[build.updatebuildnumber]Downloading BoM defined in $bomName"
+
+
+              echo "##vso[task.setvariable variable=BOM_NAME;isOutput=true]$bomName"
 
               echo -e "$green--- Set S-Username and S-Password in the key_vault if not yet there ---$reset"
 
