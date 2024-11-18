@@ -315,8 +315,6 @@ stages:
               tfstate_resource_id=$(az resource list --name "${REMOTE_STATE_SA}" --subscription "$STATE_SUBSCRIPTION" --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
               export tfstate_resource_id
 
-
-
               echo -e "$green--- Run the remover script that destroys the SAP system ---$reset"
 
               cd "$CONFIG_REPO_PATH/SYSTEM/$(sap_system_folder)" || exit
@@ -350,10 +348,12 @@ stages:
               git checkout -q "$(Build.SourceBranchName)"
               git pull origin "$(Build.SourceBranchName)"
 
+              cd "${CONFIG_REPO_PATH}/SYSTEM/$(sap_system_folder)" || exit
+
               if [ 0 == $return_code ]; then
 
-                  if [ -d "$(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/.terraform" ]; then
-                      git rm -q -r  --ignore-unmatch -f "$(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/.terraform"
+                  if [ -d ".terraform" ]; then
+                      git rm -q -r  --ignore-unmatch -f ".terraform"
                       changed=1
                   fi
 
@@ -362,26 +362,35 @@ stages:
                       added=1
                   fi
 
-                  if [ -f  "$(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/sap-parameters.yaml" ]; then
-                      git rm  --ignore-unmatch  -q    "$(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/sap-parameters.yaml"
+                  if [ -f  "sap-parameters.yaml" ]; then
+                      git rm  --ignore-unmatch  -q    "sap-parameters.yaml"
                       changed=1
                   fi
 
-                  if [ $(ls "$(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/*_hosts.yaml" | wc -l ) -gt 0 ] ; then
-                      git rm  --ignore-unmatch -q    "$(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/*_hosts.yaml"
+                  if [ -f "$SID_hosts.yaml" ] ; then
+                      git rm  --ignore-unmatch -q    "$SID_hosts.yaml"
                       changed=1
                   fi
 
-                  if [ $(ls "$(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/*.md" | wc -l ) -gt 0 ] ; then
-                      git rm  --ignore-unmatch -q    "$(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/*.md"
+                  if [ -f "$SID.md" ] ; then
+                      git rm  --ignore-unmatch -q    "$SID.md"
+                      changed=1
+                  fi
+
+                  if [ -f "$SID_virtual_machines.json" ] ; then
+                      git rm  --ignore-unmatch -q    "$SID_virtual_machines.json"
                       changed=1
                   fi
 
                   if [ 1 == $changed ]; then
                       git config --global user.email "$(Build.RequestedForEmail)"
                       git config --global user.name "$(Build.RequestedFor)"
-                      git commit -m "Infrastructure for ${sap_system_folder} removed. [skip ci]"
-                      git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set-upstream origin $(Build.SourceBranchName)
+                      git commit -m "Infrastructure for ${sap_system_configuration} removed. [skip ci]"
+                      if git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set-upstream origin "$(Build.SourceBranchName)" --force; then
+                          echo "##vso[task.logissue type=warning]Changes pushed to $(Build.SourceBranchName)"
+                      else
+                          echo "##vso[task.logissue type=error]Failed to push changes to $(Build.SourceBranchName)"
+                      fi
                   fi
               fi
 

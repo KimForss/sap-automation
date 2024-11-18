@@ -976,7 +976,7 @@ if [ 2 == $return_value ]; then
   fi
 fi
 
-if [ 1 == $apply_needed ]; then
+if [ 0 == $apply_needed ]; then
   echo ""
   echo "#########################################################################################"
   echo "#                                                                                       #"
@@ -1257,7 +1257,7 @@ if [ 0 == $return_value ]; then
 
   temp=$(echo "${workloadkeyvault}" | grep "Warning" || true)
   if [ -z "${temp}" ]; then
-    temp=$(echo "${workloadkeyvault}" | grep "Backend reinitialization required"  || true)
+    temp=$(echo "${workloadkeyvault}" | grep "Backend reinitialization required" || true)
     if [ -z "${temp}" ]; then
 
       printf -v val %-.20s "$workloadkeyvault"
