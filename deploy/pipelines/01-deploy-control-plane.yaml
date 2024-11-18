@@ -272,8 +272,6 @@ stages:
                 cd "$CONFIG_REPO_PATH"
                 mkdir -p .sap_deployment_automation
 
-                echo SAP_AUTOMATION_REPO_PATH="$SAP_AUTOMATION_REPO_PATH" >.sap_deployment_automation/config
-
                 if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip" ]; then
                   # shellcheck disable=SC2001
                   # shellcheck disable=SC2005
@@ -304,14 +302,11 @@ stages:
 
                 set -eu
 
-                echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
-                added=0
-                cd "$CONFIG_REPO_PATH" || exit
-                git pull -q
                 if [ -f "${deployer_environment_file_name}" ]; then
                   file_deployer_tfstate_key=$(grep -m1 "^deployer_tfstate_key" "${deployer_environment_file_name}" | grep  | awk -F'=' '{print $2}' | xargs)
                   if [ -z "$file_deployer_tfstate_key" ]; then
                     deployer_tfstate_key=$file_deployer_tfstate_key
+                    export deployer_tfstate_key
                   fi
                   echo "Deployer State File                   $deployer_tfstate_key"
 
@@ -324,6 +319,10 @@ stages:
                   file_REMOTE_STATE_RG=$(grep -m1 "^REMOTE_STATE_RG" "${deployer_environment_file_name}" | grep  | awk -F'=' '{print $2}' | xargs)
                   echo "Terraform Remote State RG Name:       ${file_REMOTE_STATE_RG}"
 
+                echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
+                added=0
+                cd "$CONFIG_REPO_PATH" || exit
+                git pull -q
 
                 fi
                 echo -e "$green--- Update repo ---$reset"
