@@ -385,7 +385,7 @@ stages:
                   if [ 1 == $changed ]; then
                       git config --global user.email "$(Build.RequestedForEmail)"
                       git config --global user.name "$(Build.RequestedFor)"
-                      git commit -m "Infrastructure for ${sap_system_configuration} removed. [skip ci]"
+                      git commit -m "Infrastructure for $(sap_system_configuration) removed. [skip ci]"
                       if git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set-upstream origin "$(Build.SourceBranchName)" --force; then
                           echo "##vso[task.logissue type=warning]Changes pushed to $(Build.SourceBranchName)"
                       else
