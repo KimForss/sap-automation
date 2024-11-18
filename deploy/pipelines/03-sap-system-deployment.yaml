@@ -325,7 +325,7 @@ stages:
               fi
 
               if [ -f "${SID}.md" ]; then
-                  git add "${SID}.md"
+                  git add "${CONFIG_REPO_PATH}/SYSTEM/$(sap_system_folder)/${SID}.md"
                   # echo "##vso[task.uploadsummary]./${SID}.md)"
                   added=1
               fi
