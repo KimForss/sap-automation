@@ -467,8 +467,6 @@ if [ ! -d "${terraform_module_directory}" ]; then
   exit 1
 fi
 
-apply_needed=0
-
 # This is used to tell Terraform if this is a new deployment or an update
 deployment_parameter=""
 # This is used to tell Terraform the version information from the state file
@@ -638,9 +636,7 @@ if [ 0 == $new_deployment ]; then
     fi
     read -p -r "Do you want to continue Y/N?" ans
     answer=${ans^^}
-    if [ "$answer" == 'Y' ]; then
-      apply_needed=1
-    else
+    if [ "$answer" != 'Y' ]; then
       unset TF_DATA_DIR
       exit 1
     fi
@@ -861,7 +857,7 @@ if [ 1 != $return_value ]; then
     fi
   fi
 
-  apply_needed=true
+  apply_needed=1
 
 fi
 
@@ -1191,7 +1187,7 @@ if [ 1 == $apply_needed ]; then
   echo ""
   echo "#########################################################################################"
   echo "#                                                                                       #"
-  echo -e "#                            $cyan Running Terraform apply$resetformatting                                   #"
+  echo -e "#                            $cyan Running Terraform apply $resetformatting                                  #"
   echo "#                                                                                       #"
   echo "#########################################################################################"
   echo ""
