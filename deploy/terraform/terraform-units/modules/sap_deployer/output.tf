@@ -123,12 +123,6 @@ output "random_id" {
   value                                = random_id.deployer.hex
 }
 
-output "random_id_b64" {
-  description                          = "Random ID for deployer"
-  value                                = random_id.deployer.b64_url
-}
-
-
 output "user_vault_name" {
   description                          = "Key Vault Name"
   value                                = var.key_vault.kv_exists ? data.azurerm_key_vault.kv_user[0].name : azurerm_key_vault.kv_user[0].name

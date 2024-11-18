@@ -164,7 +164,7 @@ module "hdb_node" {
   use_private_endpoint                          = var.use_private_endpoint
   hanashared_private_endpoint_id                = var.hanashared_private_endpoint_id
   hanashared_id                                 = var.hanashared_id
-  random_id                                     = module.common_infrastructure.random_id
+  random_id                                     = coalesce(var.custom_random_id, module.common_infrastructure.random_id)
 }
 
 #########################################################################################

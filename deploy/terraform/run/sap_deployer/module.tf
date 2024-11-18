@@ -67,5 +67,6 @@ module "sap_namegenerator" {
                                                           var.management_network_logical_name,
                                                           local.vnet_mgmt_name_part
                                                         )
-  random_id                                            = module.sap_deployer.random_id
+  random_id                                            = coalesce(var.custom_random_id, module.sap_deployer.random_id)
+
 }

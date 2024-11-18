@@ -235,6 +235,10 @@ variable "data_plane_available"                 {
                                                   type        = bool
                                                 }
 
+variable "custom_random_id"                     {
+                                                  description = "If provided, the value of the custom random id"
+                                                  default     = ""
+                                                }
 
 #########################################################################################
 #                                                                                       #
