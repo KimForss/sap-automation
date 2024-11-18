@@ -268,27 +268,18 @@ stages:
                 REMOTE_STATE_RG=$(grep "^REMOTE_STATE_RG" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs)
               fi
 
-              az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "DEPLOYER_RANDOM_ID_SEED.value" --out tsv)
-              if [ -n "${az_var}" ]; then
-                deployer_random_id="${az_var}"
-              else
-                if [ -f "${deployer_environment_file_name}" ]; then
-                  deployer_random_id=$(grep "^deployer_random_id=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs)
-                fi
-              fi
-
               echo "Terraform state subscription:        $STATE_SUBSCRIPTION"
               echo "Terraform state rg name:             $REMOTE_STATE_RG"
               echo "Terraform state account:             $REMOTE_STATE_SA"
               echo "Deployer Key Vault:                  ${key_vault}"
 
               if [ -f ${CONFIG_REPO_PATH}/LIBRARY/$(library_folder)/state.zip ]; then
-                pass=$(echo $DEPLOYER_RANDOM_ID_SEED | sed 's/-//g')
+                pass=$(echo "$(System.CollectionId)" | sed 's/-//g')
                 unzip -qq -o -P "${pass}" ${CONFIG_REPO_PATH}/LIBRARY/$(library_folder)/state.zip -d "${CONFIG_REPO_PATH}/LIBRARY/$(library_folder)"
               fi
 
               if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$(deployer_folder)/state.zip" ]; then
-                pass=$(echo $DEPLOYER_RANDOM_ID_SEED | sed 's/-//g')
+                pass=$(echo "$(System.CollectionId)" | sed 's/-//g')
                 unzip -qq -o -P "${pass}" "${CONFIG_REPO_PATH}/DEPLOYER/$(deployer_folder)/state.zip" -d "${CONFIG_REPO_PATH}/DEPLOYER/$(deployer_folder)"
               fi
 
@@ -319,7 +310,7 @@ stages:
               if [ -f "DEPLOYER/$(deployer_folder)/terraform.tfstate" ]; then
                 echo "Compressing the state file."
                 sudo apt install zip
-                pass=$(echo "$DEPLOYER_RANDOM_ID_SEED" | sed 's/-//g')
+                pass=$(echo "$(System.CollectionId)" | sed 's/-//g')
                 zip -q -j -P "${pass}" "DEPLOYER/$(deployer_folder)/state DEPLOYER/$(deployer_folder)/terraform.tfstate"
                 git add -f "DEPLOYER/$(deployer_folder)/state.zip"
                 changed=1
@@ -331,7 +322,7 @@ stages:
                   if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$(library_folder)/terraform.tfstate" ]; then
                     sudo apt install zip
                     echo "Compressing the library state file"
-                    pass=$(echo "$DEPLOYER_RANDOM_ID_SEED" | sed 's/-//g')
+                    pass=$(echo "$(System.CollectionId)" | sed 's/-//g')
                     zip -q -j -P "${pass}" "${CONFIG_REPO_PATH}/LIBRARY/$(library_folder)/state" "${CONFIG_REPO_PATH}/LIBRARY/$(library_folder)/terraform.tfstate"
                     git add -f "${CONFIG_REPO_PATH}/LIBRARY/$(library_folder)/state.zip"
                     changed=1
@@ -392,7 +383,6 @@ stages:
               TF_IN_AUTOMATION:         true
               TF_LOG:                   $(TF_LOG)
               USE_MSI:                  $(Use_MSI)
-              DEPLOYER_RANDOM_ID_SEED:  $(DEPLOYER_RANDOM_ID_SEED)
               AZURE_DEVOPS_EXT_PAT:     $(System.AccessToken)
             failOnStderr: false
 
@@ -655,7 +645,7 @@ stages:
                 echo -e "$green--- Running the remove_deployer script that destroys deployer VM ---$reset"
                 if [ -f "$CONFIG_REPO_PATH/DEPLOYER/$(deployer_folder)/state.zip" ]; then
                   echo "Unzipping state.zip"
-                  pass=$(echo $DEPLOYER_RANDOM_ID_SEED | sed 's/-//g')
+                  pass=$(echo "$(System.CollectionId)" | sed 's/-//g')
                   unzip -qq -o -P "${pass}" "$CONFIG_REPO_PATH/DEPLOYER/$(deployer_folder)/state.zip" -d "${CONFIG_REPO_PATH}/DEPLOYER/$(deployer_folder)"
                 fi
 
@@ -798,5 +788,4 @@ stages:
               TF_IN_AUTOMATION:         true
               TF_LOG:                   $(TF_LOG)
               USE_MSI:                  $(Use_MSI)
-              DEPLOYER_RANDOM_ID_SEED:  $(DEPLOYER_RANDOM_ID_SEED)
               AZURE_DEVOPS_EXT_PAT:     $(System.AccessToken)

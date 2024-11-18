@@ -1387,16 +1387,6 @@ if [ "${deployment_system}" == sap_deployer ]; then
   deployer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_public_ip_address | tr -d \")
   keyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name | tr -d \")
 
-  random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id_b64 | tr -d \")
-  temp=$(echo "${random_id}" | grep -m1 "Warning")
-  if [ -z "${temp}" ]; then
-    temp=$(echo "${random_id}" | grep "Backend reinitialization required")
-    if [ -z "${temp}" ]; then
-      save_config_var "deployer_random_id" "${random_id}"
-      return_value=0
-    fi
-  fi
-
   created_resource_group_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw created_resource_group_name | tr -d \")
   echo ""
   echo ""
@@ -1454,14 +1444,6 @@ if [ "${deployment_system}" == sap_deployer ]; then
           az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name WEBAPP_ID --value "$webapp_id" --output none --only-show-errors
         else
           az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name WEBAPP_ID --value "$webapp_id" --output none --only-show-errors
-        fi
-      fi
-      if [ -n "${random_id}" ]; then
-        az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "DEPLOYER_RANDOM_ID_SEED.value")
-        if [ -z "${az_var}" ]; then
-          az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name DEPLOYER_RANDOM_ID_SEED --value "${random_id}" --output none --only-show-errors
-        else
-          az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name DEPLOYER_RANDOM_ID_SEED --value "${random_id}" --output none --only-show-errors
         fi
       fi
     fi
