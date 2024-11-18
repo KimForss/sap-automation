@@ -326,6 +326,7 @@ stages:
 
               if [ -f "${SID}.md" ]; then
                   git add "${SID}.md"
+                  echo "##vso[task.uploadsummary]${SID}.md)"
                   added=1
               fi
 
@@ -359,10 +360,6 @@ stages:
                   else
                       echo "##vso[task.logissue type=error]Failed to push changes to $(Build.SourceBranchName)"
                   fi
-              fi
-
-              if [ -f "${SID}.md" ]; then
-                  echo "##vso[task.uploadsummary]$(realpath ${SID}.md)"
               fi
 
               # file_name=${SID}_inventory.md
