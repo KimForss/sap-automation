@@ -115,7 +115,6 @@ stages:
                   fi
                 fi
 
-
                 echo -e "$green--- Checkout $(Build.SourceBranchName) ---$reset"
                 cd "$CONFIG_REPO_PATH" || exit
                 git checkout -q "$(Build.SourceBranchName)"
@@ -192,6 +191,8 @@ stages:
                   export ARM_OIDC_TOKEN="$idToken"
                   export ARM_TENANT_ID="$tenantId"
                   export ARM_USE_OIDC=true
+                  unset ARM_CLIENT_SECRET
+                  export ARM_USE_AZUREAD = true
                 else
                   echo -e "$green--- az login ---$reset"
                   LogonToAzure "$USE_MSI"
