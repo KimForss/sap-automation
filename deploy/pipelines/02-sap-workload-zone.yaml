@@ -507,7 +507,7 @@ stages:
                   saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_State_FileName" "${deployer_tfstate_key}"
                   saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_Key_Vault" "${key_vault}"
                   saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "${prefix}Workload_Key_Vault" "${workload_key_vault}"
-                  saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "${prefix}Workload_Secret_Prefix" "${prefix}"
+                  saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "${prefix}Workload_Secret_Prefix" "${ENVIRONMENT}-${LOCATION_CODE}-${NETWORK}"
                   saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "${prefix}Workload_Zone_State_FileName" "${landscape_tfstate_key}"
 
               fi
