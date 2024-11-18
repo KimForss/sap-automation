@@ -795,11 +795,15 @@ allParameters=$(printf " -var-file=%s %s %s %s %s %s %s %s" "${var_file}" "${ext
 
 # shellcheck disable=SC2086
 if ! terraform -chdir="$terraform_module_directory" plan -detailed-exitcode $allParameters -input=false | tee -a plan_output.log; then
+  return_value=$?
   if [ $return_value -eq 1 ]; then
-    echo "Errors when running Terraform plan"
-  else
-    # return code 2 is ok
-    return_value=0
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo -e "#                           $boldreduscore !!! Error when running plan !!! $resetformatting                           #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    echo ""
+    exit $return_value
   fi
 else
   return_value=$?
