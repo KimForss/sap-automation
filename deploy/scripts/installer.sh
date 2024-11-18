@@ -494,7 +494,7 @@ if [ ! -d "${terraform_module_directory}" ]; then
   exit 1
 fi
 
-ok_to_proceed=false
+apply_needed=0
 
 # This is used to tell Terraform if this is a new deployment or an update
 deployment_parameter=""
@@ -630,7 +630,7 @@ fi
 if [ 1 == $check_output ]; then
   outputs=$(terraform -chdir="${terraform_module_directory}" output)
   if echo "${outputs}" | grep "No outputs"; then
-    ok_to_proceed=true
+    apply_needed=1
     echo "#########################################################################################"
     echo "#                                                                                       #"
     echo -e "#                                 $cyan  New deployment $resetformatting                                      #"
@@ -677,7 +677,7 @@ if [ 0 != $new_deployment ]; then
     read -p -r "Do you want to continue Y/N?" ans
     answer=${ans^^}
     if [ "$answer" == 'Y' ]; then
-      ok_to_proceed=true
+      apply_needed=1
     else
       unset TF_DATA_DIR
       exit 1
@@ -816,9 +816,13 @@ if [ 0 == $return_value ]; then
   echo "#########################################################################################"
   echo ""
 
-  unset TF_DATA_DIR
+  if [ -f apply_output.json ]; then
+    rm apply_output.json
+  fi
   rm plan_output.log
-  exit $return_value
+  apply_needed=0
+else
+  apply_needed=1
 fi
 
 state_path="SYSTEM"
@@ -907,7 +911,7 @@ if [ 1 != $return_value ]; then
     fi
   fi
 
-  ok_to_proceed=true
+  apply_needed=true
 
 fi
 
@@ -1191,10 +1195,8 @@ if [ "${TEST_ONLY}" == "True" ]; then
   exit 0
 fi
 
-ok_to_proceed=1
-
 if [ $fatal_errors == 1 ]; then
-  ok_to_proceed=0
+  apply_needed=0
   echo ""
   echo "#########################################################################################"
   echo "#                                                                                       #"
@@ -1212,12 +1214,12 @@ if [ $fatal_errors == 1 ]; then
   fi
 
   if [ 1 == $force ]; then
-    ok_to_proceed=1
+    apply_needed=1
   else
     read -p -r "Do you want to continue with the deployment Y/N?" ans
     answer=${ans^^}
     if [ "$answer" == 'Y' ]; then
-      ok_to_proceed=true
+      apply_needed=true
     else
       unset TF_DATA_DIR
       exit 1
@@ -1227,7 +1229,7 @@ if [ $fatal_errors == 1 ]; then
 fi
 
 rerun_apply=0
-if [ 1 == $ok_to_proceed ]; then
+if [ 1 == $apply_needed ]; then
 
   if [ -f error.log ]; then
     rm error.log

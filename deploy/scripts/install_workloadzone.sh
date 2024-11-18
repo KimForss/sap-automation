@@ -892,7 +892,6 @@ if [ 0 == $return_value ]; then
   echo "#########################################################################################"
   echo ""
 
-  unset TF_DATA_DIR
   rm plan_output.log
 
   if [ -f apply_output.json ]; then
@@ -902,7 +901,6 @@ if [ 0 == $return_value ]; then
 else
   apply_needed=1
 fi
-
 
 if [ "${TEST_ONLY}" == "True" ]; then
   echo ""
@@ -916,7 +914,6 @@ if [ "${TEST_ONLY}" == "True" ]; then
   echo ""
   exit 0
 fi
-
 
 if [ -f plan_output.log ]; then
   cat plan_output.log
