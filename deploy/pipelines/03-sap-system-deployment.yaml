@@ -352,7 +352,11 @@ stages:
                   git config --global user.name "$(Build.RequestedFor)"
                   git commit -m "Added updates from devops system deployment $(Build.DefinitionName) [skip ci]"
 
-                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set-upstream origin "$(Build.SourceBranchName)"
+                  if git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set-upstream origin "$(Build.SourceBranchName)" --force; then
+                      echo "##vso[task.logissue type=warning]Changes pushed to $(Build.SourceBranchName)"
+                  else
+                      echo "##vso[task.logissue type=error]Failed to push changes to $(Build.SourceBranchName)"
+                  fi
               fi
 
               if [ -f "${SID}.md" ]; then
