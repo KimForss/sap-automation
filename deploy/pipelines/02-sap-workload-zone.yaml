@@ -542,7 +542,7 @@ stages:
               fi
 
               if [ -f "${workload_prefix}.md" ]; then
-                  echo "##vso[task.uploadsummary]/${workload_prefix}.md"
+                  echo "##vso[task.uploadsummary]${workload_prefix}.md"
               fi
               echo -e "$green--- Adding variables to the variable group" "$(variable_group)" "---$reset"
               if [ -n "${VARIABLE_GROUP_ID}" ]; then
