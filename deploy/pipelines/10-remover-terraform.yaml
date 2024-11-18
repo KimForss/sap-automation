@@ -7,82 +7,67 @@
 # +------------------------------------4--------------------------------------*/
 
 parameters:
-  - name: cleanup_sap
-    displayName: Remove the SAP system
-    type: boolean
-    default: true
+  - name:                              cleanup_sap
+    displayName:                       Remove the SAP system
+    type:                              boolean
+    default:                           true
 
-  - name: sap_system
-    displayName: "SAP System configuration name, use this format: ENV-LOCA-VNET-SID"
-    type: string
-    default: DEV-WEEU-SAP01-X00
+  - name:                              sap_system
+    displayName:                       "SAP System configuration name, use this format: ENV-LOCA-VNET-SID"
+    type:                              string
+    default:                           DEV-WEEU-SAP01-X00
 
-  - name: cleanup_zone
-    displayName: Remove the SAP workload zone
-    type: boolean
-    default: true
+  - name:                              cleanup_zone
+    displayName:                       Remove the SAP workload zone
+    type:                              boolean
+    default:                           true
 
-  - name: workload_zone
-    displayName: "SAP workload zone configuration name, use this format: ENV-LOCA-VNET-INFRASTRUCTURE"
-    type: string
-    default: DEV-WEEU-SAP01-INFRASTRUCTURE
+  - name:                              workload_zone
+    displayName:                       "SAP workload zone configuration name, use this format: ENV-LOCA-VNET-INFRASTRUCTURE"
+    type:                              string
+    default:                           DEV-WEEU-SAP01-INFRASTRUCTURE
 
-  - name: cleanup_region
-    displayName: Remove the control plane
-    type: boolean
-    default: true
+  - name:                              workload_environment
+    displayName:                       Environment (DEV, QUA, PRD)
+    type:                              string
+    default:                           DEV
 
-  - name: deployer
-    displayName: "Deployer configuration name, use this format: ENV-LOCA-VNET-INFRASTRUCTURE"
-    type: string
-    default: MGMT-WEEU-DEP00-INFRASTRUCTURE
+  - name:                              deployer_environment
+    displayName:                       Environment (MGMT)
+    type:                              string
+    default:                           MMGMT
 
-  - name: library
-    displayName: "Library configuration name, use this format: ENV-LOCA-SAP_LIBRARY"
-    type: string
-    default: MGMT-WEEU-SAP_LIBRARY
+  - name:                              use_deployer
+    displayName:                       Run removal on self hosted agent
+    type:                              boolean
+    default:                           true
 
-  - name: workload_environment
-    displayName: Environment (DEV, QUA, PRD)
-    type: string
-    default: DEV
+  - name:                              sap_automation_repo_path
+    displayName:                       The local path on the agent where the sap_automation repo can be found
+    type:                              string
 
-  - name: deployer_environment
-    displayName: Environment (MGMT)
-    type: string
-    default: MMGMT
-
-  - name: use_deployer
-    displayName: Run removal on self hosted agent
-    type: boolean
-    default: true
-
-  - name: sap_automation_repo_path
-    displayName: The local path on the agent where the sap_automation repo can be found
-    type: string
-
-  - name: config_repo_path
-    displayName: The local path on the agent where the config repo can be found
-    type: string
+  - name:                              config_repo_path
+    displayName:                       The local path on the agent where the config repo can be found
+    type:                              string
 
 stages:
-  - stage: Remove_SAP_systems
-    displayName: "Removing the SAP System"
-    condition: and(not(failed()), not(canceled()), eq(${{ parameters.cleanup_sap }}, true))
+  - stage:                             Remove_SAP_systems
+    displayName:                       "Removing the SAP System"
+    condition:                         and(not(failed()), not(canceled()), eq(${{ parameters.cleanup_sap }}, true))
     variables:
-      - template: variables/10-remover-terraform-variables.yaml
+      - template:                      variables/10-remover-terraform-variables.yaml
         parameters:
-          deployer_environment: ${{ parameters.deployer_environment }}
-          workload_environment: ${{ parameters.workload_environment }}
-          workload_zone: ${{ parameters.workload_zone }}
-          sap_system: ${{ parameters.sap_system }}
+          deployer_environment:        ${{ parameters.deployer_environment }}
+          workload_environment:        ${{ parameters.workload_environment }}
+          workload_zone:               ${{ parameters.workload_zone }}
+          sap_system:                  ${{ parameters.sap_system }}
     jobs:
-      - job: Remove_SAP_systems
-        displayName: "Removing the SAP System"
+      - job:                           Remove_SAP_systems
+        displayName:                   "Removing the SAP System"
         variables:
-          - group: SDAF-${{ parameters.workload_environment }}
+          - group:                     SDAF-${{ parameters.workload_environment }}
         workspace:
-          clean: all
+          clean:                       all
         steps:
           - template: templates\download.yaml
           - bash: |
@@ -90,7 +75,6 @@ stages:
               green="\e[1;32m"
               reset="\e[0m"
               boldred="\e[1;31m"
-              cyan="\e[1;36m"
 
               #External helper functions
               source "sap-automation/deploy/pipelines/helper.sh"
@@ -98,10 +82,10 @@ stages:
               debug=False
 
               if [ "$SYSTEM_DEBUG" = True ]; then
-                  set -x
-                  set -o errexit
-                  debug=True
-                  export debug
+                set -x
+                set -o errexit
+                debug=True
+                export debug
               fi
               set -eu
 
@@ -116,58 +100,58 @@ stages:
               git checkout -q "$(Build.SourceBranchName)"
 
               if [ ! -f "$CONFIG_REPO_PATH/SYSTEM/$(sap_system_folder)/$(sap_system_configuration)" ]; then
-                  echo -e "$boldred--- $(sap_system_configuration) was not found ---$reset"
-                  echo "##vso[task.logissue type=error]File $(sap_system_configuration) was not found."
-                  exit 2
+                echo -e "$boldred--- $(sap_system_configuration) was not found ---$reset"
+                echo "##vso[task.logissue type=error]File $(sap_system_configuration) was not found."
+                exit 2
               fi
 
               echo -e "$green--- Validations ---$reset"
               if [ "$USE_MSI" != "true" ]; then
 
-                  if [ -z "$WL_ARM_SUBSCRIPTION_ID" ]; then
-                      echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined in the $(variable_group) variable group."
-                      exit 2
-                  fi
+                if [ -z "$WL_ARM_SUBSCRIPTION_ID" ]; then
+                  echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined in the $(variable_group) variable group."
+                  exit 2
+                fi
 
-                  if [ "$WL_ARM_SUBSCRIPTION_ID" == '$$(ARM_SUBSCRIPTION_ID)' ]; then
-                      echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined in the $(variable_group) variable group."
-                      exit 2
-                  fi
+                if [ "$WL_ARM_SUBSCRIPTION_ID" == '$$(ARM_SUBSCRIPTION_ID)' ]; then
+                  echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined in the $(variable_group) variable group."
+                  exit 2
+                fi
 
-                  if [ -z "$WL_ARM_CLIENT_ID" ]; then
-                      echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined in the $(variable_group) variable group."
-                      exit 2
-                  fi
+                if [ -z "$WL_ARM_CLIENT_ID" ]; then
+                  echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined in the $(variable_group) variable group."
+                  exit 2
+                fi
 
-                  if [ "$WL_ARM_CLIENT_ID" == '$$(ARM_CLIENT_ID)' ]; then
-                      echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined in the $(variable_group) variable group."
-                      exit 2
-                  fi
+                if [ "$WL_ARM_CLIENT_ID" == '$$(ARM_CLIENT_ID)' ]; then
+                  echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined in the $(variable_group) variable group."
+                  exit 2
+                fi
 
-                  if [ -z "$WL_ARM_CLIENT_SECRET" ]; then
-                      echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined in the $(variable_group) variable group."
-                      exit 2
-                  fi
+                if [ -z "$WL_ARM_CLIENT_SECRET" ]; then
+                  echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined in the $(variable_group) variable group."
+                  exit 2
+                fi
 
-                  if [ "$WL_ARM_CLIENT_SECRET" == '$$(ARM_CLIENT_SECRET)' ]; then
-                      echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined in the $(variable_group) variable group."
-                      exit 2
-                  fi
+                if [ "$WL_ARM_CLIENT_SECRET" == '$$(ARM_CLIENT_SECRET)' ]; then
+                  echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined in the $(variable_group) variable group."
+                  exit 2
+                fi
 
-                  if [ -z "$WL_ARM_TENANT_ID" ]; then
-                      echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined in the $(variable_group) variable group."
-                      exit 2
-                  fi
+                if [ -z "$WL_ARM_TENANT_ID" ]; then
+                  echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined in the $(variable_group) variable group."
+                  exit 2
+                fi
 
-                  if [ "$WL_ARM_TENANT_ID" == '$$(ARM_TENANT_ID)' ]; then
-                      echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined in the $(variable_group) variable group."
-                      exit 2
-                  fi
+                if [ "$WL_ARM_TENANT_ID" == '$$(ARM_TENANT_ID)' ]; then
+                  echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined in the $(variable_group) variable group."
+                  exit 2
+                fi
 
-                  if [ -z "$CP_ARM_SUBSCRIPTION_ID" ]; then
-                      echo "##vso[task.logissue type=error]Variable CP_ARM_SUBSCRIPTION_ID was not defined in the $(parent_variable_group) variable group."
-                      exit 2
-                  fi
+                if [ -z "$CP_ARM_SUBSCRIPTION_ID" ]; then
+                  echo "##vso[task.logissue type=error]Variable CP_ARM_SUBSCRIPTION_ID was not defined in the $(parent_variable_group) variable group."
+                  exit 2
+                fi
               fi
 
               # Set logon variables
@@ -182,17 +166,17 @@ stages:
 
               # Check if running on deployer
               if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-                  configureNonDeployer "$(tf_version)"  || true
-                  echo -e "$green--- az login ---$reset"
-                  LogonToAzure false  || true
+                configureNonDeployer "$(tf_version)" || true
+                echo -e "$green--- az login ---$reset"
+                LogonToAzure false || true
               else
-                  LogonToAzure "$USE_MSI" || true
+                LogonToAzure "$USE_MSI" || true
               fi
               return_code=$?
               if [ 0 != $return_code ]; then
-                  echo -e "$boldred--- Login failed ---$reset"
-                  echo "##vso[task.logissue type=error]az login failed."
-                  exit $return_code
+                echo -e "$boldred--- Login failed ---$reset"
+                echo "##vso[task.logissue type=error]az login failed."
+                exit $return_code
               fi
 
               ARM_SUBSCRIPTION_ID=$WL_ARM_SUBSCRIPTION_ID
@@ -238,23 +222,23 @@ stages:
               az --version
 
               if [ "$ENVIRONMENT" != "$ENVIRONMENT_IN_FILENAME" ]; then
-                  echo "##vso[task.logissue type=error]The environment setting in $(sap_system_configuration) '$ENVIRONMENT' does not match the $(sap_system_configuration) file name '$ENVIRONMENT_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
-                  exit 2
+                echo "##vso[task.logissue type=error]The environment setting in $(sap_system_configuration) '$ENVIRONMENT' does not match the $(sap_system_configuration) file name '$ENVIRONMENT_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
+                exit 2
               fi
 
               if [ "$LOCATION" != "$LOCATION_IN_FILENAME" ]; then
-                  echo "##vso[task.logissue type=error]The location setting in $(sap_system_configuration) '$LOCATION' does not match the $(sap_system_configuration) file name '$LOCATION_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
-                  exit 2
+                echo "##vso[task.logissue type=error]The location setting in $(sap_system_configuration) '$LOCATION' does not match the $(sap_system_configuration) file name '$LOCATION_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
+                exit 2
               fi
 
               if [ "$NETWORK" != "$NETWORK_IN_FILENAME" ]; then
-                  echo "##vso[task.logissue type=error]The network_logical_name setting in $(sap_system_configuration) '$NETWORK' does not match the $(sap_system_configuration) file name '$NETWORK_IN_FILENAME-. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
-                  exit 2
+                echo "##vso[task.logissue type=error]The network_logical_name setting in $(sap_system_configuration) '$NETWORK' does not match the $(sap_system_configuration) file name '$NETWORK_IN_FILENAME-. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
+                exit 2
               fi
 
               if [ "$SID" != "$SID_IN_FILENAME" ]; then
-                  echo "##vso[task.logissue type=error]The sid setting in $(sap_system_configuration) '$SID' does not match the $(sap_system_configuration) file name '$SID_IN_FILENAME-. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-[SID]"
-                  exit 2
+                echo "##vso[task.logissue type=error]The sid setting in $(sap_system_configuration) '$SID' does not match the $(sap_system_configuration) file name '$SID_IN_FILENAME-. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-[SID]"
+                exit 2
               fi
 
               workload_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE}${NETWORK}"
@@ -270,8 +254,8 @@ stages:
               VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(variable_group)'].id | [0]")
 
               if [ -z "${VARIABLE_GROUP_ID}" ]; then
-                  echo "##vso[task.logissue type=error]Variable group $(variable_group) could not be found."
-                  exit 2
+                echo "##vso[task.logissue type=error]Variable group $(variable_group) could not be found."
+                exit 2
               fi
               export VARIABLE_GROUP_ID
 
@@ -319,13 +303,13 @@ stages:
 
               cd "$CONFIG_REPO_PATH/SYSTEM/$(sap_system_folder)" || exit
 
-              ${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/remover.sh  \
-                --parameterfile $(sap_system_configuration)          \
-                --type sap_system                                    \
-                --state_subscription "${STATE_SUBSCRIPTION}"         \
-                --storageaccountname "${REMOTE_STATE_SA}"            \
-                --deployer_tfstate_key "${deployer_tfstate_key}"     \
-                --landscape_tfstate_key "${landscape_tfstate_key}"   \
+              ${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/remover.sh \
+                --parameterfile $(sap_system_configuration) \
+                --type sap_system \
+                --state_subscription "${STATE_SUBSCRIPTION}" \
+                --storageaccountname "${REMOTE_STATE_SA}" \
+                --deployer_tfstate_key "${deployer_tfstate_key}" \
+                --landscape_tfstate_key "${landscape_tfstate_key}" \
                 --auto-approve
 
               return_code=$?
@@ -336,8 +320,8 @@ stages:
               #stop the pipeline after you have reset the whitelisting on your resources
               echo "Return code from remover.sh:         $return_code."
               if [ 0 != $return_code ]; then
-                  echo "##vso[task.logissue type=error]Return code from remover.sh $return_code."
-                  exit $return_code
+                echo "##vso[task.logissue type=error]Return code from remover.sh $return_code."
+                exit $return_code
               fi
 
               echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
@@ -352,85 +336,84 @@ stages:
 
               if [ 0 == $return_code ]; then
 
-                  if [ -d ".terraform" ]; then
-                      git rm -q -r  --ignore-unmatch -f ".terraform"
-                      changed=1
-                  fi
+                if [ -d ".terraform" ]; then
+                  git rm -q -r --ignore-unmatch -f ".terraform"
+                  changed=1
+                fi
 
-                  if [ -f $(sap_system_configuration) ]; then
-                      git add    $(sap_system_configuration)
-                      added=1
-                  fi
+                if [ -f "$(sap_system_configuration)" ]; then
+                  git add "$(sap_system_configuration)"
+                  changed=1
+                fi
 
-                  if [ -f  "sap-parameters.yaml" ]; then
-                      git rm  --ignore-unmatch  -q    "sap-parameters.yaml"
-                      changed=1
-                  fi
+                if [ -f "sap-parameters.yaml" ]; then
+                  git rm --ignore-unmatch -q "sap-parameters.yaml"
+                  changed=1
+                fi
 
-                  if [ -f "${SID}_hosts.yaml" ] ; then
-                      git rm  --ignore-unmatch -q    "${SID}_hosts.yaml"
-                      changed=1
-                  fi
+                if [ -f "${SID}_hosts.yaml" ]; then
+                  git rm --ignore-unmatch -q "${SID}_hosts.yaml"
+                  changed=1
+                fi
 
-                  if [ -f "${SID}.md" ] ; then
-                      git rm  --ignore-unmatch -q    "${SID}.md"
-                      changed=1
-                  fi
+                if [ -f "${SID}.md" ]; then
+                  git rm --ignore-unmatch -q "${SID}.md"
+                  changed=1
+                fi
 
-                  if [ -f "${SID}_virtual_machines.json" ] ; then
-                      git rm  --ignore-unmatch -q    "${SID}_virtual_machines.json"
-                      changed=1
-                  fi
+                if [ -f "${SID}_virtual_machines.json" ]; then
+                  git rm --ignore-unmatch -q "${SID}_virtual_machines.json"
+                  changed=1
+                fi
 
-                  if [ 1 == $changed ]; then
-                      git config --global user.email "$(Build.RequestedForEmail)"
-                      git config --global user.name "$(Build.RequestedFor)"
-                      git commit -m "Infrastructure for $(sap_system_configuration) removed. [skip ci]"
-                      if git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set-upstream origin "$(Build.SourceBranchName)" --force; then
-                          echo "##vso[task.logissue type=warning]Changes pushed to $(Build.SourceBranchName)"
-                      else
-                          echo "##vso[task.logissue type=error]Failed to push changes to $(Build.SourceBranchName)"
-                      fi
+                if [ 1 == $changed ]; then
+                  git config --global user.email "$(Build.RequestedForEmail)"
+                  git config --global user.name "$(Build.RequestedFor)"
+                  git commit -m "Infrastructure for $(sap_system_configuration) removed. [skip ci]"
+                  if git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set-upstream origin "$(Build.SourceBranchName)" --force; then
+                    echo "##vso[task.logissue type=warning]Removal of $(sap_system_configuration) updated in $(Build.SourceBranchName)"
+                  else
+                    echo "##vso[task.logissue type=error]Failed to push changes to $(Build.SourceBranchName)"
                   fi
+                fi
               fi
 
               exit $return_code
 
-            displayName: "Remove SAP system"
+            displayName:               "Remove SAP system"
             env:
-              SYSTEM_ACCESSTOKEN: $(System.AccessToken)
-              WL_ARM_SUBSCRIPTION_ID: $(WL_ARM_SUBSCRIPTION_ID)
-              WL_ARM_CLIENT_ID: $(WL_ARM_CLIENT_ID)
-              WL_ARM_CLIENT_SECRET: $(WL_ARM_CLIENT_SECRET)
-              WL_ARM_TENANT_ID: $(WL_ARM_TENANT_ID)
-              AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
+              SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
+              WL_ARM_SUBSCRIPTION_ID:  $(WL_ARM_SUBSCRIPTION_ID)
+              WL_ARM_CLIENT_ID:        $(WL_ARM_CLIENT_ID)
+              WL_ARM_CLIENT_SECRET:    $(WL_ARM_CLIENT_SECRET)
+              WL_ARM_TENANT_ID:        $(WL_ARM_TENANT_ID)
+              AZURE_DEVOPS_EXT_PAT:    $(System.AccessToken)
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
-              CONFIG_REPO_PATH: ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
-              LOGON_USING_SPN: $(Logon_Using_SPN)
-              USE_MSI: $(Use_MSI)
+              CONFIG_REPO_PATH:        ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+              USE_MSI:                 $(Use_MSI)
 
             failOnStderr: false
 
-  - stage: Remove_SAP_workload_zone
-    displayName: "Removing the SAP workload zone"
-    condition: and(not(failed()), not(canceled()), eq(${{ parameters.cleanup_zone }}, true))
+  - stage:                             Remove_SAP_workload_zone
+    displayName:                       "Removing the SAP workload zone"
+    condition:                         and(not(failed()), not(canceled()), eq(${{ parameters.cleanup_zone }}, true))
     variables:
-      - template: variables/10-remover-terraform-variables.yaml
+      - template:                      variables/10-remover-terraform-variables.yaml
         parameters:
-          deployer_environment: ${{ parameters.deployer_environment }}
-          workload_environment: ${{ parameters.workload_environment }}
-          workload_zone: ${{ parameters.workload_zone }}
-          sap_system: ${{ parameters.sap_system }}
+          deployer_environment:        ${{ parameters.deployer_environment }}
+          workload_environment:        ${{ parameters.workload_environment }}
+          workload_zone:               ${{ parameters.workload_zone }}
+          sap_system:                  ${{ parameters.sap_system }}
 
     jobs:
-      - job: Remove_SAP_workload_zone
-        displayName: Remove the SAP Workload Zone
+      - job:                           Remove_SAP_workload_zone
+        displayName:                   Remove the SAP Workload Zone
         variables:
-          - group: SDAF-${{ parameters.workload_environment }}
+          - group:                     SDAF-${{ parameters.workload_environment }}
         workspace:
-          clean: all
+          clean:                       all
         steps:
-          - template: templates\download.yaml
+          - template:                  templates\download.yaml
           - bash: |
               #!/bin/bash
               green="\e[1;32m"
@@ -444,14 +427,14 @@ stages:
               debug=False
 
               if [ "$SYSTEM_DEBUG" = True ]; then
-                  set -x
-                  set -o errexit
-                  debug=True
-                  export debug
+                set -x
+                set -o errexit
+                debug=True
+                export debug
               fi
               set -eu
 
-              echo "##vso[build.updatebuildnumber]Deploying the SAP System defined in $(sap_system_folder)"
+              echo "##vso[build.updatebuildnumber]Removing the SAP System defined in $(sap_system_folder)"
 
               tfvarsFile="SYSTEM/$(sap_system_folder)/$(sap_system_configuration)"
 
@@ -462,58 +445,58 @@ stages:
               git checkout -q "$(Build.SourceBranchName)"
 
               if [ ! -f "$CONFIG_REPO_PATH/SYSTEM/$(sap_system_folder)/$(sap_system_configuration)" ]; then
-                  echo -e "$boldred--- $(sap_system_configuration) was not found ---$reset"
-                  echo "##vso[task.logissue type=error]File $(sap_system_configuration) was not found."
-                  exit 2
+                echo -e "$boldred--- $(sap_system_configuration) was not found ---$reset"
+                echo "##vso[task.logissue type=error]File $(sap_system_configuration) was not found."
+                exit 2
               fi
 
               echo -e "$green--- Validations ---$reset"
               if [ "$USE_MSI" != "true" ]; then
 
-                  if [ -z "$WL_ARM_SUBSCRIPTION_ID" ]; then
-                      echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined in the $(variable_group) variable group."
-                      exit 2
-                  fi
+                if [ -z "$WL_ARM_SUBSCRIPTION_ID" ]; then
+                  echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined in the $(variable_group) variable group."
+                  exit 2
+                fi
 
-                  if [ "$WL_ARM_SUBSCRIPTION_ID" == '$$(ARM_SUBSCRIPTION_ID)' ]; then
-                      echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined in the $(variable_group) variable group."
-                      exit 2
-                  fi
+                if [ "$WL_ARM_SUBSCRIPTION_ID" == '$$(ARM_SUBSCRIPTION_ID)' ]; then
+                  echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined in the $(variable_group) variable group."
+                  exit 2
+                fi
 
-                  if [ -z "$WL_ARM_CLIENT_ID" ]; then
-                      echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined in the $(variable_group) variable group."
-                      exit 2
-                  fi
+                if [ -z "$WL_ARM_CLIENT_ID" ]; then
+                  echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined in the $(variable_group) variable group."
+                  exit 2
+                fi
 
-                  if [ "$WL_ARM_CLIENT_ID" == '$$(ARM_CLIENT_ID)' ]; then
-                      echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined in the $(variable_group) variable group."
-                      exit 2
-                  fi
+                if [ "$WL_ARM_CLIENT_ID" == '$$(ARM_CLIENT_ID)' ]; then
+                  echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined in the $(variable_group) variable group."
+                  exit 2
+                fi
 
-                  if [ -z "$WL_ARM_CLIENT_SECRET" ]; then
-                      echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined in the $(variable_group) variable group."
-                      exit 2
-                  fi
+                if [ -z "$WL_ARM_CLIENT_SECRET" ]; then
+                  echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined in the $(variable_group) variable group."
+                  exit 2
+                fi
 
-                  if [ "$WL_ARM_CLIENT_SECRET" == '$$(ARM_CLIENT_SECRET)' ]; then
-                      echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined in the $(variable_group) variable group."
-                      exit 2
-                  fi
+                if [ "$WL_ARM_CLIENT_SECRET" == '$$(ARM_CLIENT_SECRET)' ]; then
+                  echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined in the $(variable_group) variable group."
+                  exit 2
+                fi
 
-                  if [ -z "$WL_ARM_TENANT_ID" ]; then
-                      echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined in the $(variable_group) variable group."
-                      exit 2
-                  fi
+                if [ -z "$WL_ARM_TENANT_ID" ]; then
+                  echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined in the $(variable_group) variable group."
+                  exit 2
+                fi
 
-                  if [ "$WL_ARM_TENANT_ID" == '$$(ARM_TENANT_ID)' ]; then
-                      echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined in the $(variable_group) variable group."
-                      exit 2
-                  fi
+                if [ "$WL_ARM_TENANT_ID" == '$$(ARM_TENANT_ID)' ]; then
+                  echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined in the $(variable_group) variable group."
+                  exit 2
+                fi
 
-                  if [ -z "$CP_ARM_SUBSCRIPTION_ID" ]; then
-                      echo "##vso[task.logissue type=error]Variable CP_ARM_SUBSCRIPTION_ID was not defined in the $(parent_variable_group) variable group."
-                      exit 2
-                  fi
+                if [ -z "$CP_ARM_SUBSCRIPTION_ID" ]; then
+                  echo "##vso[task.logissue type=error]Variable CP_ARM_SUBSCRIPTION_ID was not defined in the $(parent_variable_group) variable group."
+                  exit 2
+                fi
               fi
 
               # Set logon variables
@@ -528,17 +511,17 @@ stages:
 
               # Check if running on deployer
               if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-                  configureNonDeployer "$(tf_version)"  || true
-                  echo -e "$green--- az login ---$reset"
-                  LogonToAzure false  || true
+                configureNonDeployer "$(tf_version)" || true
+                echo -e "$green--- az login ---$reset"
+                LogonToAzure false || true
               else
-                  LogonToAzure "$USE_MSI" || true
+                LogonToAzure "$USE_MSI" || true
               fi
               return_code=$?
               if [ 0 != $return_code ]; then
-                  echo -e "$boldred--- Login failed ---$reset"
-                  echo "##vso[task.logissue type=error]az login failed."
-                  exit $return_code
+                echo -e "$boldred--- Login failed ---$reset"
+                echo "##vso[task.logissue type=error]az login failed."
+                exit $return_code
               fi
 
               ARM_SUBSCRIPTION_ID=$WL_ARM_SUBSCRIPTION_ID
@@ -553,13 +536,21 @@ stages:
               NETWORK=$(grep -m1 "^network_logical_name" "$tfvarsFile" | awk -F'=' '{print $2}' | tr -d ' \t\n\r\f"')
               SID=$(grep -m1 "^sid" "$tfvarsFile" | awk -F'=' '{print $2}' | tr -d ' \t\n\r\f"')
 
+              # shellcheck disable=SC2046
+              # shellcheck disable=SC2005
               ENVIRONMENT_IN_FILENAME=$(echo $(sap_system_folder) | awk -F'-' '{print $1}')
 
+              # shellcheck disable=SC2046
+              # shellcheck disable=SC2005
               LOCATION_CODE=$(echo $(sap_system_folder) | awk -F'-' '{print $2}')
               LOCATION_IN_FILENAME=$(get_region_from_code "$LOCATION_CODE" || true)
 
+              # shellcheck disable=SC2046
+              # shellcheck disable=SC2005
               NETWORK_IN_FILENAME=$(echo $(sap_system_folder) | awk -F'-' '{print $3}')
 
+              # shellcheck disable=SC2046
+              # shellcheck disable=SC2005
               SID_IN_FILENAME=$(echo $(sap_system_folder) | awk -F'-' '{print $4}')
 
               echo "System TFvars:                       $(sap_system_configuration)"
@@ -584,23 +575,23 @@ stages:
               az --version
 
               if [ "$ENVIRONMENT" != "$ENVIRONMENT_IN_FILENAME" ]; then
-                  echo "##vso[task.logissue type=error]The environment setting in $(sap_system_configuration) '$ENVIRONMENT' does not match the $(sap_system_configuration) file name '$ENVIRONMENT_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
-                  exit 2
+                echo "##vso[task.logissue type=error]The environment setting in $(sap_system_configuration) '$ENVIRONMENT' does not match the $(sap_system_configuration) file name '$ENVIRONMENT_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
+                exit 2
               fi
 
               if [ "$LOCATION" != "$LOCATION_IN_FILENAME" ]; then
-                  echo "##vso[task.logissue type=error]The location setting in $(sap_system_configuration) '$LOCATION' does not match the $(sap_system_configuration) file name '$LOCATION_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
-                  exit 2
+                echo "##vso[task.logissue type=error]The location setting in $(sap_system_configuration) '$LOCATION' does not match the $(sap_system_configuration) file name '$LOCATION_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
+                exit 2
               fi
 
               if [ "$NETWORK" != "$NETWORK_IN_FILENAME" ]; then
-                  echo "##vso[task.logissue type=error]The network_logical_name setting in $(sap_system_configuration) '$NETWORK' does not match the $(sap_system_configuration) file name '$NETWORK_IN_FILENAME-. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
-                  exit 2
+                echo "##vso[task.logissue type=error]The network_logical_name setting in $(sap_system_configuration) '$NETWORK' does not match the $(sap_system_configuration) file name '$NETWORK_IN_FILENAME-. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
+                exit 2
               fi
 
               if [ "$SID" != "$SID_IN_FILENAME" ]; then
-                  echo "##vso[task.logissue type=error]The sid setting in $(sap_system_configuration) '$SID' does not match the $(sap_system_configuration) file name '$SID_IN_FILENAME-. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-[SID]"
-                  exit 2
+                echo "##vso[task.logissue type=error]The sid setting in $(sap_system_configuration) '$SID' does not match the $(sap_system_configuration) file name '$SID_IN_FILENAME-. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-[SID]"
+                exit 2
               fi
 
               workload_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE}${NETWORK}"
@@ -611,13 +602,14 @@ stages:
 
               az extension add --name azure-devops --output none --only-show-errors
 
-              az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)' --output none
+              # shellcheck disable=SC2016
+              az devops configure --defaults organization="$(System.CollectionUri)" project='$(System.TeamProject)' --output none
 
               VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(variable_group)'].id | [0]")
 
               if [ -z "${VARIABLE_GROUP_ID}" ]; then
-                  echo "##vso[task.logissue type=error]Variable group $(variable_group) could not be found."
-                  exit 2
+                echo "##vso[task.logissue type=error]Variable group $(variable_group) could not be found."
+                exit 2
               fi
               export VARIABLE_GROUP_ID
 
@@ -661,96 +653,96 @@ stages:
               tfstate_resource_id=$(az resource list --name "${REMOTE_STATE_SA}" --subscription "$STATE_SUBSCRIPTION" --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
               export tfstate_resource_id
 
-
-
               echo -e "$green --- Run the remover script that destroys the SAP workload zone (landscape) ---$reset"
               cd "$CONFIG_REPO_PATH/LANDSCAPE/$(workload_zone_folder)" || exit
 
               $SAP_AUTOMATION_REPO_PATH/deploy/scripts/remover.sh \
-              --parameterfile $(workload_zone_configuration_file) \
-              --type sap_landscape \
-              --deployer_tfstate_key "${deployer_tfstate_key}"     \
-              --state_subscription ${STATE_SUBSCRIPTION} \
-              --storageaccountname "${REMOTE_STATE_SA}" \
-              --auto-approve
+                --parameterfile $(workload_zone_configuration_file) \
+                --type sap_landscape \
+                --deployer_tfstate_key "${deployer_tfstate_key}" \
+                --state_subscription ${STATE_SUBSCRIPTION} \
+                --storageaccountname "${REMOTE_STATE_SA}" \
+                --auto-approve
 
               return_code=$?
 
               #stop the pipeline after you have reset the whitelisting on your resources
               echo "Return code from remover.sh:         $return_code."
               if [ 0 != $return_code ]; then
-                  echo "##vso[task.logissue type=error]Return code from remover.sh $return_code."
-                  exit $return_code
+                echo "##vso[task.logissue type=error]Return code from remover.sh $return_code."
+                exit $return_code
               fi
 
               echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
-              cd $(Build.Repository.LocalPath)
+              cd "$(Build.Repository.LocalPath)" || exit
               changed=0
               git checkout -q $(Build.SourceBranchName)
               git pull
+              cd "${CONFIG_REPO_PATH}/LANDSCAPE/$(workload_zone_folder)" || exit
 
               if [ 0 == $return_code ]; then
 
-                  if [ -f  "${workload_environment_file_name}" ]; then
-                      git rm -q -f ${workload_environment_file_name}
-                      echo "Removed ${workload_environment_file_name}"
+                if [ -f "${workload_environment_file_name}" ]; then
+                  git rm -q -f "${workload_environment_file_name}"
+                  echo "Removed ${workload_environment_file_name}"
+                  changed=1
+                fi
 
-                      changed=1
+                if [ -f "${prefix}.md" ]; then
+                  git rm -q --ignore-unmatch -f ${prefix}.md
+                  changed=1
+                fi
+
+                if [ -d /.terraform ]; then
+                  git rm -r --ignore-unmatch -f .terraform
+                  changed=1
+                fi
+
+                if [ 1 == $changed ]; then
+                  git config --global user.email "$(Build.RequestedForEmail)"
+                  git config --global user.name "$(Build.RequestedFor)"
+                  git commit -m "Workload zone $(workload_zone_folder) removal.[skip ci]"
+                  if git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set-upstream origin "$(Build.SourceBranchName)" --force; then
+                    echo "##vso[task.logissue type=warning]Removal of $(workload_zone_folder) updated in $(Build.SourceBranchName)"
+                  else
+                    echo "##vso[task.logissue type=error]Failed to push changes to $(Build.SourceBranchName)"
+                  fi
+                fi
+
+                echo -e "$green--- Deleting variables ---$reset"
+                if [ -n "${VARIABLE_GROUP_ID}" ]; then
+                  echo "Deleting variables"
+
+                  az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "${prefix}Workload_Key_Vault.value")
+                  if [ -n "${az_var}" ]; then
+                    az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name "${prefix}Workload_Key_Vault" --yes --only-show-errors
                   fi
 
-                  if [ -f  "${workload_environment_file_name}.md" ]; then
-                      git rm -q  --ignore-unmatch -f ${workload_environment_file_name}.md
-                      changed=1
+                  az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "${prefix}Workload_Zone_State_FileName.value")
+                  if [ -n "${az_var}" ]; then
+                    az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name "${prefix}Workload_Zone_State_FileName" --yes --only-show-errors
                   fi
 
-                  if [ -d $(Deployment_Configuration_Path)/LANDSCAPE/$(workload_zone_folder)/.terraform ]; then
-                      git rm -r  --ignore-unmatch -f $(Deployment_Configuration_Path)/LANDSCAPE/$(workload_zone_folder)/.terraform
-                      changed=1
+                  az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "${prefix}Workload_Secret_Prefix.value" --output table)
+                  if [ -n "${az_var}" ]; then
+                    az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name "${prefix}Workload_Secret_Prefix" --yes --only-show-errors
                   fi
 
-                  if [ 1 == $changed ] ; then
-                      git config --global user.email "$(Build.RequestedForEmail)"
-                      git config --global user.name "$(Build.RequestedFor)"
-                      git commit -m "Workload zone ${workload_zone_folder} removal.[skip ci]"
-                      git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set-upstream origin $(Build.SourceBranchName)
-                  fi
-
-                  prefix="${ENVIRONMENT}${LOCATION_CODE}${NETWORK}"
-
-                  echo -e "$green--- Deleting variables ---$reset"
-                  if [ -n "${VARIABLE_GROUP_ID}" ]; then
-                      echo "Deleting variables"
-
-                      az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "${prefix}Workload_Key_Vault.value")
-                      if [ -n "${az_var}" ]; then
-                          az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name "${prefix}Workload_Key_Vault"           --yes --only-show-errors
-                      fi
-
-                      az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "${prefix}Workload_Zone_State_FileName.value")
-                      if [ -n "${az_var}" ]; then
-                          az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name "${prefix}Workload_Zone_State_FileName" --yes --only-show-errors
-                      fi
-
-                      az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "${prefix}Workload_Secret_Prefix.value --output table)
-                      if [ -n "${az_var}" ]; then
-                          az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name "${prefix}Workload_Secret_Prefix" --yes --only-show-errors
-                      fi
-
-                  fi
+                fi
               fi
 
               exit $return_code
-            displayName: Remove SAP workload_zone
+
+            displayName:               Remove SAP workload_zone
             env:
-              SYSTEM_ACCESSTOKEN: $(System.AccessToken)
-              WL_ARM_SUBSCRIPTION_ID: $(WL_ARM_SUBSCRIPTION_ID)
-              WL_ARM_CLIENT_ID: $(WL_ARM_CLIENT_ID)
-              WL_ARM_CLIENT_SECRET: $(WL_ARM_CLIENT_SECRET)
-              WL_ARM_TENANT_ID: $(WL_ARM_TENANT_ID)
-              AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
+              SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
+              WL_ARM_SUBSCRIPTION_ID:  $(WL_ARM_SUBSCRIPTION_ID)
+              WL_ARM_CLIENT_ID:        $(WL_ARM_CLIENT_ID)
+              WL_ARM_CLIENT_SECRET:    $(WL_ARM_CLIENT_SECRET)
+              WL_ARM_TENANT_ID:        $(WL_ARM_TENANT_ID)
+              AZURE_DEVOPS_EXT_PAT:    $(System.AccessToken)
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
-              CONFIG_REPO_PATH: ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
-              LOGON_USING_SPN: $(Logon_Using_SPN)
-              USE_MSI: $(Use_MSI)
+              CONFIG_REPO_PATH:        ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+              USE_MSI:                 $(Use_MSI)
 
             failOnStderr: false
