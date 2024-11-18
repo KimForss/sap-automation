@@ -877,6 +877,9 @@ if ! terraform -chdir="$terraform_module_directory" plan -detailed-exitcode $all
     echo "#                                                                                       #"
     echo "#########################################################################################"
     echo ""
+    if [ -f plan_output.log ]; then
+      rm plan_output.log
+    fi
     exit $return_value
   fi
 else
@@ -884,6 +887,9 @@ else
 fi
 
 if [ $check_output == 0 ]; then
+  if [ -f plan_output.log ]; then
+    rm plan_output.log
+  fi
   return_code=2
 fi
 
@@ -900,6 +906,9 @@ if [ "${TEST_ONLY}" == "True" ]; then
   echo "#                                                                                       #"
   echo "#########################################################################################"
   echo ""
+  if [ -f plan_output.log ]; then
+    rm plan_output.log
+  fi
   exit 0
 fi
 
@@ -915,52 +924,49 @@ if [ -f plan_output.log ]; then
 
     return_value=1
   fi
+  if [ 1 != $return_value ]; then
+    test=$(grep -m1 "replaced" plan_output.log | grep kv_user || true)
+    if [ -n "${test}" ]; then
+      echo ""
+      echo "#########################################################################################"
+      echo "#                                                                                       #"
+      echo -e "#                              $boldred !!! Risk for Data loss !!! $resetformatting                             #"
+      echo "#                                                                                       #"
+      echo "#        Please inspect the output of Terraform plan carefully before proceeding        #"
+      echo "#                                                                                       #"
+      echo "#########################################################################################"
+      echo ""
+      if [ 1 == $called_from_ado ]; then
+        unset TF_DATA_DIR
+        exit 11
+      fi
+      read -n 1 -r -s -p $'Press enter to continue...\n'
+
+      cat plan_output.log
+      read -p -r "Do you want to continue with the deployment Y/N?" ans
+      answer=${ans^^}
+      if [ "${answer}" == 'Y' ]; then
+        apply_needed=1
+      else
+        unset TF_DATA_DIR
+
+        exit 0
+      fi
+    else
+      apply_needed=1
+    fi
+  fi
 fi
 
 if [ 0 == $return_value ]; then
-  if [ -f plan_output.log ]; then
-    rm plan_output.log
-  fi
+  if [ $check_output == 1 ]; then
 
-  workloadkeyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw workloadzone_kv_name | tr -d \")
-  if valid_kv_name "$workloadkeyvault"; then
-    save_config_var "workloadkeyvault" "${workload_config_information}"
-  fi
-  save_config_vars "landscape_tfstate_key" "${workload_config_information}"
-
-  apply_needed=1
-fi
-
-if [ 1 != $return_value ]; then
-  test=$(grep -m1 "replaced" kv_user plan_output.log || true)
-  if [ -n "${test}" ]; then
-    echo ""
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo -e "#                              $boldred !!! Risk for Data loss !!! $resetformatting                             #"
-    echo "#                                                                                       #"
-    echo "#        Please inspect the output of Terraform plan carefully before proceeding        #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    echo ""
-    if [ 1 == $called_from_ado ]; then
-      unset TF_DATA_DIR
-      exit 11
+    workloadkeyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw workloadzone_kv_name | tr -d \")
+    if valid_kv_name "$workloadkeyvault"; then
+      save_config_var "workloadkeyvault" "${workload_config_information}"
     fi
-    read -n 1 -r -s -p $'Press enter to continue...\n'
+    save_config_vars "landscape_tfstate_key" "${workload_config_information}"
 
-    cat plan_output.log
-    read -p -r "Do you want to continue with the deployment Y/N?" ans
-    answer=${ans^^}
-    if [ "${answer}" == 'Y' ]; then
-      apply_needed=1
-    else
-      unset TF_DATA_DIR
-
-      exit 0
-    fi
-  else
-    apply_needed=1
   fi
 fi
 
