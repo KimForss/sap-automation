@@ -497,6 +497,8 @@ stages:
 
               fi
 
+              prefix="${ENVIRONMENT}${LOCATION_CODE}${NETWORK}"
+
               echo -e "$green--- Adding variables to the variable group" "$(variable_group)" "---$reset"
               if [ -n "${VARIABLE_GROUP_ID}" ]; then
 
@@ -532,8 +534,6 @@ stages:
 
               echo -e "$green--- Pull latest ---$reset"
               cd "$CONFIG_REPO_PATH" || exit
-
-              prefix="${ENVIRONMENT}${LOCATION_CODE}${NETWORK}"
 
               added=0
               if [ -f ".sap_deployment_automation/${prefix}" ]; then
