@@ -599,7 +599,7 @@ else
     echo "#########################################################################################"
     echo ""
 
-    check_output=1
+    check_output=0
     if ! terraform -chdir="${terraform_module_directory}" init -upgrade=true -reconfigure \
       --backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
       --backend-config "resource_group_name=${REMOTE_STATE_RG}" \
@@ -610,6 +610,7 @@ else
       echo "Error when initializing Terraform"
     else
       return_value=$?
+      check_output=1
     fi
 
   fi
