@@ -526,7 +526,9 @@ if [ -f terraform.tfstate ]; then
         echo -e "$cyan Reinitializing deployer in case of on a new deployer $resetformatting"
 
         terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/"${deployment_system}"/
-        terraform -chdir="${terraform_module_directory}" init -backend-config "path=${param_dirname}/terraform.tfstate" -reconfigure
+        if ! terraform -chdir="${terraform_module_directory}" init -backend-config "path=${param_dirname}/terraform.tfstate" -reconfigure; then
+          echo "Error when initializing Terraform"
+        fi
         echo ""
         key_vault_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_arm_id | tr -d \")
 
@@ -540,7 +542,12 @@ if [ -f terraform.tfstate ]; then
         echo "Reinitializing library in case of on a new deployer"
         terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/"${deployment_system}"/
 
-        terraform -chdir="${terraform_module_directory}" init -backend-config "path=${param_dirname}/terraform.tfstate" -reconfigure
+        if ! terraform -chdir="${terraform_module_directory}" init -backend-config "path=${param_dirname}/terraform.tfstate" -reconfigure; then
+          return_value=$?
+          echo "Error when initializing Terraform"
+        else
+          return_value=$?
+        fi
       fi
     fi
   fi
@@ -554,26 +561,34 @@ if [ ! -d ./.terraform/ ]; then
   echo "New deployment"
   deployment_parameter=" -var deployment=new "
 
-  terraform -chdir="${terraform_module_directory}" init -upgrade=true \
+  if ! terraform -chdir="${terraform_module_directory}" init -upgrade=true \
     --backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
     --backend-config "resource_group_name=${REMOTE_STATE_RG}" \
     --backend-config "storage_account_name=${REMOTE_STATE_SA}" \
     --backend-config "container_name=tfstate" \
-    --backend-config "key=${key}.terraform.tfstate"
-  return_value=$?
+    --backend-config "key=${key}.terraform.tfstate"; then
+    return_value=$?
+    echo "Error when initializing Terraform"
+  else
+    return_value=$?
+  fi
 
 else
   new_deployment=1
 
   temp=$(grep "\"type\": \"local\"" .terraform/terraform.tfstate || true)
   if [ -n "${temp}" ]; then
-    terraform -chdir="${terraform_module_directory}" init -upgrade=true -force-copy \
+    if ! terraform -chdir="${terraform_module_directory}" init -upgrade=true -force-copy \
       --backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
       --backend-config "resource_group_name=${REMOTE_STATE_RG}" \
       --backend-config "storage_account_name=${REMOTE_STATE_SA}" \
       --backend-config "container_name=tfstate" \
-      --backend-config "key=${key}.terraform.tfstate"
-    return_value=$?
+      --backend-config "key=${key}.terraform.tfstate"; then
+      return_value=$?
+      echo "Error when initializing Terraform"
+    else
+      return_value=$?
+    fi
 
   else
     echo ""
@@ -585,13 +600,17 @@ else
     echo ""
 
     check_output=1
-    terraform -chdir="${terraform_module_directory}" init -upgrade=true -reconfigure \
+    if ! terraform -chdir="${terraform_module_directory}" init -upgrade=true -reconfigure \
       --backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
       --backend-config "resource_group_name=${REMOTE_STATE_RG}" \
       --backend-config "storage_account_name=${REMOTE_STATE_SA}" \
       --backend-config "container_name=tfstate" \
-      --backend-config "key=${key}.terraform.tfstate"
-    return_value=$?
+      --backend-config "key=${key}.terraform.tfstate"; then
+      return_value=$?
+      echo "Error when initializing Terraform"
+    else
+      return_value=$?
+    fi
 
   fi
 fi
@@ -731,7 +750,6 @@ if [ 0 != $new_deployment ]; then
             fi
           fi
         fi
-
       fi
 
       if [ "${deployment_system}" == sap_system ]; then
