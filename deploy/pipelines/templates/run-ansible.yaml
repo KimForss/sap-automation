@@ -21,12 +21,17 @@ steps:
     #!/bin/bash
     # Exit immediately if a command exits with a non-zero status.
     # Treat unset variables as an error when substituting.
-
+    if [ "$debug" = True ]; then
+      echo -e "$cyanEnabling debug mode$resetformatting"
+      set -x
+      set -o errexit
+    fi
     #Stage could be executed on a different machine by default, need to login again for ansible
     #If the deployer_file exists we run on a deployer configured by the framework instead of a azdo hosted one
 
+    control_plane_subscription=$(Terraform_Remote_Storage_Subscription)
+    export control_plane_subscription
 
-    export control_plane_subscription=$(Terraform_Remote_Storage_Subscription)
     deployer_file=/etc/profile.d/deploy_server.sh
 
     if [ $USE_MSI == "true" ]; then
@@ -48,14 +53,13 @@ steps:
 
     if [ ! -f $PARAMETERS_FOLDER/sshkey ]; then
       echo "##[section]Retrieving sshkey..."
-      az keyvault secret show --name "$SSH_KEY_NAME" --vault-name "$VAULT_NAME" --query value -o tsv > "$PARAMETERS_FOLDER"/sshkey
+      az keyvault secret show --name "$SSH_KEY_NAME" --vault-name "$VAULT_NAME" --query value -o tsv > "$PARAMETERS_FOLDER/sshkey"
       sudo chmod 600 "$PARAMETERS_FOLDER"/sshkey
     fi
 
     password_secret=$(az keyvault secret show --name "$PASSWORD_KEY_NAME" --vault-name "$VAULT_NAME" --query value -o tsv)
 
     echo "Extra parameters passed: " "$EXTRA_PARAMS"
-
 
     base=$(basename "$ANSIBLE_FILE_PATH")
 
