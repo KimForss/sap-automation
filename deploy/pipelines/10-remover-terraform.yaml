@@ -367,18 +367,18 @@ stages:
                       changed=1
                   fi
 
-                  if [ -f "$SID_hosts.yaml" ] ; then
-                      git rm  --ignore-unmatch -q    "$SID_hosts.yaml"
+                  if [ -f "${SID}_hosts.yaml" ] ; then
+                      git rm  --ignore-unmatch -q    "${SID}_hosts.yaml"
                       changed=1
                   fi
 
-                  if [ -f "$SID.md" ] ; then
-                      git rm  --ignore-unmatch -q    "$SID.md"
+                  if [ -f "${SID}.md" ] ; then
+                      git rm  --ignore-unmatch -q    "${SID}.md"
                       changed=1
                   fi
 
-                  if [ -f "$SID_virtual_machines.json" ] ; then
-                      git rm  --ignore-unmatch -q    "$SID_virtual_machines.json"
+                  if [ -f "${SID}_virtual_machines.json" ] ; then
+                      git rm  --ignore-unmatch -q    "${SID}_virtual_machines.json"
                       changed=1
                   fi
 
