@@ -807,20 +807,6 @@ fi
 
 echo "Terraform Plan return code:          $return_value"
 
-if [ 1 == $return_value ]; then
-  echo ""
-  echo "#########################################################################################"
-  echo "#                                                                                       #"
-  echo -e "#                             $boldreduscore Errors during the plan phase $resetformatting                              #"
-  echo "#                                                                                       #"
-  echo "#########################################################################################"
-  echo ""
-
-  unset TF_DATA_DIR
-  rm plan_output.log
-  exit $return_value
-fi
-
 if [ 0 == $return_value ]; then
   echo ""
   echo "#########################################################################################"
