@@ -992,30 +992,42 @@ if [ 1 == $ok_to_proceed ]; then
 
     # Using if so that no zero return codes don't fail -o errexit
     # shellcheck disable=SC2086
-    if terraform -chdir="${terraform_module_directory}" apply "${approve}" -parallelism="${parallelism}" -no-color -json $allParams -input=false | tee -a apply_output.json; then
-      return_value=$?
+    if ! terraform -chdir="${terraform_module_directory}" apply "${approve}" -parallelism="${parallelism}" -no-color -json $allParams -input=false | tee -a apply_output.json; then
+      if [ $return_value -eq 1 ]; then
+        echo "Errors when running Terraform apply"
+      else
+        # return code 2 is ok
+        return_value=0
+      fi
     else
       return_value=$?
-      echo "Errors when running Terraform apply"
-
     fi
     if [ -n "${approve}" ]; then
       # Using if so that no zero return codes don't fail -o errexit
       # shellcheck disable=SC2086
-      if terraform -chdir="${terraform_module_directory}" apply "${approve}" -parallelism="${parallelism}" -no-color -json $allParams -input=false | tee -a apply_output.json; then
+      if ! terraform -chdir="${terraform_module_directory}" apply "${approve}" -parallelism="${parallelism}" -no-color -json $allParams -input=false | tee -a apply_output.json; then
         return_value=$?
+        if [ $return_value -eq 1 ]; then
+          echo "Errors when running Terraform apply"
+        else
+          # return code 2 is ok
+          return_value=0
+        fi
       else
         return_value=$?
-        echo "Errors when running Terraform apply"
       fi
     else
       # Using if so that no zero return codes don't fail -o errexit
       # shellcheck disable=SC2086
-      if terraform -chdir="${terraform_module_directory}" apply "${approve}" -parallelism="${parallelism}" $allParams -input=false; then
-        return_value=$?
+      if ! terraform -chdir="${terraform_module_directory}" apply "${approve}" -parallelism="${parallelism}" $allParams -input=false; then
+        if [ $return_value -eq 1 ]; then
+          echo "Errors when running Terraform apply"
+        else
+          # return code 2 is ok
+          return_value=0
+        fi
       else
         return_value=$?
-        echo "Errors when running Terraform apply"
       fi
     fi
 
@@ -1067,12 +1079,16 @@ if [ -f apply_output.json ]; then
 
     # Using if so that no zero return codes don't fail -o errexit
     # shellcheck disable=SC2086
-    if terraform -chdir="${terraform_module_directory}" apply "${approve}" -parallelism="${parallelism}" -no-color -var-file="${var_file}" \
+    if ! terraform -chdir="${terraform_module_directory}" apply "${approve}" -parallelism="${parallelism}" -no-color -var-file="${var_file}" \
       "$tfstate_parameter" "$deployer_tfstate_key_parameter" -json -input=false | tee -a apply_output.json; then
-      return_value=$?
+      if [ $return_value -eq 1 ]; then
+        echo "Errors when running Terraform apply"
+      else
+        # return code 2 is ok
+        return_value=0
+      fi
     else
       return_value=$?
-      echo "Errors when running Terraform apply"
     fi
 
   fi
@@ -1108,12 +1124,16 @@ if [ -f apply_output.json ]; then
     echo ""
     # Using if so that no zero return codes don't fail -o errexit
     # shellcheck disable=SC2086
-    if terraform -chdir="${terraform_module_directory}" apply "${approve}" -parallelism="${parallelism}" -no-color -var-file="${var_file}" \
+    if ! terraform -chdir="${terraform_module_directory}" apply "${approve}" -parallelism="${parallelism}" -no-color -var-file="${var_file}" \
       "$tfstate_parameter" "$deployer_tfstate_key_parameter" -json -input=false | tee -a apply_output.json; then
-      return_value=$?
+      if [ $return_value -eq 1 ]; then
+        echo "Errors when running Terraform apply"
+      else
+        # return code 2 is ok
+        return_value=0
+      fi
     else
       return_value=$?
-      echo "Errors when running Terraform apply"
     fi
 
   fi
@@ -1151,12 +1171,16 @@ if [ -f apply_output.json ]; then
       echo ""
       # Using if so that no zero return codes don't fail -o errexit
       # shellcheck disable=SC2086
-      if terraform -chdir="${terraform_module_directory}" apply "${approve}" -parallelism="${parallelism}" -no-color -var-file="${var_file}" \
+      if ! terraform -chdir="${terraform_module_directory}" apply "${approve}" -parallelism="${parallelism}" -no-color -var-file="${var_file}" \
         "$tfstate_parameter" "$deployer_tfstate_key_parameter" -json -input=false | tee -a apply_output.json; then
-        return_value=$?
+        if [ $return_value -eq 1 ]; then
+          echo "Errors when running Terraform apply"
+        else
+          # return code 2 is ok
+          return_value=0
+        fi
       else
         return_value=$?
-        echo "Errors when running Terraform apply"
       fi
     fi
 
