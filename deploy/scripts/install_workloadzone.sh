@@ -1256,11 +1256,6 @@ echo "#                                                                         
 echo "#########################################################################################"
 echo ""
 
-if [ -n "${spn_secret}" ]; then
-  az logout
-  az login --service-principal --username "${client_id}" --password="${spn_secret}" --tenant "${tenant_id}" --output none
-fi
-
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 
@@ -1269,7 +1264,7 @@ az deployment group create --resource-group "${rg_name}" --name "SAP-WORKLOAD-ZO
   --template-file "${script_directory}/templates/empty-deployment.json" --output none
 
 now=$(date)
-cat <<EOF >"${workload_config_information}".md
+cat <<EOF >"${workload_zone_prefix}".md
 # Workload Zone Deployment #
 
 Date : "${now}"

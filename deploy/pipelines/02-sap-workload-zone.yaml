@@ -525,8 +525,8 @@ stages:
 
               cd "$CONFIG_REPO_PATH/LANDSCAPE/$(workload_zone_folder)" || exit
 
-              if [ -f "${prefix}.md" ]; then
-                  git add "${prefix}.md"
+              if [ -f "${workload_prefix}.md" ]; then
+                  git add "${workload_prefix}.md"
                   added=1
               fi
 
@@ -541,8 +541,8 @@ stages:
                   git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set-upstream origin "$(Build.SourceBranchName)"
               fi
 
-              if [ -f "${prefix}.md" ]; then
-                  echo "##vso[task.uploadsummary]/${prefix}.md"
+              if [ -f "${workload_prefix}.md" ]; then
+                  echo "##vso[task.uploadsummary]/${workload_prefix}.md"
               fi
               echo -e "$green--- Adding variables to the variable group" "$(variable_group)" "---$reset"
               if [ -n "${VARIABLE_GROUP_ID}" ]; then
