@@ -99,6 +99,9 @@ stages:
                 file_deployer_tfstate_key=$(deployerfolder).tfstate
                 deployer_tfstate_key="$(deployerfolder).terraform.tfstate"
 
+                cd "$CONFIG_REPO_PATH" || exit
+                mkdir -p .sap_deployment_automation
+
                 # shellcheck disable=SC2005
                 ENVIRONMENT=$(echo "$(deployerfolder)" | awk -F'-' '{print $1}' | xargs)
                 # shellcheck disable=SC2005
@@ -116,7 +119,6 @@ stages:
                 fi
 
                 echo -e "$green--- Checkout $(Build.SourceBranchName) ---$reset"
-                cd "$CONFIG_REPO_PATH" || exit
                 git checkout -q "$(Build.SourceBranchName)"
                 echo -e "$green--- Configure devops CLI extension ---$reset"
                 az config set extension.use_dynamic_install=yes_without_prompt --only-show-errors
@@ -137,6 +139,7 @@ stages:
 
                 echo "Environment:                         $ENVIRONMENT"
                 echo "Location:                            $LOCATION"
+                echo "Configuration file:                  $deployer_environment_file_name"
 
                 echo ""
                 echo "Agent:                               $(this_agent)"
@@ -155,8 +158,6 @@ stages:
                 else
                   echo "Deploy Web App:                      false"
                 fi
-
-                deployer_environment_file_name=$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}$LOCATION
 
                 az devops configure --defaults organization="$(System.CollectionUri)" project='$(System.TeamProject)' --output none --only-show-errors
 
@@ -268,10 +269,6 @@ stages:
                 TF_VAR_use_webapp=$(use_webapp)
                 export TF_VAR_use_webapp
 
-                echo -e "$green--- Update .sap_deployment_automation/config as SAP_AUTOMATION_REPO_PATH can change on devops agent ---$reset"
-                cd "$CONFIG_REPO_PATH"
-                mkdir -p .sap_deployment_automation
-
                 if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip" ]; then
                   # shellcheck disable=SC2001
                   # shellcheck disable=SC2005
@@ -303,20 +300,20 @@ stages:
                 set -eu
 
                 if [ -f "${deployer_environment_file_name}" ]; then
-                  file_deployer_tfstate_key=$(grep -m1 "^deployer_tfstate_key" "${deployer_environment_file_name}" | grep  | awk -F'=' '{print $2}' | xargs)
+                  file_deployer_tfstate_key=$(grep -m1 "^deployer_tfstate_key" "${deployer_environment_file_name}" | grep  | awk -F'=' '{print $2}' | xargs || true)
                   if [ -z "$file_deployer_tfstate_key" ]; then
                     deployer_tfstate_key=$file_deployer_tfstate_key
                     export deployer_tfstate_key
                   fi
                   echo "Deployer State File                   $deployer_tfstate_key"
 
-                  file_key_vault=$(grep -m1 "^keyvault=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs)
+                  file_key_vault=$(grep -m1 "^keyvault=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
                   echo "Deployer Key Vault:                   ${file_key_vault}"
 
-                  file_REMOTE_STATE_SA=$(grep -m1 "^REMOTE_STATE_SA" "${deployer_environment_file_name}" | grep  | awk -F'=' '{print $2}' | xargs)
+                  file_REMOTE_STATE_SA=$(grep -m1 "^REMOTE_STATE_SA" "${deployer_environment_file_name}" | grep  | awk -F'=' '{print $2}' | xargs || true)
                   echo "Terraform Remote State Account:       ${file_REMOTE_STATE_SA}"
 
-                  file_REMOTE_STATE_RG=$(grep -m1 "^REMOTE_STATE_RG" "${deployer_environment_file_name}" | grep  | awk -F'=' '{print $2}' | xargs)
+                  file_REMOTE_STATE_RG=$(grep -m1 "^REMOTE_STATE_RG" "${deployer_environment_file_name}" | grep  | awk -F'=' '{print $2}' | xargs || true)
                   echo "Terraform Remote State RG Name:       ${file_REMOTE_STATE_RG}"
 
                 echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
