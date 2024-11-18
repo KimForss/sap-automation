@@ -1255,9 +1255,9 @@ if [ 0 == $return_value ]; then
   save_config_vars "landscape_tfstate_key" "${workload_config_information}"
   workloadkeyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw workloadzone_kv_name | tr -d \")
 
-  temp=$(echo "${workloadkeyvault}" | grep "Warning")
+  temp=$(echo "${workloadkeyvault}" | grep "Warning" || true)
   if [ -z "${temp}" ]; then
-    temp=$(echo "${workloadkeyvault}" | grep "Backend reinitialization required")
+    temp=$(echo "${workloadkeyvault}" | grep "Backend reinitialization required"  || true)
     if [ -z "${temp}" ]; then
 
       printf -v val %-.20s "$workloadkeyvault"
