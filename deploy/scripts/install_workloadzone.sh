@@ -708,7 +708,7 @@ if [ 1 == $check_output ]; then
   outputs=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw)
   if echo "${outputs}" | grep "No outputs"; then
     check_output=0
-    apply_needed=true
+    apply_needed=1
     new_deployment=true
     echo "#########################################################################################"
     echo "#                                                                                       #"
@@ -751,7 +751,7 @@ if [ 1 == $check_output ]; then
       read -p -r "Do you want to continue Y/N?" ans
       answer=${ans^^}
       if [ "$answer" == 'Y' ]; then
-        apply_needed=true
+        apply_needed=1
       else
         unset TF_DATA_DIR
         exit 1
@@ -931,7 +931,7 @@ if [ 0 == $return_value ]; then
   apply_needed=1
 fi
 
-if [ 2 == $return_value ]; then
+if [ 1 != $return_value ]; then
   test=$(grep -m1 "replaced" kv_user plan_output.log || true)
   if [ -n "${test}" ]; then
     echo ""
@@ -964,7 +964,7 @@ if [ 2 == $return_value ]; then
   fi
 fi
 
-if [ 0 == $apply_needed ]; then
+if [ 1 == $apply_needed ]; then
   echo ""
   echo "#########################################################################################"
   echo "#                                                                                       #"
