@@ -1300,7 +1300,7 @@ if [ 1 == $ok_to_proceed ]; then
           echo ""
           # shellcheck disable=SC2086
           if ! terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" \
-            $allParameters -no-color -compact-warnings -json; then
+            $allParameters -no-color -compact-warnings -json -input=false; then
             return_value=$?
             echo "Errors when running Terraform apply"
           else
@@ -1393,7 +1393,7 @@ if [ -f apply_output.json ]; then
   rm apply_output.json
 fi
 
-if [ 0 != $return_value ]; then
+if [ 1 == $return_value ]; then
   echo ""
   echo "#########################################################################################"
   echo "#                                                                                       #"

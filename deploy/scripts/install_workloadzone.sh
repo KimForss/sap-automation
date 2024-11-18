@@ -661,7 +661,7 @@ if [ ! -d ./.terraform/ ]; then
     --backend-config "key=${key}.terraform.tfstate"
   return_value=$?
 else
-  temp=$(grep "\"type\": \"local\"" .terraform/terraform.tfstate)
+  temp=$(grep "\"type\": \"local\"" .terraform/terraform.tfstate || true)
   if [ -n "${temp}" ]; then
 
     terraform -chdir="${terraform_module_directory}" init -upgrade=true -force-copy \
@@ -992,7 +992,7 @@ if [ 1 == $ok_to_proceed ]; then
 
     # Using if so that no zero return codes don't fail -o errexit
     # shellcheck disable=SC2086
-    if terraform -chdir="${terraform_module_directory}" apply "${approve}" -parallelism="${parallelism}" -no-color -json $allParams  -input=false | tee -a apply_output.json; then
+    if terraform -chdir="${terraform_module_directory}" apply "${approve}" -parallelism="${parallelism}" -no-color -json $allParams -input=false | tee -a apply_output.json; then
       return_value=$?
     else
       return_value=$?
@@ -1002,7 +1002,7 @@ if [ 1 == $ok_to_proceed ]; then
     if [ -n "${approve}" ]; then
       # Using if so that no zero return codes don't fail -o errexit
       # shellcheck disable=SC2086
-      if terraform -chdir="${terraform_module_directory}" apply "${approve}" -parallelism="${parallelism}" -no-color -json $allParams  -input=false | tee -a apply_output.json; then
+      if terraform -chdir="${terraform_module_directory}" apply "${approve}" -parallelism="${parallelism}" -no-color -json $allParams -input=false | tee -a apply_output.json; then
         return_value=$?
       else
         return_value=$?
