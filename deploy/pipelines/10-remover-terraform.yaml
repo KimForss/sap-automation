@@ -693,7 +693,12 @@ stages:
                   changed=1
                 fi
 
-                if [ -d /.terraform ]; then
+                if [ -f .terraform/terraform.tfstate ]; then
+                  git rm -q -f --ignore-unmatch .terraform/terraform.tfstate
+                  changed=1
+                fi
+
+                if [ -d .terraform ]; then
                   git rm -r --ignore-unmatch -f .terraform
                   changed=1
                 fi
