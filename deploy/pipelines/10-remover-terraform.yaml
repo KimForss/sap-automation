@@ -702,6 +702,20 @@ stages:
                   git rm -r --ignore-unmatch -f .terraform
                   changed=1
                 fi
+                cd "${CONFIG_REPO_PATH}/" || exit
+
+                if [ -f ".sap_deployment_automation/${prefix}" ]; then
+                  git rm -q -f ".sap_deployment_automation/${prefix}"
+                  echo "Removed .sap_deployment_automation/${prefix}"
+                  changed=1
+                fi
+
+                if [ -f ".sap_deployment_automation/${prefix}.md" ]; then
+                  git rm -q -f ".sap_deployment_automation/${prefix}.md"
+                  echo "Removed .sap_deployment_automation/${prefix}.md"
+                  changed=1
+                fi
+
 
                 if [ 1 == $changed ]; then
                   git config --global user.email "$(Build.RequestedForEmail)"
