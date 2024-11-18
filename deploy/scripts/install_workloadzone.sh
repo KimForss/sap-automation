@@ -643,6 +643,7 @@ fi
 
 root_dirname=$(pwd)
 
+
 echo ""
 echo "Terraform details"
 echo "-------------------------------------------------------------------------"
@@ -652,15 +653,17 @@ echo "Resource Group:                      ${REMOTE_STATE_RG}"
 echo "State file:                          ${key}.terraform.tfstate"
 echo "Target subscription:                 ${ARM_SUBSCRIPTION_ID}"
 
-if [ ! -d ./.terraform/ ]; then
+if [ ! -d .terraform/ ]; then
   terraform -chdir="${terraform_module_directory}" init -upgrade=true \
     --backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
     --backend-config "resource_group_name=${REMOTE_STATE_RG}" \
     --backend-config "storage_account_name=${REMOTE_STATE_SA}" \
     --backend-config "container_name=tfstate" \
     --backend-config "key=${key}.terraform.tfstate"
+  check_output=0
   return_value=$?
 else
+  check_output=1
   temp=$(grep "\"type\": \"local\"" .terraform/terraform.tfstate || true)
   if [ -n "${temp}" ]; then
 
@@ -672,7 +675,6 @@ else
       --backend-config "key=${key}.terraform.tfstate"
     return_value=$?
   else
-    check_output=1
     terraform -chdir="${terraform_module_directory}" init -upgrade=true -reconfigure \
       --backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
       --backend-config "resource_group_name=${REMOTE_STATE_RG}" \
@@ -693,7 +695,7 @@ if [ 0 != $return_value ]; then
   exit $return_value
 fi
 
-check_output=0
+
 echo ""
 echo "#########################################################################################"
 echo "#                                                                                       #"
@@ -709,8 +711,10 @@ save_config_var "STATE_SUBSCRIPTION" "${workload_config_information}"
 save_config_var "tfstate_resource_id" "${workload_config_information}"
 
 if [ 1 == $check_output ]; then
+  $(terraform -chdir="${terraform_module_directory}" output)
   outputs=$(terraform -chdir="${terraform_module_directory}" output)
   if echo "${outputs}" | grep "No outputs"; then
+    check_output=0
     apply_needed=true
     new_deployment=true
     echo "#########################################################################################"
