@@ -520,9 +520,9 @@ else
     save_config_var "tenant_id" "${workload_config_information}"
 
     if [ -n "$spn_secret" ]; then
-      fixed_allParams=$(printf " --workload --environment %s --region %s --vault %s  --subscription %s --spn_secret ***** --keyvault_subscription %s --spn_id %s --tenant_id %s " "${environment}" "${region_code}" "${keyvault}" "${ARM_SUBSCRIPTION_ID}" "${STATE_SUBSCRIPTION}" "${client_id}" "${tenant_id}")
+      fixed_allParameters=$(printf " --workload --environment %s --region %s --vault %s  --subscription %s --spn_secret ***** --keyvault_subscription %s --spn_id %s --tenant_id %s " "${environment}" "${region_code}" "${keyvault}" "${ARM_SUBSCRIPTION_ID}" "${STATE_SUBSCRIPTION}" "${client_id}" "${tenant_id}")
 
-      echo "Calling set_secrets with:             ${fixed_allParams}"
+      echo "Calling set_secrets with:             ${fixed_allParameters}"
 
       "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/set_secrets.sh" --workload --environment "${environment}" --region "${region_code}" --vault "${keyvault}" --subscription "$ARM_SUBSCRIPTION_ID" --keyvault_subscription "${STATE_SUBSCRIPTION}" --spn_id "${client_id}" --tenant_id "${tenant_id}" --spn_secret "${spn_secret}"
 
@@ -536,9 +536,9 @@ else
       read -r -p "Do you want to specify the Workload SPN Details Y/N?" ans
       answer=${ans^^}
       if [ "${answer}" == 'Y' ]; then
-        allParams=$(printf " --workload --environment %s --region %s --vault %s --subscription %s  --spn_id %s " "${environment}" "${region_code}" "${keyvault}" "${STATE_SUBSCRIPTION}" "${client_id}")
+        allParameters=$(printf " --workload --environment %s --region %s --vault %s --subscription %s  --spn_id %s " "${environment}" "${region_code}" "${keyvault}" "${STATE_SUBSCRIPTION}" "${client_id}")
 
-        "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/set_secrets.sh ${allParams}"
+        "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/set_secrets.sh ${allParameters}"
         if [ $? -eq 255 ]; then
           exit $?
         fi
@@ -866,7 +866,7 @@ echo "#                                                                         
 echo "#########################################################################################"
 echo ""
 
-allParams=$(printf " -var-file=%s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${deployer_tfstate_key_parameter}")
+allParameters=$(printf " -var-file=%s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${deployer_tfstate_key_parameter}")
 
 # shellcheck disable=SC2086
 if ! terraform -chdir="$terraform_module_directory" plan -detailed-exitcode $allParameters -input=false | tee -a plan_output.log; then
@@ -992,7 +992,7 @@ if [ 1 == $apply_needed ]; then
     parallelism=$TF_PARALLELLISM
   fi
 
-  allParams=$(printf " -var-file=%s %s %s %s" "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${deployer_tfstate_key_parameter}")
+  allParameters=$(printf " -var-file=%s %s %s %s" "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${deployer_tfstate_key_parameter}")
 
   # shellcheck disable=SC2086
 
@@ -1000,7 +1000,7 @@ if [ 1 == $apply_needed ]; then
 
     # Using if so that no zero return codes don't fail -o errexit
     # shellcheck disable=SC2086
-    if ! terraform -chdir="${terraform_module_directory}" apply "${approve}" -parallelism="${parallelism}" -no-color -json $allParams -input=false | tee -a apply_output.json; then
+    if ! terraform -chdir="${terraform_module_directory}" apply "${approve}" -parallelism="${parallelism}" -no-color -json $allParameters -input=false | tee -a apply_output.json; then
       if [ $return_value -eq 1 ]; then
         echo "Errors when running Terraform apply"
       else
@@ -1013,7 +1013,7 @@ if [ 1 == $apply_needed ]; then
     if [ -n "${approve}" ]; then
       # Using if so that no zero return codes don't fail -o errexit
       # shellcheck disable=SC2086
-      if ! terraform -chdir="${terraform_module_directory}" apply "${approve}" -parallelism="${parallelism}" -no-color -json $allParams -input=false | tee -a apply_output.json; then
+      if ! terraform -chdir="${terraform_module_directory}" apply "${approve}" -parallelism="${parallelism}" -no-color -json $allParameters -input=false | tee -a apply_output.json; then
         return_value=$?
         if [ $return_value -eq 1 ]; then
           echo "Errors when running Terraform apply"
@@ -1027,7 +1027,7 @@ if [ 1 == $apply_needed ]; then
     else
       # Using if so that no zero return codes don't fail -o errexit
       # shellcheck disable=SC2086
-      if ! terraform -chdir="${terraform_module_directory}" apply "${approve}" -parallelism="${parallelism}" $allParams -input=false; then
+      if ! terraform -chdir="${terraform_module_directory}" apply "${approve}" -parallelism="${parallelism}" $allParameters -input=false; then
         if [ $return_value -eq 1 ]; then
           echo "Errors when running Terraform apply"
         else
