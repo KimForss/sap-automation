@@ -63,7 +63,7 @@ function showhelp {
 }
 
 #process inputs - may need to check the option i for auto approve as it is not used
-INPUT_ARGUMENTS=$(getopt -n remover -o p:o:t:s:ahi --longoptions type:,parameterfile:,storageaccountname:,state_subscription:,ado,auto-approve,help -- "$@")
+INPUT_ARGUMENTS=$(getopt -n remover -o p:o:t:s:d:l:ahi --longoptions type:,parameterfile:,storageaccountname:,state_subscription:,deployer_tfstate_key:,landscape_tfstate_key:,ado,auto-approve,help -- "$@")
 VALID_ARGUMENTS=$?
 
 if [ "$VALID_ARGUMENTS" != "0" ]; then
@@ -88,6 +88,14 @@ while :; do
     ;;
   -t | --type)
     deployment_system="$2"
+    shift 2
+    ;;
+  -d | --deployer_tfstate_key)
+    deployer_tfstate_key="$2"
+    shift 2
+    ;;
+  -l | --landscape_tfstate_key)
+    landscape_tfstate_key="$2"
     shift 2
     ;;
   -i | --auto-approve)
@@ -411,7 +419,7 @@ if [ "$resource_group_exist" ]; then
     echo -e "#$cyan processing $deployment_system removal as defined in $parameterfile_name $resetformatting"
     echo "Calling destroy with:          -var-file=${var_file} $approve $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter"
 
-    allParameters=$(printf " -var-file=%s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}"  )
+    allParameters=$(printf " -var-file=%s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}")
 
     if [ -n "${approve}" ]; then
       # shellcheck disable=SC2086

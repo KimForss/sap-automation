@@ -794,11 +794,15 @@ fi
 allParameters=$(printf " -var-file=%s %s %s %s %s %s %s %s" "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}" "${deployer_parameter}")
 
 # shellcheck disable=SC2086
-if terraform -chdir="$terraform_module_directory" plan -detailed-exitcode $allParameters -input=false | tee -a plan_output.log; then
-  return_value=$?
+if ! terraform -chdir="$terraform_module_directory" plan -detailed-exitcode $allParameters -input=false | tee -a plan_output.log; then
+  if [ $return_value -eq 1 ]; then
+    echo "Errors when running Terraform plan"
+  else
+    # return code 2 is ok
+    return_value=0
+  fi
 else
   return_value=$?
-  echo "Errors when running Terraform plan"
 fi
 
 echo "Terraform Plan return code:          $return_value"
