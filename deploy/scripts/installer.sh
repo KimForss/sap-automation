@@ -798,7 +798,7 @@ if terraform -chdir="$terraform_module_directory" plan -detailed-exitcode $allPa
   return_value=$?
 else
   return_value=$?
-  echo "Errors when running Terraform apply"
+  echo "Errors when running Terraform plan"
 fi
 
 echo "Terraform Plan return code:          $return_value"
@@ -811,7 +811,20 @@ if [ 1 == $return_value ]; then
   echo "#                                                                                       #"
   echo "#########################################################################################"
   echo ""
-  echo "Error when running Terraform plan" >"${system_config_information}".err
+
+  unset TF_DATA_DIR
+  rm plan_output.log
+  exit $return_value
+fi
+
+if [ 0 == $return_value ]; then
+  echo ""
+  echo "#########################################################################################"
+  echo "#                                                                                       #"
+  echo -e "#                                   $green No changes required $resetformatting                               #"
+  echo "#                                                                                       #"
+  echo "#########################################################################################"
+  echo ""
 
   unset TF_DATA_DIR
   rm plan_output.log
@@ -1248,14 +1261,26 @@ if [ 1 == $ok_to_proceed ]; then
     # shellcheck disable=SC2086
     if ! terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json -input=false $allParameters | tee -a apply_output.json; then
       return_value=$?
-      echo "Errors when running Terraform apply"
+      if [ $return_value -eq 1 ]; then
+        echo "Errors when running Terraform apply"
+      else
+        # return code 2 is ok
+        return_value=0
+      fi
+    else
+      return_value=0
     fi
 
   else
     # shellcheck disable=SC2086
     if ! terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -input=false $allParameters; then
       return_value=$?
-      echo "Errors when running Terraform apply"
+      if [ $return_value -eq 1 ]; then
+        echo "Errors when running Terraform apply"
+      else
+        # return code 2 is ok
+        return_value=0
+      fi
     fi
   fi
 
@@ -1302,7 +1327,12 @@ if [ 1 == $ok_to_proceed ]; then
           if ! terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" \
             $allParameters -no-color -compact-warnings -json -input=false; then
             return_value=$?
-            echo "Errors when running Terraform apply"
+            if [ $return_value -eq 1 ]; then
+              echo "Errors when running Terraform apply"
+            else
+              # return code 2 is ok
+              return_value=0
+            fi
           else
             return_value=$?
           fi
@@ -1339,9 +1369,18 @@ if [ 1 == $ok_to_proceed ]; then
           echo ""
           echo ""
           # shellcheck disable=SC2086
-          terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json \
-            $allParameters -no-color -compact-warnings -json | tee -a apply_output.json
-          return_value=$?
+          if terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json \
+            $allParameters -no-color -compact-warnings -json | tee -a apply_output.json; then
+            return_value=$?
+            if [ $return_value -eq 1 ]; then
+              echo "Errors when running Terraform apply"
+            else
+              # return code 2 is ok
+              return_value=0
+            fi
+          else
+            return_value=$?
+          fi
         fi
 
       fi
@@ -1365,8 +1404,6 @@ if [ 1 == $ok_to_proceed ]; then
                 roleAssignmentExists=$(echo "${report}" | grep -m1 "RoleAssignmentExists")
                 if [ -z "${roleAssignmentExists}" ]; then
                   echo "##vso[task.logissue type=error]${report}"
-                else
-                  return_value=2
                 fi
               fi
             else
