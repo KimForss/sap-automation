@@ -548,7 +548,7 @@ stages:
 
                   mv "${workload_prefix}.md" "${normalizedName}.md"
                   git add "${normalizedName}.md"
-                  echo "##vso[task.uploadsummary]${normalizedName}.md"
+                  echo "##vso[task.uploadsummary]./${normalizedName}.md"
                   added=1
               fi
 
