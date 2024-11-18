@@ -546,7 +546,7 @@ stages:
 
               set +o errexit
               if [ -f "${normalizedName}.md" ]; then
-                  echo "##vso[task.uploadsummary]${normalizedName}.md"
+                  echo "##vso[task.uploadsummary]$(realpath ${normalizedName}.md)"
               fi
               echo -e "$green--- Adding variables to the variable group" "$(variable_group)" "---$reset"
               if [ -n "${VARIABLE_GROUP_ID}" ]; then

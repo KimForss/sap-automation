@@ -356,7 +356,7 @@ stages:
               fi
 
               if [ -f "${SID}.md" ]; then
-                  echo "##vso[task.uploadsummary]${SID}.md"
+                  echo "##vso[task.uploadsummary]$(realpath ${SID}.md)"
               fi
 
               # file_name=${SID}_inventory.md
