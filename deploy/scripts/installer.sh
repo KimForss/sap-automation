@@ -811,23 +811,7 @@ fi
 
 echo "Terraform Plan return code:          $return_value"
 
-if [ 0 == $return_value ]; then
-  echo ""
-  echo "#########################################################################################"
-  echo "#                                                                                       #"
-  echo -e "#                                   $green No changes required $resetformatting                               #"
-  echo "#                                                                                       #"
-  echo "#########################################################################################"
-  echo ""
-
-  if [ -f apply_output.json ]; then
-    rm apply_output.json
-  fi
-  rm plan_output.log
-  apply_needed=0
-else
-  apply_needed=1
-fi
+apply_needed=1
 
 state_path="SYSTEM"
 if [ 1 != $return_value ]; then
