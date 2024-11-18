@@ -161,6 +161,9 @@ resource "local_file" "ansible_inventory_new_yml" {
                     site                = var.site_information
                     scale_out           = var.scale_out
 
+                    created_resource_group_name            = var.created_resource_group_name
+                    created_resource_group_subscription_id = var.created_resource_group_subscription_id
+
     }
   )
   filename             = format("%s/%s_hosts.yaml", path.cwd, var.sap_sid)

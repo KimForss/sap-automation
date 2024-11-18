@@ -318,6 +318,9 @@ module "output_files" {
   save_naming_information                       = var.save_naming_information
   tfstate_resource_id                           = var.tfstate_resource_id
 
+  created_resource_group_name                   = module.common_infrastructure.created_resource_group_name
+  created_resource_group_subscription_id        = module.common_infrastructure.created_resource_group_subscription_id
+
   #########################################################################################
   #  Database tier                                                                        #
   #########################################################################################
