@@ -109,7 +109,7 @@ while :; do
     shift
     ;;
   -v | --ado)
-    ado_flag="--ado";
+    ado_flag="--ado"
     shift
     ;;
   -h | --help)
@@ -133,7 +133,7 @@ fi
 echo "ADO flag:                            ${ado_flag}"
 
 if [ "$ado_flag" == "--ado" ] || [ "$approve" == "--auto-approve" ]; then
-  autoApproveParameter=" --auto-approve";
+  autoApproveParameter=" --auto-approve"
   approve="--auto-approve"
 fi
 
@@ -160,7 +160,6 @@ if [ -n "$approve" ]; then
   autoApproveParameter=" --auto-approve"
   echo "Approve:                             Automatically"
 fi
-
 
 if [ ! -f "$deployer_parameter_file" ]; then
   control_plane_missing 'deployer parameter file'
@@ -285,8 +284,7 @@ if [ -n "${subscription}" ]; then
 
   if [ -n "${keyvault}" ]; then
 
-    kv_found=$(az keyvault list --subscription "${subscription}" --query [].name | grep "${keyvault}")
-
+    kv_found=$(az keyvault list --query "[?name=='$keyvault'].name | [0]" --subscription "${subscription}")
     if [ -z "${kv_found}" ]; then
       echo "#########################################################################################"
       echo "#                                                                                       #"
@@ -611,7 +609,7 @@ if [ 2 == $step ]; then
     az storage account network-rule add -g "${REMOTE_STATE_RG}" --account-name "${REMOTE_STATE_SA}" --ip-address "${this_ip}" --output none
   fi
 
-  TF_VAR_sa_connection_string=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw sa_connection_string  | tr -d \")
+  TF_VAR_sa_connection_string=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw sa_connection_string | tr -d \")
   export TF_VAR_sa_connection_string
 
   secretname=sa-connection-string
