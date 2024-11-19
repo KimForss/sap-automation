@@ -854,46 +854,49 @@ if [ 1 != $return_value ]; then
   if [ "${deployment_system}" == sap_deployer ]; then
     state_path="DEPLOYER"
 
-    deployer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output deployer_public_ip_address | tr -d \")
-    save_config_var "deployer_public_ip_address" "${system_config_information}"
+    if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
 
-    keyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name | tr -d \")
-    save_config_var "keyvault" "${system_config_information}"
-    if [ 1 == $called_from_ado ]; then
+      deployer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output deployer_public_ip_address | tr -d \")
+      save_config_var "deployer_public_ip_address" "${system_config_information}"
 
-      if [[ "${TF_VAR_use_webapp}" == "true" && $IS_PIPELINE_DEPLOYMENT = "true" ]]; then
-        webapp_url_base=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_url_base | tr -d \")
+      keyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name | tr -d \")
+      save_config_var "keyvault" "${system_config_information}"
+      if [ 1 == $called_from_ado ]; then
 
-        if [ -n "${webapp_url_base}" ]; then
-          az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "WEBAPP_URL_BASE.value")
-          if [ -z "${az_var}" ]; then
-            az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name WEBAPP_URL_BASE --value "$webapp_url_base" --output none --only-show-errors
-          else
-            az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name WEBAPP_URL_BASE --value "$webapp_url_base" --output none --only-show-errors
+        if [[ "${TF_VAR_use_webapp}" == "true" && $IS_PIPELINE_DEPLOYMENT = "true" ]]; then
+          webapp_url_base=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_url_base | tr -d \")
+
+          if [ -n "${webapp_url_base}" ]; then
+            az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "WEBAPP_URL_BASE.value")
+            if [ -z "${az_var}" ]; then
+              az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name WEBAPP_URL_BASE --value "$webapp_url_base" --output none --only-show-errors
+            else
+              az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name WEBAPP_URL_BASE --value "$webapp_url_base" --output none --only-show-errors
+            fi
           fi
-        fi
 
-        webapp_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_id | tr -d \")
-        if [ -n "${webapp_id}" ]; then
-          az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "WEBAPP_ID.value")
-          if [ -z "${az_var}" ]; then
-            az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name WEBAPP_ID --value "$webapp_id" --output none --only-show-errors
-          else
-            az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name WEBAPP_ID --value "$webapp_id" --output none --only-show-errors
+          webapp_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_id | tr -d \")
+          if [ -n "${webapp_id}" ]; then
+            az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "WEBAPP_ID.value")
+            if [ -z "${az_var}" ]; then
+              az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name WEBAPP_ID --value "$webapp_id" --output none --only-show-errors
+            else
+              az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name WEBAPP_ID --value "$webapp_id" --output none --only-show-errors
+            fi
           fi
-        fi
 
-        msi_object_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_user_assigned_identity | tr -d \")
+          msi_object_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_user_assigned_identity | tr -d \")
 
-        if [ -n "${msi_object_id}" ]; then
-          az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "MSI_ID.value")
-          if [ -z "${az_var}" ]; then
-            az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name MSI_ID --value "$msi_object_id" --output none --only-show-errors
-          else
-            az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name MSI_ID --value "$msi_object_id" --output none --only-show-errors
+          if [ -n "${msi_object_id}" ]; then
+            az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "MSI_ID.value")
+            if [ -z "${az_var}" ]; then
+              az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name MSI_ID --value "$msi_object_id" --output none --only-show-errors
+            else
+              az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name MSI_ID --value "$msi_object_id" --output none --only-show-errors
+            fi
           fi
-        fi
 
+        fi
       fi
 
     fi
@@ -910,7 +913,7 @@ if [ 1 != $return_value ]; then
 
   if [ "${deployment_system}" == sap_library ]; then
     state_path="LIBRARY"
-    if [ "$deployment_parameter" == " " ]; then # This is not a new deployment. Reusing variable previously declared in the shell script above.
+    if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
       tfstate_resource_id=$(terraform -chdir="${terraform_module_directory}" output tfstate_resource_id | tr -d \")
       STATE_SUBSCRIPTION=$(echo "$tfstate_resource_id" | cut -d/ -f3 | tr -d \" | xargs)
 
@@ -1085,7 +1088,6 @@ if [ $fatal_errors == 1 ]; then
   fi
 
 fi
-
 
 if [ 1 == $apply_needed ]; then
 
