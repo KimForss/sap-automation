@@ -204,6 +204,20 @@ init "${automation_config_directory}" "${generic_config_information}" "${deploye
 this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
 
 export TF_IN_AUTOMATION="true"
+# Terraform Plugins
+if checkIfCloudShell; then
+  mkdir -p "${HOME}/.terraform.d/plugin-cache"
+  export TF_PLUGIN_CACHE_DIR="${HOME}/.terraform.d/plugin-cache"
+else
+  if [ ! -d /opt/terraform/.terraform.d/plugin-cache ]; then
+    mkdir -p /opt/terraform/.terraform.d/plugin-cache
+    sudo chown -R "$USER" /opt/terraform
+  fi
+  export TF_PLUGIN_CACHE_DIR=/opt/terraform/.terraform.d/plugin-cache
+fi
+
+
+
 echo "Deployer environment:                  $environment"
 
 this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1

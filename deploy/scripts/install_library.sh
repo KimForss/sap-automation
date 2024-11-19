@@ -63,7 +63,7 @@ eval set -- "$INPUT_ARGUMENTS"
 while :; do
   case "$1" in
   -p | --parameterfile)
-    parameterfile="$2"
+    parameterfile_name="$2"
     shift 2
     ;;
   -d | --deployer_statefile_foldername)
@@ -93,8 +93,8 @@ if [ "$debug" = True ]; then
   set -o errexit
 fi
 
-if [ ! -f "${parameterfile}" ]; then
-  printf -v val %-40.40s "$parameterfile"
+if [ ! -f "${parameterfile_name}" ]; then
+  printf -v val %-40.40s "$parameterfile_name"
   echo ""
   echo "#########################################################################################"
   echo "#                                                                                       #"
@@ -104,7 +104,7 @@ if [ ! -f "${parameterfile}" ]; then
   exit
 fi
 
-param_dirname=$(dirname "${parameterfile}")
+param_dirname=$(dirname "${parameterfile_name}")
 
 if [ "$param_dirname" != '.' ]; then
   echo ""
@@ -116,22 +116,23 @@ if [ "$param_dirname" != '.' ]; then
   exit 3
 fi
 
-ext=$(echo "${parameterfile}" | cut -d. -f2)
-
-# Helper variables
-if [ "${ext}" == json ]; then
-  environment=$(jq --raw-output .infrastructure.environment "${parameterfile}")
-  region=$(jq --raw-output .infrastructure.region "${parameterfile}")
-  use_deployer=$(jq --raw-output .deployer.use "${parameterfile}")
-else
-
-  load_config_vars "${param_dirname}"/"${parameterfile}" "environment"
-  load_config_vars "${param_dirname}"/"${parameterfile}" "location"
-  region=$(echo "${location}" | xargs)
-
+# Check that parameter files have environment and location defined
+validate_key_parameters "$parameterfile_name_name"
+return_code=$?
+if [ 0 != $return_code ]; then
+  echo "Missing parameters in $parameterfile_name" >"${system_config_information}".err
+  exit $return_code
 fi
 
-key=$(echo "${parameterfile}" | cut -d. -f1)
+region=$(echo "${region}" | tr "[:upper:]" "[:lower:]")
+if valid_region_name "${region}"; then
+  # Convert the region to the correct code
+  get_region_code "${region}"
+else
+  echo "Invalid region: $region"
+  exit 2
+fi
+key=$(echo "${parameterfile_name}" | cut -d. -f1)
 
 if [ -z "${environment}" ]; then
   echo "#########################################################################################"
@@ -179,10 +180,8 @@ automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
 generic_config_information="${automation_config_directory}"config
 library_config_information="${automation_config_directory}${environment}${region_code}"
 
-#Plugins
-isInCloudShellCheck=$(checkIfCloudShell || true)
-
-if [ "$isInCloudShellCheck" == 1 ]; then
+# Terraform Plugins
+if checkIfCloudShell; then
   mkdir -p "${HOME}/.terraform.d/plugin-cache"
   export TF_PLUGIN_CACHE_DIR="${HOME}/.terraform.d/plugin-cache"
 else
@@ -193,12 +192,13 @@ else
   export TF_PLUGIN_CACHE_DIR=/opt/terraform/.terraform.d/plugin-cache
 fi
 
+
 param_dirname=$(pwd)
 
 init "${automation_config_directory}" "${generic_config_information}" "${library_config_information}"
 
 export TF_DATA_DIR="${param_dirname}"/.terraform
-var_file="${param_dirname}"/"${parameterfile}"
+var_file="${param_dirname}"/"${parameterfile_name}"
 
 if [ -z "${SAP_AUTOMATION_REPO_PATH}" ]; then
   echo ""
