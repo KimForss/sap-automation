@@ -125,8 +125,8 @@ done
 
 if [ "$debug" = True ]; then
   set -x
+  set -o errexit
 fi
-
 
 echo "ADO flag:                            ${ado_flag}"
 

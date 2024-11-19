@@ -107,6 +107,11 @@ if [ "$param_dirname" != '.' ]; then
   exit 3
 fi
 
+if [ "$debug" = True ]; then
+  set -x
+  set -o errexit
+fi
+
 # Check that parameter files have environment and location defined
 validate_key_parameters "$parameterfile"
 return_code=$?
