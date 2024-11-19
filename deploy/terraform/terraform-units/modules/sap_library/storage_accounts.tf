@@ -67,7 +67,7 @@ data "azurerm_storage_account" "storage_tfstate" {
 
 resource "azurerm_storage_account_network_rules" "storage_tfstate" {
   provider                             = azurerm.main
-  count                                = local.enable_firewall_for_keyvaults_and_storage && !local.sa_tfstate_exists ? 1 : 0
+  count                                = !var.bootstrap ? 0 : local.enable_firewall_for_keyvaults_and_storage && !local.sa_tfstate_exists ? 1 : 0
   storage_account_id                   = azurerm_storage_account.storage_tfstate[0].id
   default_action                       = var.bootstrap ? "Allow" : local.enable_firewall_for_keyvaults_and_storage ? "Deny" : "Allow"
 
@@ -307,7 +307,7 @@ resource "azurerm_storage_account" "storage_sapbits" {
 
 resource "azurerm_storage_account_network_rules" "storage_sapbits" {
   provider                             = azurerm.main
-  count                                = local.enable_firewall_for_keyvaults_and_storage && !local.sa_tfstate_exists ? 1 : 0
+  count                                = !var.bootstrap ? 0 : local.enable_firewall_for_keyvaults_and_storage && !local.sa_tfstate_exists ? 1 : 0
   storage_account_id                   = azurerm_storage_account.storage_sapbits[0].id
   default_action                       = var.bootstrap ? "Allow" : local.enable_firewall_for_keyvaults_and_storage ? "Deny" : "Allow"
   ip_rules                             = local.deployer_public_ip_address_used ? (
