@@ -125,9 +125,6 @@ automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
 generic_config_information="${automation_config_directory}"config
 deployer_config_information="${automation_config_directory}""${environment}""${region_code}"
 
-arm_config_stored=false
-config_stored=false
-
 param_dirname=$(pwd)
 
 init "${automation_config_directory}" "${generic_config_information}" "${deployer_config_information}"
@@ -150,9 +147,6 @@ export TF_DATA_DIR="${param_dirname}"/.terraform
 this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
 export TF_VAR_Agent_IP=$this_ip
 echo "Agent IP:                            $this_ip"
-
-ok_to_proceed=false
-new_deployment=false
 
 # Check that Terraform and Azure CLI is installed
 validate_dependencies

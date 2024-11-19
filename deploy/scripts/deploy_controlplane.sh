@@ -109,7 +109,7 @@ while :; do
     shift
     ;;
   -v | --ado)
-    ado_flag="--ado"; approveparam=" --auto-approve"; approve="--auto-approve"
+    ado_flag="--ado";
     shift
     ;;
   -h | --help)
@@ -129,6 +129,11 @@ fi
 
 
 echo "ADO flag:                            ${ado_flag}"
+
+if [ "$ado_flag" == "--ado" ] || [ "$approve" == "--auto-approve" ]; then
+  autoApproveParameter=" --auto-approve";
+  exit 2
+fi
 
 key=$(basename "${deployer_parameter_file}" | cut -d. -f1)
 deployer_tfstate_key="${key}.terraform.tfstate"
@@ -150,7 +155,7 @@ if [ ! -f /etc/profile.d/deploy_server.sh ]; then
 fi
 
 if [ -n "$approve" ]; then
-  approveparam=" --auto-approve"
+  autoApproveParameter=" --auto-approve"
   echo "Approve:                             Automatically"
 fi
 
@@ -347,7 +352,7 @@ if [ 0 == $step ]; then
   echo "#########################################################################################"
   echo ""
 
-  allParams=$(printf " --parameterfile %s %s" "${deployer_file_parametername}" "${approveparam}")
+  allParams=$(printf " --parameterfile %s %s" "${deployer_file_parametername}" "${autoApproveParameter}")
 
   cd "${deployer_dirname}" || exit
 
@@ -582,7 +587,7 @@ if [ 2 == $step ]; then
     rm -Rf .terraform terraform.tfstate*
   fi
 
-  allParams=$(printf " -p %s -d %s %s" "${library_file_parametername}" "${relative_path}" "${approveparam}")
+  allParams=$(printf " -p %s -d %s %s" "${library_file_parametername}" "${relative_path}" "${autoApproveParameter}")
   echo "Calling install_library.sh with:    $allParams"
 
   # shellcheck disable=SC2086
@@ -693,10 +698,10 @@ if [ 3 == $step ]; then
   allParams=$(printf "  ")
 
   echo "Calling installer.sh with:          --parameterfile ${deployer_file_parametername} \
-  --storageaccountname ${REMOTE_STATE_SA} --state_subscription ${STATE_SUBSCRIPTION} --type sap_deployer ${approveparam} ${ado_flag}"
+  --storageaccountname ${REMOTE_STATE_SA} --state_subscription ${STATE_SUBSCRIPTION} --type sap_deployer ${autoApproveParameter} ${ado_flag}"
 
   "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/installer.sh" --parameterfile "${deployer_file_parametername}" \
-    --storageaccountname "${REMOTE_STATE_SA}" --state_subscription "${STATE_SUBSCRIPTION}" --type sap_deployer "${approveparam}" "${ado_flag}"
+    --storageaccountname "${REMOTE_STATE_SA}" --state_subscription "${STATE_SUBSCRIPTION}" --type sap_deployer "${autoApproveParameter}" "${ado_flag}"
   return_code=$?
   if [ 0 != $return_code ]; then
     echo "Migrating the deployer state failed" >"${deployer_config_information}".err
@@ -727,7 +732,7 @@ if [ 4 == $step ]; then
   echo ""
 
   cd "${library_dirname}" || exit
-  allParams=$(printf " --parameterfile %s --storageaccountname %s --type sap_library --deployer_tfstate_key %s %s %s " "${library_file_parametername}" "${REMOTE_STATE_SA}" "${deployer_tfstate_key}" "${approveparam}" "${ado_flag}")
+  allParams=$(printf " --parameterfile %s --storageaccountname %s --type sap_library --deployer_tfstate_key %s %s %s " "${library_file_parametername}" "${REMOTE_STATE_SA}" "${deployer_tfstate_key}" "${autoApproveParameter}" "${ado_flag}")
 
   echo "Calling installer.sh with:          $allParams"
 
