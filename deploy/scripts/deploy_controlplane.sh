@@ -568,7 +568,12 @@ if [ 1 = "${only_deployer:-}" ]; then
   exit 0
 fi
 
-if [ 2 == $step ]; then
+echo "$step"
+echo "$step"
+echo "$step"
+echo "$step"
+
+if [ "2" == "$step" ]; then
 
   echo ""
   echo "#########################################################################################"
