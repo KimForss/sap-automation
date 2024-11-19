@@ -67,7 +67,6 @@ provider "azurerm"                     {
                                          subscription_id            = var.use_deployer ? (
                                                                         coalesce(
                                                                           var.subscription_id,
-                                                                          data.terraform_remote_state.deployer[0].outputs.created_resource_group_subscription_id,
                                                                           local.spn.subscription_id)
                                                                           ) : (
                                                                         null
