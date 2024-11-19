@@ -367,6 +367,8 @@ if [ 0 != $return_value ]; then
   exit $return_value
 fi
 
+terraform -chdir="${terraform_module_directory}" output
+
 keyvault=$(terraform -chdir="${terraform_module_directory}" output deployer_kv_user_name | tr -d \")
 temp=$(echo "${keyvault}" | grep "Warning")
 if [ -z "${temp}" ]; then

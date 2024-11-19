@@ -366,6 +366,7 @@ if [ 0 == $step ]; then
   # shellcheck disable=SC2086
   "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer.sh" $allParameters
   return_code=$?
+  echo "Return code from install_Deployer:   ${return_code}"
   if [ 0 != $return_code ]; then
     echo "Bootstrapping of the deployer failed" >"${deployer_config_information}".err
     exit 10
