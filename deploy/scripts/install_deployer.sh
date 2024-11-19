@@ -235,6 +235,8 @@ if [ -f terraform.tfvars ]; then
 fi
 
 allParameters=$(printf " -var-file=%s %s " "${var_file}" "${extra_vars}")
+allImportParameters=$(printf " -var-file=%s %s " "${var_file}" "${extra_vars}")
+
 
 echo "Parameters:                          $allParameters"
 terraform -chdir="${terraform_module_directory}" refresh $allParameters
@@ -289,10 +291,15 @@ parallelism=10
 if [[ -n "${TF_PARALLELLISM}" ]]; then
   parallelism=$TF_PARALLELLISM
 fi
+
+if [ -f apply_output.json ]; then
+  rm apply_output.json
+fi
+
 if [ -n "${approve}" ]; then
   # shellcheck disable=SC2086
   if ! terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" \
-    $allParameters -no-color -compact-warnings -json -input=false; then
+    $allParameters -no-color -compact-warnings -json -input=false  | tee -a apply_output.json; then
     return_value=$?
     if [ $return_value -eq 1 ]; then
       echo "Errors when running Terraform apply"
@@ -302,7 +309,6 @@ if [ -n "${approve}" ]; then
     fi
   fi
 else
-
   # shellcheck disable=SC2086
   if ! terraform -chdir="${terraform_module_directory}" apply "${approve}" -parallelism="${parallelism}" $allParameters; then
     return_value=$?
@@ -316,103 +322,25 @@ else
 fi
 return_value=$?
 
-rerun_apply=0
 if [ -f apply_output.json ]; then
-  errors_occurred=$(jq 'select(."@level" == "error") | length' apply_output.json)
-  # Check for resource that can be imported
-  existing=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary}  | select(.summary | startswith("A resource with the ID"))' apply_output.json)
-  if [[ -n ${existing} ]]; then
-
-    readarray -t existing_resources < <(echo ${existing} | jq -c '.')
-    for item in "${existing_resources[@]}"; do
-      moduleID=$(jq -c -r '.address ' <<<"$item")
-      resourceID=$(jq -c -r '.summary' <<<"$item" | awk -F'\"' '{print $2}')
-      # shellcheck disable=SC2086
-      echo "Trying to import $resourceID into $moduleID"
-      # shellcheck disable=SC2086
-      if ! echo terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" "${extra_vars}" "${moduleID}" "${resourceID}"; then
-        echo "Error when importing resource"
-      fi
-
-    done
-    rerun_apply=1
-  fi
-  if [ -f apply_output.json ]; then
-    rm apply_output.json
-  fi
-
-  if [ $rerun_apply == 1 ]; then
-    echo ""
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo "#                          Re-running Terraform apply                                   #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    echo ""
-    # shellcheck disable=SC2086
-    if ! terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" \
-      $allParameters -no-color -compact-warnings -json -input=false; then
-      return_value=$?
-      if [ $return_value -eq 1 ]; then
-        echo "Errors when running Terraform apply"
-      else
-        # return code 2 is ok
-        return_value=0
-      fi
-    fi
-    rerun_apply=0
-  fi
-
-  if [ -f apply_output.json ]; then
-    errors_occurred=$(jq 'select(."@level" == "error") | length' apply_output.json)
-    # Check for resource that can be imported
-    existing=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary}  | select(.summary | startswith("A resource with the ID"))' apply_output.json)
-    if [[ -n ${existing} ]]; then
-
-      readarray -t existing_resources < <(echo ${existing} | jq -c '.')
-      for item in "${existing_resources[@]}"; do
-        moduleID=$(jq -c -r '.address ' <<<"$item")
-        resourceID=$(jq -c -r '.summary' <<<"$item" | awk -F'\"' '{print $2}')
-        # shellcheck disable=SC2086
-        echo "Trying to import $resourceID into $moduleID"
-        # shellcheck disable=SC2086
-        if ! echo terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" "${extra_vars}" "${moduleID}" "${resourceID}"; then
-          echo "Error when importing resource"
-        fi
-
-      done
-      rerun_apply=1
-    fi
-    if [ -f apply_output.json ]; then
-      rm apply_output.json
-    fi
-
-    if [ $rerun_apply == 1 ]; then
-      echo ""
-      echo "#########################################################################################"
-      echo "#                                                                                       #"
-      echo "#                          Re-running Terraform apply                                   #"
-      echo "#                                                                                       #"
-      echo "#########################################################################################"
-      echo ""
-      # shellcheck disable=SC2086
-      if ! terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" \
-        $allParameters -no-color -compact-warnings -json -input=false; then
-        return_value=$?
-        if [ $return_value -eq 1 ]; then
-          echo "Errors when running Terraform apply"
-        else
-          # return code 2 is ok
-          return_value=0
-        fi
-      fi
-      rerun_apply=0
-    fi
-    if [ -f apply_output.json ]; then
-      rm apply_output.json
-    fi
+  # shellcheck disable=SC2086
+  if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters $parallelism; then
+    return_value=$?
   fi
 fi
+if [ -f apply_output.json ]; then
+  # shellcheck disable=SC2086
+  if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters $parallelism; then
+    return_value=$?
+  fi
+fi
+if [ -f apply_output.json ]; then
+  # shellcheck disable=SC2086
+  if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters $parallelism; then
+    return_value=$?
+  fi
+fi
+
 if [ 0 != $return_value ]; then
   echo "#########################################################################################"
   echo "#                                                                                       #"

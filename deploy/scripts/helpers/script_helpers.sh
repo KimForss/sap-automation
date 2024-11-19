@@ -390,7 +390,7 @@ function validate_dependencies {
   fi
   # Set Terraform Plug in cache
 
-  az_version=$(az --version | grep "azure-cli" )
+  az_version=$(az --version | grep "azure-cli")
   if [ -z "${az_version}" ]; then
     echo ""
     echo "#########################################################################################"
@@ -485,7 +485,7 @@ function ReplaceResourceInStateFile {
 
   local moduleID=$1
   local terraform_module_directory=$2
-  azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 " $3 " | xargs | cut -d "=" -f2 | xargs )
+  azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 " $3 " | xargs | cut -d "=" -f2 | xargs)
   tempString=$(echo "${azureResourceID}" | grep "/fileshares/")
   if [ -n "${tempString}" ]; then
     # Use sed to replace /fileshares/ with /shares/
@@ -508,4 +508,69 @@ function ReplaceResourceInStateFile {
   fi
 
   return $?
+}
+
+function ImportAndReRunApply {
+  local fileName=$1
+  local terraform_module_directory=$2
+  local importParameters=$3
+  local applyParameters=$4
+  local parallelism=$5
+  return_value=0
+
+  if [ -f "$fileName" ]; then
+
+    errors_occurred=$(jq 'select(."@level" == "error") | length' "$fileName")
+
+    if [[ -n $errors_occurred ]]; then
+      echo ""
+      echo "#########################################################################################"
+      echo "#                                                                                       #"
+      echo -e "#                          $boldreduscore!Errors during the apply phase!$resetformatting                              #"
+
+      # Check for resource that can be imported
+      existing=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary} | select(.summary | startswith("A resource with the ID"))' "$fileName")
+      if [[ -n ${existing} ]]; then
+
+        readarray -t existing_resources < <(echo ${existing} | jq -c '.')
+        for item in "${existing_resources[@]}"; do
+          moduleID=$(jq -c -r '.address ' <<<"$item")
+          azureResourceID=$(jq -c -r '.summary' <<<"$item" | awk -F'\"' '{print $2}')
+          echo "Trying to import $azureResourceID into $moduleID"
+          # shellcheck disable=SC2086
+          echo terraform -chdir="${terraform_module_directory}" import $importParameters "${moduleID}" "${azureResourceID}"
+          # shellcheck disable=SC2086
+          if ! terraform -chdir="${terraform_module_directory}" import $importParameters "${moduleID}" "${azureResourceID}"; then
+            return_value=$?
+            echo "Error when importing resource"
+            exit $return_value
+          fi
+        done
+        rm "$fileName"
+
+        echo ""
+        echo ""
+        echo "#########################################################################################"
+        echo "#                                                                                       #"
+        echo -e "#                          $cyan Re running Terraform apply$resetformatting                                  #"
+        echo "#                                                                                       #"
+        echo "#########################################################################################"
+        echo ""
+        echo ""
+        # shellcheck disable=SC2086
+        if ! terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" \
+          $applyParameters -no-color -compact-warnings -json -input=false; then
+          return_value=$?
+          if [ $return_value -eq 1 ]; then
+            echo "Errors when running Terraform apply"
+          else
+            # return code 2 is ok
+            return_value=0
+          fi
+        fi
+      fi
+    fi
+  fi
+
+  exit $return_value
 }
