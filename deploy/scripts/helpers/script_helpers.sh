@@ -559,7 +559,7 @@ function ImportAndReRunApply {
         echo ""
         # shellcheck disable=SC2086
         if ! terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" \
-          $applyParameters -no-color -compact-warnings -json -input=false; then
+          $applyParameters -no-color -compact-warnings -json -input=false --auto-approve; then
           return_value=$?
           if [ $return_value -eq 1 ]; then
             echo "Errors when running Terraform apply"
