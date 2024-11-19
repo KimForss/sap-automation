@@ -515,7 +515,7 @@ function ImportAndReRunApply {
   local terraform_module_directory=$2
   local importParameters=$3
   local applyParameters=$4
-  local parallelism=$5
+
   return_value=0
 
   if [ -f "$fileName" ]; then
@@ -552,14 +552,14 @@ function ImportAndReRunApply {
         echo ""
         echo "#########################################################################################"
         echo "#                                                                                       #"
-        echo -e "#                          $cyan Re running Terraform apply$resetformatting                                  #"
+        echo -e "#                          $cyan Re-running Terraform apply$resetformatting                                  #"
         echo "#                                                                                       #"
         echo "#########################################################################################"
         echo ""
         echo ""
         # shellcheck disable=SC2086
-        if ! terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" \
-          $applyParameters -no-color -compact-warnings -json -input=false --auto-approve; then
+        if ! terraform -chdir="${terraform_module_directory}" apply  \
+          $applyParameters -no-color -compact-warnings -json -input=false --auto-approve | tee -a "$fileName"; then
           return_value=$?
           if [ $return_value -eq 1 ]; then
             echo "Errors when running Terraform apply"
