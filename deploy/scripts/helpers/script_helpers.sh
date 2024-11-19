@@ -543,7 +543,7 @@ function ImportAndReRunApply {
           if ! terraform -chdir="${terraform_module_directory}" import $importParameters "${moduleID}" "${azureResourceID}"; then
             return_value=$?
             echo "Error when importing resource"
-            exit $return_value
+            return $return_value
           fi
         done
         rm "$fileName"
@@ -572,5 +572,5 @@ function ImportAndReRunApply {
     fi
   fi
 
-  exit $return_value
+  return $return_value
 }

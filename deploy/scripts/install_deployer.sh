@@ -314,7 +314,6 @@ else
   fi
 fi
 return_value=$?
-echo "Terraform Apply return code:         $return_value"
 
 if [ -f apply_output.json ]; then
   # shellcheck disable=SC2086
@@ -356,6 +355,8 @@ if [ -f apply_output.json ]; then
     fi
   fi
 fi
+
+echo "Terraform Apply return code:         $return_value"
 
 if [ 0 != $return_value ]; then
   echo "#########################################################################################"
