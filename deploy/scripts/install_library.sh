@@ -513,14 +513,4 @@ if [ -z "${temp}" ]; then
   fi
 fi
 
-random_id_b64=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id_b64 | tr -d \")
-temp=$(echo "${random_id_b64}" | grep -m1 "Warning")
-if [ -z "${temp}" ]; then
-  temp=$(echo "${random_id_b64}" | grep "Backend reinitialization required")
-  if [ -z "${temp}" ]; then
-    save_config_var "library_random_id" "${random_id_b64}"
-    return_value=0
-  fi
-fi
-
 exit $return_value
