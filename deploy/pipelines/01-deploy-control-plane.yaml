@@ -311,10 +311,14 @@ stages:
                   echo "Deployer Key Vault:                   ${file_key_vault}"
 
                   file_REMOTE_STATE_SA=$(grep -m1 "^REMOTE_STATE_SA" "${deployer_environment_file_name}" | grep  | awk -F'=' '{print $2}' | xargs || true)
-                  echo "Terraform Remote State Account:       ${file_REMOTE_STATE_SA}"
+                  if [ -n "${file_REMOTE_STATE_SA}" ]; then
+                    echo "Terraform Remote State Account:       ${file_REMOTE_STATE_SA}"
+                  fi
 
                   file_REMOTE_STATE_RG=$(grep -m1 "^REMOTE_STATE_RG" "${deployer_environment_file_name}" | grep  | awk -F'=' '{print $2}' | xargs || true)
-                  echo "Terraform Remote State RG Name:       ${file_REMOTE_STATE_RG}"
+                  if [ -n "${file_REMOTE_STATE_SA}" ]; then
+                    echo "Terraform Remote State RG Name:       ${file_REMOTE_STATE_RG}"
+                  fi
 
                 echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
                 added=0
@@ -625,6 +629,8 @@ stages:
               fi
 
               bootstrapped=0
+              file_REMOTE_STATE_SA=""
+              file_REMOTE_STATE_RG=""
 
               echo -e "$green--- Update .sap_deployment_automation/config as SAP_AUTOMATION_REPO_PATH can change on devops agent ---$reset"
               cd "${CONFIG_REPO_PATH}" || exit
@@ -723,10 +729,14 @@ stages:
                 echo "Deployer Keyvault:    ${file_key_vault}"
 
                 file_REMOTE_STATE_SA=$(grep "^REMOTE_STATE_SA=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs)
-                echo "Terraform account:    ${file_REMOTE_STATE_SA}"
+                if [ -n "${file_REMOTE_STATE_SA}" ]; then
+                  echo "Terraform account:    ${file_REMOTE_STATE_SA}"
+                fi
 
                 file_REMOTE_STATE_RG=$(grep "^REMOTE_STATE_RG=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs)
-                echo "Terraform rgname:     ${file_REMOTE_STATE_SA}"
+                if [ -n "${file_REMOTE_STATE_RG}" ]; then
+                  echo "Terraform rgname:     ${file_REMOTE_STATE_RG}"
+                fi
               fi
 
               echo -e "$green--- Update repo ---$reset"
@@ -822,7 +832,7 @@ stages:
                 if [ -n "${file_REMOTE_STATE_RG}" ]; then
                   saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Terraform_Remote_Storage_Resource_Group_Name" "${file_REMOTE_STATE_RG}"
                 fi
-                
+
                 saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Terraform_Remote_Storage_Subscription" "$ARM_SUBSCRIPTION_ID"
                 saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_State_FileName" "$deployer_tfstate_key"
                 saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_Key_Vault" "$file_key_vault"
