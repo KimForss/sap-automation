@@ -63,7 +63,13 @@ provider "azurerm"                     {
 
                                          storage_use_azuread        = true
                                          use_msi                    = false
-                                         subscription_id            = var.use_deployer ? data.terraform_remote_state.deployer[0].outputs.created_resource_group_subscription_id : null
+                                         subscription_id            = var.use_deployer ? (
+                                                                        coalesce(
+                                                                          data.azurerm_client_config.current.subscription_id ,
+                                                                          data.terraform_remote_state.deployer[0].outputs.created_resource_group_subscription_id)
+                                                                          ) : (
+                                                                        null
+                                                                        )
                                        }
 
 provider "azurerm"                     {
