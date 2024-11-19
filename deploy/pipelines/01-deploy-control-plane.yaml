@@ -596,6 +596,7 @@ stages:
                 storage_account_parameter=" --storageaccountname ${REMOTE_STATE_SA} "
               else
                 echo "Terraform storage account:            undefined"
+                storage_account_parameter=""
               fi
 
               REMOTE_STATE_RG=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Terraform_Remote_Storage_Resource_Group_Name" "${deployer_environment_file_name}" "REMOTE_STATE_RG")

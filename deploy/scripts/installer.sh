@@ -487,7 +487,7 @@ if [[ -z ${tfstate_resource_id} ]]; then
 
 fi
 
-tfstate_parameter="-var tfstate_resource_id=${tfstate_resource_id}"
+tfstate_parameter=" -var tfstate_resource_id=${tfstate_resource_id}"
 
 terraform_module_directory="$SAP_AUTOMATION_REPO_PATH"/deploy/terraform/run/"${deployment_system}"/
 export TF_DATA_DIR="${param_dirname}/.terraform"
