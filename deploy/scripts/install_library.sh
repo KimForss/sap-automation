@@ -18,7 +18,6 @@ source "${script_directory}/deploy_utils.sh"
 #helper files
 source "${script_directory}/helpers/script_helpers.sh"
 
-
 #Internal helper functions
 function showhelp {
   echo ""
@@ -196,7 +195,6 @@ else
   export TF_PLUGIN_CACHE_DIR=/opt/terraform/.terraform.d/plugin-cache
 fi
 
-
 param_dirname=$(pwd)
 
 init "${automation_config_directory}" "${generic_config_information}" "${library_config_information}"
@@ -261,7 +259,6 @@ else
   sed -i /REMOTE_STATE_SA/d "${library_config_information}"
   sed -i /tfstate_resource_id/d "${library_config_information}"
 fi
-
 
 export TF_VAR_subscription_id="$ARM_SUBSCRIPTION_ID"
 
@@ -350,9 +347,14 @@ echo ""
 
 if [ -n "${deployer_statefile_foldername}" ]; then
   echo "Deployer folder specified:             ${deployer_statefile_foldername}"
-  terraform -chdir="${terraform_module_directory}" plan -no-color -detailed-exitcode -var-file="${var_file}" -var deployer_statefile_foldername="${deployer_statefile_foldername}" -input=false>plan_output.log 2>&1
+  if ! terraform -chdir="${terraform_module_directory}" plan -no-color -detailed-exitcode -var-file="${var_file}" -var deployer_statefile_foldername="${deployer_statefile_foldername}" -input=false >plan_output.log 2>&1; then
+    return_value=$?
+  fi
+
 else
-  terraform -chdir="${terraform_module_directory}" plan -no-color -detailed-exitcode -var-file="${var_file}" -input=false >plan_output.log 2>&1
+  if ! terraform -chdir="${terraform_module_directory}" plan -no-color -detailed-exitcode -var-file="${var_file}" -input=false >plan_output.log 2>&1; then
+    return_value=$?
+  fi
 fi
 return_value=$?
 
