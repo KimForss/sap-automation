@@ -299,7 +299,7 @@ else
           echo "Reinitializing against remote state"
           terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/run/"${deployment_system}"/
           export TF_VAR_tfstate_resource_id=$tfstate_resource_id
-          terraform -chdir="${terraform_module_directory}" init -upgrade=true \
+          terraform -chdir="${terraform_module_directory}" init -reconfigure \
             --backend-config "subscription_id=$REINSTALL_SUBSCRIPTION" \
             --backend-config "resource_group_name=$REINSTALL_RESOURCE_GROUP" \
             --backend-config "storage_account_name=$REINSTALL_ACCOUNTNAME" \

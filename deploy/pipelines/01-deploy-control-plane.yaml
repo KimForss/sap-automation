@@ -574,13 +574,13 @@ stages:
               if [ "$sourced_from_file" == 1 ]; then
                 az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name Deployer_Key_Vault --value "${key_vault}" --output none --only-show-errors
               fi
-              echo "Deployer TFvars:                      $(deployerconfig)"
+              echo "Deployer TFvars:                     $(deployerconfig)"
 
               if [ -n "${key_vault}" ]; then
-                echo "Deployer Key Vault:                   ${key_vault}"
+                echo "Deployer Key Vault:                  ${key_vault}"
                 keyvault_parameter=" --keyvault ${key_vault} "
               else
-                echo "Deployer Key Vault:                   undefined"
+                echo "Deployer Key Vault:                  undefined"
                 exit 2
 
               fi
@@ -592,10 +592,10 @@ stages:
               REMOTE_STATE_SA=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Terraform_Remote_Storage_Account_Name" "${deployer_environment_file_name}" "REMOTE_STATE_SA")
               export REMOTE_STATE_SA
               if [ -n "${REMOTE_STATE_SA}" ]; then
-                echo "Terraform storage account:            $REMOTE_STATE_SA"
+                echo "Terraform storage account:           $REMOTE_STATE_SA"
                 storage_account_parameter=" --storageaccountname ${REMOTE_STATE_SA} "
               else
-                echo "Terraform storage account:            undefined"
+                echo "Terraform storage account:           undefined"
                 storage_account_parameter=
               fi
 
@@ -609,7 +609,7 @@ stages:
               fi
 
               if [ "$USE_WEBAPP" = "true" ]; then
-                echo "Deploy Web Application:               true"
+                echo "Deploy Web Application:              true"
 
                 if [ -z "${APP_REGISTRATION_APP_ID}" ]; then
                   echo "##vso[task.logissue type=error]Variable APP_REGISTRATION_APP_ID was not defined."
@@ -627,7 +627,7 @@ stages:
                 export TF_VAR_webapp_client_secret
                 export TF_VAR_use_webapp=true
               else
-                echo "Deploy Web Application:               false"
+                echo "Deploy Web Application:              false"
               fi
 
               bootstrapped=0
