@@ -352,7 +352,7 @@ if [ 0 == $step ]; then
   echo "#########################################################################################"
   echo ""
 
-  allParams=$(printf " --parameterfile %s %s" "${deployer_file_parametername}" "${autoApproveParameter}")
+  allParameters=$(printf " --parameterfile %s %s" "${deployer_file_parametername}" "${autoApproveParameter}")
 
   cd "${deployer_dirname}" || exit
 
@@ -360,11 +360,11 @@ if [ 0 == $step ]; then
     rm -Rf .terraform terraform.tfstate*
   fi
 
-  echo "Calling install_deployer.sh:         $allParams"
+  echo "Calling install_deployer.sh:         $allParameters"
   echo "Deployer State File:                 ${deployer_tfstate_key}"
 
   # shellcheck disable=SC2086
-  "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer.sh" $allParams
+  "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer.sh" $allParameters
   return_code=$?
   if [ 0 != $return_code ]; then
     echo "Bootstrapping of the deployer failed" >"${deployer_config_information}".err
@@ -477,10 +477,10 @@ if [ 1 == $step ] || [ 3 == $step ]; then
     # save_config_var "tenant_id" "${deployer_config_information}"
 
     if [ -n "$spn_secret" ]; then
-      allParams=$(printf " -e %s -r %s -v %s --spn_secret %s " "${environment}" "${region_code}" "${keyvault}" "${spn_secret}")
+      allParameters=$(printf " -e %s -r %s -v %s --spn_secret %s " "${environment}" "${region_code}" "${keyvault}" "${spn_secret}")
 
       # shellcheck disable=SC2086
-      "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/set_secrets.sh $allParams
+      "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/set_secrets.sh $allParameters
       if [ -f secret.err ]; then
         error_message=$(cat secret.err)
         echo "##vso[task.logissue type=error]${error_message}"
@@ -499,23 +499,23 @@ if [ 1 == $step ] || [ 3 == $step ]; then
         read -p -r "Do you want to specify the SPN Details Y/N?" ans
         answer=${ans^^}
         if [ "$answer" == 'Y' ]; then
-          allParams=$(printf " -e %s -r %s -v %s " "${environment}" "${region_code}" "${keyvault}")
+          allParameters=$(printf " -e %s -r %s -v %s " "${environment}" "${region_code}" "${keyvault}")
 
-          #$allParams as an array (); array math can be done in shell, allowing dynamic parameter lists to be created
-          #"${allParams[@]}" - quotes all elements of the array
+          #$allParameters as an array (); array math can be done in shell, allowing dynamic parameter lists to be created
+          #"${allParameters[@]}" - quotes all elements of the array
 
           # shellcheck disable=SC2086
-          "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/set_secrets.sh $allParams
+          "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/set_secrets.sh $allParameters
           return_code=$?
           if [ 0 != $return_code ]; then
             exit $return_code
           fi
         fi
       else
-        allParams=$(printf " -e %s -r %s -v %s --subscription %s --msi " "${environment}" "${region_code}" "${keyvault}" "${subscription}")
+        allParameters=$(printf " -e %s -r %s -v %s --subscription %s --msi " "${environment}" "${region_code}" "${keyvault}" "${subscription}")
 
         # shellcheck disable=SC2086
-        "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/set_secrets.sh $allParams
+        "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/set_secrets.sh $allParameters
         if [ -f secret.err ]; then
           error_message=$(cat secret.err)
           echo "##vso[task.logissue type=error]${error_message}"
@@ -587,11 +587,11 @@ if [ 2 == $step ]; then
     rm -Rf .terraform terraform.tfstate*
   fi
 
-  allParams=$(printf " -p %s -d %s %s" "${library_file_parametername}" "${relative_path}" "${autoApproveParameter}")
-  echo "Calling install_library.sh with:    $allParams"
+  allParameters=$(printf " -p %s -d %s %s" "${library_file_parametername}" "${relative_path}" "${autoApproveParameter}")
+  echo "Calling install_library.sh with:    $allParameters"
 
   # shellcheck disable=SC2086
-  "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/install_library.sh $allParams
+  "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/install_library.sh $allParameters
   return_code=$?
   if [ 0 != $return_code ]; then
     echo "Bootstrapping of the SAP Library failed" >"${deployer_config_information}".err
@@ -695,7 +695,7 @@ if [ 3 == $step ]; then
     load_config_vars "${deployer_config_information}" "ARM_SUBSCRIPTION_ID"
   fi
 
-  allParams=$(printf "  ")
+  allParameters=$(printf "  ")
 
   echo "Calling installer.sh with:          --parameterfile ${deployer_file_parametername} \
   --storageaccountname ${REMOTE_STATE_SA} --state_subscription ${STATE_SUBSCRIPTION} --type sap_deployer ${autoApproveParameter} ${ado_flag}"
@@ -732,12 +732,12 @@ if [ 4 == $step ]; then
   echo ""
 
   cd "${library_dirname}" || exit
-  allParams=$(printf " --parameterfile %s --storageaccountname %s --type sap_library --deployer_tfstate_key %s %s %s " "${library_file_parametername}" "${REMOTE_STATE_SA}" "${deployer_tfstate_key}" "${autoApproveParameter}" "${ado_flag}")
+  allParameters=$(printf " --parameterfile %s --storageaccountname %s --type sap_library --deployer_tfstate_key %s %s %s " "${library_file_parametername}" "${REMOTE_STATE_SA}" "${deployer_tfstate_key}" "${autoApproveParameter}" "${ado_flag}")
 
-  echo "Calling installer.sh with:          $allParams"
+  echo "Calling installer.sh with:          $allParameters"
 
   # shellcheck disable=SC2086
-  "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/installer.sh $allParams
+  "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/installer.sh $allParameters
   return_code=$?
   if [ 0 != $return_code ]; then
     echo "Migrating the SAP Library state failed" >"${deployer_config_information}".err

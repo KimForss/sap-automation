@@ -228,7 +228,7 @@ if [ -f terraform.tfvars ]; then
   extra_vars=" -var-file=${param_dirname}/terraform.tfvars "
 fi
 
-allParameters=$(printf " -var-file=%s %s " "${var_file}" "${extra_vars}")
+allParameters=$(printf " -var-file=%s %s %s" "${var_file}" "${extra_vars}" "$approve")
 allImportParameters=$(printf " -var-file=%s %s " "${var_file}" "${extra_vars}")
 
 
@@ -293,7 +293,7 @@ fi
 if [ -n "${approve}" ]; then
   # shellcheck disable=SC2086
   if ! terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" \
-    $allParameters -no-color -compact-warnings -json -input=false  | tee -a apply_output.json; then
+    $allParameters -no-color -compact-warnings -json -input=false --auto-approve | tee -a apply_output.json; then
     return_value=$?
     if [ $return_value -eq 1 ]; then
       echo "Errors when running Terraform apply"
@@ -304,7 +304,7 @@ if [ -n "${approve}" ]; then
   fi
 else
   # shellcheck disable=SC2086
-  if ! terraform -chdir="${terraform_module_directory}" apply "${approve}" -parallelism="${parallelism}" $allParameters; then
+  if ! terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" $allParameters; then
     return_value=$?
     if [ $return_value -eq 1 ]; then
       echo "Errors when running Terraform apply"
