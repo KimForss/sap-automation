@@ -505,8 +505,6 @@ if [[ -z ${tfstate_resource_id} ]]; then
 
 fi
 
-
-
 if [ -n "${landscape_tfstate_key}" ]; then
   tfstate_parameter=" -var tfstate_resource_id=${tfstate_resource_id}"
   export TF_VAR_tfstate_resource_id="${tfstate_resource_id}"

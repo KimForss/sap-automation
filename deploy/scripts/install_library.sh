@@ -258,6 +258,9 @@ else
   sed -i /tfstate_resource_id/d "${library_config_information}"
 fi
 
+
+export TF_VAR_subscription_id="$ARM_SUBSCRIPTION_ID"
+
 if [ ! -d ./.terraform/ ]; then
   echo "#########################################################################################"
   echo "#                                                                                       #"

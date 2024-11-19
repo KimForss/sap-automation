@@ -65,8 +65,9 @@ provider "azurerm"                     {
                                          use_msi                    = false
                                          subscription_id            = var.use_deployer ? (
                                                                         coalesce(
-                                                                          data.azurerm_client_config.current.subscription_id ,
-                                                                          data.terraform_remote_state.deployer[0].outputs.created_resource_group_subscription_id)
+                                                                          var.subscription_id,
+                                                                          data.terraform_remote_state.deployer[0].outputs.created_resource_group_subscription_id,
+                                                                          local.spn.subscription_id)
                                                                           ) : (
                                                                         null
                                                                         )

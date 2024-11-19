@@ -47,6 +47,13 @@ variable "tags"                                  {
                                                    default     = {}
                                                  }
 
+variable "subscription_id"                       {
+                                                   description = "Defines the Azure subscription_id"
+                                                   type        = string
+                                                   default     = null
+                                                 }
+
+
 #######################################4#######################################8
 #                                                                              #
 #                          Resource group definitioms                          #
