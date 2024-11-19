@@ -228,7 +228,7 @@ if [ -f terraform.tfvars ]; then
   extra_vars=" -var-file=${param_dirname}/terraform.tfvars "
 fi
 
-allParameters=$(printf " -var-file=%s %s %s" "${var_file}" "${extra_vars}" "$approve")
+allParameters=$(printf " -var-file=%s %s" "${var_file}" "${extra_vars}")
 allImportParameters=$(printf " -var-file=%s %s " "${var_file}" "${extra_vars}")
 
 
