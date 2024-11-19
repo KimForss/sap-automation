@@ -15,6 +15,10 @@ script_directory="$(dirname "${full_script_path}")"
 #call stack has full scriptname when using source
 source "${script_directory}/deploy_utils.sh"
 
+#helper files
+source "${script_directory}/helpers/script_helpers.sh"
+
+
 #Internal helper functions
 function showhelp {
   echo ""
@@ -413,7 +417,7 @@ allImportParameters=$(printf " -var-file=%s -var deployer_statefile_foldername=%
 
 if [ -n "${approve}" ]; then
   # shellcheck disable=SC2086
-  if ! terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json -input=false $allParameters | tee -a apply_output.json; then
+  if ! terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json -input=false $allParameters --auto-approve | tee -a apply_output.json; then
     return_value=$?
     if [ $return_value -eq 1 ]; then
       echo "Errors when running Terraform apply"
