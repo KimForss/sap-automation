@@ -25,7 +25,7 @@ function saveVariableInVariableGroup() {
   local variable_value="$3"
 
   az_var=$(az pipelines variable-group variable list --group-id "${variable_group_id}" --query "${variable_name}.value" --out tsv)
-  if [ -z "${az_var}" ]; then
+  if [ 0 == "${#az_var}" ]; then
     az pipelines variable-group variable create --group-id "${variable_group_id}" --name "$variable_name" --value "${variable_value}" --output none --only-show-errors
   else
     az pipelines variable-group variable update --group-id "${variable_group_id}" --name "$variable_name" --value "${variable_value}" --output none --only-show-errors
