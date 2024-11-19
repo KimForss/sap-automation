@@ -182,8 +182,8 @@ fi
 get_region_code "$region"
 
 if [ "${region_code}" == 'UNKN' ]; then
-  LOCATION_CODE=$(echo "$workload_file_parametername" | awk -F'-' '{print $2}')
-  region_code=$(echo "${LOCATION_CODE}" | tr "[:lower:]" "[:upper:]" | xargs)
+  LOCATION_CODE_IN_FILENAME=$(echo "$workload_file_parametername" | awk -F'-' '{print $2}')
+  region_code=$(echo "${LOCATION_CODE_IN_FILENAME}" | tr "[:lower:]" "[:upper:]" | xargs)
 fi
 
 echo "Region code:                         ${region_code}"

@@ -169,8 +169,8 @@ stages:
 
               ENVIRONMENT_IN_FILENAME=$(echo $(sap_system_folder) | awk -F'-' '{print $1}')
 
-              LOCATION_CODE=$(echo $(sap_system_folder) | awk -F'-' '{print $2}')
-              LOCATION_IN_FILENAME=$(get_region_from_code "$LOCATION_CODE" || true)
+              LOCATION_CODE_IN_FILENAME=$(echo $(sap_system_folder) | awk -F'-' '{print $2}')
+              LOCATION_IN_FILENAME=$(get_region_from_code "$LOCATION_CODE_IN_FILENAME" || true)
 
               NETWORK_IN_FILENAME=$(echo $(sap_system_folder) | awk -F'-' '{print $3}')
 
@@ -217,7 +217,7 @@ stages:
                   exit 2
               fi
 
-              workload_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE}${NETWORK}"
+              workload_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}${NETWORK}"
               echo "Workload Zone Environment File:      $workload_environment_file_name"
 
               echo -e "$green--- Configure devops CLI extension ---$reset"
@@ -243,7 +243,7 @@ stages:
 
               dos2unix -q "${workload_environment_file_name}"
 
-              prefix="${ENVIRONMENT}${LOCATION_CODE}${NETWORK}"
+              prefix="${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}${NETWORK}"
 
               deployer_tfstate_key=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_State_FileName" "${workload_environment_file_name}" "deployer_tfstate_key" || true)
               export deployer_tfstate_key

@@ -252,8 +252,8 @@ stages:
 
               ENVIRONMENT_IN_FILENAME=$(echo $(workload_zone_folder) | awk -F'-' '{print $1}')
 
-              LOCATION_CODE=$(echo $(workload_zone_folder) | awk -F'-' '{print $2}')
-              LOCATION_IN_FILENAME=$(get_region_from_code "$LOCATION_CODE")
+              LOCATION_CODE_IN_FILENAME_IN_FILENAME=$(echo $(workload_zone_folder) | awk -F'-' '{print $2}')
+              LOCATION_IN_FILENAME=$(get_region_from_code "$LOCATION_CODE_IN_FILENAME")
 
               NETWORK_IN_FILENAME=$(echo $(workload_zone_folder) | awk -F'-' '{print $3}')
 
@@ -300,7 +300,7 @@ stages:
                   echo "##vso[task.logissue type=error]Control plane configuration file $(deployer_environment)$(deployer_region) was not found."
                   exit 2
               fi
-              workload_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE}${NETWORK}"
+              workload_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}${NETWORK}"
               echo "Workload Zone Environment File:      $workload_environment_file_name"
 
               echo -e "$green--- Configure devops CLI extension ---$reset"
@@ -484,7 +484,7 @@ stages:
               echo "Return code from deployment:         ${return_code}"
               cd "$CONFIG_REPO_PATH" || exit
 
-              workload_environment_file_name=".sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE}${NETWORK}"
+              workload_environment_file_name=".sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}${NETWORK}"
 
               if [ -f "${workload_environment_file_name}" ]; then
                   workload_key_vault=$(grep "workloadkeyvault=" ${workload_environment_file_name} | awk -F'=' '{print $2}' | xargs)
@@ -497,7 +497,7 @@ stages:
 
               fi
 
-              prefix="${ENVIRONMENT}${LOCATION_CODE}${NETWORK}"
+              prefix="${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}${NETWORK}"
 
               echo -e "$green--- Adding variables to the variable group" "$(variable_group)" "---$reset"
               if [ -n "${VARIABLE_GROUP_ID}" ]; then
@@ -507,7 +507,7 @@ stages:
                   saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_State_FileName" "${deployer_tfstate_key}"
                   saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_Key_Vault" "${key_vault}"
                   saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "${prefix}Workload_Key_Vault" "${workload_key_vault}"
-                  saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "${prefix}Workload_Secret_Prefix" "${ENVIRONMENT}-${LOCATION_CODE}-${NETWORK}"
+                  saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "${prefix}Workload_Secret_Prefix" "${ENVIRONMENT}-${LOCATION_CODE_IN_FILENAME}-${NETWORK}"
                   saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "${prefix}Workload_Zone_State_FileName" "${landscape_tfstate_key}"
 
               fi
