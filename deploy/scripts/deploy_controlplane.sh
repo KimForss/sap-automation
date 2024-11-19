@@ -132,7 +132,6 @@ echo "ADO flag:                            ${ado_flag}"
 
 if [ "$ado_flag" == "--ado" ] || [ "$approve" == "--auto-approve" ]; then
   autoApproveParameter=" --auto-approve";
-  exit 2
 fi
 
 key=$(basename "${deployer_parameter_file}" | cut -d. -f1)
