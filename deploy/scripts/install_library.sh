@@ -352,6 +352,8 @@ echo "#                                                                         
 echo "#########################################################################################"
 echo ""
 
+cat "${deployer_statefile_foldername}"
+
 if [ -n "${deployer_statefile_foldername}" ]; then
   echo "Deployer folder specified:           ${deployer_statefile_foldername}"
   if ! terraform -chdir="${terraform_module_directory}" plan -no-color -detailed-exitcode -var-file="${var_file}" -var deployer_statefile_foldername="${deployer_statefile_foldername}" -input=false | tee -a plan_output.log 2>&1; then
@@ -379,7 +381,7 @@ if [ 1 == $return_value ]; then
 fi
 
 if [ -f terraform.tfvars ]; then
-  extra_vars="-var-file=${param_dirname}/terraform.tfvars"
+  extra_vars=" -var-file=${param_dirname}/terraform.tfvars "
 else
   unset extra_vars
 fi
