@@ -175,9 +175,13 @@ else
       echo "#                     The state is already migrated to Azure!!!                         #"
       echo "#                                                                                       #"
       echo "#########################################################################################"
+      REINSTALL_SUBSCRIPTION=$(grep "^subscription_id": ./.terraform/terraform.tfstate |  cut -d ':' -f2 | tr -d '",' || true)
+      REINSTALL_ACCOUNTNAME=$(grep "^storage_account_name": ./.terraform/terraform.tfstate |  cut -d ':' -f2 | tr -d '",' || true)
+      REINSTALL_RESOURCE_GROUP=$(grep "^resource_group_name": ./.terraform/terraform.tfstate |  cut -d ':' -f2 | tr -d '",' || true)
+
       sed -i /"use_microsoft_graph"/d "${param_dirname}/.terraform/terraform.tfstate"
       if [ "$approve" == "--auto-approve" ]; then
-        tfstate_resource_id=$(az resource list --name "$REINSTALL_ACCOUNTNAME" --subscription "$REINSTALL_SUBSCRIPTION" --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
+        tfstate_resource_id=$(az resource list --name "$REINSTALL_ACCOUNTNAME" --subscription "$REINSTALL_SUBSCRIPTION" --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv | grep )
         if [ -n "${tfstate_resource_id}" ]; then
           echo "Reinitializing against remote state"
           export TF_VAR_tfstate_resource_id=$tfstate_resource_id
@@ -192,7 +196,6 @@ else
           terraform -chdir="${terraform_module_directory}" refresh -var-file="${var_file}"
 
         else
-          terraform -chdir="${terraform_module_directory}" init -force-copy -migrate-state --backend-config "path=${param_dirname}/terraform.tfstate"
           terraform -chdir="${terraform_module_directory}" init -reconfigure --backend-config "path=${param_dirname}/terraform.tfstate"
           terraform -chdir="${terraform_module_directory}" refresh -var-file="${var_file}"
         fi
