@@ -130,9 +130,6 @@ if [ "$debug" = True ]; then
   set -o errexit
 fi
 
-#Variables must be explicitly declared
-set -u
-
 echo "ADO flag:                            ${ado_flag}"
 
 if [ "$ado_flag" == "--ado" ] || [ "$approve" == "--auto-approve" ]; then
