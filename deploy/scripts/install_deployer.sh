@@ -175,26 +175,32 @@ else
       echo "#                     The state is already migrated to Azure!!!                         #"
       echo "#                                                                                       #"
       echo "#########################################################################################"
-      REINSTALL_SUBSCRIPTION=$(grep "^subscription_id": ./.terraform/terraform.tfstate |  cut -d ':' -f2 | tr -d '",' || true)
-      REINSTALL_ACCOUNTNAME=$(grep "^storage_account_name": ./.terraform/terraform.tfstate |  cut -d ':' -f2 | tr -d '",' || true)
-      REINSTALL_RESOURCE_GROUP=$(grep "^resource_group_name": ./.terraform/terraform.tfstate |  cut -d ':' -f2 | tr -d '",' || true)
+      REINSTALL_SUBSCRIPTION=$(grep "^subscription_id:" ./.terraform/terraform.tfstate | cut -d ':' -f2 | tr -d '",' || true)
+      REINSTALL_ACCOUNTNAME=$(grep "^storage_account_name:" ./.terraform/terraform.tfstate | cut -d ':' -f2 | tr -d '",' || true)
+      REINSTALL_RESOURCE_GROUP=$(grep "^resource_group_name:" ./.terraform/terraform.tfstate | cut -d ':' -f2 | tr -d '",' || true)
 
-      sed -i /"use_microsoft_graph"/d "${param_dirname}/.terraform/terraform.tfstate"
-      if [ "$approve" == "--auto-approve" ]; then
-        tfstate_resource_id=$(az resource list --name "$REINSTALL_ACCOUNTNAME" --subscription "$REINSTALL_SUBSCRIPTION" --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv | grep )
-        if [ -n "${tfstate_resource_id}" ]; then
-          echo "Reinitializing against remote state"
-          export TF_VAR_tfstate_resource_id=$tfstate_resource_id
+      if [ -n "$REINSTALL_ACCOUNTNAME" ] && [ -n "$REINSTALL_SUBSCRIPTION" ]; then
 
-          terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/run/"${deployment_system}"/
-          terraform -chdir="${terraform_module_directory}" init -upgrade=true \
-            --backend-config "subscription_id=$REINSTALL_SUBSCRIPTION" \
-            --backend-config "resource_group_name=$REINSTALL_RESOURCE_GROUP" \
-            --backend-config "storage_account_name=$REINSTALL_ACCOUNTNAME" \
-            --backend-config "container_name=tfstate" \
-            --backend-config "key=${key}.terraform.tfstate"
-          terraform -chdir="${terraform_module_directory}" refresh -var-file="${var_file}"
+        sed -i /"use_microsoft_graph"/d "${param_dirname}/.terraform/terraform.tfstate"
+        if [ "$approve" == "--auto-approve" ]; then
+          tfstate_resource_id=$(az resource list --name "$REINSTALL_ACCOUNTNAME" --subscription "$REINSTALL_SUBSCRIPTION" --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv | grep)
+          if [ -n "${tfstate_resource_id}" ]; then
+            echo "Reinitializing against remote state"
+            export TF_VAR_tfstate_resource_id=$tfstate_resource_id
 
+            terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/run/"${deployment_system}"/
+            terraform -chdir="${terraform_module_directory}" init -upgrade=true \
+              --backend-config "subscription_id=$REINSTALL_SUBSCRIPTION" \
+              --backend-config "resource_group_name=$REINSTALL_RESOURCE_GROUP" \
+              --backend-config "storage_account_name=$REINSTALL_ACCOUNTNAME" \
+              --backend-config "container_name=tfstate" \
+              --backend-config "key=${key}.terraform.tfstate"
+            terraform -chdir="${terraform_module_directory}" refresh -var-file="${var_file}"
+
+          else
+            terraform -chdir="${terraform_module_directory}" init -reconfigure --backend-config "path=${param_dirname}/terraform.tfstate"
+            terraform -chdir="${terraform_module_directory}" refresh -var-file="${var_file}"
+          fi
         else
           terraform -chdir="${terraform_module_directory}" init -reconfigure --backend-config "path=${param_dirname}/terraform.tfstate"
           terraform -chdir="${terraform_module_directory}" refresh -var-file="${var_file}"
@@ -252,12 +258,14 @@ echo ""
 
 # shellcheck disable=SC2086
 
-terraform -chdir="$terraform_module_directory" plan -detailed-exitcode $allParameters | tee -a plan_output.log
+if terraform -chdir="$terraform_module_directory" plan -detailed-exitcode $allParameters | tee -a plan_output.log ;then
+  return_value=0
+else
+  return_value=$?
+fi
 
-return_value=$?
 echo "Terraform Plan return code:          $return_value"
 
-return_value=$?
 if [ 1 == $return_value ]; then
   echo ""
   echo "#########################################################################################"

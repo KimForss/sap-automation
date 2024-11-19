@@ -472,7 +472,7 @@ if [ 1 == $step ] || [ 3 == $step ]; then
     exit 10
   fi
 
-  access_error=$(az keyvault secret list --vault "$keyvault" --subscription "${subscription}" --only-show-errors | grep "The user, group or application")
+  access_error=$(az keyvault secret list --vault "$keyvault" --subscription "${subscription}" --only-show-errors | grep "The user, group or application" || true)
   if [ -z "${access_error}" ]; then
     # save_config_var "client_id" "${deployer_config_information}"
     # save_config_var "tenant_id" "${deployer_config_information}"
