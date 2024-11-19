@@ -351,11 +351,13 @@ else
   echo "Target subscription:                 $ARM_SUBSCRIPTION_ID"
 fi
 
+export TF_VAR_deployer_tfstate_key="${deployer_tfstate_key}"
+
 if [ "${deployment_system}" != sap_deployer ]; then
   if [ -z "${deployer_tfstate_key}" ]; then
     if [ 1 != $called_from_ado ]; then
-      read -p -r "Deployer terraform statefile name :" landscape_tfstate_key
-      deployer_tfstate_key_parameter="-var deployer_tfstate_key=${deployer_tfstate_key}"
+      read -p -r "Deployer terraform statefile name :" deployer_tfstate_key
+      deployer_tfstate_key_parameter=" -var deployer_tfstate_key=${deployer_tfstate_key}"
       save_config_var "deployer_tfstate_key" "${system_config_information}"
     else
       echo ""
@@ -371,7 +373,7 @@ if [ "${deployment_system}" != sap_deployer ]; then
       exit 2
     fi
   else
-    deployer_tfstate_key_parameter="-var deployer_tfstate_key=${deployer_tfstate_key}"
+    deployer_tfstate_key_parameter=" -var deployer_tfstate_key=${deployer_tfstate_key}"
     echo "Deployer state file name:            ${deployer_tfstate_key}"
   fi
 else
@@ -381,7 +383,7 @@ else
 
   echo "Deployer Keyvault ID:                $TF_VAR_deployer_kv_user_arm_id"
   deployer_parameter="  -var subscription_id=${STATE_SUBSCRIPTION} "
-  unset deployer_tfstate_key_parameter
+
   export ARM_SUBSCRIPTION_ID=$STATE_SUBSCRIPTION
 
 fi
@@ -411,6 +413,7 @@ if [ "${deployment_system}" == sap_system ]; then
       read -p -r "Workload terraform statefile name :" landscape_tfstate_key
       landscape_tfstate_key_parameter=" -var landscape_tfstate_key=${landscape_tfstate_key}"
       save_config_var "landscape_tfstate_key" "${system_config_information}"
+      export TF_VAR_landscape_tfstate_key="${landscape_tfstate_key}"
     else
       echo ""
       echo "#########################################################################################"
@@ -420,13 +423,14 @@ if [ "${deployment_system}" == sap_system ]; then
       echo "#########################################################################################"
       echo ""
 
-      echo "Workload zone terraform statefile name is missing" >"${system_config_information}".err
+      echo "Workload zone terraform statefile name is missing"
 
       unset TF_DATA_DIR
       exit 2
     fi
   else
     landscape_tfstate_key_parameter="-var landscape_tfstate_key=${landscape_tfstate_key}"
+    export TF_VAR_landscape_tfstate_key="${landscape_tfstate_key}"
   fi
 fi
 
