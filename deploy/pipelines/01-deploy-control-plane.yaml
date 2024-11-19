@@ -511,6 +511,8 @@ stages:
               "${tfPath}" --version
               echo -e "$green--- Checkout $(Build.SourceBranchName) ---$reset"
               cd "$CONFIG_REPO_PATH" || exit
+              ls -lart
+
               git checkout -q "$(Build.SourceBranchName)"
 
               echo -e "$green--- Configure devops CLI extension ---$reset"
@@ -587,7 +589,7 @@ stages:
 
               STATE_SUBSCRIPTION=$ARM_SUBSCRIPTION_ID
 
-              echo "Terraform state subscription:         $STATE_SUBSCRIPTION"
+              echo "Terraform state subscription:        $STATE_SUBSCRIPTION"
 
               REMOTE_STATE_SA=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Terraform_Remote_Storage_Account_Name" "${deployer_environment_file_name}" "REMOTE_STATE_SA")
               export REMOTE_STATE_SA
@@ -664,6 +666,9 @@ stages:
                 echo "Unzipping the library state file"
                 unzip -o -qq -P "${pass}" "${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state.zip" -d "${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)"
               fi
+
+              ls -lart "${CONFIG_REPO_PATH}/DEPLOYER"
+              ls -lart "${CONFIG_REPO_PATH}/DEPLOYER/"$(deployerfolder)"
 
               if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip" ]; then
                 # shellcheck disable=SC2001
