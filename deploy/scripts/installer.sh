@@ -357,7 +357,7 @@ if [ "${deployment_system}" != sap_deployer ]; then
   if [ -z "${deployer_tfstate_key}" ]; then
     if [ 1 != $called_from_ado ]; then
       read -p -r "Deployer terraform statefile name :" deployer_tfstate_key
-      deployer_tfstate_key_parameter=" -var deployer_tfstate_key=${deployer_tfstate_key}"
+
       save_config_var "deployer_tfstate_key" "${system_config_information}"
     else
       echo ""
@@ -373,7 +373,7 @@ if [ "${deployment_system}" != sap_deployer ]; then
       exit 2
     fi
   else
-    deployer_tfstate_key_parameter=" -var deployer_tfstate_key=${deployer_tfstate_key}"
+
     echo "Deployer state file name:            ${deployer_tfstate_key}"
   fi
 else
@@ -411,9 +411,9 @@ if [ "${deployment_system}" == sap_system ]; then
   if [ -z "${landscape_tfstate_key}" ]; then
     if [ 1 != $called_from_ado ]; then
       read -p -r "Workload terraform statefile name :" landscape_tfstate_key
-      landscape_tfstate_key_parameter=" -var landscape_tfstate_key=${landscape_tfstate_key}"
+
       save_config_var "landscape_tfstate_key" "${system_config_information}"
-      export TF_VAR_landscape_tfstate_key="${landscape_tfstate_key}"
+
     else
       echo ""
       echo "#########################################################################################"
@@ -428,9 +428,6 @@ if [ "${deployment_system}" == sap_system ]; then
       unset TF_DATA_DIR
       exit 2
     fi
-  else
-    landscape_tfstate_key_parameter="-var landscape_tfstate_key=${landscape_tfstate_key}"
-    export TF_VAR_landscape_tfstate_key="${landscape_tfstate_key}"
   fi
 fi
 
@@ -452,8 +449,6 @@ else
   fi
 
 fi
-
-account_set=0
 
 #setting the user environment variables
 set_executing_user_environment_variables "none"
@@ -509,13 +504,20 @@ if [[ -z ${tfstate_resource_id} ]]; then
 
 fi
 
-if [ -n "${landscape_tfstate_key}" ]; then
-  tfstate_parameter=" -var tfstate_resource_id=${tfstate_resource_id}"
-  export TF_VAR_tfstate_resource_id="${tfstate_resource_id}"
-else
-  tfstate_parameter=""
+if [ -n "${tfstate_resource_id}" ]; then
+  TF_VAR_tfstate_resource_id="${tfstate_resource_id}"
+  export TF_VAR_tfstate_resource_id
 fi
 
+if [ -n "${landscape_tfstate_key}" ]; then
+  TF_VAR_landscape_tfstate_key="${landscape_tfstate_key}"
+  export TF_VAR_landscape_tfstate_key
+fi
+
+if [ -n "${deployer_tfstate_key}" ]; then
+  TF_VAR_deployer_tfstate_key="${deployer_tfstate_key}"
+  export TF_VAR_deployer_tfstate_key
+fi
 
 terraform_module_directory="$SAP_AUTOMATION_REPO_PATH"/deploy/terraform/run/"${deployment_system}"/
 export TF_DATA_DIR="${param_dirname}/.terraform"
@@ -544,7 +546,6 @@ deployment_parameter=""
 version_parameter=""
 
 export TF_DATA_DIR="${param_dirname}/.terraform"
-export TF_VAR_tfstate_resource_id="${tfstate_resource_id}"
 
 terraform --version
 echo ""
@@ -555,6 +556,9 @@ echo "Storage Account:                     ${REMOTE_STATE_SA}"
 echo "Resource Group:                      ${REMOTE_STATE_RG}"
 echo "State file:                          ${key}.terraform.tfstate"
 echo "Target subscription:                 ${ARM_SUBSCRIPTION_ID}"
+echo "Deployer state file:                 ${deployer_tfstate_key}"
+echo "Workload zone state file:            ${landscape_tfstate_key}"
+echo "Terraform state resource ID:         ${tfstate_resource_id}"
 echo ""
 
 check_output=0
@@ -595,6 +599,7 @@ if [ -f terraform.tfstate ]; then
     fi
   fi
 fi
+
 terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/run/"${deployment_system}"/
 export TF_DATA_DIR="${param_dirname}/.terraform"
 
@@ -776,8 +781,8 @@ if [ 0 == $new_deployment ]; then
           echo "Removing storage account state object:           ${moduleID} "
           if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
             echo "Importing storage account state object:           ${moduleID}"
-            echo "terraform -chdir=${terraform_module_directory} import -var-file=${var_file} -var tfstate_resource_id=${tfstate_resource_id} ${moduleID} ${azureResourceID}"
-            if ! terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var "tfstate_resource_id=${tfstate_resource_id}" "${moduleID}" "${azureResourceID}"; then
+            echo "terraform -chdir=${terraform_module_directory} import -var-file=${var_file} ${moduleID} ${azureResourceID}"
+            if ! terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" "${moduleID}" "${azureResourceID}"; then
               echo -e "$boldred Importing storage account state object:           ${moduleID} failed $resetformatting"
               exit 65
             fi
@@ -821,7 +826,7 @@ if [ -f plan_output.log ]; then
   rm plan_output.log
 fi
 
-allParameters=$(printf " -var-file=%s %s %s %s %s %s %s %s" "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}" "${deployer_parameter}")
+allParameters=$(printf " -var-file=%s %s %s %s %s" "${var_file}" "${extra_vars}" "${deployment_parameter}" "${version_parameter}" "${deployer_parameter}")
 
 # shellcheck disable=SC2086
 if ! terraform -chdir="$terraform_module_directory" plan $allParameters -input=false -detailed-exitcode | tee -a plan_output.log; then
@@ -1081,7 +1086,7 @@ if [ $fatal_errors == 1 ]; then
 
 fi
 
-rerun_apply=0
+
 if [ 1 == $apply_needed ]; then
 
   if [ -f error.log ]; then
@@ -1099,8 +1104,8 @@ if [ 1 == $apply_needed ]; then
   echo "#########################################################################################"
   echo ""
 
-  allParameters=$(printf " -var-file=%s %s %s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}" "${approve}")
-  allImportParameters=$(printf " -var-file=%s %s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}")
+  allParameters=$(printf " -var-file=%s %s %s %s %s " "${var_file}" "${extra_vars}" "${deployment_parameter}" "${version_parameter}" "${approve}")
+  allImportParameters=$(printf " -var-file=%s %s %s %s " "${var_file}" "${extra_vars}" "${deployment_parameter}" "${version_parameter}")
 
   if [ -n "${approve}" ]; then
     # shellcheck disable=SC2086
