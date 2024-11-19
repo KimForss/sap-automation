@@ -84,6 +84,11 @@ done
 deployment_system=sap_library
 use_deployer=true
 
+if [ "$debug" = True ]; then
+  set -x
+  set -o errexit
+fi
+
 if [ ! -f "${parameterfile}" ]; then
   printf -v val %-40.40s "$parameterfile"
   echo ""
@@ -150,7 +155,7 @@ fi
 
 # Convert the region to the correct code
 region=$(echo "${region}" | tr "[:upper:]" "[:lower:]")
-get_region_code $region
+get_region_code "$region"
 
 if [ true == "$use_deployer" ]; then
   if [ ! -d "${deployer_statefile_foldername}" ]; then
@@ -171,9 +176,9 @@ generic_config_information="${automation_config_directory}"config
 library_config_information="${automation_config_directory}${environment}${region_code}"
 
 #Plugins
-isInCloudShellCheck=$(checkIfCloudShell)
+isInCloudShellCheck=$(checkIfCloudShell || true)
 
-if checkIfCloudShell; then
+if [ "$isInCloudShellCheck" == 1 ]; then
   mkdir -p "${HOME}/.terraform.d/plugin-cache"
   export TF_PLUGIN_CACHE_DIR="${HOME}/.terraform.d/plugin-cache"
 else
@@ -183,10 +188,6 @@ else
   fi
   export TF_PLUGIN_CACHE_DIR=/opt/terraform/.terraform.d/plugin-cache
 fi
-
-param_dirname=$(pwd)
-
-arm_config_stored=false
 
 param_dirname=$(pwd)
 
@@ -208,11 +209,6 @@ if [ -z "${SAP_AUTOMATION_REPO_PATH}" ]; then
   echo "#########################################################################################"
   unset TF_DATA_DIR
   exit 4
-fi
-
-# Subscription length is 37
-if [ 37 != "${#ARM_SUBSCRIPTION_ID}" ]; then
-  arm_config_stored=false
 fi
 
 if [ -z "$ARM_SUBSCRIPTION_ID" ]; then
@@ -245,8 +241,6 @@ if [ ! -d "${terraform_module_directory}" ]; then
   unset TF_DATA_DIR
   exit 64
 fi
-
-reinitialized=0
 
 if [ -f ./backend-config.tfvars ]; then
   echo "#########################################################################################"
@@ -364,7 +358,7 @@ if [ 0 == $return_value ]; then
 
   REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw remote_state_storage_account_name | tr -d \")
 
-  get_and_store_sa_details "${REMOTE_STATE_SA}" "${system_config_information}"
+  get_and_store_sa_details "${REMOTE_STATE_SA}" "${library_config_information}"
 
   unset TF_DATA_DIR
   exit $return_value
@@ -392,6 +386,21 @@ if [ -f plan_output.log ]; then
   rm plan_output.log
 fi
 
+if [ -f terraform.tfvars ]; then
+  extra_vars="-var-file=${param_dirname}/terraform.tfvars"
+else
+  unset extra_vars
+fi
+
+parallelism=10
+
+#Provide a way to limit the number of parallell tasks for Terraform
+if [[ -n "$TF_PARALLELLISM" ]]; then
+  parallelism=$TF_PARALLELLISM
+fi
+
+echo "Parallelism count:                   $parallelism"
+
 echo ""
 echo "#########################################################################################"
 echo "#                                                                                       #"
@@ -399,135 +408,57 @@ echo "#                             Running Terraform apply                     
 echo "#                                                                                       #"
 echo "#########################################################################################"
 echo ""
+allParameters=$(printf " -var-file=%s -var deployer_statefile_foldername=%s %s " "${var_file}" "${deployer_statefile_foldername}" "${extra_vars}")
+allImportParameters=$(printf " -var-file=%s -var deployer_statefile_foldername=%s %s " "${var_file}" "${deployer_statefile_foldername}" "${extra_vars}")
 
-deployer_parameter=""
-if [ -n "${deployer_statefile_foldername}" ]; then
-  echo "Deployer folder specified:             ${deployer_statefile_foldername}"
-  if [ -n "${approve}" ]; then
-    terraform -chdir="${terraform_module_directory}" apply -var-file="${var_file}" -var deployer_statefile_foldername="${deployer_statefile_foldername}" -auto-approve -json | tee -a apply_output.json
+if [ -n "${approve}" ]; then
+  # shellcheck disable=SC2086
+  if ! terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json -input=false $allParameters | tee -a apply_output.json; then
+    return_value=$?
+    if [ $return_value -eq 1 ]; then
+      echo "Errors when running Terraform apply"
+    else
+      # return code 2 is ok
+      return_value=0
+    fi
   else
-    terraform -chdir="${terraform_module_directory}" apply -var-file="${var_file}" -var deployer_statefile_foldername="${deployer_statefile_foldername}"
+    return_value=0
   fi
+
 else
-  if [ -n "${approve}" ]; then
-    terraform -chdir="${terraform_module_directory}" apply -var-file="${var_file}" -auto-approve -json | tee -a apply_output.json
-  else
-    terraform -chdir="${terraform_module_directory}" apply -var-file="${var_file}"
+  # shellcheck disable=SC2086
+  if ! terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -input=false $allParameters; then
+    return_value=$?
+    if [ $return_value -eq 1 ]; then
+      echo "Errors when running Terraform apply"
+    else
+      # return code 2 is ok
+      return_value=0
+    fi
   fi
 fi
-return_value=$?
 
-rerun_apply=0
 if [ -f apply_output.json ]; then
-  errors_occurred=$(jq 'select(."@level" == "error") | length' apply_output.json)
-
-  # Check for resource that can be imported
-  existing=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary}  | select(.summary | startswith("A resource with the ID"))' apply_output.json)
-  if [[ -n ${existing} ]]; then
-
-    readarray -t existing_resources < <(echo ${existing} | jq -c '.')
-    for item in "${existing_resources[@]}"; do
-      moduleID=$(jq -c -r '.address ' <<<"$item")
-      resourceID=$(jq -c -r '.summary' <<<"$item" | awk -F'\"' '{print $2}')
-      echo "Trying to import $resourceID into $moduleID"
-
-      if [ -n "${deployer_statefile_foldername}" ]; then
-        echo "Deployer folder specified:             ${deployer_statefile_foldername}"
-        terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var deployer_statefile_foldername="${deployer_statefile_foldername}" "${moduleID}" "${resourceID}"
-      else
-        terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" "${moduleID}" "${resourceID}"
-      fi
-
-    done
-    rerun_apply=1
-  fi
-  if [ $rerun_apply == 1 ]; then
-    echo ""
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo "#                          Re-running Terraform apply                                   #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    echo ""
-    if [ -n "${deployer_statefile_foldername}" ]; then
-      echo "Deployer folder specified:             ${deployer_statefile_foldername}"
-      terraform -chdir="${terraform_module_directory}" apply -var-file="${var_file}" -var deployer_statefile_foldername="${deployer_statefile_foldername}" -auto-approve -json | tee -a apply_output.json
-    else
-      terraform -chdir="${terraform_module_directory}" apply -var-file="${var_file}" -auto-approve -json | tee -a apply_output.json
-    fi
+  # shellcheck disable=SC2086
+  if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters $parallelism; then
     return_value=$?
-    rerun_apply=0
   fi
-  errors_occurred=$(jq 'select(."@level" == "error") | length' apply_output.json)
-
-  # Check for resource that can be imported
-  existing=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary}  | select(.summary | startswith("A resource with the ID"))' apply_output.json)
-  if [[ -n ${existing} ]]; then
-
-    readarray -t existing_resources < <(echo ${existing} | jq -c '.')
-    for item in "${existing_resources[@]}"; do
-      moduleID=$(jq -c -r '.address ' <<<"$item")
-      resourceID=$(jq -c -r '.summary' <<<"$item" | awk -F'\"' '{print $2}')
-      echo "Trying to import $resourceID into $moduleID"
-
-      if [ -n "${deployer_statefile_foldername}" ]; then
-        echo "Deployer folder specified:             ${deployer_statefile_foldername}"
-        terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var deployer_statefile_foldername="${deployer_statefile_foldername}" "${moduleID}" "${resourceID}"
-      else
-        terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" "${moduleID}" "${resourceID}"
-      fi
-
-    done
-    rerun_apply=1
-  fi
-
-  if [ $rerun_apply == 1 ]; then
-    echo ""
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo "#                          Re-running Terraform apply                                   #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    echo ""
-    if [ -n "${deployer_statefile_foldername}" ]; then
-      echo "Deployer folder specified:             ${deployer_statefile_foldername}"
-      terraform -chdir="${terraform_module_directory}" apply -var-file="${var_file}" -var deployer_statefile_foldername="${deployer_statefile_foldername}" -auto-approve -json | tee -a apply_output.json
-    else
-      terraform -chdir="${terraform_module_directory}" apply -var-file="${var_file}" -auto-approve -json | tee -a apply_output.json
+  if [ -f apply_output.json ]; then
+    # shellcheck disable=SC2086
+    if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters $parallelism; then
+      return_value=$?
     fi
-    return_value=$?
-    rerun_apply=0
   fi
-  errors_occurred=$(jq 'select(."@level" == "error") | length' apply_output.json)
-
-  if [[ -n $errors_occurred ]]; then
-    echo ""
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo -e "#                          $boldreduscore!Errors during the apply phase!$resetformatting                              #"
-
-    return_value=2
-    all_errors=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary, detail: .diagnostic.detail}' apply_output.json)
-    if [[ -n ${all_errors} ]]; then
-      readarray -t errors_strings < <(echo ${all_errors} | jq -c '.')
-      for errors_string in "${errors_strings[@]}"; do
-        string_to_report=$(jq -c -r '.detail ' <<<"$errors_string")
-        if [[ -z ${string_to_report} ]]; then
-          string_to_report=$(jq -c -r '.summary ' <<<"$errors_string")
-        fi
-
-        echo -e "#                          $boldreduscore  $string_to_report $resetformatting"
-        echo "##vso[task.logissue type=error]${string_to_report}"
-
-      done
-
+  if [ -f apply_output.json ]; then
+    # shellcheck disable=SC2086
+    if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters $parallelism; then
+      return_value=$?
     fi
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    echo ""
 
   fi
-
+fi
+if [ -f apply_output.json ]; then
+  rm apply_output.json
 fi
 
 if [ -f apply_output.json ]; then

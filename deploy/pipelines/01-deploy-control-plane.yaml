@@ -93,6 +93,8 @@ stages:
 
                 if [ "$SYSTEM_DEBUG" = True ]; then
                   set -x
+                  debug=true
+                  export debug
                 fi
                 set -eu
 

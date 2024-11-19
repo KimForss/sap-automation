@@ -558,7 +558,7 @@ function ImportAndReRunApply {
         echo ""
         echo ""
         # shellcheck disable=SC2086
-        if ! terraform -chdir="${terraform_module_directory}" apply  \
+        if ! terraform -chdir="${terraform_module_directory}" apply \
           $applyParameters -no-color -compact-warnings -json -input=false --auto-approve | tee -a "$fileName"; then
           return_value=$?
           if [ $return_value -eq 1 ]; then
@@ -572,5 +572,29 @@ function ImportAndReRunApply {
     fi
   fi
 
+  return $return_value
+}
+
+function testIfResourceWouldBeRecreated {
+  local moduleId="$1"
+  local fileName="$2"
+  local shortName="$3"
+  printf -v val '%-40s' "$shortName"
+  return_value=0
+  willResourceWouldBeRecreated=$(grep "$moduleId" "$fileName" | grep -m1 "must be replaced" || true)
+  if [ -n "${willResourceWouldBeRecreated}" ]; then
+    echo ""
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo -e "#                               $boldreduscore!!! Risk for Data loss !!!$resetformatting                              #"
+    echo "#                                                                                       #"
+    echo "#  Resource will be removed: ${val}                   #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    echo ""
+    echo ""
+    echo "##vso[task.logissue type=error]Resource will be removed: $shortName"
+    return_value=1
+  fi
   return $return_value
 }

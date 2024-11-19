@@ -261,7 +261,7 @@ fi
 parallelism=10
 
 #Provide a way to limit the number of parallell tasks for Terraform
-if [[ -n "${TF_PARALLELLISM}" ]]; then
+if [[ -n "$TF_PARALLELLISM" ]]; then
   parallelism=$TF_PARALLELLISM
 fi
 
@@ -973,202 +973,61 @@ if [ -n "${testIfResourceWouldBeRecreated}" ]; then
 fi
 
 # Terraform State Library
-testIfResourceWouldBeRecreated=$(grep module.sap_library.azurerm_storage_account.storage_tfstate plan_output.log | grep -m1 "must be replaced" || true)
-if [ -n "${testIfResourceWouldBeRecreated}" ]; then
-  echo ""
-  echo "#########################################################################################"
-  echo "#                                                                                       #"
-  echo -e "#                               $boldreduscore!!! Risk for Data loss !!!$resetformatting                              #"
-  echo "#                                                                                       #"
-  echo "#                  Terraform State Storage Account will be replaced                     #"
-  echo "#                                                                                       #"
-  echo "#########################################################################################"
-  echo ""
-  echo ""
-  echo "##vso[task.logissue type=error]${test}"
+if testIfResourceWouldBeRecreated "module.sap_library.azurerm_storage_account.storage_tfstate" "plan_output.log" "Terraform State Storage Account"; then
   fatal_errors=1
 fi
 
 # Terraform state container
-testIfResourceWouldBeRecreated=$(grep module.sap_library.azurerm_storage_container.storagecontainer_tfstate plan_output.log | grep -m1 "must be replaced" || true)
-if [ -n "${testIfResourceWouldBeRecreated}" ]; then
-  echo ""
-  echo "#########################################################################################"
-  echo "#                                                                                       #"
-  echo -e "#                               $boldreduscore!!! Risk for Data loss !!!$resetformatting                              #"
-  echo "#                                                                                       #"
-  echo "#                  Terraform state file container will be replaced                      #"
-  echo "#                                                                                       #"
-  echo "#########################################################################################"
-  echo ""
-  echo ""
-  echo "##vso[task.logissue type=error]${test}"
+if testIfResourceWouldBeRecreated "module.sap_library.azurerm_storage_container.storagecontainer_tfstate" "plan_output.log" "Terraform State Storage Account"; then
   fatal_errors=1
 fi
 
 # HANA VM
-testIfResourceWouldBeRecreated=$(grep vm_dbnode plan_output.log | grep -m1 "must be replaced" || true)
-if [ -n "${testIfResourceWouldBeRecreated}" ]; then
-  echo ""
-  echo "#########################################################################################"
-  echo "#                                                                                       #"
-  echo -e "#                               $boldreduscore!!! Risk for Data loss !!!$resetformatting                              #"
-  echo "#                                                                                       #"
-  echo "#                          Database server(s) will be replaced                          #"
-  echo "#                                                                                       #"
-  echo "#########################################################################################"
-  echo ""
-  echo ""
-  echo "##vso[task.logissue type=error]${test}"
+if testIfResourceWouldBeRecreated "vm_dbnode" "plan_output.log" "Database server(s)"; then
   fatal_errors=1
 fi
+
 # HANA VM disks
-testIfResourceWouldBeRecreated=$(grep azurerm_managed_disk.data_disk plan_output.log | grep -m1 "must be replaced" || true)
-if [ -n "${testIfResourceWouldBeRecreated}" ]; then
-  echo ""
-  echo "#########################################################################################"
-  echo "#                                                                                       #"
-  echo -e "#                               $boldreduscore!!! Risk for Data loss !!!$resetformatting                              #"
-  echo "#                                                                                       #"
-  echo "#                        Database server disks will be replaced                         #"
-  echo "#                                                                                       #"
-  echo "#########################################################################################"
-  echo ""
-  echo ""
+if testIfResourceWouldBeRecreated "azurerm_managed_disk.data_disk" "plan_output.log" "Database server(s)"; then
   fatal_errors=1
 fi
 
 # AnyDB server
-testIfResourceWouldBeRecreated=$(grep dbserver plan_output.log | grep -m1 "must be replaced" || true)
-if [ -n "${testIfResourceWouldBeRecreated}" ]; then
-  echo ""
-  echo "#########################################################################################"
-  echo "#                                                                                       #"
-  echo -e "#                               $boldreduscore!!! Risk for Data loss !!!$resetformatting                              #"
-  echo "#                                                                                       #"
-  echo "#                          Database server(s) will be replaced                          #"
-  echo "#                                                                                       #"
-  echo "#########################################################################################"
-  echo ""
-  echo ""
-  echo "##vso[task.logissue type=error]${test}"
+if testIfResourceWouldBeRecreated "dbserver" "plan_output.log" "Database server(s)"; then
   fatal_errors=1
 fi
+
 # AnyDB disks
-testIfResourceWouldBeRecreated=$(grep azurerm_managed_disk.disks plan_output.log | grep -m1 "must be replaced" || true)
-if [ -n "${testIfResourceWouldBeRecreated}" ]; then
-  echo ""
-  echo "#########################################################################################"
-  echo "#                                                                                       #"
-  echo -e "#                               $boldreduscore!!! Risk for Data loss !!!$resetformatting                              #"
-  echo "#                                                                                       #"
-  echo "#                        Database server disks will be replaced                         #"
-  echo "#                                                                                       #"
-  echo "#########################################################################################"
-  echo ""
-  echo ""
-  echo "##vso[task.logissue type=error]${test}"
+if testIfResourceWouldBeRecreated "azurerm_managed_disk.disks" "plan_output.log" "Database server(s)"; then
   fatal_errors=1
 fi
 
 # App server
-testIfResourceWouldBeRecreated=$(grep virtual_machine.app plan_output.log | grep -m1 "must be replaced" || true)
-if [ -n "${testIfResourceWouldBeRecreated}" ]; then
-  echo ""
-  echo "#########################################################################################"
-  echo "#                                                                                       #"
-  echo -e "#                               $boldreduscore!!! Risk for Data loss !!!$resetformatting                              #"
-  echo "#                                                                                       #"
-  echo "#                          Application server will be replaced                          #"
-  echo "#                                                                                       #"
-  echo "#########################################################################################"
-  echo ""
-  echo ""
-  echo "##vso[task.logissue type=error]${test}"
+if testIfResourceWouldBeRecreated "virtual_machine.app" "plan_output.log" "Application server(s)"; then
   fatal_errors=1
 fi
+
 # App server disks
-testIfResourceWouldBeRecreated=$(grep azurerm_managed_disk.app plan_output.log | grep -m1 "must be replaced" || true)
-if [ -n "${testIfResourceWouldBeRecreated}" ]; then
-  echo ""
-  echo "#########################################################################################"
-  echo "#                                                                                       #"
-  echo -e "#                               $boldreduscore!!! Risk for Data loss !!!$resetformatting                              #"
-  echo "#                                                                                       #"
-  echo "#                      Application server disks will be replaced                        #"
-  echo "#                                                                                       #"
-  echo "#########################################################################################"
-  echo ""
-  echo ""
-  echo "##vso[task.logissue type=error]${test}"
+if testIfResourceWouldBeRecreated "azurerm_managed_disk.app" "plan_output.log" "Application server(s)"; then
   fatal_errors=1
 fi
 
 # SCS server
-testIfResourceWouldBeRecreated=$(grep virtual_machine.scs plan_output.log | grep -m1 "must be replaced" || true)
-if [ -n "${testIfResourceWouldBeRecreated}" ]; then
-  echo ""
-  echo "#########################################################################################"
-  echo "#                                                                                       #"
-  echo -e "#                               $boldreduscore!!! Risk for Data loss !!!$resetformatting                              #"
-  echo "#                                                                                       #"
-  echo "#                        SCS server(s) disks will be replaced                           #"
-  echo "#                                                                                       #"
-  echo "#########################################################################################"
-  echo ""
-  echo ""
-  echo "##vso[task.logissue type=error]${test}"
+if testIfResourceWouldBeRecreated "virtual_machine.scs" "plan_output.log" "Application server(s)"; then
   fatal_errors=1
 fi
 
 # SCS server disks
-testIfResourceWouldBeRecreated=$(grep azurerm_managed_disk.scs plan_output.log | grep -m1 "must be replaced" || true)
-if [ -n "${testIfResourceWouldBeRecreated}" ]; then
-  echo ""
-  echo "#########################################################################################"
-  echo "#                                                                                       #"
-  echo -e "#                               $boldreduscore!!! Risk for Data loss !!!$resetformatting                              #"
-  echo "#                                                                                       #"
-  echo "#                          SCS server disks will be replaced                            #"
-  echo "#                                                                                       #"
-  echo "#########################################################################################"
-  echo ""
-  echo ""
-  echo "##vso[task.logissue type=error]${test}"
+if testIfResourceWouldBeRecreated "azurerm_managed_disk.scs" "plan_output.log" "Application server(s)"; then
   fatal_errors=1
 fi
 
 # Web server
-testIfResourceWouldBeRecreated=$(grep virtual_machine.web plan_output.log | grep -m1 "must be replaced" || true)
-if [ -n "${testIfResourceWouldBeRecreated}" ]; then
-  echo ""
-  echo "#########################################################################################"
-  echo "#                                                                                       #"
-  echo -e "#                               $boldreduscore!!! Risk for Data loss !!!$resetformatting                              #"
-  echo "#                                                                                       #"
-  echo "#                         Web Dispatcher server(s) will be replaced                     #"
-  echo "#                                                                                       #"
-  echo "#########################################################################################"
-  echo ""
-  echo ""
-  echo "##vso[task.logissue type=error]${test}"
+if testIfResourceWouldBeRecreated "virtual_machine.web" "plan_output.log" "Application server(s)"; then
   fatal_errors=1
 fi
 # Web dispatcher server disks
-testIfResourceWouldBeRecreated=$(grep azurerm_managed_disk.web plan_output.log | grep -m1 "must be replaced" || true)
-if [ -n "${testIfResourceWouldBeRecreated}" ]; then
-  echo ""
-  echo "#########################################################################################"
-  echo "#                                                                                       #"
-  echo -e "#                               $boldreduscore!!! Risk for Data loss !!!$resetformatting                              #"
-  echo "#                                                                                       #"
-  echo "#                       Web Dispatcher server disks will be replaced                    #"
-  echo "#                                                                                       #"
-  echo "#########################################################################################"
-  echo ""
-
-  echo ""
-  echo "##vso[task.logissue type=error]${test}"
+if testIfResourceWouldBeRecreated "azurerm_managed_disk.web" "plan_output.log" "Application server(s)"; then
   fatal_errors=1
 fi
 
