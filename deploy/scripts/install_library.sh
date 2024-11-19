@@ -120,7 +120,7 @@ fi
 validate_key_parameters "$parameterfile_name"
 return_code=$?
 if [ 0 != $return_code ]; then
-  echo "Missing parameters in $parameterfile_name" >"${system_config_information}".err
+  echo "Missing parameters in $parameterfile_name"
   exit $return_code
 fi
 

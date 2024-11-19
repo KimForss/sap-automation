@@ -123,8 +123,13 @@ while :; do
   esac
 done
 
+#Variables must be explicitly declared
+set -u
+
 if [ "$debug" = True ]; then
+  # Enable debugging
   set -x
+  # Exit on error
   set -o errexit
 fi
 
@@ -609,11 +614,11 @@ if [ 2 == $step ]; then
     az storage account network-rule add -g "${REMOTE_STATE_RG}" --account-name "${REMOTE_STATE_SA}" --ip-address "${this_ip}" --output none
   fi
 
-  TF_VAR_sa_connection_string=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw sa_connection_string | tr -d \")
+  TF_VAR_sa_connection_string=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw sa_connection_string  | tr -d \")
   export TF_VAR_sa_connection_string
 
   secretname=sa-connection-string
-  deleted=$(az keyvault secret list-deleted --vault-name "${keyvault}" --query "[].{Name:name} | [? contains(Name,'${secretname}')] | [0]" | tr -d \")
+  deleted=$(az keyvault secret list-deleted --vault-name "${keyvault}" --query "[].{Name:name} | [? contains(Name,'${secretname}')] | [0]" --out tsv | tr -d \")
   if [ "${deleted}" == "${secretname}" ]; then
     echo -e "\t $cyan Recovering secret ${secretname} in keyvault ${keyvault} $resetformatting \n"
     az keyvault secret recover --name "${secretname}" --vault-name "${keyvault}"
@@ -621,9 +626,9 @@ if [ 2 == $step ]; then
   fi
 
   v=""
-  secret=$(az keyvault secret list --vault-name "${keyvault}" --query "[].{Name:name} | [? contains(Name,'${secretname}')] | [0]" | tr -d \")
+  secret=$(az keyvault secret list --vault-name "${keyvault}" --query "[].{Name:name} | [? contains(Name,'${secretname}')] | [0]" --out tsv | tr -d \")
   if [ "${secret}" == "${secretname}" ]; then
-    v=$(az keyvault secret show --name "${secretname}" --vault-name "${keyvault}" --query value | tr -d \")
+    v=$(az keyvault secret show --name "${secretname}" --vault-name "${keyvault}" --query value --out tsv | tr -d \")
     if [ "${v}" != "${TF_VAR_sa_connection_string}" ]; then
       az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --value "${TF_VAR_sa_connection_string}" --expires "$(date -d '+1 year' -u +%Y-%m-%dT%H:%M:%SZ)" --only-show-errors --output none
     fi

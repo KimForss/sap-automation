@@ -420,10 +420,11 @@ function validate_key_parameters {
   echo "Validating:                          $1"
 
   # Helper variables
-  load_config_vars $1 "environment"
+  load_config_vars "$1" "environment"
   environment=$(echo "${environment}" | xargs | tr "[:lower:]" "[:upper:]" | tr -d '\r')
   export environment
-  load_config_vars $1 "location"
+
+  load_config_vars "$1" "location"
   region=$(echo "${location}" | xargs | tr -d '\r')
   export region
 
