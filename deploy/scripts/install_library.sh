@@ -352,7 +352,7 @@ echo "#                                                                         
 echo "#########################################################################################"
 echo ""
 
-cat "${deployer_statefile_foldername}"
+cat "${deployer_statefile_foldername}/terraform.tfstate"
 
 if [ -n "${deployer_statefile_foldername}" ]; then
   echo "Deployer folder specified:           ${deployer_statefile_foldername}"

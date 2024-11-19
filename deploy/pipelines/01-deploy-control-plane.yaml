@@ -672,6 +672,7 @@ stages:
 
                 echo "Unzipping the deployer state file"
                 unzip -o -qq -P "${pass}" "${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip" -d "${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)"
+                ls -lart "${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)"
               fi
 
               if [ "$debug" = True ]; then
