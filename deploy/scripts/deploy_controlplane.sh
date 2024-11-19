@@ -698,6 +698,21 @@ if [ 3 == $step ]; then
 
   allParameters=$(printf "  ")
 
+  if [ -n "${REMOTE_STATE_SA}" ]; then
+    export step=2
+    save_config_var "step" "${deployer_config_information}"
+    echo "##vso[task.setprogress value=40;]Progress Indicator"
+    echo ""
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo -e "#                   $boldred Could not find the SAP Library, please re-run! $resetformatting                    #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    echo ""
+    exit 11
+
+  fi
+
   echo "Calling installer.sh with:          --parameterfile ${deployer_file_parametername} \
   --storageaccountname ${REMOTE_STATE_SA} --state_subscription ${STATE_SUBSCRIPTION} --type sap_deployer ${autoApproveParameter} ${ado_flag}"
 
@@ -705,7 +720,7 @@ if [ 3 == $step ]; then
     --storageaccountname "${REMOTE_STATE_SA}" --state_subscription "${STATE_SUBSCRIPTION}" --type sap_deployer "${autoApproveParameter}" "${ado_flag}"
   return_code=$?
   if [ 0 != $return_code ]; then
-    echo "Migrating the deployer state failed" >"${deployer_config_information}".err
+    echo "Migrating the deployer state failed"
 
     exit 11
   fi
