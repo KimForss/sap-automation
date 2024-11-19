@@ -22,6 +22,50 @@ source "${script_directory}/deploy_utils.sh"
 #helper files
 source "${script_directory}/helpers/script_helpers.sh"
 
+function showhelp {
+  echo ""
+  echo "#########################################################################################"
+  echo "#                                                                                       #"
+  echo "#                                                                                       #"
+  echo "#   This file contains the logic to deploy the different systems                        #"
+  echo "#   The script experts the following exports:                                           #"
+  echo "#                                                                                       #"
+  echo "#   ARM_SUBSCRIPTION_ID to specify which subscription to deploy to                      #"
+  echo "#   SAP_AUTOMATION_REPO_PATH the path to the folder containing the cloned sap-automation#"
+  echo "#   CONFIG_REPO_PATH (path to the configuration repo folder (sap-config)                #"
+  echo "#                                                                                       #"
+  echo "#   The script will persist the parameters needed between the executions in the         #"
+  echo "#   [CONFIG_REPO_PATH]/.sap_deployment_automation folder                                #"
+  echo "#                                                                                       #"
+  echo "#                                                                                       #"
+  echo "#   Usage: installer.sh                                                                 #"
+  echo "#    -p or --parameterfile           parameter file                                     #"
+  echo "#    -t or --type                         type of system to remove                      #"
+  echo "#                                         valid options:                                #"
+  echo "#                                           sap_deployer                                #"
+  echo "#                                           sap_library                                 #"
+  echo "#                                           sap_landscape                               #"
+  echo "#                                           sap_system                                  #"
+  echo "#                                                                                       #"
+  echo "#   Optional parameters                                                                 #"
+  echo "#                                                                                       #"
+  echo "#    -o or --storageaccountname      Storage account name for state file                #"
+  echo "#    -d or --deployer_tfstate_key    Deployer terraform state file name                 #"
+  echo "#    -l or --landscape_tfstate_key     Workload zone terraform state file name          #"
+  echo "#    -s or --state_subscription      Subscription for tfstate storage account           #"
+  echo "#    -i or --auto-approve            Silent install                                     #"
+  echo "#    -h or --help                    Show help                                          #"
+  echo "#                                                                                       #"
+  echo "#   Example:                                                                            #"
+  echo "#                                                                                       #"
+  echo "#   [REPO-ROOT]deploy/scripts/installer.sh \                                            #"
+  echo "#      --parameterfile DEV-WEEU-SAP01-X00 \                                             #"
+  echo "#      --type sap_system                                                                #"
+  echo "#      --auto-approve                                                                   #"
+  echo "#                                                                                       #"
+  echo "#########################################################################################"
+}
+
 force=0
 
 INPUT_ARGUMENTS=$(getopt -n installer -o p:t:o:d:l:s:ahif --longoptions type:,parameterfile:,storageaccountname:,deployer_tfstate_key:,landscape_tfstate_key:,state_subscription:,ado,auto-approve,force,help -- "$@")
@@ -29,6 +73,7 @@ VALID_ARGUMENTS=$?
 
 if [ "$VALID_ARGUMENTS" != "0" ]; then
   showhelp
+  exit 3
 fi
 called_from_ado=0
 eval set -- "$INPUT_ARGUMENTS"

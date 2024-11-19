@@ -151,7 +151,7 @@ function workload_zone_missing {
   echo ""
   echo "#########################################################################################"
   echo "#                                                                                       #"
-  echo "#   Missing environment variables: ${option}!!!              #"
+  echo "#   Missing environment variables: ${val}!!!              #"
   echo "#                                                                                       #"
   echo "#   Please export the folloing variables:                                               #"
   echo "#   SAP_AUTOMATION_REPO_PATH (path to the repo folder (sap-automation))                 #"
@@ -161,8 +161,8 @@ function workload_zone_missing {
   echo "#      -p or --parameterfile                deployer parameter file                     #"
   echo "#                                                                                       #"
   echo "#   Optional parameters                                                                 #"
-  echo "#      -d or deployer_tfstate_key            Deployer terraform state file name         #"
-  echo "#      -e or deployer_environment            Deployer environment, i.e. MGMT            #"
+  echo "#      -d or --deployer_tfstate_key          Deployer terraform state file name         #"
+  echo "#      -e or --deployer_environment          Deployer environment, i.e. MGMT            #"
   echo "#      -k or --state_subscription            subscription of keyvault with SPN details  #"
   echo "#      -v or --keyvault                      Name of Azure keyvault with SPN details    #"
   echo "#      -s or --subscription                  subscription                               #"
@@ -189,7 +189,7 @@ function showhelp {
   echo "#   CONFIG_REPO_PATH (path to the configuration repo folder (sap-config)                #"
   echo "#                                                                                       #"
   echo "#   The script will persist the parameters needed between the executions in the         #"
-  echo "#   [CONFIG_REPO_PATH]/.sap_deployment_automation folder                                                 #"
+  echo "#   [CONFIG_REPO_PATH]/.sap_deployment_automation folder                                #"
   echo "#                                                                                       #"
   echo "#                                                                                       #"
   echo "#   Usage: installer.sh                                                                 #"
@@ -204,6 +204,8 @@ function showhelp {
   echo "#   Optional parameters                                                                 #"
   echo "#                                                                                       #"
   echo "#    -o or --storageaccountname      Storage account name for state file                #"
+  echo "#    -d or --deployer_tfstate_key    Deployer terraform state file name                 #"
+  echo "#    -l or --landscape_tfstate_key     Workload zone terraform state file name          #"
   echo "#    -s or --state_subscription      Subscription for tfstate storage account           #"
   echo "#    -i or --auto-approve            Silent install                                     #"
   echo "#    -h or --help                    Show help                                          #"
@@ -216,7 +218,7 @@ function showhelp {
   echo "#      --auto-approve                                                                   #"
   echo "#                                                                                       #"
   echo "#########################################################################################"
-  return 0
+
 }
 
 function missing {

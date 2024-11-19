@@ -55,7 +55,7 @@ VALID_ARGUMENTS=$?
 
 if [ "$VALID_ARGUMENTS" != "0" ]; then
   showhelp
-
+  exit 3
 fi
 
 eval set -- "$INPUT_ARGUMENTS"
