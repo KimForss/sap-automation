@@ -175,9 +175,9 @@ else
       echo "#                     The state is already migrated to Azure!!!                         #"
       echo "#                                                                                       #"
       echo "#########################################################################################"
-      REINSTALL_SUBSCRIPTION=$(grep "^subscription_id:" ./.terraform/terraform.tfstate | cut -d ':' -f2 | tr -d '",' || true)
-      REINSTALL_ACCOUNTNAME=$(grep "^storage_account_name:" ./.terraform/terraform.tfstate | cut -d ':' -f2 | tr -d '",' || true)
-      REINSTALL_RESOURCE_GROUP=$(grep "^resource_group_name:" ./.terraform/terraform.tfstate | cut -d ':' -f2 | tr -d '",' || true)
+      REINSTALL_SUBSCRIPTION=$(grep "\"subscription_id\":" ./.terraform/terraform.tfstate | cut -d ':' -f2 | tr -d '", ' || true)
+      REINSTALL_ACCOUNTNAME=$(grep "\"storage_account_name\":" ./.terraform/terraform.tfstate | cut -d ':' -f2 | tr -d ' ",' || true)
+      REINSTALL_RESOURCE_GROUP=$(grep "\"resource_group_name\":" ./.terraform/terraform.tfstate | cut -d ':' -f2 | tr -d ' ",' || true)
 
       if [ -n "$REINSTALL_ACCOUNTNAME" ] && [ -n "$REINSTALL_SUBSCRIPTION" ]; then
 
