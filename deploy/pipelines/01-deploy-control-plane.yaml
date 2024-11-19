@@ -300,7 +300,7 @@ stages:
                 set -eu
 
                 if [ -f "${deployer_environment_file_name}" ]; then
-                  file_deployer_tfstate_key=$(grep -m1 "^deployer_tfstate_key" "${deployer_environment_file_name}" | grep  | awk -F'=' '{print $2}' | xargs || true)
+                  file_deployer_tfstate_key=$(grep -m1 "^deployer_tfstate_key" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
                   if [ -z "$file_deployer_tfstate_key" ]; then
                     deployer_tfstate_key=$file_deployer_tfstate_key
                     export deployer_tfstate_key
@@ -310,12 +310,12 @@ stages:
                   file_key_vault=$(grep -m1 "^keyvault=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
                   echo "Deployer Key Vault:                   ${file_key_vault}"
 
-                  file_REMOTE_STATE_SA=$(grep -m1 "^REMOTE_STATE_SA" "${deployer_environment_file_name}" | grep  | awk -F'=' '{print $2}' | xargs || true)
+                  file_REMOTE_STATE_SA=$(grep -m1 "^REMOTE_STATE_SA" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
                   if [ -n "${file_REMOTE_STATE_SA}" ]; then
                     echo "Terraform Remote State Account:       ${file_REMOTE_STATE_SA}"
                   fi
 
-                  file_REMOTE_STATE_RG=$(grep -m1 "^REMOTE_STATE_RG" "${deployer_environment_file_name}" | grep  | awk -F'=' '{print $2}' | xargs || true)
+                  file_REMOTE_STATE_RG=$(grep -m1 "^REMOTE_STATE_RG" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
                   if [ -n "${file_REMOTE_STATE_SA}" ]; then
                     echo "Terraform Remote State RG Name:       ${file_REMOTE_STATE_RG}"
                   fi
