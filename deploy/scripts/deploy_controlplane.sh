@@ -727,7 +727,7 @@ if [ 4 == $step ]; then
   echo ""
 
   cd "${library_dirname}" || exit
-  allParams=$(printf " --parameterfile %s --storageaccountname %s --type sap_library %s %s" "${library_file_parametername}" "${REMOTE_STATE_SA}" "${approveparam}" "${ado_flag}")
+  allParams=$(printf " --parameterfile %s --storageaccountname %s --type sap_library -var deployer_tfstate_key=%s %s %s " "${library_file_parametername}" "${REMOTE_STATE_SA}" "${deployer_tfstate_key}" "${approveparam}" "${ado_flag}")
 
   echo "Calling installer.sh with:          $allParams"
 
