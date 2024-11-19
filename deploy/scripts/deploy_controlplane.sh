@@ -239,7 +239,7 @@ echo -e "#                   $cyan Starting the control plane deployment $resetf
 echo "#                                                                                       #"
 echo "#########################################################################################"
 echo ""
-noAccess=$(az account show --query name | grep "N/A(tenant level account)")
+noAccess=$(az account show --query name | grep "N/A(tenant level account)" || true)
 
 if [ -n "$noAccess" ]; then
   echo "#########################################################################################"
