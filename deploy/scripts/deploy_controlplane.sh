@@ -123,15 +123,15 @@ while :; do
   esac
 done
 
-#Variables must be explicitly declared
-set -u
-
 if [ "$debug" = True ]; then
   # Enable debugging
   set -x
   # Exit on error
   set -o errexit
 fi
+
+#Variables must be explicitly declared
+set -u
 
 echo "ADO flag:                            ${ado_flag}"
 
