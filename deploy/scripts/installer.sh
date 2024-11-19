@@ -540,6 +540,7 @@ deployment_parameter=""
 version_parameter=""
 
 export TF_DATA_DIR="${param_dirname}/.terraform"
+export TF_VAR_tfstate_resource_id="${tfstate_resource_id}"
 
 terraform --version
 echo ""

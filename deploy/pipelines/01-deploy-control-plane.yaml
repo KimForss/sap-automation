@@ -574,28 +574,28 @@ stages:
               if [ "$sourced_from_file" == 1 ]; then
                 az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name Deployer_Key_Vault --value "${key_vault}" --output none --only-show-errors
               fi
-              echo "Deployer TFvars:                     $(deployerconfig)"
+              echo "Deployer TFvars:                      $(deployerconfig)"
 
               if [ -n "${key_vault}" ]; then
-                echo "Deployer Key Vault:                  ${key_vault}"
+                echo "Deployer Key Vault:                   ${key_vault}"
                 keyvault_parameter=" --keyvault ${key_vault} "
               else
-                echo "Deployer Key Vault:                  undefined"
+                echo "Deployer Key Vault:                   undefined"
                 exit 2
 
               fi
 
               STATE_SUBSCRIPTION=$ARM_SUBSCRIPTION_ID
 
-              echo "Terraform state subscription:        $STATE_SUBSCRIPTION"
+              echo "Terraform state subscription:         $STATE_SUBSCRIPTION"
 
               REMOTE_STATE_SA=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Terraform_Remote_Storage_Account_Name" "${deployer_environment_file_name}" "REMOTE_STATE_SA")
               export REMOTE_STATE_SA
               if [ -n "${REMOTE_STATE_SA}" ]; then
-                echo "Terraform storage account:           $REMOTE_STATE_SA"
+                echo "Terraform storage account:            $REMOTE_STATE_SA"
                 storage_account_parameter=" --storageaccountname ${REMOTE_STATE_SA} "
               else
-                echo "Terraform storage account:           undefined"
+                echo "Terraform storage account:            undefined"
                 storage_account_parameter=
               fi
 
