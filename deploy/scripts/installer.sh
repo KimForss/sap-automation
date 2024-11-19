@@ -939,95 +939,71 @@ fi
 fatal_errors=0
 
 # SAP Library
-testIfResourceWouldBeRecreated=$(grep module.sap_library.azurerm_storage_account.storage_sapbits plan_output.log | grep -m1 "must be replaced" || true)
-if [ -n "${testIfResourceWouldBeRecreated}" ]; then
-  echo ""
-  echo "#########################################################################################"
-  echo "#                                                                                       #"
-  echo -e "#                               $boldreduscore!!! Risk for Data loss !!!$resetformatting                              #"
-  echo "#                                                                                       #"
-  echo "#                  SAP Library Storage Account will be replaced                         #"
-  echo "#                                                                                       #"
-  echo "#########################################################################################"
-  echo ""
-  echo ""
-  echo "##vso[task.logissue type=error]${test}"
+if ! testIfResourceWouldBeRecreated "module.sap_library.azurerm_storage_account.storage_sapbits" "plan_output.log" "SAP Library Storage Account"; then
   fatal_errors=1
 fi
 
 # SAP Library sapbits
-testIfResourceWouldBeRecreated=$(grep module.sap_library.azurerm_storage_container.storagecontainer_sapbits plan_output.log | grep -m1 "must be replaced" || true)
-if [ -n "${testIfResourceWouldBeRecreated}" ]; then
-  echo ""
-  echo "#########################################################################################"
-  echo "#                                                                                       #"
-  echo -e "#                               $boldreduscore!!! Risk for Data loss !!!$resetformatting                              #"
-  echo "#                                                                                       #"
-  echo "#                  SAP Library media container will be replaced                         #"
-  echo "#                                                                                       #"
-  echo "#########################################################################################"
-  echo ""
-  echo ""
-  echo "##vso[task.logissue type=error]${test}"
+if ! testIfResourceWouldBeRecreated "module.sap_library.azurerm_storage_container.storagecontainer_sapbits" "plan_output.log" "SAP Library Storage Account container"; then
   fatal_errors=1
 fi
 
 # Terraform State Library
-if testIfResourceWouldBeRecreated "module.sap_library.azurerm_storage_account.storage_tfstate" "plan_output.log" "Terraform State Storage Account"; then
+if ! testIfResourceWouldBeRecreated "module.sap_library.azurerm_storage_account.storage_tfstate" "plan_output.log" "Terraform State Storage Account"; then
   fatal_errors=1
 fi
 
 # Terraform state container
-if testIfResourceWouldBeRecreated "module.sap_library.azurerm_storage_container.storagecontainer_tfstate" "plan_output.log" "Terraform State Storage Account"; then
+if ! testIfResourceWouldBeRecreated "module.sap_library.azurerm_storage_container.storagecontainer_tfstate" "plan_output.log" "Terraform State Storage Account"; then
   fatal_errors=1
 fi
 
 # HANA VM
-if testIfResourceWouldBeRecreated "vm_dbnode" "plan_output.log" "Database server(s)"; then
+if ! testIfResourceWouldBeRecreated "vm_dbnode" "plan_output.log" "Database server(s)"; then
   fatal_errors=1
 fi
 
 # HANA VM disks
-if testIfResourceWouldBeRecreated "azurerm_managed_disk.data_disk" "plan_output.log" "Database server(s)"; then
+if ! testIfResourceWouldBeRecreated "azurerm_managed_disk.data_disk" "plan_output.log" "Database server(s)"; then
   fatal_errors=1
 fi
 
 # AnyDB server
-if testIfResourceWouldBeRecreated "dbserver" "plan_output.log" "Database server(s)"; then
+if ! testIfResourceWouldBeRecreated "dbserver" "plan_output.log" "Database server(s)"; then
   fatal_errors=1
 fi
 
 # AnyDB disks
-if testIfResourceWouldBeRecreated "azurerm_managed_disk.disks" "plan_output.log" "Database server(s)"; then
+if ! testIfResourceWouldBeRecreated "azurerm_managed_disk.disks" "plan_output.log" "Database server(s)"; then
   fatal_errors=1
 fi
 
 # App server
-if testIfResourceWouldBeRecreated "virtual_machine.app" "plan_output.log" "Application server(s)"; then
+if ! testIfResourceWouldBeRecreated "virtual_machine.app" "plan_output.log" "Application server(s)"; then
   fatal_errors=1
 fi
 
 # App server disks
-if testIfResourceWouldBeRecreated "azurerm_managed_disk.app" "plan_output.log" "Application server(s)"; then
+if ! testIfResourceWouldBeRecreated "azurerm_managed_disk.app" "plan_output.log" "Application server(s)"; then
   fatal_errors=1
 fi
 
 # SCS server
-if testIfResourceWouldBeRecreated "virtual_machine.scs" "plan_output.log" "Application server(s)"; then
+if ! testIfResourceWouldBeRecreated "virtual_machine.scs" "plan_output.log" "Application server(s)"; then
   fatal_errors=1
 fi
 
 # SCS server disks
-if testIfResourceWouldBeRecreated "azurerm_managed_disk.scs" "plan_output.log" "Application server(s)"; then
+if ! testIfResourceWouldBeRecreated "azurerm_managed_disk.scs" "plan_output.log" "Application server(s)"; then
   fatal_errors=1
 fi
 
 # Web server
-if testIfResourceWouldBeRecreated "virtual_machine.web" "plan_output.log" "Application server(s)"; then
+if ! testIfResourceWouldBeRecreated "virtual_machine.web" "plan_output.log" "Application server(s)"; then
   fatal_errors=1
 fi
 # Web dispatcher server disks
-if testIfResourceWouldBeRecreated "azurerm_managed_disk.web" "plan_output.log" "Application server(s)"; then
+if ! testIfResourceWouldBeRecreated "azurerm_managed_disk.web" "plan_output.log" "Application server(s)"; then
   fatal_errors=1
 fi
 
