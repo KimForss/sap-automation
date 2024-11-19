@@ -289,14 +289,15 @@ else
       echo "#                     The state is already migrated to Azure!!!                         #"
       echo "#                                                                                       #"
       echo "#########################################################################################"
-      REINSTALL_SUBSCRIPTION=$(grep "^subscription_id:" ./.terraform/terraform.tfstate | cut -d ':' -f2 | tr -d '",' || true)
-      REINSTALL_ACCOUNTNAME=$(grep "^storage_account_name:" ./.terraform/terraform.tfstate | cut -d ':' -f2 | tr -d '",' || true)
-      REINSTALL_RESOURCE_GROUP=$(grep "^resource_group_name:" ./.terraform/terraform.tfstate | cut -d ':' -f2 | tr -d '",' || true)
+      REINSTALL_SUBSCRIPTION=$(grep "\"subscription_id\":" ./.terraform/terraform.tfstate | cut -d ':' -f2 | tr -d '", ' || true)
+      REINSTALL_ACCOUNTNAME=$(grep "\"storage_account_name\":" ./.terraform/terraform.tfstate | cut -d ':' -f2 | tr -d ' ",' || true)
+      REINSTALL_RESOURCE_GROUP=$(grep "\"resource_group_name\":" ./.terraform/terraform.tfstate | cut -d ':' -f2 | tr -d ' ",' || true)
 
       if [ "$approve" == "--auto-approve" ]; then
-        tfstate_resource_id=$(az resource list --name "$REINSTALL_ACCOUNTNAME" --subscription "$REINSTALL_SUBSCRIPTION" --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
-        if [ -n "${tfstate_resource_id}" ]; then
+
+        if [ -n "${REINSTALL_ACCOUNTNAME}" ]; then
           echo "Reinitializing against remote state"
+          tfstate_resource_id=$(az resource list --name "$REINSTALL_ACCOUNTNAME" --subscription "$REINSTALL_SUBSCRIPTION" --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
           terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/run/"${deployment_system}"/
           export TF_VAR_tfstate_resource_id=$tfstate_resource_id
           terraform -chdir="${terraform_module_directory}" init -reconfigure \
