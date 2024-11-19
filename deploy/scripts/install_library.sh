@@ -117,7 +117,7 @@ if [ "$param_dirname" != '.' ]; then
 fi
 
 # Check that parameter files have environment and location defined
-validate_key_parameters "$parameterfile_name_name"
+validate_key_parameters "$parameterfile_name"
 return_code=$?
 if [ 0 != $return_code ]; then
   echo "Missing parameters in $parameterfile_name" >"${system_config_information}".err

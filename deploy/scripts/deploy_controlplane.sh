@@ -588,14 +588,14 @@ if [ 2 == $step ]; then
     rm -Rf .terraform terraform.tfstate*
   fi
 
-  allParameters=$(printf " -p %s -d %s %s" "${library_file_parametername}" "${relative_path}" "${autoApproveParameter}")
+  allParameters=$(printf " --parameterfile %s --deployer_statefile_foldername %s %s" "${library_file_parametername}" "${relative_path}" "${autoApproveParameter}")
   echo "Calling install_library.sh with:    $allParameters"
 
   # shellcheck disable=SC2086
-  "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/install_library.sh $allParameters
+  "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_library.sh" $allParameters
   return_code=$?
   if [ 0 != $return_code ]; then
-    echo "Bootstrapping of the SAP Library failed" >"${deployer_config_information}".err
+    echo "Bootstrapping of the SAP Library failed"
     step=1
     save_config_var "step" "${deployer_config_information}"
     exit 20
