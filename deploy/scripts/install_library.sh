@@ -51,7 +51,7 @@ function showhelp {
 }
 
 #process inputs - may need to check the option i for auto approve as it is not used
-INPUT_ARGUMENTS=$(getopt -n install_library -o p:d:ih --longoptions parameterfile:,deployer_statefile_foldername:,auto-approve,help -- "$@")
+INPUT_ARGUMENTS=$(getopt -n install_library -o p:d:v:ih --longoptions parameterfile:,deployer_statefile_foldername:,keyvault:, auto-approve,help -- "$@")
 VALID_ARGUMENTS=$?
 
 if [ "$VALID_ARGUMENTS" != "0" ]; then
@@ -77,6 +77,10 @@ while :; do
   -h | --help)
     showhelp
     exit 3
+    ;;
+  -v | --keyvault)
+    keyvault="$2"
+    shift 2
     ;;
   --)
     shift
@@ -261,6 +265,10 @@ fi
 
 export TF_VAR_subscription_id="$ARM_SUBSCRIPTION_ID"
 
+if [ -n "${keyvault}" ]; then
+  export TF_VAR_spn_keyvault_id="$keyvault"
+fi
+
 if [ ! -d ./.terraform/ ]; then
   echo "#########################################################################################"
   echo "#                                                                                       #"
@@ -340,9 +348,9 @@ echo ""
 
 if [ -n "${deployer_statefile_foldername}" ]; then
   echo "Deployer folder specified:             ${deployer_statefile_foldername}"
-  terraform -chdir="${terraform_module_directory}" plan -no-color -detailed-exitcode -var-file="${var_file}" -var deployer_statefile_foldername="${deployer_statefile_foldername}" >plan_output.log 2>&1
+  terraform -chdir="${terraform_module_directory}" plan -no-color -detailed-exitcode -var-file="${var_file}" -var deployer_statefile_foldername="${deployer_statefile_foldername}" -input=false>plan_output.log 2>&1
 else
-  terraform -chdir="${terraform_module_directory}" plan -no-color -detailed-exitcode -var-file="${var_file}" >plan_output.log 2>&1
+  terraform -chdir="${terraform_module_directory}" plan -no-color -detailed-exitcode -var-file="${var_file}" -input=false >plan_output.log 2>&1
 fi
 return_value=$?
 

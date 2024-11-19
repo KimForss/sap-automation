@@ -588,7 +588,7 @@ if [ 2 == $step ]; then
     rm -Rf .terraform terraform.tfstate*
   fi
 
-  allParameters=$(printf " --parameterfile %s --deployer_statefile_foldername %s %s" "${library_file_parametername}" "${relative_path}" "${autoApproveParameter}")
+  allParameters=$(printf " --parameterfile %s --deployer_statefile_foldername %s --keyvault %s %s" "${library_file_parametername}" "${relative_path}" "${keyvault}" "${autoApproveParameter}")
   echo "Calling install_library.sh with:    $allParameters"
 
   # shellcheck disable=SC2086
