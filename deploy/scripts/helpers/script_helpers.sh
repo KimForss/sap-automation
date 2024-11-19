@@ -176,25 +176,6 @@ function workload_zone_missing {
   echo "#########################################################################################"
 }
 
-function missing {
-  printf -v val %-.40s "$option"
-  echo ""
-  echo ""
-  echo "#########################################################################################"
-  echo "#                                                                                       #"
-  echo "#   Missing environment variables: ${option}!!!              #"
-  echo "#                                                                                       #"
-  echo "#   Please export the folloing variables:                                               #"
-  echo "#      SAP_AUTOMATION_REPO_PATH (path to the automation repo folder (sap-automation))   #"
-  echo "#      CONFIG_REPO_PATH (path to the configuration repo folder (sap-config))            #"
-  echo "#      ARM_SUBSCRIPTION_ID (subscription containing the state file storage account)     #"
-  echo "#      REMOTE_STATE_RG (resource group name for storage account containing state files) #"
-  echo "#      REMOTE_STATE_SA (storage account for state file)                                 #"
-  echo "#                                                                                       #"
-  echo "#########################################################################################"
-  return 0
-}
-
 function validate_exports {
   if [ -z "$SAP_AUTOMATION_REPO_PATH" ]; then
     echo ""

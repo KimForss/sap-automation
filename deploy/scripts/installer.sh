@@ -66,6 +66,25 @@ function showhelp {
   echo "#########################################################################################"
 }
 
+function missing {
+  printf -v val %-.40s "$1"
+  echo ""
+  echo ""
+  echo "#########################################################################################"
+  echo "#                                                                                       #"
+  echo "#   Missing environment variables: ${option}!!!              #"
+  echo "#                                                                                       #"
+  echo "#   Please export the folloing variables:                                               #"
+  echo "#      SAP_AUTOMATION_REPO_PATH (path to the automation repo folder (sap-automation))   #"
+  echo "#      CONFIG_REPO_PATH (path to the configuration repo folder (sap-config))            #"
+  echo "#      ARM_SUBSCRIPTION_ID (subscription containing the state file storage account)     #"
+  echo "#      REMOTE_STATE_RG (resource group name for storage account containing state files) #"
+  echo "#      REMOTE_STATE_SA (storage account for state file)                                 #"
+  echo "#                                                                                       #"
+  echo "#########################################################################################"
+  return 0
+}
+
 force=0
 
 INPUT_ARGUMENTS=$(getopt -n installer -o p:t:o:d:l:s:ahif --longoptions type:,parameterfile:,storageaccountname:,deployer_tfstate_key:,landscape_tfstate_key:,state_subscription:,ado,auto-approve,force,help -- "$@")
@@ -467,8 +486,7 @@ if [[ -z ${REMOTE_STATE_SA} ]]; then
 fi
 
 if [ -z "${REMOTE_STATE_SA}" ]; then
-  option="REMOTE_STATE_SA"
-  missing
+  missing "REMOTE_STATE_SA"
   exit 1
 fi
 
@@ -487,7 +505,15 @@ if [[ -z ${tfstate_resource_id} ]]; then
 
 fi
 
-tfstate_parameter=" -var tfstate_resource_id=${tfstate_resource_id}"
+
+
+if [ -n "${landscape_tfstate_key}" ]; then
+  tfstate_parameter=" -var tfstate_resource_id=${tfstate_resource_id}"
+  export TF_VAR_tfstate_resource_id="${tfstate_resource_id}"
+else
+  tfstate_parameter=""
+fi
+
 
 terraform_module_directory="$SAP_AUTOMATION_REPO_PATH"/deploy/terraform/run/"${deployment_system}"/
 export TF_DATA_DIR="${param_dirname}/.terraform"
