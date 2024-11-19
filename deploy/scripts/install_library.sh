@@ -275,7 +275,7 @@ if [ ! -d ./.terraform/ ]; then
   echo "#                                   New deployment                                      #"
   echo "#                                                                                       #"
   echo "#########################################################################################"
-  terraform -chdir="${terraform_module_directory}" init -upgrade=true -backend-config "path=${param_dirname}/terraform.tfstate"
+  terraform -chdir="${terraform_module_directory}" init -backend-config "path=${param_dirname}/terraform.tfstate"
   sed -i /REMOTE_STATE_RG/d "${library_config_information}"
   sed -i /REMOTE_STATE_SA/d "${library_config_information}"
   sed -i /tfstate_resource_id/d "${library_config_information}"
