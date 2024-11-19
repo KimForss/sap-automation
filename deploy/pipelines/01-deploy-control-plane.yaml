@@ -668,7 +668,7 @@ stages:
               fi
 
               ls -lart "${CONFIG_REPO_PATH}/DEPLOYER"
-              ls -lart "${CONFIG_REPO_PATH}/DEPLOYER/"$(deployerfolder)"
+              ls -lart "${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)"
 
               if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip" ]; then
                 # shellcheck disable=SC2001
