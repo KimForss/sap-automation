@@ -358,29 +358,8 @@ else
 fi
 return_value=$?
 
-if [ 0 == $return_value ]; then
-  echo ""
-  echo "#########################################################################################"
-  echo "#                                                                                       #"
-  echo -e "#                          $cyan Infrastructure is up to date $resetformatting                               #"
-  echo "#                                                                                       #"
-  echo "#########################################################################################"
-  echo ""
-  if [ -f plan_output.log ]; then
-    rm plan_output.log
-  fi
-
-  tfstate_resource_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw tfstate_resource_id | tr -d \")
-  STATE_SUBSCRIPTION=$(echo "$tfstate_resource_id" | cut -d/ -f3 | tr -d \" | xargs)
-
-  az account set --sub "$STATE_SUBSCRIPTION"
-
-  REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw remote_state_storage_account_name | tr -d \")
-
-  get_and_store_sa_details "${REMOTE_STATE_SA}" "${library_config_information}"
-
-  unset TF_DATA_DIR
-  exit $return_value
+if [ -f plan_output.log ]; then
+  rm plan_output.log
 fi
 
 if [ 1 == $return_value ]; then
@@ -484,10 +463,6 @@ if [ -f apply_output.json ]; then
   rm apply_output.json
 fi
 
-if [ -f apply_output.json ]; then
-  rm apply_output.json
-fi
-
 if [ 1 == $return_value ]; then
   echo ""
   echo "#########################################################################################"
@@ -499,6 +474,15 @@ if [ 1 == $return_value ]; then
   unset TF_DATA_DIR
   exit $return_value
 fi
+
+tfstate_resource_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw tfstate_resource_id | tr -d \")
+STATE_SUBSCRIPTION=$(echo "$tfstate_resource_id" | cut -d/ -f3 | tr -d \" | xargs)
+
+az account set --sub "$STATE_SUBSCRIPTION"
+
+REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw remote_state_storage_account_name | tr -d \")
+
+get_and_store_sa_details "${REMOTE_STATE_SA}" "${library_config_information}"
 
 REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw remote_state_storage_account_name | tr -d \")
 temp=$(echo "${REMOTE_STATE_SA}" | grep -m1 "Warning")
