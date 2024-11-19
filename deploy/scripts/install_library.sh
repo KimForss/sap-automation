@@ -287,6 +287,9 @@ else
       echo "#                     The state is already migrated to Azure!!!                         #"
       echo "#                                                                                       #"
       echo "#########################################################################################"
+      REINSTALL_SUBSCRIPTION=$(grep "^subscription_id:" ./.terraform/terraform.tfstate | cut -d ':' -f2 | tr -d '",' || true)
+      REINSTALL_ACCOUNTNAME=$(grep "^storage_account_name:" ./.terraform/terraform.tfstate | cut -d ':' -f2 | tr -d '",' || true)
+      REINSTALL_RESOURCE_GROUP=$(grep "^resource_group_name:" ./.terraform/terraform.tfstate | cut -d ':' -f2 | tr -d '",' || true)
 
       if [ "$approve" == "--auto-approve" ]; then
         tfstate_resource_id=$(az resource list --name "$REINSTALL_ACCOUNTNAME" --subscription "$REINSTALL_SUBSCRIPTION" --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
@@ -301,6 +304,7 @@ else
             --backend-config "container_name=tfstate" \
             --backend-config "key=${key}.terraform.tfstate"
           terraform -chdir="${terraform_module_directory}" refresh -var-file="${var_file}"
+          exit 0
 
         else
           terraform -chdir="${terraform_module_directory}" init -upgrade=true -reconfigure -backend-config "path=${param_dirname}/terraform.tfstate"
@@ -347,20 +351,16 @@ echo ""
 
 if [ -n "${deployer_statefile_foldername}" ]; then
   echo "Deployer folder specified:           ${deployer_statefile_foldername}"
-  if ! terraform -chdir="${terraform_module_directory}" plan -no-color -detailed-exitcode -var-file="${var_file}" -var deployer_statefile_foldername="${deployer_statefile_foldername}" -input=false >plan_output.log 2>&1; then
+  if ! terraform -chdir="${terraform_module_directory}" plan -no-color -detailed-exitcode -var-file="${var_file}" -var deployer_statefile_foldername="${deployer_statefile_foldername}" -input=false | tee -a plan_output.log 2>&1; then
     return_value=$?
   fi
 
 else
-  if ! terraform -chdir="${terraform_module_directory}" plan -no-color -detailed-exitcode -var-file="${var_file}" -input=false >plan_output.log 2>&1; then
+  if ! terraform -chdir="${terraform_module_directory}" plan -no-color -detailed-exitcode -var-file="${var_file}" -input=false  | tee -a plan_output.log 2>&1; then
     return_value=$?
   fi
 fi
 return_value=$?
-
-if [ -f plan_output.log ]; then
-  rm plan_output.log
-fi
 
 if [ 1 == $return_value ]; then
   echo ""
@@ -371,17 +371,8 @@ if [ 1 == $return_value ]; then
   echo "#########################################################################################"
   echo ""
 
-  if [ -f plan_output.log ]; then
-    cat plan_output.log
-    rm plan_output.log
-  fi
   unset TF_DATA_DIR
   exit $return_value
-fi
-
-if [ -f plan_output.log ]; then
-  cat plan_output.log
-  rm plan_output.log
 fi
 
 if [ -f terraform.tfvars ]; then
