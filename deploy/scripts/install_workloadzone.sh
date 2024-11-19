@@ -990,11 +990,11 @@ if [ 1 == $apply_needed ]; then
 
   # shellcheck disable=SC2086
 
-  if [ 1 == $called_from_ado ]; then
-
+  if [ -n "${approve}" ]; then
     # Using if so that no zero return codes don't fail -o errexit
     # shellcheck disable=SC2086
     if ! terraform -chdir="${terraform_module_directory}" apply "${approve}" -parallelism="${parallelism}" -no-color -json $allParameters -input=false | tee -a apply_output.json; then
+      return_value=$?
       if [ $return_value -eq 1 ]; then
         echo "Errors when running Terraform apply"
       else
@@ -1004,35 +1004,19 @@ if [ 1 == $apply_needed ]; then
     else
       return_value=$?
     fi
-    if [ -n "${approve}" ]; then
-      # Using if so that no zero return codes don't fail -o errexit
-      # shellcheck disable=SC2086
-      if ! terraform -chdir="${terraform_module_directory}" apply "${approve}" -parallelism="${parallelism}" -no-color -json $allParameters -input=false | tee -a apply_output.json; then
-        return_value=$?
-        if [ $return_value -eq 1 ]; then
-          echo "Errors when running Terraform apply"
-        else
-          # return code 2 is ok
-          return_value=0
-        fi
+  else
+    # Using if so that no zero return codes don't fail -o errexit
+    # shellcheck disable=SC2086
+    if ! terraform -chdir="${terraform_module_directory}" apply "${approve}" -parallelism="${parallelism}" $allParameters -input=false; then
+      if [ $return_value -eq 1 ]; then
+        echo "Errors when running Terraform apply"
       else
-        return_value=$?
+        # return code 2 is ok
+        return_value=0
       fi
     else
-      # Using if so that no zero return codes don't fail -o errexit
-      # shellcheck disable=SC2086
-      if ! terraform -chdir="${terraform_module_directory}" apply "${approve}" -parallelism="${parallelism}" $allParameters -input=false; then
-        if [ $return_value -eq 1 ]; then
-          echo "Errors when running Terraform apply"
-        else
-          # return code 2 is ok
-          return_value=0
-        fi
-      else
-        return_value=$?
-      fi
+      return_value=$?
     fi
-
   fi
 
   return_value=$?
@@ -1042,196 +1026,27 @@ fi
 rerun_apply=0
 
 if [ -f apply_output.json ]; then
-  # Check for resource that can be imported
-  existingSAs=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary}  | select(.summary | startswith("creating Storage Account "))' apply_output.json)
-  if [[ -n ${existingSAs} ]]; then
-    readarray -t existing_resources < <(echo ${existingSAs} | jq -c '.')
-    for item in "${existing_resources[@]}"; do
-      moduleID=$(jq -c -r '.address ' <<<"$item")
-      echo "moduleID:         $moduleID"
-      resourceID=$(jq -c -r '.summary' <<<"$item" | tr \\n ' ' | tr \\r ' ' | xargs)
-      subscriptionID=$(echo "${resourceID}" | awk -F: '{print $2}' | cut -d ' ' -f 2 | tr -d '"' | xargs)
-      echo "subscriptionID:   $subscriptionID"
-      resourceGroupID=$(echo "${resourceID}" | awk -F: '{print $3}' | cut -d ' ' -f 2 | tr -d '"' | xargs)
-      echo "resourceGroupID:  $resourceGroupID"
-      storageAccountID=$(echo "${resourceID}" | awk -F: '{print $4}' | cut -d ' ' -f 2 | tr -d ')' | tr -d '"' | xargs)
-      echo "storageAccountID: $storageAccountID"
-      azureResourceID="/subscriptions/$subscriptionID/resourceGroups/$resourceGroupID/providers/Microsoft.Storage/storageAccounts/$storageAccountID"
-      echo "Trying to import $azureResourceID into $moduleID"
-      echo "terraform -chdir=${terraform_module_directory} import -var-file=${var_file} -var deployer_tfstate_key=${deployer_tfstate_key} \
-      -var tfstate_resource_id=${tfstate_resource_id} ${moduleID} ${azureResourceID}"
-      if ! terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var "deployer_tfstate_key=${deployer_tfstate_key}" \
-        -var "tfstate_resource_id=${tfstate_resource_id}" "${moduleID}" "${azureResourceID}"; then
-        echo -e "$boldred Importing storage account state object:           ${moduleID} failed $resetformatting"
-      fi
-
-    done
-
-    rerun_apply=1
-    rm apply_output.json
-    echo ""
-    echo ""
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo -e "#                          $cyan Re running Terraform apply$resetformatting                                  #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    echo ""
-    echo ""
-
-    # Using if so that no zero return codes don't fail -o errexit
-    # shellcheck disable=SC2086
-    if ! terraform -chdir="${terraform_module_directory}" apply "${approve}" -parallelism="${parallelism}" -no-color -var-file="${var_file}" \
-      "$tfstate_parameter" "$deployer_tfstate_key_parameter" -json -input=false | tee -a apply_output.json; then
-      if [ $return_value -eq 1 ]; then
-        echo "Errors when running Terraform apply"
-      else
-        # return code 2 is ok
-        return_value=0
-      fi
-    else
-      return_value=$?
-    fi
-
+  # shellcheck disable=SC2086
+  if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters $parallelism; then
+    return_value=$?
   fi
-
-  # Check for resource that can be imported
-  existing=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary}  | select(.summary | startswith("A resource with the ID"))' apply_output.json)
-  if [[ -n ${existing} ]]; then
-
-    readarray -t existing_resources < <(echo ${existing} | jq -c '.')
-    for item in "${existing_resources[@]}"; do
-      moduleID=$(jq -c -r '.address ' <<<"$item")
-      azureResourceID=$(jq -c -r '.summary' <<<"$item" | awk -F'\"' '{print $2}')
-      echo "Trying to import $azureResourceID into $moduleID"
-      echo "terraform -chdir=${terraform_module_directory} import -var-file=${var_file} -var deployer_tfstate_key=${deployer_tfstate_key} \
-      -var tfstate_resource_id=${tfstate_resource_id} ${moduleID} ${azureResourceID}"
-      if ! terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var "deployer_tfstate_key=${deployer_tfstate_key}" \
-        -var "tfstate_resource_id=${tfstate_resource_id}" "${moduleID}" "${azureResourceID}"; then
-        echo -e "$boldred Importing storage account state object:           ${moduleID} failed $resetformatting"
-      fi
-
-    done
-
-    rerun_apply=1
-    rm apply_output.json
-    echo ""
-    echo ""
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo -e "#                          $cyan Re running Terraform apply$resetformatting                                  #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    echo ""
-    echo ""
-    # Using if so that no zero return codes don't fail -o errexit
-    # shellcheck disable=SC2086
-    if ! terraform -chdir="${terraform_module_directory}" apply "${approve}" -parallelism="${parallelism}" -no-color -var-file="${var_file}" \
-      "$tfstate_parameter" "$deployer_tfstate_key_parameter" -json -input=false | tee -a apply_output.json; then
-      if [ $return_value -eq 1 ]; then
-        echo "Errors when running Terraform apply"
-      else
-        # return code 2 is ok
-        return_value=0
-      fi
-    else
-      return_value=$?
-    fi
-
+fi
+if [ -f apply_output.json ]; then
+  # shellcheck disable=SC2086
+  if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters $parallelism; then
+    return_value=$?
   fi
-
-  if [ -f apply_output.json ]; then
-    # Check for resource that can be imported
-    existing=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary}  | select(.summary | startswith("A resource with the ID"))' apply_output.json)
-    if [[ -n ${existing} ]]; then
-
-      readarray -t existing_resources < <(echo ${existing} | jq -c '.')
-      for item in "${existing_resources[@]}"; do
-        moduleID=$(jq -c -r '.address ' <<<"$item")
-        azureResourceID=$(jq -c -r '.summary' <<<"$item" | awk -F'\"' '{print $2}')
-        echo "Trying to import $azureResourceID into $moduleID"
-        echo "terraform -chdir=${terraform_module_directory} import -var-file=${var_file} -var deployer_tfstate_key=${deployer_tfstate_key}
-        -var tfstate_resource_id=${tfstate_resource_id} ${moduleID} ${azureResourceID}"
-        if ! terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var "deployer_tfstate_key=${deployer_tfstate_key}" \
-          -var "tfstate_resource_id=${tfstate_resource_id}" "${moduleID}" "${azureResourceID}"; then
-          echo -e "$boldred Importing storage account state object:           ${moduleID} failed $resetformatting"
-        fi
-
-      done
-
-      rerun_apply=1
-    fi
-    if [ $rerun_apply == 1 ]; then
-      echo ""
-      echo ""
-      echo "#########################################################################################"
-      echo "#                                                                                       #"
-      echo -e "#                          $cyan Re running Terraform apply$resetformatting                                  #"
-      echo "#                                                                                       #"
-      echo "#########################################################################################"
-      echo ""
-      echo ""
-      # Using if so that no zero return codes don't fail -o errexit
-      # shellcheck disable=SC2086
-      if ! terraform -chdir="${terraform_module_directory}" apply "${approve}" -parallelism="${parallelism}" -no-color -var-file="${var_file}" \
-        "$tfstate_parameter" "$deployer_tfstate_key_parameter" -json -input=false | tee -a apply_output.json; then
-        if [ $return_value -eq 1 ]; then
-          echo "Errors when running Terraform apply"
-        else
-          # return code 2 is ok
-          return_value=0
-        fi
-      else
-        return_value=$?
-      fi
-    fi
-
-    return_value=0
-    errors_occurred=$(jq 'select(."@level" == "error") | length' apply_output.json)
-
-    if [[ -n $errors_occurred ]]; then
-      echo ""
-      echo "#########################################################################################"
-      echo "#                                                                                       #"
-      echo -e "#                          $boldreduscore!Errors during the apply phase!$resetformatting                              #"
-
-      return_value=2
-      all_errors=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary, detail: .diagnostic.detail} | select(.summary ) ' apply_output.json)
-      if [[ -n ${all_errors} ]]; then
-        readarray -t errors_strings < <(echo ${all_errors} | jq -c '.')
-        for errors_string in "${errors_strings[@]}"; do
-          string_to_report=$(jq -c -r '.detail ' <<<"$errors_string")
-          if [[ -z ${string_to_report} ]]; then
-            string_to_report=$(jq -c -r '.summary ' <<<"$errors_string")
-          fi
-          report=$(echo $string_to_report | grep -m1 "Message=" "${var_file}" | cut -d'=' -f2- | tr -d ' ' | tr -d '"')
-          if [[ -n ${report} ]]; then
-            echo -e "#                          $boldreduscore  $report $resetformatting"
-            if [ 1 == $called_from_ado ]; then
-
-              roleAssignmentExists=$(echo "${report}" | grep -m1 "RoleAssignmentExists" || true)
-              if [ -z "${roleAssignmentExists}" ]; then
-                echo "##vso[task.logissue type=error]${report}"
-              fi
-            fi
-          else
-            echo -e "#                          $boldreduscore  $string_to_report $resetformatting"
-            if [ 1 == $called_from_ado ]; then
-              roleAssignmentExists=$(echo "${string_to_report}" | grep -m1 "RoleAssignmentExists" || true)
-              if [ -z "${roleAssignmentExists}" ]; then
-                echo "##vso[task.logissue type=error]${string_to_report}"
-              fi
-            fi
-          fi
-          echo -e "#                          $boldreduscore  $string_to_report $resetformatting"
-
-        done
-      fi
-      echo "#                                                                                       #"
-      echo "#########################################################################################"
-      echo ""
-
-    fi
+fi
+if [ -f apply_output.json ]; then
+  # shellcheck disable=SC2086
+  if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters $parallelism; then
+    return_value=$?
+  fi
+fi
+if [ -f apply_output.json ]; then
+  # shellcheck disable=SC2086
+  if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters $parallelism; then
+    return_value=$?
   fi
 
 fi

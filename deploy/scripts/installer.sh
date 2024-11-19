@@ -1268,147 +1268,25 @@ if [ 1 == $apply_needed ]; then
   fi
 
   if [ -f apply_output.json ]; then
-    errors_occurred=$(jq 'select(."@level" == "error") | length' apply_output.json)
-
-    if [[ -n $errors_occurred ]]; then
-      echo ""
-      echo "#########################################################################################"
-      echo "#                                                                                       #"
-      echo -e "#                          $boldreduscore!Errors during the apply phase!$resetformatting                              #"
-
-      # Check for resource that can be imported
-      existing=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary} | select(.summary | startswith("A resource with the ID"))' apply_output.json)
-      if [[ -n ${existing} ]]; then
-
-        readarray -t existing_resources < <(echo ${existing} | jq -c '.')
-        for item in "${existing_resources[@]}"; do
-          moduleID=$(jq -c -r '.address ' <<<"$item")
-          azureResourceID=$(jq -c -r '.summary' <<<"$item" | awk -F'\"' '{print $2}')
-          echo "Trying to import $azureResourceID into $moduleID"
-          # shellcheck disable=SC2086
-          echo terraform -chdir="${terraform_module_directory}" import $allImportParameters "${moduleID}" "${azureResourceID}"
-          # shellcheck disable=SC2086
-          if ! terraform -chdir="${terraform_module_directory}" import $allImportParameters "${moduleID}" "${azureResourceID}"; then
-            echo "Error when importing resource"
-          fi
-        done
-        rm apply_output.json
-
-        if [ $rerun_apply == 1 ]; then
-          rerun_apply=0
-
-          echo ""
-          echo ""
-          echo "#########################################################################################"
-          echo "#                                                                                       #"
-          echo -e "#                          $cyan Re running Terraform apply$resetformatting                                  #"
-          echo "#                                                                                       #"
-          echo "#########################################################################################"
-          echo ""
-          echo ""
-          # shellcheck disable=SC2086
-          if ! terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" \
-            $allParameters -no-color -compact-warnings -json -input=false; then
-            return_value=$?
-            if [ $return_value -eq 1 ]; then
-              echo "Errors when running Terraform apply"
-            else
-              # return code 2 is ok
-              return_value=0
-            fi
-          else
-            return_value=$?
-          fi
-        fi
-      fi
-
-      if [ -f apply_output.json ]; then
-        # Check for resource that can be imported
-        existing=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary} | select(.summary | startswith("A resource with the ID"))' apply_output.json)
-        if [[ -n ${existing} ]]; then
-
-          readarray -t existing_resources < <(echo ${existing} | jq -c '.')
-          for item in "${existing_resources[@]}"; do
-            moduleID=$(jq -c -r '.address ' <<<"$item")
-            azureResourceID=$(jq -c -r '.summary' <<<"$item" | awk -F'\"' '{print $2}')
-            echo "Trying to import $azureResourceID into $moduleID"
-            # shellcheck disable=SC2086
-            echo terraform -chdir="${terraform_module_directory}" import $allImportParameters "${moduleID}" "${azureResourceID}"
-            # shellcheck disable=SC2086
-            if ! terraform -chdir="${terraform_module_directory}" import $allImportParameters "${moduleID}" "${azureResourceID}"; then
-              echo "Error when importing resource"
-            fi
-          done
-
-          rm apply_output.json
-
-          echo ""
-          echo ""
-          echo "#########################################################################################"
-          echo "#                                                                                       #"
-          echo -e "#                          $cyan Re running Terraform apply$resetformatting                                  #"
-          echo "#                                                                                       #"
-          echo "#########################################################################################"
-          echo ""
-          echo ""
-          # shellcheck disable=SC2086
-          if terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json \
-            $allParameters -no-color -compact-warnings -json | tee -a apply_output.json; then
-            return_value=$?
-            if [ $return_value -eq 1 ]; then
-              echo "Errors when running Terraform apply"
-            else
-              # return code 2 is ok
-              return_value=0
-            fi
-          else
-            return_value=$?
-          fi
-        fi
-
-      fi
-
-      if [ -f apply_output.json ]; then
-
-        return_value=0
-
-        all_errors=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary, detail: .diagnostic.detail} ' apply_output.json)
-        if [[ -n ${all_errors} ]]; then
-          readarray -t errors_strings < <(echo ${all_errors} | jq -c '.')
-          for errors_string in "${errors_strings[@]}"; do
-            string_to_report=$(jq -c -r '.detail ' <<<"$errors_string")
-            if [[ -z ${string_to_report} ]]; then
-              string_to_report=$(jq -c -r '.summary ' <<<"$errors_string")
-            fi
-            report=$(echo "$string_to_report" | grep -m1 "Message=" "${var_file}" | cut -d'=' -f2- | tr -d ' ' | tr -d '"')
-            if [[ -n ${report} ]]; then
-              echo -e "#                          $boldreduscore  $report $resetformatting"
-              if [ 1 == $called_from_ado ]; then
-                roleAssignmentExists=$(echo "${report}" | grep -m1 "RoleAssignmentExists")
-                if [ -z "${roleAssignmentExists}" ]; then
-                  echo "##vso[task.logissue type=error]${report}"
-                fi
-              fi
-            else
-              echo -e "#                          $boldreduscore  $string_to_report $resetformatting"
-              if [ 1 == $called_from_ado ]; then
-                roleAssignmentExists=$(echo "${string_to_report}" | grep -m1 "RoleAssignmentExists")
-                if [ -z "${roleAssignmentExists}" ]; then
-                  echo "##vso[task.logissue type=error]${string_to_report}"
-                fi
-              fi
-            fi
-            echo -e "#                          $boldreduscore  $string_to_report $resetformatting"
-
-          done
-
-        fi
-      fi
+    # shellcheck disable=SC2086
+    if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters $parallelism; then
+      return_value=$?
     fi
   fi
+  if [ -f apply_output.json ]; then
+    # shellcheck disable=SC2086
+    if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters $parallelism; then
+      return_value=$?
+    fi
+  fi
+  if [ -f apply_output.json ]; then
+    # shellcheck disable=SC2086
+    if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters $parallelism; then
+      return_value=$?
+    fi
 
+  fi
 fi
-
 if [ -f apply_output.json ]; then
   rm apply_output.json
 fi
