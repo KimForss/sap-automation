@@ -266,7 +266,9 @@ fi
 export TF_VAR_subscription_id="$ARM_SUBSCRIPTION_ID"
 
 if [ -n "${keyvault}" ]; then
-  export TF_VAR_spn_keyvault_id="$keyvault"
+  TF_VAR_deployer_kv_user_arm_id=$(az resource list --name "${keyvault}" --subscription "$ARM_SUBSCRIPTION_ID" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
+  export TF_VAR_spn_keyvault_id="${TF_VAR_deployer_kv_user_arm_id}"
+
 fi
 
 if [ ! -d ./.terraform/ ]; then
