@@ -196,6 +196,12 @@ stages:
               green="\e[1;32m"
               reset="\e[0m"
 
+              if [ "$SYSTEM_DEBUG" = True ]; then
+                set -x
+                debug=true
+                export debug
+              fi
+
               echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
               ENVIRONMENT=$(echo "$(zone_folder)" | awk -F'-' '{print $1}' | xargs)
               echo "Environment:                           $ENVIRONMENT"
@@ -231,8 +237,13 @@ stages:
               fi
 
               if [ 1 == $changed ]; then
-                git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"
-                git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push
+                git commit -m "Removal of Workload zone $(Build.DefinitionName) [skip ci]"
+                  if git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push ; then
+                    echo "Removal of Workload zone $(Build.DefinitionName) pushed to devops repository"
+                  else
+                    echo "Failed to push changes to devops repository"
+                    return_code=1
+                  fi
               fi
               echo -e "$green--- Configure devops CLI extension ---$reset"
               az config set extension.use_dynamic_install=yes_without_prompt
@@ -319,7 +330,13 @@ stages:
                 green="\e[1;32m"
                 reset="\e[0m"
                 echo -e "$green--- Configure devops CLI extension ---$reset"
-                az config set extension.use_dynamic_install=yes_without_prompt
+                az config set extension.use_dynamic_install=yes_without_prompt --only-show-errors --output none
+
+                if [ "$SYSTEM_DEBUG" = True ]; then
+                  set -x
+                  debug=true
+                  export debug
+                fi
 
                 az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)' --output none
                 if [ -n "$(PAT)" ]; then
@@ -383,6 +400,7 @@ stages:
                   git pull
                   changed=0
                   echo "##vso[build.updatebuildnumber]Removing control plane $(deployer_folder) $(library_folder)"
+
                   if [ -d "DEPLOYER/$(deployer_folder)/.terraform" ]; then
                     git rm -q -r --ignore-unmatch "DEPLOYER/$(deployer_folder)/.terraform"
                     changed=1
@@ -420,8 +438,12 @@ stages:
                   if [ 1 == $changed ]; then
                     git config --global user.email "$(Build.RequestedForEmail)"
                     git config --global user.name "$(Build.RequestedFor)"
-                    git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"
-                    git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push
+                    git commit -m "Removal of Control Plane $(Build.DefinitionName) [skip ci]"
+                    if git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push ; then
+                      echo "Removal of Control Plane $(Build.DefinitionName) pushed to devops repository"
+                    else
+                      echo "Failed to push changes to devops repository"
+                      return_code=1
                   fi
                   echo -e "$green--- Deleting variables ---$reset"
                   if [ ${#VARIABLE_GROUP_ID} != 0 ]; then
@@ -465,6 +487,12 @@ stages:
                     variable_value=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "WEBAPP_ID.value" --out tsv)
                     if [ ${#variable_value} != 0 ]; then
                       az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name WEBAPP_ID --yes --only-show-errors
+                    fi
+
+
+                    variable_value=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "INSTALLATION_MEDIA_ACCOUNT.value" --out tsv)
+                    if [ ${#variable_value} != 0 ]; then
+                      az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name INSTALLATION_MEDIA_ACCOUNT --yes --only-show-errors
                     fi
 
                   fi
