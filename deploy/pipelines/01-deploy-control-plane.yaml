@@ -142,7 +142,7 @@ stages:
             inputs:
               targetType:              'filePath'
               filePath:                "$(System.DefaultWorkingDirectory)/deploy/pipelines/pipeline_scripts/01-control-plane-deploy.sh"
-              failOnStderr: true
+              failOnStderr:            true
               workingDirectory:        "$(System.DefaultWorkingDirectory)"
             displayName:               Deploy control plane Part 1
             env:
@@ -171,7 +171,6 @@ stages:
               USE_MSI:                 $(Use_MSI)
               AZURE_DEVOPS_EXT_PAT:    $(System.AccessToken)
 
-            failOnStderr: false
 
   - stage: Web_App_Deployment
     pool: $(this_agent)
