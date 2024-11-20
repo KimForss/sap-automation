@@ -312,7 +312,7 @@ if [ 1 == $added ]; then
   git config --global user.name "$BUILD_REQUESTEDFOR"
   git commit -m "Added updates from devops deployment $BUILD_BUILDNUMBER [skip ci]"
 
-  if git -c http.extraheader="AUTHORIZATION: bearer SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BRANCH" --force; then
+  if git -c http.extraheader="AUTHORIZATION: bearer SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BRANCH" ; then
     echo "##vso[task.logissue type=warning]Changes pushed to $BRANCH"
   else
     echo "##vso[task.logissue type=error]Failed to push changes to $BRANCH"

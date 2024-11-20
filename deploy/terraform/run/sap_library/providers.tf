@@ -75,7 +75,7 @@ provider "azurerm"                     {
                                          client_secret              = local.use_spn ? local.spn.client_secret : null
                                          tenant_id                  = local.use_spn ? local.spn.tenant_id : null
                                          alias                      = "privatelinkdnsmanagement"
-                                         storage_use_azuread        = true
+                                         storage_use_azuread        = !var.shared_access_key_enabled
                                          use_msi                    = var.use_spn ? false : true
                                        }
 
