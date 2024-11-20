@@ -194,7 +194,7 @@ fi
 if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYERFOLDER/state.zip" ]; then
   # shellcheck disable=SC2001
   # shellcheck disable=SC2005
-  pass=$(echo "$SYSTEM_COLLECTIONID" | sed 's/-//g')
+  pass=${SYSTEM_COLLECTIONID//-/}
   echo "Unzipping state.zip"
   unzip -qq -o -P "${pass}" "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYERFOLDER/state.zip" -d "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYERFOLDER"
 fi
@@ -261,7 +261,7 @@ if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYERFOLDER/terraform.tfstate" ]; then
   sudo apt-get install zip -y
   # shellcheck disable=SC2001
   # shellcheck disable=SC2005
-  pass=$(echo "$SYSTEM_COLLECTIONID" | sed 's/-//g')
+  pass=${SYSTEM_COLLECTIONID//-/}
   zip -q -j -P "${pass}" "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYERFOLDER/state" "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYERFOLDER/terraform.tfstate"
   git add -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYERFOLDER/state.zip"
   added=1
