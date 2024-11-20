@@ -108,6 +108,7 @@ if [ ! -f "${parameterfile_name}" ]; then
 fi
 
 param_dirname=$(dirname "${parameterfile_name}")
+export TF_DATA_DIR="${param_dirname}"/.terraform
 
 if [ "$param_dirname" != '.' ]; then
   echo ""

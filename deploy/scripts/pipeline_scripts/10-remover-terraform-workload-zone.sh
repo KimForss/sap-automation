@@ -1,6 +1,6 @@
 #!/bin/bash
 #!/bin/bash
-echo "##vso[build.updatebuildnumber]Deploying the SAP System defined in $SAP_SYSTEM_FOLDER"
+echo "##vso[build.updatebuildnumber]Removing the SAP Workload zone defined in $WORKLOAD_ZONE_FOLDER"
 
 green="\e[1;32m"
 reset="\e[0m"
@@ -24,7 +24,7 @@ if [ "$SYSTEM_DEBUG" = True ]; then
 fi
 set -eu
 
-tfvarsFile="SYSTEM/$SAP_SYSTEM_FOLDER/$SAP_SYSTEM_CONFIGURATION"
+tfvarsFile="SYSTEM/$WORKLOAD_ZONE_FOLDER/$WORKLOAD_ZONE_CONFIGURATION_FILE"
 
 echo -e "$green--- Checkout $(Build.SourceBranchName) ---$reset"
 
@@ -32,9 +32,9 @@ cd "${CONFIG_REPO_PATH}" || exit
 mkdir -p .sap_deployment_automation
 git checkout -q "$(Build.SourceBranchName)"
 
-if [ ! -f "$CONFIG_REPO_PATH/SYSTEM/$SAP_SYSTEM_FOLDER/$SAP_SYSTEM_CONFIGURATION" ]; then
-  echo -e "$boldred--- $SAP_SYSTEM_CONFIGURATION was not found ---$reset"
-  echo "##vso[task.logissue type=error]File $SAP_SYSTEM_CONFIGURATION was not found."
+if [ ! -f "$CONFIG_REPO_PATH/LANDSCAPE/$WORKLOAD_ZONE_FOLDER/$WORKLOAD_ZONE_CONFIGURATION_FILE" ]; then
+  echo -e "$boldred--- $WORKLOAD_ZONE_CONFIGURATION_FILE was not found ---$reset"
+  echo "##vso[task.logissue type=error]File $WORKLOAD_ZONE_CONFIGURATION_FILE was not found."
   exit 2
 fi
 
@@ -122,18 +122,15 @@ dos2unix -q tfvarsFile
 ENVIRONMENT=$(grep -m1 "^environment" "$tfvarsFile" | awk -F'=' '{print $2}' | tr -d ' \t\n\r\f"')
 LOCATION=$(grep -m1 "^location" "$tfvarsFile" | awk -F'=' '{print $2}' | tr '[:upper:]' '[:lower:]' | tr -d ' \t\n\r\f"')
 NETWORK=$(grep -m1 "^network_logical_name" "$tfvarsFile" | awk -F'=' '{print $2}' | tr -d ' \t\n\r\f"')
-SID=$(grep -m1 "^sid" "$tfvarsFile" | awk -F'=' '{print $2}' | tr -d ' \t\n\r\f"')
 
-ENVIRONMENT_IN_FILENAME=$(echo $SAP_SYSTEM_FOLDER | awk -F'-' '{print $1}')
+ENVIRONMENT_IN_FILENAME=$(echo $WORKLOAD_ZONE_FOLDER | awk -F'-' '{print $1}')
 
-LOCATION_CODE_IN_FILENAME=$(echo $SAP_SYSTEM_FOLDER | awk -F'-' '{print $2}')
+LOCATION_CODE_IN_FILENAME=$(echo $WORKLOAD_ZONE_FOLDER | awk -F'-' '{print $2}')
 LOCATION_IN_FILENAME=$(get_region_from_code "$LOCATION_CODE_IN_FILENAME" || true)
 
-NETWORK_IN_FILENAME=$(echo $SAP_SYSTEM_FOLDER | awk -F'-' '{print $3}')
+NETWORK_IN_FILENAME=$(echo $WORKLOAD_ZONE_FOLDER | awk -F'-' '{print $3}')
 
-SID_IN_FILENAME=$(echo $SAP_SYSTEM_FOLDER | awk -F'-' '{print $4}')
-
-echo "System TFvars:                       $SAP_SYSTEM_CONFIGURATION"
+echo "Workload TFvars:                     $WORKLOAD_ZONE_CONFIGURATION_FILE"
 echo "Environment:                         $ENVIRONMENT"
 echo "Location:                            $LOCATION"
 echo "Network:                             $NETWORK"
@@ -142,7 +139,6 @@ echo "SID:                                 $SID"
 echo "Environment(filename):               $ENVIRONMENT_IN_FILENAME"
 echo "Location(filename):                  $LOCATION_IN_FILENAME"
 echo "Network(filename):                   $NETWORK_IN_FILENAME"
-echo "SID(filename):                       $SID_IN_FILENAME"
 
 echo ""
 
@@ -155,24 +151,20 @@ echo "-------------------------------------------------"
 az --version
 
 if [ "$ENVIRONMENT" != "$ENVIRONMENT_IN_FILENAME" ]; then
-  echo "##vso[task.logissue type=error]The environment setting in $SAP_SYSTEM_CONFIGURATION '$ENVIRONMENT' does not match the $SAP_SYSTEM_CONFIGURATION file name '$ENVIRONMENT_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
+  echo "##vso[task.logissue type=error]The environment setting in $WORKLOAD_ZONE_CONFIGURATION_FILE '$ENVIRONMENT' does not match the $WORKLOAD_ZONE_CONFIGURATION_FILE file name '$ENVIRONMENT_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
   exit 2
 fi
 
 if [ "$LOCATION" != "$LOCATION_IN_FILENAME" ]; then
-  echo "##vso[task.logissue type=error]The location setting in $SAP_SYSTEM_CONFIGURATION '$LOCATION' does not match the $SAP_SYSTEM_CONFIGURATION file name '$LOCATION_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
+  echo "##vso[task.logissue type=error]The location setting in $WORKLOAD_ZONE_CONFIGURATION_FILE '$LOCATION' does not match the $WORKLOAD_ZONE_CONFIGURATION_FILE file name '$LOCATION_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
   exit 2
 fi
 
 if [ "$NETWORK" != "$NETWORK_IN_FILENAME" ]; then
-  echo "##vso[task.logissue type=error]The network_logical_name setting in $SAP_SYSTEM_CONFIGURATION '$NETWORK' does not match the $SAP_SYSTEM_CONFIGURATION file name '$NETWORK_IN_FILENAME-. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
+  echo "##vso[task.logissue type=error]The network_logical_name setting in $WORKLOAD_ZONE_CONFIGURATION_FILE '$NETWORK' does not match the $WORKLOAD_ZONE_CONFIGURATION_FILE file name '$NETWORK_IN_FILENAME-. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
   exit 2
 fi
 
-if [ "$SID" != "$SID_IN_FILENAME" ]; then
-  echo "##vso[task.logissue type=error]The sid setting in $SAP_SYSTEM_CONFIGURATION '$SID' does not match the $SAP_SYSTEM_CONFIGURATION file name '$SID_IN_FILENAME-. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-[SID]"
-  exit 2
-fi
 
 workload_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}${NETWORK}"
 echo "Workload Zone Environment File:      $workload_environment_file_name"
@@ -233,15 +225,14 @@ export tfstate_resource_id
 
 echo -e "$green--- Run the remover script that destroys the SAP system ---$reset"
 
-cd "$CONFIG_REPO_PATH/SYSTEM/$SAP_SYSTEM_FOLDER" || exit
+cd "$CONFIG_REPO_PATH/LANDSCAPE/$WORKLOAD_ZONE_FOLDER" || exit
 
 ${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/remover.sh \
-  --parameterfile $SAP_SYSTEM_CONFIGURATION \
-  --type sap_system \
+  --parameterfile $WORKLOAD_ZONE_CONFIGURATION_FILE \
+  --type sap_landscape \
   --state_subscription "${STATE_SUBSCRIPTION}" \
   --storageaccountname "${REMOTE_STATE_SA}" \
   --deployer_tfstate_key "${deployer_tfstate_key}" \
-  --landscape_tfstate_key "${landscape_tfstate_key}" \
   --auto-approve
 
 return_code=$?
@@ -264,7 +255,7 @@ changed=0
 git checkout -q "$BRANCH"
 git pull origin "$BRANCH"
 
-cd "${CONFIG_REPO_PATH}/SYSTEM/$SAP_SYSTEM_FOLDER" || exit
+cd "${CONFIG_REPO_PATH}/LANDSCAPE/$WORKLOAD_ZONE_FOLDER" || exit
 
 if [ 0 == $return_code ]; then
 
@@ -273,28 +264,8 @@ if [ 0 == $return_code ]; then
     changed=1
   fi
 
-  if [ -f "$SAP_SYSTEM_CONFIGURATION" ]; then
-    git add "$SAP_SYSTEM_CONFIGURATION"
-    changed=1
-  fi
-
-  if [ -f "sap-parameters.yaml" ]; then
-    git rm --ignore-unmatch -q "sap-parameters.yaml"
-    changed=1
-  fi
-
-  if [ -f "${SID}_hosts.yaml" ]; then
-    git rm --ignore-unmatch -q "${SID}_hosts.yaml"
-    changed=1
-  fi
-
-  if [ -f "${SID}.md" ]; then
-    git rm --ignore-unmatch -q "${SID}.md"
-    changed=1
-  fi
-
-  if [ -f "${SID}_virtual_machines.json" ]; then
-    git rm --ignore-unmatch -q "${SID}_virtual_machines.json"
+  if [ -f "$WORKLOAD_ZONE_CONFIGURATION_FILE" ]; then
+    git add "$WORKLOAD_ZONE_CONFIGURATION_FILE"
     changed=1
   fi
 
@@ -302,9 +273,9 @@ if [ 0 == $return_code ]; then
     git config --global user.email "$BUILD_REQUESTEDFOREMAIL"
     git config --global user.name "$BUILD_REQUESTEDFOR"
 
-    git commit -m "Infrastructure for $SAP_SYSTEM_CONFIGURATION removed. [skip ci]"
+    git commit -m "Infrastructure for $WORKLOAD_ZONE_CONFIGURATION_FILE removed. [skip ci]"
     if git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BRANCH" --force; then
-      echo "##vso[task.logissue type=warning]Removal of $SAP_SYSTEM_CONFIGURATION updated in $(Build.SourceBranchName)"
+      echo "##vso[task.logissue type=warning]Removal of $WORKLOAD_ZONE_CONFIGURATION_FILE updated in $(Build.SourceBranchName)"
     else
       echo "##vso[task.logissue type=error]Failed to push changes to $BRANCH"
     fi
