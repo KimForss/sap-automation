@@ -23,11 +23,17 @@ fi
 set -eu
 
 ENVIRONMENT=$(echo "$DEPLOYERFOLDER" | awk -F'-' '{print $1}' | xargs)
-LOCATION=$(echo "$DEPLOYERFOLDER" | awk -F'-' '{print $2}' | xargs)
+   LOCATION=$(echo "$DEPLOYERFOLDER" | awk -F'-' '{print $2}' | xargs)
+
 deployer_environment_file_name="${CONFIG_REPO_PATH}/.sap_deployment_automation/${ENVIRONMENT}$LOCATION"
-deployer_configfile="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYERFOLDER/$DEPLOYERCONFIG"
-library_configfile="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/$LIBRARYCONFIG"
-deployer_tfstate_key="$DEPLOYERFOLDER.terraform.tfstate"
+           deployer_configfile="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYERFOLDER/$DEPLOYERCONFIG"
+            library_configfile="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/$LIBRARYCONFIG"
+          deployer_tfstate_key="$DEPLOYERFOLDER.terraform.tfstate"
+if [ -f "${deployer_environment_file_name}" ]; then
+  step=$(grep -m1 "^step=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs)
+  echo "Step:                                $step"
+fi
+
 
 file_deployer_tfstate_key=$DEPLOYERFOLDER.tfstate
 file_key_vault=""
