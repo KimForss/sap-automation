@@ -113,8 +113,12 @@ stages:
         steps:
           - template:                  templates\download.yaml
           - task:                      PostBuildCleanup@4
-          - bash: |
-              printenv
+          - task:                      Bash@3
+            inputs:
+              targetType:              'filePath'
+              filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/02-sap-workload-zone.sh"
+              failOnStderr:            true
+              workingDirectory:        "$(System.DefaultWorkingDirectory)"
             displayName:               Deploy SAP Workload Zone
             env:
               SYSTEM_ACCESSTOKEN:      $(System.AccessToken)

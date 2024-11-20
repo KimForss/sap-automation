@@ -112,12 +112,6 @@ stages:
               USE_MSI:                        $(Use_MSI)
               USE_WEBAPP:                     ${{ lower(parameters.use_webapp_param) }}
               WEB_APP_CLIENT_SECRET:          $(WEB_APP_CLIENT_SECRET)
-              deployer_folder:                $(deployerfolder)
-              library_folder:                 $(libraryfolder)
-              deployer_config:                $(deployerconfig)
-              library_config:                 $(libraryconfig)
-              sourceBranchName:               $(Build.SourceBranchName)
-
 
   - stage:                             Deploy_controlplane
     dependsOn:
@@ -151,7 +145,7 @@ stages:
               filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/01-control-plane-deploy.sh"
               failOnStderr:            true
               workingDirectory:        "$(System.DefaultWorkingDirectory)"
-            displayName:               Deploy control plane Part 1
+            displayName:               Deploy control plane Part 2
             env:
               SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
               CP_ARM_SUBSCRIPTION_ID:  $(CP_ARM_SUBSCRIPTION_ID)

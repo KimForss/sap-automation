@@ -28,11 +28,11 @@ if [ ! -f "$CONFIG_REPO_PATH/LANDSCAPE/$(workload_zone_folder)/$(workload_zone_c
   exit 2
 fi
 
-echo -e "$green--- Checkout $(Build.SourceBranchName) ---$reset"
+echo -e "$green--- Checkout $BRANCH ---$reset"
 
 cd "${CONFIG_REPO_PATH}" || exit
 mkdir -p .sap_deployment_automation
-git checkout -q "$(Build.SourceBranchName)"
+git checkout -q "$BRANCH"
 
 echo -e "$green--- Validations ---$reset"
 if [ "$USE_MSI" != "true" ]; then
@@ -441,13 +441,13 @@ if [ -f "/.terraform/terraform.tfstate" ]; then
   added=1
 fi
 if [ 1 == $added ]; then
-  git config --global user.email "$(Build.RequestedForEmail)"
-  git config --global user.name "$(Build.RequestedFor)"
+  git config --global user.email "$BUILD_REQUESTEDFOREMAIL"
+  git config --global user.name "$BUILD_REQUESTEDFOR"
   git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"
-  if git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set-upstream origin "$(Build.SourceBranchName)" --force; then
-    echo "##vso[task.logissue type=warning]Changes pushed to $(Build.SourceBranchName)"
+  if git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BRANCH" --force; then
+    echo "##vso[task.logissue type=warning]Changes pushed to $BRANCH"
   else
-    echo "##vso[task.logissue type=error]Failed to push changes to $(Build.SourceBranchName)"
+    echo "##vso[task.logissue type=error]Failed to push changes to $BRANCH"
   fi
 
 fi
