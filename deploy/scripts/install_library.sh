@@ -114,7 +114,7 @@ if [ ! -f "${parameterfile_name}" ]; then
   echo "#               Parameter file does not exist: ${val} #"
   echo "#                                                                                       #"
   echo "#########################################################################################"
-  exit
+  exit 65
 fi
 
 param_dirname=$(dirname "${parameterfile_name}")
