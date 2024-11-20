@@ -299,9 +299,7 @@ if [ -n "${subscription}" ]; then
   else
     step=0
     save_config_var "step" "${deployer_config_information}"
-
   fi
-
 fi
 
 load_config_vars "${deployer_config_information}" "step"
