@@ -355,7 +355,6 @@ backend=$(grep "local" "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYERFOLDER/.terraform/
 if [ -n "${backend}" ]; then
   echo "Local Terraform state"
   if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYERFOLDER/terraform.tfstate" ]; then
-    sudo apt-get -qq install zip
     echo "Compressing the deployer state file"
     pass=${SYSTEM_COLLECTIONID//-/}
     zip -q -j -P "${pass}" "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYERFOLDER/state" "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYERFOLDER/terraform.tfstate"
@@ -384,7 +383,7 @@ backend=$(grep "local" "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/.terraform/te
 if [ -n "${backend}" ]; then
   echo "Local Terraform state"
   if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/terraform.tfstate" ]; then
-    sudo apt-get -qq install zip
+
     echo "Compressing the library state file"
     pass=${SYSTEM_COLLECTIONID//-/}
     zip -q -j -P "${pass}" "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/state" "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/terraform.tfstate"
