@@ -205,6 +205,8 @@ if [ "$USE_WEBAPP" = "true" ]; then
     exit 2
   fi
   echo "App Registration ID:                  $APP_REGISTRATION_APP_ID"
+  TF_VAR_app_registration_app_id=$APP_REGISTRATION_APP_ID
+  export TF_VAR_app_registration_app_id
 
   if [ -z "$WEB_APP_CLIENT_SECRET" ]; then
     echo "##vso[task.logissue type=error]Variable WEB_APP_CLIENT_SECRET was not defined."

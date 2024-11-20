@@ -396,8 +396,6 @@ if [ -n "${VARIABLE_GROUP_ID}" ]; then
 
 fi
 
-expiry_date=$(date -d "+365 days" +%Y-%m-%d)
-
 az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "FENCING_SPN_ID.value")
 if [ -z "${az_var}" ]; then
   echo "##vso[task.logissue type=warning]Variable FENCING_SPN_ID is not set. Required for highly available deployments when using Service Principals for fencing."
