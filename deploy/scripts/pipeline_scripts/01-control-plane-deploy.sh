@@ -391,6 +391,9 @@ if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/.terraform/terraform.tfstate
   added=1
 fi
 
+# Pull changes
+git pull -q origin "$BRANCH"
+
 if [ 1 = $added ]; then
   git config --global user.email "$BUILD_REQUESTEDFOREMAIL"
   git config --global user.name "$BUILD_REQUESTEDFOR"

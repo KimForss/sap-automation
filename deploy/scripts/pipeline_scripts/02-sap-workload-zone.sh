@@ -436,6 +436,10 @@ if [ -f "/.terraform/terraform.tfstate" ]; then
   git add -f "LANDSCAPE/$WORKLOAD_ZONE_FOLDER/.terraform/terraform.tfstate"
   added=1
 fi
+
+# Pull changes
+git pull -q origin "$BRANCH"
+
 if [ 1 == $added ]; then
   git config --global user.email "$BUILD_REQUESTEDFOREMAIL"
   git config --global user.name "$BUILD_REQUESTEDFOR"

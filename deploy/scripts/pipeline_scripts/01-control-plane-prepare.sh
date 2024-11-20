@@ -30,7 +30,6 @@ deployer_tfstate_key="$DEPLOYERFOLDER.terraform.tfstate"
 cd "$CONFIG_REPO_PATH" || exit
 mkdir -p .sap_deployment_automation
 
-
 ENVIRONMENT=$(echo "$DEPLOYERFOLDER" | awk -F'-' '{print $1}' | xargs)
 LOCATION=$(echo "$DEPLOYERFOLDER" | awk -F'-' '{print $2}' | xargs)
 
@@ -59,9 +58,8 @@ az config set extension.use_dynamic_install=yes_without_prompt --only-show-error
 az extension add --name azure-devops --output none --only-show-errors
 az devops configure --defaults organization="$ENDPOINT_URL_SYSTEMVSSCONNECTION" project="$SYSTEM_TEAMPROJECT""" --output none --only-show-errors
 
-
 echo -e "$green--- File Validations ---$reset"
-if [ ! -f  "$deployer_tfvars_file_name" ]; then
+if [ ! -f "$deployer_tfvars_file_name" ]; then
   echo -e "$boldred--- File "$deployer_tfvars_file_name" was not found ---$reset"
   echo "##vso[task.logissue type=error]File DEPLOYER/$DEPLOYERFOLDER/$DEPLOYERCONFIG was not found."
   exit 2
@@ -168,7 +166,7 @@ if [ "$FORCE_RESET" = "True" ]; then
   export FORCE_RESET=true
   key_vault=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_Key_Vault" "${deployer_environment_file_name}" "keyvault")
   echo "Deployer Key Vault:                  ${key_vault}"
-g
+  g
   key_vault_id=$(az resource list --name "${key_vault}" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
   export TF_VAR_deployer_kv_user_arm_id=${key_vault_id}
   if [ -n "${key_vault_id}" ]; then
@@ -247,13 +245,14 @@ if [ -f "${deployer_environment_file_name}" ]; then
   if [ -n "${file_REMOTE_STATE_SA}" ]; then
     echo "Terraform Remote State RG Name:       ${file_REMOTE_STATE_RG}"
   fi
-
-  echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
-  added=0
-  cd "$CONFIG_REPO_PATH" || exit
-  git pull -q
-
 fi
+echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
+added=0
+cd "$CONFIG_REPO_PATH" || exit
+
+# Pull changes
+git pull -q origin "$BRANCH"
+
 echo -e "$green--- Update repo ---$reset"
 if [ -f ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}" ]; then
   git add ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}"

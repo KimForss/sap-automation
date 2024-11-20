@@ -306,6 +306,8 @@ if [ -f "${SID}_virtual_machines.json" ]; then
   git add "${SID}_virtual_machines.json"
   added=1
 fi
+# Pull changes
+git pull -q origin "$BRANCH"
 
 if [ 1 == $added ]; then
   git config --global user.email "$BUILD_REQUESTEDFOREMAIL"

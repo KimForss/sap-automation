@@ -297,6 +297,8 @@ if [ 0 == $return_code ]; then
     git rm --ignore-unmatch -q "${SID}_virtual_machines.json"
     changed=1
   fi
+# Pull changes
+git pull -q origin "$BRANCH"
 
   if [ 1 == $changed ]; then
     git config --global user.email "$BUILD_REQUESTEDFOREMAIL"
