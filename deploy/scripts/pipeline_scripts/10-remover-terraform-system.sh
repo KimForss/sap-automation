@@ -182,17 +182,16 @@ az config set extension.use_dynamic_install=yes_without_prompt --output none --o
 
 az extension add --name azure-devops --output none --only-show-errors
 
-az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)' --output none
+az devops configure --defaults organization="$ENDPOINT_URL_SYSTEMVSSCONNECTION" project='$SYSTEM_TEAMPROJECT'
 
-VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(variable_group)'].id | [0]")
-
+VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$VARIABLE_GROUP'].id | [0]")
+export VARIABLE_GROUP_ID
 if [ -z "${VARIABLE_GROUP_ID}" ]; then
-  echo "##vso[task.logissue type=error]Variable group $(variable_group) could not be found."
+  echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP could not be found."
   exit 2
 fi
-export VARIABLE_GROUP_ID
 
-printf -v tempval '%s id:' "$(variable_group)"
+printf -v tempval '%s id:' "$VARIABLE_GROUP"
 printf -v val '%-20s' "${tempval}"
 echo "$val                 $VARIABLE_GROUP_ID"
 
@@ -262,8 +261,8 @@ cd "$(Build.Repository.LocalPath)"
 
 changed=0
 # Pull changes
-git checkout -q "$(Build.SourceBranchName)"
-git pull origin "$(Build.SourceBranchName)"
+git checkout -q "$BRANCH"
+git pull origin "$BRANCH"
 
 cd "${CONFIG_REPO_PATH}/SYSTEM/$SAP_SYSTEM_FOLDER" || exit
 
