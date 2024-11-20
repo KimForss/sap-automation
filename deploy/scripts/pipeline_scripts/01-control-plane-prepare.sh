@@ -13,6 +13,8 @@ script_directory="$(dirname "${full_script_path}")"
 #call stack has full scriptname when using source
 source "${script_directory}/helper.sh"
 
+printenv
+
 if [ "$SYSTEM_DEBUG" = True ]; then
   set -x
   debug=true
