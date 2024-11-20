@@ -136,7 +136,7 @@ NETWORK=$(grep -m1 "^network_logical_name" "$tfvarsFile" | awk -F'=' '{print $2}
 
 ENVIRONMENT_IN_FILENAME=$(echo "$WORKLOAD_ZONE_FOLDER" | awk -F'-' '{print $1}')
 
-LOCATION_CODE_IN_FILENAME_IN_FILENAME=$(echo "$WORKLOAD_ZONE_FOLDER" | awk -F'-' '{print $2}')
+LOCATION_CODE_IN_FILENAME=$(echo "$WORKLOAD_ZONE_FOLDER" | awk -F'-' '{print $2}')
 LOCATION_IN_FILENAME=$(get_region_from_code "$LOCATION_CODE_IN_FILENAME")
 
 NETWORK_IN_FILENAME=$(echo "$WORKLOAD_ZONE_FOLDER" | awk -F'-' '{print $3}')
