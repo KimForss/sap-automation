@@ -260,7 +260,6 @@ if [ 1 == $called_from_ado ]; then
   this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
   export TF_VAR_Agent_IP=$this_ip
   echo "Agent IP:                            $this_ip"
-
 fi
 
 # Terraform Plugins
@@ -287,6 +286,10 @@ echo "Parallelism count:                   $parallelism"
 param_dirname=$(pwd)
 
 init "${automation_config_directory}" "${generic_config_information}" "${system_config_information}"
+
+tfstate_resource_id=$(az resource list --name "$REMOTE_STATE_SA" --subscription "$STATE_SUBSCRIPTION" --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
+TF_VAR_tfstate_resource_id=$tfstate_resource_id
+export TF_VAR_tfstate_resource_id
 
 var_file="${param_dirname}"/"${parameterfile}"
 
@@ -349,6 +352,8 @@ if [[ -z $deployer_tfstate_key ]]; then
 else
   echo "Deployer state file name:            ${deployer_tfstate_key}"
   echo "Target subscription:                 $ARM_SUBSCRIPTION_ID"
+  TF_VAR_deployer_tfstate_key="${deployer_tfstate_key}"
+  export TF_VAR_deployer_tfstate_key
 fi
 
 export TF_VAR_deployer_tfstate_key="${deployer_tfstate_key}"
@@ -519,7 +524,7 @@ if [ -n "${deployer_tfstate_key}" ]; then
   export TF_VAR_deployer_tfstate_key
 fi
 
-terraform_module_directory="$SAP_AUTOMATION_REPO_PATH"/deploy/terraform/run/"${deployment_system}"/
+terraform_module_directory="$SAP_AUTOMATION_REPO_PATH/deploy/terraform/run/${deployment_system}"
 export TF_DATA_DIR="${param_dirname}/.terraform"
 cd "${param_dirname}" || exit
 

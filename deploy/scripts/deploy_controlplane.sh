@@ -569,6 +569,15 @@ if [ 2 == $step ]; then
   TF_VAR_sa_connection_string=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw sa_connection_string | tr -d \")
   export TF_VAR_sa_connection_string
 
+  if [ -n "${tfstate_resource_id}" ]; then
+    TF_VAR_tfstate_resource_id="${tfstate_resource_id}"
+    export TF_VAR_tfstate_resource_id
+  else
+    tfstate_resource_id=$(az resource list --name "$REMOTE_STATE_SA" --subscription "$STATE_SUBSCRIPTION" --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
+    TF_VAR_tfstate_resource_id=$tfstate_resource_id
+  fi
+  export TF_VAR_tfstate_resource_id
+
   cd "${curdir}" || exit
   export step=3
   save_config_var "step" "${deployer_config_information}"
@@ -685,7 +694,6 @@ if [ 3 == $step ]; then
     fi
   fi
   return_code=$?
-
 
   cd "${curdir}" || exit
   export step=4

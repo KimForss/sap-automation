@@ -299,9 +299,10 @@ else
       if [ "$approve" == "--auto-approve" ]; then
 
         if [ -n "${REINSTALL_ACCOUNTNAME}" ]; then
+          terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/run/"${deployment_system}"/
+
           echo "Reinitializing against remote state"
           tfstate_resource_id=$(az resource list --name "$REINSTALL_ACCOUNTNAME" --subscription "$REINSTALL_SUBSCRIPTION" --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
-          terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/run/"${deployment_system}"/
           export TF_VAR_tfstate_resource_id=$tfstate_resource_id
           terraform -chdir="${terraform_module_directory}" init -reconfigure \
             --backend-config "subscription_id=$REINSTALL_SUBSCRIPTION" \
