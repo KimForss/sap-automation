@@ -78,7 +78,7 @@ stages:
             inputs:
               azureSubscription:       ${{parameters.connection_name}}
               scriptType:              bash
-              scriptLocation:          $(System.DefaultWorkingDirectory)/deploy/pipelines/pipeline_scripts/01-control-plane-prepare.sh
+              scriptLocation:          $(System.DefaultWorkingDirectory)/sap-automation/deploy/pipelines/pipeline_scripts/01-control-plane-prepare.sh
               addSpnToEnvironment:     true
               visibleAzLogin:          false
 
@@ -141,7 +141,7 @@ stages:
           - task:                      Bash@3
             inputs:
               targetType:              'filePath'
-              filePath:                "$(System.DefaultWorkingDirectory)/deploy/pipelines/pipeline_scripts/01-control-plane-deploy.sh"
+              filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/pipelines/pipeline_scripts/01-control-plane-deploy.sh"
               failOnStderr:            true
               workingDirectory:        "$(System.DefaultWorkingDirectory)"
             displayName:               Deploy control plane Part 1
