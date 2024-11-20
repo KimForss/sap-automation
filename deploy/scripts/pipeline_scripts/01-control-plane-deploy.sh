@@ -65,14 +65,14 @@ if [ ! -f "${CONFIG_REPO_PATH}/LIBRARY/$library_folder/$library_config" ]; then
 fi
 
 echo ""
-echo "Agent:                               $(this_agent)"
+echo "Agent:                               $THIS_AGENT"
 echo "Organization:                        $ENDPOINT_URL_SYSTEMVSSCONNECTION"
 echo "Project:                             $SYSTEM_TEAMPROJECT"
 if [ -n "$(PAT)" ]; then
   echo "Deployer Agent PAT:                  IsDefined"
 fi
-if [ -n "$(POOL)" ]; then
-  echo "Deployer Agent Pool:                 $(POOL)"
+if [ -n "$POOL" ]; then
+  echo "Deployer Agent Pool:                 $POOL"
 fi
 echo ""
 if [ "$(use_webapp)" = "true" ]; then
@@ -84,14 +84,14 @@ fi
 
 az devops configure --defaults organization="$ENDPOINT_URL_SYSTEMVSSCONNECTION" project='$SYSTEM_TEAMPROJECT' --output none --only-show-errors
 
-VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(variable_group)'].id | [0]")
+VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$VARIABLE_GROUP'].id | [0]")
 if [ -z "${VARIABLE_GROUP_ID}" ]; then
-  echo "##vso[task.logissue type=error]Variable group $(variable_group) could not be found."
+  echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP could not be found."
   exit 2
 fi
 export VARIABLE_GROUP_ID
 
-printf -v tempval '%s id:' "$(variable_group)"
+printf -v tempval '%s id:' "$VARIABLE_GROUP"
 printf -v val '%-20s' "${tempval}"
 echo "$val                 $VARIABLE_GROUP_ID"
 
@@ -110,7 +110,7 @@ export ARM_SUBSCRIPTION_ID
 
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-  configureNonDeployer "$(tf_version)"
+  configureNonDeployer "$TF_VERSION"
 
   ARM_CLIENT_ID="$servicePrincipalId"
   export ARM_CLIENT_ID
@@ -152,7 +152,7 @@ dos2unix -q "${CONFIG_REPO_PATH}/LIBRARY/$library_folder/$library_config"
 
 if [ "$(force_reset)" = "True" ]; then
   echo "##vso[task.logissue type=warning]Forcing a re-install"
-  echo "Running on:            $(this_agent)"
+  echo "Running on:            $THIS_AGENT"
   sed -i 's/step=1/step=0/' "$deployer_environment_file_name"
   sed -i 's/step=2/step=0/' "$deployer_environment_file_name"
   sed -i 's/step=3/step=0/' "$deployer_environment_file_name"
@@ -269,13 +269,13 @@ fi
 if [ 1 = $added ]; then
   git config --global user.email "$(Build.RequestedForEmail)"
   git config --global user.name "$(Build.RequestedFor)"
-  git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"
-  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set-upstream origin "$sourceBranchName"
+  git commit -m "Added updates from devops deployment $BUILD_BUILDNUMBER [skip ci]"
+  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set-upstream origin "$BRANCH"
 fi
 if [ -f "$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md" ]; then
   echo "##vso[task.uploadsummary]$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md"
 fi
-echo -e "$green--- Adding variables to the variable group: $(variable_group) ---$reset"
+echo -e "$green--- Adding variables to the variable group: $VARIABLE_GROUP ---$reset"
 if [ 0 = $return_code ]; then
 
   saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_State_FileName" "$deployer_tfstate_key"

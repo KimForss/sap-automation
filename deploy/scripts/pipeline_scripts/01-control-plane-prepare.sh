@@ -45,8 +45,8 @@ if [ -f "${deployer_environment_file_name}" ]; then
   fi
 fi
 
-echo -e "$green--- Checkout $sourceBranchName ---$reset"
-git checkout -q "$sourceBranchName"
+echo -e "$green--- Checkout $BRANCH ---$reset"
+git checkout -q "$BRANCH"
 echo -e "$green--- Configure devops CLI extension ---$reset"
 az config set extension.use_dynamic_install=yes_without_prompt --only-show-errors
 
@@ -68,7 +68,7 @@ echo ""
 echo "Agent:                               $THIS_AGENT"
 echo "Organization:                        $ENDPOINT_URL_SYSTEMVSSCONNECTION"
 echo "Project:                             $SYSTEM_TEAMPROJECT"
-if [ -n "$PAT" ]; then
+if [ -n "$TF_VAR_agent_pat" ]; then
   echo "Deployer Agent PAT:                  IsDefined"
 fi
 if [ -n "$POOL" ]; then
@@ -269,8 +269,8 @@ fi
 if [ 1 = $added ]; then
   git config --global user.email "$(Build.RequestedForEmail)"
   git config --global user.name "$(Build.RequestedFor)"
-  git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"
-  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set-upstream origin "$sourceBranchName"
+  git commit -m "Added updates from devops deployment $BUILD_BUILDNUMBER [skip ci]"
+  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set-upstream origin "$BRANCH"
 fi
 if [ -f "$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md" ]; then
   echo "##vso[task.uploadsummary]$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md"
