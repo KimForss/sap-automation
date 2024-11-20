@@ -303,6 +303,7 @@ if [ -n "${subscription}" ]; then
 fi
 
 load_config_vars "${deployer_config_information}" "step"
+echo "Step:                                $step"
 
 if [ 0 = "${deploy_using_msi_only:-}" ]; then
   echo "Identity to use:                     Service Principal"
@@ -368,6 +369,12 @@ if [ 0 == $step ]; then
   if [ 0 != $return_code ]; then
     echo "Bootstrapping of the deployer failed" >"${deployer_config_information}".err
     exit 10
+  else
+    step=1
+    save_config_var "step" "${deployer_config_information}"
+
+    load_config_vars "${deployer_config_information}" "step"
+    echo "Step:                                $step"
   fi
 
   load_config_vars "${deployer_config_information}" "keyvault"
@@ -458,10 +465,10 @@ else
   echo -e "#                       $boldred  Key vault not found $resetformatting                                      #"
   echo "#                                                                                       #"
   echo "#########################################################################################"
-  exit return_code
+  exit $return_code
 fi
 
-if [ "2" == "$step" ]; then
+if [ 2 == "$step" ]; then
 
   echo ""
   echo "#########################################################################################"
