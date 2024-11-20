@@ -18,13 +18,13 @@ export debug
 
 set -eu
 
-echo "##vso[build.updatebuildnumber]Deploying the SAP Workload zone defined in $(workload_zone_folder)"
+echo "##vso[build.updatebuildnumber]Deploying the SAP Workload zone defined in $WORKLOAD_ZONE_FOLDER"
 
-tfvarsFile="LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file)"
+tfvarsFile="LANDSCAPE/$WORKLOAD_ZONE_FOLDER/$WORKLOAD_ZONE_CONFIGURATION_FILE"
 
-if [ ! -f "$CONFIG_REPO_PATH/LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file)" ]; then
-  echo -e "$boldred--- $(workload_zone_configuration_file) was not found ---$reset"
-  echo "##vso[task.logissue type=error]File $(workload_zone_configuration_file) was not found."
+if [ ! -f "$CONFIG_REPO_PATH/LANDSCAPE/$WORKLOAD_ZONE_FOLDER/$WORKLOAD_ZONE_CONFIGURATION_FILE" ]; then
+  echo -e "$boldred--- $WORKLOAD_ZONE_CONFIGURATION_FILE was not found ---$reset"
+  echo "##vso[task.logissue type=error]File $WORKLOAD_ZONE_CONFIGURATION_FILE was not found."
   exit 2
 fi
 
@@ -38,42 +38,42 @@ echo -e "$green--- Validations ---$reset"
 if [ "$USE_MSI" != "true" ]; then
 
   if [ -z "$WL_ARM_SUBSCRIPTION_ID" ]; then
-    echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined in the $(variable_group) variable group."
+    echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined in the $VARIABLE_GROUP variable group."
     exit 2
   fi
 
   if [ "$WL_ARM_SUBSCRIPTION_ID" == '$$(ARM_SUBSCRIPTION_ID)' ]; then
-    echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined in the $(variable_group) variable group."
+    echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined in the $VARIABLE_GROUP variable group."
     exit 2
   fi
 
   if [ -z "$WL_ARM_CLIENT_ID" ]; then
-    echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined in the $(variable_group) variable group."
+    echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined in the $VARIABLE_GROUP variable group."
     exit 2
   fi
 
   if [ "$WL_ARM_CLIENT_ID" == '$$(ARM_CLIENT_ID)' ]; then
-    echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined in the $(variable_group) variable group."
+    echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined in the $VARIABLE_GROUP variable group."
     exit 2
   fi
 
   if [ -z "$WL_ARM_CLIENT_SECRET" ]; then
-    echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined in the $(variable_group) variable group."
+    echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined in the $VARIABLE_GROUP variable group."
     exit 2
   fi
 
   if [ "$WL_ARM_CLIENT_SECRET" == '$$(ARM_CLIENT_SECRET)' ]; then
-    echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined in the $(variable_group) variable group."
+    echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined in the $VARIABLE_GROUP variable group."
     exit 2
   fi
 
   if [ -z "$WL_ARM_TENANT_ID" ]; then
-    echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined in the $(variable_group) variable group."
+    echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined in the $VARIABLE_GROUP variable group."
     exit 2
   fi
 
   if [ "$WL_ARM_TENANT_ID" == '$$(ARM_TENANT_ID)' ]; then
-    echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined in the $(variable_group) variable group."
+    echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined in the $VARIABLE_GROUP variable group."
     exit 2
   fi
 
@@ -134,12 +134,12 @@ ENVIRONMENT=$(grep -m1 "^environment" "$tfvarsFile" | awk -F'=' '{print $2}' | t
 LOCATION=$(grep -m1 "^location" "$tfvarsFile" | awk -F'=' '{print $2}' | tr 'A-Z' 'a-z' | tr -d ' \t\n\r\f"')
 NETWORK=$(grep -m1 "^network_logical_name" "$tfvarsFile" | awk -F'=' '{print $2}' | tr -d ' \t\n\r\f"')
 
-ENVIRONMENT_IN_FILENAME=$(echo $(workload_zone_folder) | awk -F'-' '{print $1}')
+ENVIRONMENT_IN_FILENAME=$(echo $WORKLOAD_ZONE_FOLDER | awk -F'-' '{print $1}')
 
-LOCATION_CODE_IN_FILENAME_IN_FILENAME=$(echo $(workload_zone_folder) | awk -F'-' '{print $2}')
+LOCATION_CODE_IN_FILENAME_IN_FILENAME=$(echo $WORKLOAD_ZONE_FOLDER | awk -F'-' '{print $2}')
 LOCATION_IN_FILENAME=$(get_region_from_code "$LOCATION_CODE_IN_FILENAME")
 
-NETWORK_IN_FILENAME=$(echo $(workload_zone_folder) | awk -F'-' '{print $3}')
+NETWORK_IN_FILENAME=$(echo $WORKLOAD_ZONE_FOLDER | awk -F'-' '{print $3}')
 
 echo "Environment:                         $ENVIRONMENT"
 echo "Location:                            $LOCATION"
@@ -151,29 +151,29 @@ echo "Network(filename):                   $NETWORK_IN_FILENAME"
 
 echo "Deployer Environment                 $(deployer_environment)"
 echo "Deployer Region                      $(deployer_region)"
-echo "Workload TFvars                      $(workload_zone_configuration_file)"
+echo "Workload TFvars                      $WORKLOAD_ZONE_CONFIGURATION_FILE"
 echo ""
 
 echo "Agent pool:                          $(this_agent)"
-echo "Organization:                        $(System.CollectionUri)"
-echo "Project:                             $(System.TeamProject)"
+echo "Organization:                        $ENDPOINT_URL_SYSTEMVSSCONNECTION"
+echo "Project:                             $SYSTEM_TEAMPROJECT"
 echo ""
 echo "Azure CLI version:"
 echo "-------------------------------------------------"
 az --version
 
 if [ "$ENVIRONMENT" != "$ENVIRONMENT_IN_FILENAME" ]; then
-  echo "##vso[task.logissue type=error]The environment setting in $(workload_zone_configuration_file) '$ENVIRONMENT' does not match the $(workload_zone_configuration_file) file name '$ENVIRONMENT_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
+  echo "##vso[task.logissue type=error]The environment setting in $WORKLOAD_ZONE_CONFIGURATION_FILE '$ENVIRONMENT' does not match the $WORKLOAD_ZONE_CONFIGURATION_FILE file name '$ENVIRONMENT_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
   exit 2
 fi
 
 if [ "$LOCATION" != "$LOCATION_IN_FILENAME" ]; then
-  echo "##vso[task.logissue type=error]The location setting in $(workload_zone_configuration_file) '$LOCATION' does not match the $(workload_zone_configuration_file) file name '$LOCATION_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
+  echo "##vso[task.logissue type=error]The location setting in $WORKLOAD_ZONE_CONFIGURATION_FILE '$LOCATION' does not match the $WORKLOAD_ZONE_CONFIGURATION_FILE file name '$LOCATION_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
   exit 2
 fi
 
 if [ "$NETWORK" != "$NETWORK_IN_FILENAME" ]; then
-  echo "##vso[task.logissue type=error]The network_logical_name setting in $(workload_zone_configuration_file) '$NETWORK' does not match the $(workload_zone_configuration_file) file name '$NETWORK_IN_FILENAME-. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
+  echo "##vso[task.logissue type=error]The network_logical_name setting in $WORKLOAD_ZONE_CONFIGURATION_FILE '$NETWORK' does not match the $WORKLOAD_ZONE_CONFIGURATION_FILE file name '$NETWORK_IN_FILENAME-. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
   exit 2
 fi
 
@@ -192,7 +192,7 @@ az config set extension.use_dynamic_install=yes_without_prompt --output none
 
 az extension add --name azure-devops --output none --only-show-errors
 
-az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)' --output none
+az devops configure --defaults organization=$ENDPOINT_URL_SYSTEMVSSCONNECTION project='$SYSTEM_TEAMPROJECT' --output none
 
 PARENT_VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(parent_variable_group)'].id | [0]")
 
@@ -202,15 +202,15 @@ if [ -z "${PARENT_VARIABLE_GROUP_ID}" ]; then
 fi
 export PARENT_VARIABLE_GROUP_ID
 
-VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(variable_group)'].id | [0]")
+VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$VARIABLE_GROUP'].id | [0]")
 
 if [ -z "${VARIABLE_GROUP_ID}" ]; then
-  echo "##vso[task.logissue type=error]Variable group $(variable_group) could not be found."
+  echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP could not be found."
   exit 2
 fi
 export VARIABLE_GROUP_ID
 
-printf -v tempval '%s id:' "$(variable_group)"
+printf -v tempval '%s id:' "$VARIABLE_GROUP"
 printf -v val '%-20s' "${tempval}"
 echo "$val                 $VARIABLE_GROUP_ID"
 
@@ -223,7 +223,7 @@ echo -e "$green--- Read parameter values ---$reset"
 dos2unix -q "${deployer_environment_file_name}"
 dos2unix -q "${workload_environment_file_name}"
 
-landscape_tfstate_key=$(workload_zone_folder).terraform.tfstate
+landscape_tfstate_key=$WORKLOAD_ZONE_FOLDER.terraform.tfstate
 export landscape_tfstate_key
 
 deployer_tfstate_key=$(getVariableFromVariableGroup "${PARENT_VARIABLE_GROUP_ID}" "Deployer_State_FileName" "${workload_environment_file_name}" "deployer_tfstate_key")
@@ -331,7 +331,7 @@ if [ "$USE_MSI" != "true" ]; then
 fi
 
 echo -e "$green--- Deploy the workload zone ---$reset"
-cd "$CONFIG_REPO_PATH/LANDSCAPE/$(workload_zone_folder)" || exit
+cd "$CONFIG_REPO_PATH/LANDSCAPE/$WORKLOAD_ZONE_FOLDER" || exit
 
 # Set logon variables
 ARM_CLIENT_ID="$WL_ARM_CLIENT_ID"
@@ -359,7 +359,7 @@ fi
 
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
 
-"$SAP_AUTOMATION_REPO_PATH/deploy/scripts/install_workloadzone.sh" --parameterfile "$(workload_zone_configuration_file)" \
+"$SAP_AUTOMATION_REPO_PATH/deploy/scripts/install_workloadzone.sh" --parameterfile "$WORKLOAD_ZONE_CONFIGURATION_FILE" \
   --deployer_environment "$(deployer_environment)" --subscription "$WL_ARM_SUBSCRIPTION_ID" \
   --deployer_tfstate_key "${deployer_tfstate_key}" --keyvault "${key_vault}" --storageaccountname "${REMOTE_STATE_SA}" \
   --state_subscription "${STATE_SUBSCRIPTION}" --auto-approve --ado --msi
@@ -383,7 +383,7 @@ fi
 
 prefix="${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}${NETWORK}"
 
-echo -e "$green--- Adding variables to the variable group" "$(variable_group)" "---$reset"
+echo -e "$green--- Adding variables to the variable group" "$VARIABLE_GROUP" "---$reset"
 if [ -n "${VARIABLE_GROUP_ID}" ]; then
 
   saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Terraform_Remote_Storage_Account_Name" "${REMOTE_STATE_SA}"
@@ -425,7 +425,7 @@ if [ -f ".sap_deployment_automation/${prefix}" ]; then
   added=1
 fi
 
-cd "$CONFIG_REPO_PATH/LANDSCAPE/$(workload_zone_folder)" || exit
+cd "$CONFIG_REPO_PATH/LANDSCAPE/$WORKLOAD_ZONE_FOLDER" || exit
 normalizedName=$(echo "${workload_prefix}" | tr -d '-')
 
 if [ -f "${workload_prefix}.md" ]; then
@@ -437,7 +437,7 @@ if [ -f "${workload_prefix}.md" ]; then
 fi
 
 if [ -f "/.terraform/terraform.tfstate" ]; then
-  git add -f "LANDSCAPE/$(workload_zone_folder)/.terraform/terraform.tfstate"
+  git add -f "LANDSCAPE/$WORKLOAD_ZONE_FOLDER/.terraform/terraform.tfstate"
   added=1
 fi
 if [ 1 == $added ]; then

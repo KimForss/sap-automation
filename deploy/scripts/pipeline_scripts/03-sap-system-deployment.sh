@@ -147,8 +147,8 @@ echo "SID(filename):                       $SID_IN_FILENAME"
 echo ""
 
 echo "Agent pool:                          $(this_agent)"
-echo "Organization:                        $(System.CollectionUri)"
-echo "Project:                             $(System.TeamProject)"
+echo "Organization:                        $ENDPOINT_URL_SYSTEMVSSCONNECTION"
+echo "Project:                             $SYSTEM_TEAMPROJECT"
 echo ""
 echo "Azure CLI version:"
 echo "-------------------------------------------------"
@@ -182,7 +182,7 @@ az config set extension.use_dynamic_install=yes_without_prompt --output none --o
 
 az extension add --name azure-devops --output none --only-show-errors
 
-az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)' --output none
+az devops configure --defaults organization=$ENDPOINT_URL_SYSTEMVSSCONNECTION project='$SYSTEM_TEAMPROJECT' --output none
 
 VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(variable_group)'].id | [0]")
 
@@ -321,7 +321,7 @@ fi
 
 # file_name=${SID}_inventory.md
 # if [ -f ${SID}_inventory.md ]; then
-#   az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)' --output none
+#   az devops configure --defaults organization=$ENDPOINT_URL_SYSTEMVSSCONNECTION project='$SYSTEM_TEAMPROJECT' --output none
 
 #   # ToDo: Fix this later
 #   # WIKI_NAME_FOUND=$(az devops wiki list --query "[?name=='SDAF'].name | [0]")

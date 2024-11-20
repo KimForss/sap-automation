@@ -5,7 +5,7 @@ reset="\e[0m"
 boldred="\e[1;31m"
 cyan="\e[1;36m"
 
-External helper functions
+# External helper functions
 #. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
@@ -60,8 +60,8 @@ echo -e "$green--- Information ---$reset"
 echo "Environment:                         ${ENVIRONMENT}"
 echo "Location:                            ${LOCATION}"
 echo "Agent:                               $THIS_AGENT"
-echo "Organization:                        $(System.CollectionUri)"
-echo "Project:                             $(System.TeamProject)"
+echo "Organization:                        $ENDPOINT_URL_SYSTEMVSSCONNECTION"
+echo "Project:                             $SYSTEM_TEAMPROJECT"
 if [ -n "$TF_VAR_agent_pat" ]; then
   echo "Deployer Agent PAT:                  IsDefined"
 fi
@@ -98,16 +98,16 @@ else
 fi
 
 "${tfPath}" --version
-echo -e "$green--- Checkout $(Build.SourceBranchName) ---$reset"
+echo -e "$green--- Checkout $BRANCH ---$reset"
 cd "$CONFIG_REPO_PATH" || exit
-git checkout -q "$(Build.SourceBranchName)"
+git checkout -q "$BRANCH"
 
 echo -e "$green--- Configure devops CLI extension ---$reset"
 az config set extension.use_dynamic_install=yes_without_prompt --only-show-errors
 az extension add --name azure-devops --output none --only-show-errors
 
 # shellcheck disable=SC2016
-az devops configure --defaults organization="$(System.CollectionUri)" project='$(System.TeamProject)'
+az devops configure --defaults organization="$ENDPOINT_URL_SYSTEMVSSCONNECTION" project='$SYSTEM_TEAMPROJECT'
 
 VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(variable_group)'].id | [0]")
 export VARIABLE_GROUP_ID
