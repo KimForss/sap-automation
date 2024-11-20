@@ -725,6 +725,7 @@ if [ 4 == $step ]; then
   echo "#########################################################################################"
   echo ""
 
+  terraform_module_directory="$SAP_AUTOMATION_REPO_PATH"/deploy/terraform/run/sap_library/
   cd "${library_dirname}" || exit
 
   echo "Calling installer.sh with:          \
@@ -735,7 +736,7 @@ if [ 4 == $step ]; then
 
   if [ "$ado_flag" == "--ado" ] || [ "$approve" == "--auto-approve" ]; then
 
-    if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/installer.sh" \
+    if ! "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/installer.sh" \
       --type sap_library \
       --parameterfile "${library_file_parametername}" \
       --storageaccountname "${REMOTE_STATE_SA}" \
@@ -748,7 +749,7 @@ if [ 4 == $step ]; then
       exit 40
     fi
   else
-    if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/installer.sh" \
+    if ! "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/installer.sh" \
       --type sap_library \
       --parameterfile "${library_file_parametername}" \
       --storageaccountname "${REMOTE_STATE_SA}" \
