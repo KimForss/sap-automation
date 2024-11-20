@@ -66,8 +66,8 @@ fi
 
 echo ""
 echo "Agent:                               $(this_agent)"
-echo "Organization:                        $(System.CollectionUri)"
-echo "Project:                             $(System.TeamProject)"
+echo "Organization:                        $ENDPOINT_URL_SYSTEMVSSCONNECTION"
+echo "Project:                             $SYSTEM_TEAMPROJECT"
 if [ -n "$(PAT)" ]; then
   echo "Deployer Agent PAT:                  IsDefined"
 fi
@@ -82,7 +82,7 @@ else
   echo "Deploy Web App:                      false"
 fi
 
-az devops configure --defaults organization="$(System.CollectionUri)" project='$(System.TeamProject)' --output none --only-show-errors
+az devops configure --defaults organization="$ENDPOINT_URL_SYSTEMVSSCONNECTION" project='$SYSTEM_TEAMPROJECT' --output none --only-show-errors
 
 VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(variable_group)'].id | [0]")
 if [ -z "${VARIABLE_GROUP_ID}" ]; then
