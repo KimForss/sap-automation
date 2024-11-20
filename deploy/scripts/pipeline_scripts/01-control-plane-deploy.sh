@@ -23,17 +23,16 @@ fi
 set -eu
 
 ENVIRONMENT=$(echo "$DEPLOYERFOLDER" | awk -F'-' '{print $1}' | xargs)
-   LOCATION=$(echo "$DEPLOYERFOLDER" | awk -F'-' '{print $2}' | xargs)
+LOCATION=$(echo "$DEPLOYERFOLDER" | awk -F'-' '{print $2}' | xargs)
 
 deployer_environment_file_name="${CONFIG_REPO_PATH}/.sap_deployment_automation/${ENVIRONMENT}$LOCATION"
-           deployer_configfile="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYERFOLDER/$DEPLOYERCONFIG"
-            library_configfile="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/$LIBRARYCONFIG"
-          deployer_tfstate_key="$DEPLOYERFOLDER.terraform.tfstate"
+deployer_configfile="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYERFOLDER/$DEPLOYERCONFIG"
+library_configfile="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/$LIBRARYCONFIG"
+deployer_tfstate_key="$DEPLOYERFOLDER.terraform.tfstate"
 if [ -f "${deployer_environment_file_name}" ]; then
   step=$(grep -m1 "^step=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs)
   echo "Step:                                $step"
 fi
-
 
 file_deployer_tfstate_key=$DEPLOYERFOLDER.tfstate
 file_key_vault=""
@@ -111,7 +110,6 @@ git checkout -q "$BRANCH"
 echo -e "$green--- Configure devops CLI extension ---$reset"
 az config set extension.use_dynamic_install=yes_without_prompt --only-show-errors
 az extension add --name azure-devops --output none --only-show-errors
-
 
 az devops configure --defaults organization="$ENDPOINT_URL_SYSTEMVSSCONNECTION" project='$SYSTEM_TEAMPROJECT'
 
@@ -321,7 +319,7 @@ if [ -f "${deployer_environment_file_name}" ]; then
   file_deployer_tfstate_key=$(grep "^deployer_tfstate_key=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
   echo "Deployer State:       ${file_deployer_tfstate_key}"
 
-  file_key_vault=$(grep "^keyvault=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs  || true)
+  file_key_vault=$(grep "^keyvault=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
   echo "Deployer Keyvault:    ${file_key_vault}"
 
   file_REMOTE_STATE_SA=$(grep "^REMOTE_STATE_SA=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
@@ -378,27 +376,38 @@ if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/.terraform/terraform.tfstate
   added=1
 fi
 
-# || true suppresses the exitcode of grep. To not trigger the strict exit on error
-backend=$(grep "local" "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/.terraform/terraform.tfstate" || true)
-if [ -n "${backend}" ]; then
-  echo "Local Terraform state"
-  if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/terraform.tfstate" ]; then
+if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/terraform.tfstate" ]; then
 
-    echo "Compressing the library state file"
-    pass=${SYSTEM_COLLECTIONID//-/}
-    zip -q -j -P "${pass}" "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/state" "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/terraform.tfstate"
-    git add -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/state.zip"
-    added=1
-  fi
-else
-  echo "Remote Terraform state"
-  if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/terraform.tfstate" ]; then
-    git rm -q -f --ignore-unmatch "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/terraform.tfstate"
-    added=1
-  fi
-  if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/state.zip" ]; then
-    git rm -q --ignore-unmatch -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/state.zip"
-    added=1
+  echo "Compressing the library state file"
+  pass=${SYSTEM_COLLECTIONID//-/}
+  zip -q -j -P "${pass}" "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/state" "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/terraform.tfstate"
+  git add -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/state.zip"
+  added=1
+fi
+
+if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/.terraform/terraform.tfstate" ]; then
+  # || true suppresses the exitcode of grep. To not trigger the strict exit on error
+  backend=$(grep "local" "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/.terraform/terraform.tfstate" || true)
+  if [ -n "${backend}" ]; then
+    echo "Local Terraform state"
+    if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/terraform.tfstate" ]; then
+
+      echo "Compressing the library state file"
+      pass=${SYSTEM_COLLECTIONID//-/}
+      zip -q -j -P "${pass}" "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/state" "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/terraform.tfstate"
+      git add -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/state.zip"
+      added=1
+    fi
+  else
+    echo "Remote Terraform state"
+    if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/terraform.tfstate" ]; then
+      git rm -q -f --ignore-unmatch "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/terraform.tfstate"
+      added=1
+    fi
+    if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/state.zip" ]; then
+      git rm -q --ignore-unmatch -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/state.zip"
+      added=1
+    fi
   fi
 fi
 
