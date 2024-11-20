@@ -28,7 +28,7 @@ data "azurerm_resource_group" "library" {
 
 resource "azurerm_role_assignment" "library_sai" {
   provider                             = azurerm.main
-  count                                = try(var.deployer_tfstate.add_system_assigned_identity, false) ? 1 : 0
+  count                                = var.bootstrap ? 0 : try(var.deployer_tfstate.add_system_assigned_identity, false) ? 1 : 0
   scope                                = local.resource_group_exists ? var.infrastructure.resource_group.arm_id : azurerm_resource_group.library[0].id
   role_definition_name                 = "Storage Blob Data Contributor"
   principal_id                         = var.deployer_tfstate.deployer_system_assigned_identity[count.index]

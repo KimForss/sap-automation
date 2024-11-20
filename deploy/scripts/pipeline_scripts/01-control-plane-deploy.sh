@@ -200,7 +200,7 @@ fi
 if [ "$USE_WEBAPP" = "true" ]; then
   echo "Deploy Web Application:               true"
 
-  if [ -z "${APP_REGISTRATION_APP_ID}" ]; then
+  if [ -z "$APP_REGISTRATION_APP_ID" ]; then
     echo "##vso[task.logissue type=error]Variable APP_REGISTRATION_APP_ID was not defined."
     exit 2
   fi
