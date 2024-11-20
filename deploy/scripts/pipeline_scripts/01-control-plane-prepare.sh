@@ -82,9 +82,9 @@ else
   echo "Deploy Web App:                      false"
 fi
 
-az devops configure --defaults organization="$ENDPOINT_URL_SYSTEMVSSCONNECTION" project='$SYSTEM_TEAMPROJECT' --output none --only-show-errors
+az devops configure --defaults organization="$ENDPOINT_URL_SYSTEMVSSCONNECTION" project='"$SYSTEM_TEAMPROJECT"' --output none --only-show-errors
 
-VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$VARIABLE_GROUP'].id | [0]")
+VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name==$VARIABLE_GROUP].id | [0]")
 if [ -z "${VARIABLE_GROUP_ID}" ]; then
   echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP could not be found."
   exit 2
