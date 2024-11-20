@@ -372,7 +372,12 @@ if [ 0 == $step ]; then
   echo "Deployer State File:                 ${deployer_tfstate_key}"
 
   # shellcheck disable=SC2086
-  "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer.sh" $allParameters
+  if ! "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer.sh" $allParameters ; then
+    echo "Bootstrapping of the deployer failed"
+    step=0
+    save_config_var "step" "${deployer_config_information}"
+    exit 10
+  fi
   return_code=$?
   echo "Return code from install_Deployer:   ${return_code}"
   if [ 0 != $return_code ]; then
@@ -521,16 +526,16 @@ if [ 2 == $step ]; then
   echo "Calling install_library.sh with:    $allParameters"
 
   # shellcheck disable=SC2086
-  set -x
-  pwd
-  "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_library.sh" "$allParameters"
+
+
   return_code=$?
-  if [ 0 != $return_code ]; then
+  if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_library.sh" $allParameters ; then
     echo "Bootstrapping of the SAP Library failed"
     step=2
     save_config_var "step" "${deployer_config_information}"
     exit 20
   else
+    return_code=$?
     step=3
     save_config_var "step" "${deployer_config_information}"
   fi
