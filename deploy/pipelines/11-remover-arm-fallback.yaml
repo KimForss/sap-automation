@@ -112,7 +112,7 @@ stages:
               green="\e[1;32m" ; reset="\e[0m"
 
               echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
-                cd $CONFIG_REPO_PATH
+                cd "$CONFIG_REPO_PATH"  || exit
                 git config --global user.email "$(Build.RequestedForEmail)"
                 git config --global user.name "$(Build.RequestedFor)"
                 git checkout -q $(Branch)

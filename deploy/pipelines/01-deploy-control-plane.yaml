@@ -827,8 +827,12 @@ stages:
                 git config --global user.email "$(Build.RequestedForEmail)"
                 git config --global user.name "$(Build.RequestedFor)"
                 git commit -m "Added updates from control plane deployment $(Build.DefinitionName) [skip ci]"
+                if git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set-upstream origin "$(Build.SourceBranchName)" ; then
+                      echo "##vso[task.logissue type=warning]Control plane deployment changes pushed to $(Build.SourceBranchName)"
+                  else
+                      echo "##vso[task.logissue type=error]Failed to push changes to $(Build.SourceBranchName)"
+                  fi
 
-                git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set-upstream origin "$(Build.SourceBranchName)"
               fi
 
               if [ -f "${CONFIG_REPO_PATH}"/.sap_deployment_automation/"${ENVIRONMENT}""${LOCATION}".md ]; then
