@@ -233,7 +233,7 @@ function validate_webapp_exports {
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo -e "#        $boldred Missing environment variables (TF_VAR_app_registration_app_id)!!! $resetformatting             #"
+    echo -e "#        $boldred Missing environment variables (TF_VAR_app_registration_app_id)!!! $resetformatting            #"
     echo "#                                                                                       #"
     echo "#   Please export the following variables to successfully deploy the Webapp:            #"
     echo "#      TF_VAR_app_registration_app_id (webapp registration application id)              #"

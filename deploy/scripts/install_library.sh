@@ -510,6 +510,7 @@ if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"
   az account set --sub "$STATE_SUBSCRIPTION"
 
   REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw remote_state_storage_account_name | tr -d \")
+  export REMOTE_STATE_SA
 
   getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${library_config_information}"
 

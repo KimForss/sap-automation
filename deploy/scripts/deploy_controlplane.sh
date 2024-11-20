@@ -596,8 +596,10 @@ if [ "2" == "$step" ]; then
   allParameters=$(printf " --parameterfile %s --deployer_statefile_foldername %s --keyvault %s %s" "${library_file_parametername}" "${relative_path}" "${keyvault}" "${autoApproveParameter}")
   echo "Calling install_library.sh with:    $allParameters"
 
+  terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/sap_library/
+
   # shellcheck disable=SC2086
-  "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_library.sh" $allParameters
+  "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_library.sh" "$allParameters"
   return_code=$?
   if [ 0 != $return_code ]; then
     echo "Bootstrapping of the SAP Library failed"
@@ -605,10 +607,16 @@ if [ "2" == "$step" ]; then
     save_config_var "step" "${deployer_config_information}"
     exit 20
   fi
-  terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/sap_library/
-  REMOTE_STATE_RG=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw sapbits_sa_resource_group_name | tr -d \")
-  REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw remote_state_storage_account_name | tr -d \")
-  STATE_SUBSCRIPTION=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw created_resource_group_subscription_id | tr -d \")
+
+  if [ -z "$REMOTE_STATE_SA" ]; then
+    REMOTE_STATE_RG=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw sapbits_sa_resource_group_name | tr -d \")
+  fi
+  if [ -z "$REMOTE_STATE_SA" ]; then
+    REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw remote_state_storage_account_name | tr -d \")
+  fi
+  if [ -z "$STATE_SUBSCRIPTION" ]; then
+    STATE_SUBSCRIPTION=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw created_resource_group_subscription_id | tr -d \")
+  fi
 
   if [ "${ado_flag}" != "--ado" ]; then
     az storage account network-rule add -g "${REMOTE_STATE_RG}" --account-name "${REMOTE_STATE_SA}" --ip-address "${this_ip}" --output none
@@ -616,25 +624,6 @@ if [ "2" == "$step" ]; then
 
   TF_VAR_sa_connection_string=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw sa_connection_string | tr -d \")
   export TF_VAR_sa_connection_string
-
-  secretname=sa-connection-string
-  deleted=$(az keyvault secret list-deleted --vault-name "${keyvault}" --query "[].{Name:name} | [? contains(Name,'${secretname}')] | [0]" --out tsv | tr -d \")
-  if [ "${deleted}" == "${secretname}" ]; then
-    echo -e "\t $cyan Recovering secret ${secretname} in keyvault ${keyvault} $resetformatting \n"
-    az keyvault secret recover --name "${secretname}" --vault-name "${keyvault}"
-    sleep 10
-  fi
-
-  v=""
-  secret=$(az keyvault secret list --vault-name "${keyvault}" --query "[].{Name:name} | [? contains(Name,'${secretname}')] | [0]" --out tsv | tr -d \")
-  if [ "${secret}" == "${secretname}" ]; then
-    v=$(az keyvault secret show --name "${secretname}" --vault-name "${keyvault}" --query value --out tsv | tr -d \")
-    if [ "${v}" != "${TF_VAR_sa_connection_string}" ]; then
-      az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --value "${TF_VAR_sa_connection_string}" --expires "$(date -d '+1 year' -u +%Y-%m-%dT%H:%M:%SZ)" --only-show-errors --output none
-    fi
-  else
-    az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --value "${TF_VAR_sa_connection_string}" --expires "$(date -d '+1 year' -u +%Y-%m-%dT%H:%M:%SZ)" --only-show-errors --output none
-  fi
 
   cd "${curdir}" || exit
   export step=3
@@ -703,7 +692,7 @@ if [ 3 == $step ]; then
 
   allParameters=$(printf "  ")
 
-  if [ -n "${REMOTE_STATE_SA}" ]; then
+  if [ -z "${REMOTE_STATE_SA}" ]; then
     export step=2
     save_config_var "step" "${deployer_config_information}"
     echo "##vso[task.setprogress value=40;]Progress Indicator"

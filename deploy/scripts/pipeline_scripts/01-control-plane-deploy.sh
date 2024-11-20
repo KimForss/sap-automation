@@ -372,6 +372,7 @@ if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/.terraform/terraform.tfstate
   git add -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/.terraform/terraform.tfstate"
   added=1
 fi
+
 # || true suppresses the exitcode of grep. To not trigger the strict exit on error
 backend=$(grep "local" "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/.terraform/terraform.tfstate" || true)
 if [ -n "${backend}" ]; then
