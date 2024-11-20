@@ -358,9 +358,6 @@ stages:
                 echo -e "$green--- Adding variables to the variable group: $(variable_group) ---$reset"
                 if [ 0 = $return_code ]; then
 
-                  saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Terraform_Remote_Storage_Account_Name" "${file_REMOTE_STATE_SA}"
-                  saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Terraform_Remote_Storage_Resource_Group_Name" "${file_REMOTE_STATE_RG}"
-                  saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Terraform_Remote_Storage_Subscription" "$ARM_SUBSCRIPTION_ID"
                   saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_State_FileName" "$deployer_tfstate_key"
                   saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_Key_Vault" "$file_key_vault"
                   saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "ControlPlaneEnvironment" "$ENVIRONMENT"
