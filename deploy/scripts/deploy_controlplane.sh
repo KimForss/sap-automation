@@ -596,9 +596,7 @@ if [ "2" == "$step" ]; then
   allParameters=$(printf " --parameterfile %s --deployer_statefile_foldername %s --keyvault %s %s" "${library_file_parametername}" "${relative_path}" "${keyvault}" "${autoApproveParameter}")
   echo "Calling install_library.sh with:    $allParameters"
 
-  terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/sap_library/
-
-  # shellcheck disable=SC2086
+    # shellcheck disable=SC2086
   "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_library.sh" "$allParameters"
   return_code=$?
   if [ 0 != $return_code ]; then
@@ -607,6 +605,8 @@ if [ "2" == "$step" ]; then
     save_config_var "step" "${deployer_config_information}"
     exit 20
   fi
+
+  terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/sap_library/
 
   if [ -z "$REMOTE_STATE_SA" ]; then
     REMOTE_STATE_RG=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw sapbits_sa_resource_group_name | tr -d \")
