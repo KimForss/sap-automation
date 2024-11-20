@@ -1146,21 +1146,21 @@ if [ 1 == $apply_needed ]; then
 
     if [[ -n $errors_occurred ]]; then
       # shellcheck disable=SC2086
-      if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters $parallelism; then
+      if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
         return_value=$?
       fi
     fi
 
     if [ -f apply_output.json ]; then
       # shellcheck disable=SC2086
-      if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters $parallelism; then
+      if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
         return_value=$?
       fi
     fi
 
     if [ -f apply_output.json ]; then
       # shellcheck disable=SC2086
-      if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters $parallelism; then
+      if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
         return_value=$?
       fi
 
@@ -1168,7 +1168,7 @@ if [ 1 == $apply_needed ]; then
 
     if [ -f apply_output.json ]; then
       # shellcheck disable=SC2086
-      if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters $parallelism; then
+      if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
         return_value=$?
       fi
 
@@ -1384,6 +1384,7 @@ if [ "${deployment_system}" == sap_system ]; then
     az storage blob upload --file sap-parameters.yaml --container-name tfvars/"${state_path}"/"${key}" --name sap-parameters.yaml \
       --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --auth-mode login --no-progress --overwrite --only-show-errors --output none
   fi
+
   hosts_file=$(ls *_hosts.yaml)
   if [ "$useSAS" = "true" ]; then
     az storage blob upload --file "${hosts_file}" --container-name tfvars/"${state_path}"/"${key}" --name "${hosts_file}" \
