@@ -114,6 +114,9 @@ stages:
               WEB_APP_CLIENT_SECRET:          $(WEB_APP_CLIENT_SECRET)
               deployer_folder:                $(deployerfolder)
               library_folder:                 $(libraryfolder)
+              deployer_config:                $(deployerconfig)
+              library_config:                 $(libraryconfig)
+
 
   - stage:                             Deploy_controlplane
     dependsOn:

@@ -48,14 +48,14 @@ az config set extension.use_dynamic_install=yes_without_prompt --only-show-error
 az extension add --name azure-devops --output none --only-show-errors
 
 echo -e "$green--- File Validations ---$reset"
-if [ ! -f "${CONFIG_REPO_PATH}/DEPLOYER/$deployer_folder/$(deployerconfig)" ]; then
-  echo -e "$boldred--- File ${CONFIG_REPO_PATH}/DEPLOYER/$deployer_folder/$(deployerconfig) was not found ---$reset"
-  echo "##vso[task.logissue type=error]File ${CONFIG_REPO_PATH}/DEPLOYER/$deployer_folder/$(deployerconfig) was not found."
+if [ ! -f "${CONFIG_REPO_PATH}/DEPLOYER/$deployer_folder/$deployer_config" ]; then
+  echo -e "$boldred--- File ${CONFIG_REPO_PATH}/DEPLOYER/$deployer_folder/$deployer_config was not found ---$reset"
+  echo "##vso[task.logissue type=error]File ${CONFIG_REPO_PATH}/DEPLOYER/$deployer_folder/$deployer_config was not found."
   exit 2
 fi
-if [ ! -f "${CONFIG_REPO_PATH}/LIBRARY/$library_folder/$(libraryconfig)" ]; then
-  echo -e "$boldred--- File ${CONFIG_REPO_PATH}/LIBRARY/$library_folder/$(libraryconfig)  was not found ---$reset"
-  echo "##vso[task.logissue type=error]File ${CONFIG_REPO_PATH}/LIBRARY/$library_folder/$(libraryconfig) was not found."
+if [ ! -f "${CONFIG_REPO_PATH}/LIBRARY/$library_folder/$library_config" ]; then
+  echo -e "$boldred--- File ${CONFIG_REPO_PATH}/LIBRARY/$library_folder/$library_config  was not found ---$reset"
+  echo "##vso[task.logissue type=error]File ${CONFIG_REPO_PATH}/LIBRARY/$library_folder/$library_config was not found."
   exit 2
 fi
 
@@ -142,8 +142,8 @@ az account set --subscription "$ARM_SUBSCRIPTION_ID"
 echo "Deployer subscription:               $ARM_SUBSCRIPTION_ID"
 
 echo -e "$green--- Convert config files to UX format ---$reset"
-dos2unix -q "${CONFIG_REPO_PATH}/DEPLOYER/$deployer_folder/$(deployerconfig)"
-dos2unix -q "${CONFIG_REPO_PATH}/LIBRARY/$library_folder/$(libraryconfig)"
+dos2unix -q "${CONFIG_REPO_PATH}/DEPLOYER/$deployer_folder/$deployer_config"
+dos2unix -q "${CONFIG_REPO_PATH}/LIBRARY/$library_folder/$library_config"
 
 if [ "$(force_reset)" = "True" ]; then
   echo "##vso[task.logissue type=warning]Forcing a re-install"
@@ -199,16 +199,16 @@ set +eu
 
 if [ "$USE_MSI" != "true" ]; then
   "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh" \
-    --deployer_parameter_file "${CONFIG_REPO_PATH}/DEPLOYER/$deployer_folder/$(deployerconfig)" \
-    --library_parameter_file "${CONFIG_REPO_PATH}/LIBRARY/$library_folder/$(libraryconfig)" \
+    --deployer_parameter_file "${CONFIG_REPO_PATH}/DEPLOYER/$deployer_folder/$deployer_config" \
+    --library_parameter_file "${CONFIG_REPO_PATH}/LIBRARY/$library_folder/$library_config" \
     --subscription "$ARM_SUBSCRIPTION_ID" --spn_id "$ARM_CLIENT_ID" \
     --spn_secret "$ARM_CLIENT_SECRET" --tenant_id "$ARM_TENANT_ID" \
     --auto-approve --ado --only_deployer
 
 else
   "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh" \
-    --deployer_parameter_file "${CONFIG_REPO_PATH}/DEPLOYER/$deployer_folder/$(deployerconfig)" \
-    --library_parameter_file "${CONFIG_REPO_PATH}/LIBRARY/$library_folder/$(libraryconfig)" \
+    --deployer_parameter_file "${CONFIG_REPO_PATH}/DEPLOYER/$deployer_folder/$deployer_config" \
+    --library_parameter_file "${CONFIG_REPO_PATH}/LIBRARY/$library_folder/$library_config" \
     --subscription "$ARM_SUBSCRIPTION_ID" --auto-approve --ado --only_deployer --msi
 fi
 return_code=$?
