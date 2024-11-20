@@ -492,7 +492,7 @@ if [ 1 == $return_value ]; then
   exit $return_value
 fi
 
-if ! terraform -chdir="${terraform_module_directory}" refresh -input=false "$allParameters"; then
+if ! terraform -chdir="${terraform_module_directory}" refresh $allParameters; then
   return_value=$?
   if [ $return_value -eq 1 ]; then
     echo "Errors when running Terraform refresh"

@@ -333,6 +333,7 @@ if [ -n "${backend}" ]; then
   echo "Local Terraform state"
   if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYERFOLDER/terraform.tfstate" ]; then
     echo "Compressing the deployer state file"
+    sudo apt-get -qq zip
     pass=${SYSTEM_COLLECTIONID//-/}
     zip -q -j -P "${pass}" "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYERFOLDER/state" "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYERFOLDER/terraform.tfstate"
     git add -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYERFOLDER/state.zip"
@@ -370,6 +371,7 @@ if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/.terraform/terraform.tfstate
   if [ -n "${backend}" ]; then
     echo "Local Terraform state"
     if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/terraform.tfstate" ]; then
+      sudo apt-get -qq zip
 
       echo "Compressing the library state file"
       pass=${SYSTEM_COLLECTIONID//-/}
