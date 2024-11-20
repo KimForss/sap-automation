@@ -500,6 +500,7 @@ function ImportAndReRunApply {
 
   return_value=0
 
+  set -x
   if [ -f "$fileName" ]; then
 
     errors_occurred=$(jq 'select(."@level" == "error") | length' "$fileName")
@@ -509,6 +510,9 @@ function ImportAndReRunApply {
       echo "#########################################################################################"
       echo "#                                                                                       #"
       echo -e "#                          $boldreduscore!Errors during the apply phase!$resetformatting                              #"
+      echo "#                                                                                       #"
+      echo "#                                                                                       #"
+      echo "#########################################################################################"
 
       # Check for resource that can be imported
       existing=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary} | select(.summary | startswith("A resource with the ID"))' "$fileName")
@@ -531,7 +535,8 @@ function ImportAndReRunApply {
         rm "$fileName"
 
         echo ""
-        echo ""
+        echo $applyParameters
+
         echo "#########################################################################################"
         echo "#                                                                                       #"
         echo -e "#                          $cyan Re-running Terraform apply$resetformatting                                  #"

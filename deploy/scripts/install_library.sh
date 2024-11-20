@@ -352,16 +352,28 @@ echo "#                                                                         
 echo "#########################################################################################"
 echo ""
 
+
+if [ -f terraform.tfvars ]; then
+  extra_vars=" -var-file=${param_dirname}/terraform.tfvars "
+else
+  unset extra_vars
+fi
+
 if [ -n "${deployer_statefile_foldername}" ]; then
   echo "Deployer folder specified:           ${deployer_statefile_foldername}"
   if ! terraform -chdir="${terraform_module_directory}" plan -no-color -detailed-exitcode -var-file="${var_file}" -var deployer_statefile_foldername="${deployer_statefile_foldername}" -input=false | tee -a plan_output.log 2>&1; then
     return_value=$?
   fi
+  allParameters=$(printf " -var-file=%s -var deployer_statefile_foldername=%s %s " "${var_file}" "${deployer_statefile_foldername}" "${extra_vars}")
+  allImportParameters=$(printf " -var-file=%s -var deployer_statefile_foldername=%s %s " "${var_file}" "${deployer_statefile_foldername}" "${extra_vars}")
 
 else
   if ! terraform -chdir="${terraform_module_directory}" plan -no-color -detailed-exitcode -var-file="${var_file}" -input=false  | tee -a plan_output.log 2>&1; then
     return_value=$?
   fi
+  allParameters=$(printf " -var-file=%s %s" "${var_file}" "${extra_vars}")
+  allImportParameters=$(printf " -var-file=%s %s" "${var_file}" "${extra_vars}")
+
 fi
 return_value=$?
 
@@ -378,11 +390,6 @@ if [ 1 == $return_value ]; then
   exit $return_value
 fi
 
-if [ -f terraform.tfvars ]; then
-  extra_vars=" -var-file=${param_dirname}/terraform.tfvars "
-else
-  unset extra_vars
-fi
 
 parallelism=10
 
@@ -400,8 +407,6 @@ echo "#                             Running Terraform apply                     
 echo "#                                                                                       #"
 echo "#########################################################################################"
 echo ""
-allParameters=$(printf " -var-file=%s -var deployer_statefile_foldername=%s %s " "${var_file}" "${deployer_statefile_foldername}" "${extra_vars}")
-allImportParameters=$(printf " -var-file=%s -var deployer_statefile_foldername=%s %s " "${var_file}" "${deployer_statefile_foldername}" "${extra_vars}")
 
 if [ -n "${approve}" ]; then
   # shellcheck disable=SC2086
