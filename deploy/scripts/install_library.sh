@@ -447,12 +447,26 @@ if [ -f apply_output.json ]; then
         return_value=$?
       fi
     fi
+
     if [ -f apply_output.json ]; then
       # shellcheck disable=SC2086
-      if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters $parallelism; then
+      if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
         return_value=$?
       fi
+    fi
 
+    if [ -f apply_output.json ]; then
+      # shellcheck disable=SC2086
+      if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
+        return_value=$?
+      fi
+    fi
+
+    if [ -f apply_output.json ]; then
+      # shellcheck disable=SC2086
+      if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
+        return_value=$?
+      fi
     fi
   fi
 fi
@@ -472,17 +486,21 @@ if [ 1 == $return_value ]; then
   exit $return_value
 fi
 
-if ! terraform -chdir="${terraform_module_directory}" refresh  -input=false $allParameters ; then
-    return_value=$?
-    if [ $return_value -eq 1 ]; then
-      echo "Errors when running Terraform apply"
-    else
-      # return code 2 is ok
-      return_value=0
-    fi
+if ! terraform -chdir="${terraform_module_directory}" refresh -input=false $allParameters; then
+  return_value=$?
+  if [ $return_value -eq 1 ]; then
+    echo "Errors when running Terraform refresh"
   else
+    # return code 2 is ok
     return_value=0
   fi
+else
+  return_value=0
+fi
+
+if [ "$debug" = True ]; then
+  terraform -chdir="${terraform_module_directory}" output
+fi
 
 if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
 
@@ -493,37 +511,10 @@ if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"
 
   REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw remote_state_storage_account_name | tr -d \")
 
-  get_and_store_sa_details "${REMOTE_STATE_SA}" "${library_config_information}"
+  getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${library_config_information}"
 
-  REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw remote_state_storage_account_name | tr -d \")
-  temp=$(echo "${REMOTE_STATE_SA}" | grep -m1 "Warning")
-  if [ -z "${temp}" ]; then
-    temp=$(echo "${REMOTE_STATE_SA}" | grep "Backend reinitialization required")
-    if [ -z "${temp}" ]; then
-      save_config_var "REMOTE_STATE_SA" "${library_config_information}"
-    fi
-  fi
-
-  tfstate_resource_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw tfstate_resource_id | tr -d \")
-  temp=$(echo "$tfstate_resource_id" | grep -m1 "Warning")
-  if [ -z "${temp}" ]; then
-    temp=$(echo "${tfstate_resource_id}" | grep "Backend reinitialization required")
-    if [ -z "${temp}" ]; then
-      save_config_var "tfstate_resource_id" "${library_config_information}"
-    fi
-  fi
-
-  REMOTE_STATE_RG=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw created_resource_group_name | tr -d \")
-  temp=$(echo "${REMOTE_STATE_RG}" | grep -m1 "Warning")
-  if [ -z "${temp}" ]; then
-    temp=$(echo "${REMOTE_STATE_RG}" | grep "Backend reinitialization required")
-    if [ -z "${temp}" ]; then
-      save_config_var "REMOTE_STATE_RG" "${library_config_information}"
-      return_value=0
-    fi
-  fi
 else
-return_value=10
+  return_value=10
 fi
 
 exit $return_value

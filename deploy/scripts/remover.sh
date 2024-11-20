@@ -272,7 +272,7 @@ if [ -z "$REMOTE_STATE_SA" ]; then
   load_config_vars "${system_config_information}" "STATE_SUBSCRIPTION"
 else
   save_config_vars "${system_config_information}" REMOTE_STATE_SA
-  get_and_store_sa_details "${REMOTE_STATE_SA}" "${system_config_information}"
+  getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${system_config_information}"
   load_config_vars "${system_config_information}" "STATE_SUBSCRIPTION"
   load_config_vars "${system_config_information}" "REMOTE_STATE_RG"
   load_config_vars "${system_config_information}" "tfstate_resource_id"

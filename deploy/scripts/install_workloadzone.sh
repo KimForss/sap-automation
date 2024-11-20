@@ -277,7 +277,7 @@ if [[ -n $STATE_SUBSCRIPTION ]]; then
 fi
 
 if [ -n "$REMOTE_STATE_SA" ]; then
-  get_and_store_sa_details "${REMOTE_STATE_SA}" "${workload_config_information}"
+  getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${workload_config_information}"
 fi
 
 if [ -n "$keyvault" ]; then
@@ -456,7 +456,7 @@ if [ -n "$tfstate_resource_id" ]; then
     REMOTE_STATE_RG \
     STATE_SUBSCRIPTION
 else
-  get_and_store_sa_details "${REMOTE_STATE_SA}" "${workload_config_information}"
+  getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${workload_config_information}"
 fi
 
 if [ -z "$subscription" ]; then
@@ -477,7 +477,7 @@ if [ -z "$REMOTE_STATE_SA" ]; then
   export TF_VAR_tfstate_resource_id=${tfstate_resource_id}
 else
   if [ -z "$REMOTE_STATE_RG" ]; then
-    get_and_store_sa_details "${REMOTE_STATE_SA}" "${workload_config_information}"
+    getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${workload_config_information}"
     load_config_vars "${workload_config_information}" "STATE_SUBSCRIPTION"
     load_config_vars "${workload_config_information}" "REMOTE_STATE_RG"
     load_config_vars "${workload_config_information}" "tfstate_resource_id"
@@ -567,7 +567,7 @@ fi
 
 if [ -z "${REMOTE_STATE_SA}" ]; then
   read -p -r "Terraform state storage account name:" REMOTE_STATE_SA
-  get_and_store_sa_details "${REMOTE_STATE_SA}" "${workload_config_information}"
+  getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${workload_config_information}"
   load_config_vars "${workload_config_information}" "STATE_SUBSCRIPTION"
   load_config_vars "${workload_config_information}" "REMOTE_STATE_RG"
   load_config_vars "${workload_config_information}" "tfstate_resource_id"
@@ -585,7 +585,7 @@ fi
 
 if [ -z "${REMOTE_STATE_RG}" ]; then
   if [ -n "${REMOTE_STATE_SA}" ]; then
-    get_and_store_sa_details "${REMOTE_STATE_SA}" "${workload_config_information}"
+    getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${workload_config_information}"
     load_config_vars "${workload_config_information}" "STATE_SUBSCRIPTION"
     load_config_vars "${workload_config_information}" "REMOTE_STATE_RG"
     load_config_vars "${workload_config_information}" "tfstate_resource_id"
@@ -602,7 +602,7 @@ if [ -n "${tfstate_resource_id}" ]; then
   tfstate_parameter=" -var tfstate_resource_id=${tfstate_resource_id}"
   export TF_VAR_tfstate_resource_id=${tfstate_resource_id}
 else
-  get_and_store_sa_details "${REMOTE_STATE_SA}" "${workload_config_information}"
+  getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${workload_config_information}"
   load_config_vars "${workload_config_information}" "tfstate_resource_id"
   tfstate_parameter=" -var tfstate_resource_id=${tfstate_resource_id}"
   export TF_VAR_tfstate_resource_id=${tfstate_resource_id}

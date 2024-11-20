@@ -477,7 +477,7 @@ if [[ -z ${REMOTE_STATE_SA} ]]; then
   if [ 1 != $called_from_ado ]; then
     read -p -r "Terraform state storage account name:" REMOTE_STATE_SA
 
-    get_and_store_sa_details "${REMOTE_STATE_SA}" "${system_config_information}"
+    getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${system_config_information}"
     load_config_vars "${system_config_information}" "STATE_SUBSCRIPTION"
     load_config_vars "${system_config_information}" "REMOTE_STATE_RG"
     load_config_vars "${system_config_information}" "tfstate_resource_id"
@@ -490,14 +490,14 @@ if [ -z "${REMOTE_STATE_SA}" ]; then
 fi
 
 if [[ -z ${REMOTE_STATE_RG} ]]; then
-  get_and_store_sa_details "${REMOTE_STATE_SA}" "${system_config_information}"
+  getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${system_config_information}"
   load_config_vars "${system_config_information}" "STATE_SUBSCRIPTION"
   load_config_vars "${system_config_information}" "REMOTE_STATE_RG"
   load_config_vars "${system_config_information}" "tfstate_resource_id"
 fi
 
 if [[ -z ${tfstate_resource_id} ]]; then
-  get_and_store_sa_details "${REMOTE_STATE_SA}" "${system_config_information}"
+  getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${system_config_information}"
   load_config_vars "${system_config_information}" "STATE_SUBSCRIPTION"
   load_config_vars "${system_config_information}" "REMOTE_STATE_RG"
   load_config_vars "${system_config_information}" "tfstate_resource_id"
@@ -921,7 +921,7 @@ if [ 1 != $return_value ]; then
 
       REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw remote_state_storage_account_name | tr -d \")
 
-      get_and_store_sa_details "${REMOTE_STATE_SA}" "${system_config_information}"
+      getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${system_config_information}"
 
       if [ 1 == "$called_from_ado" ]; then
         SAPBITS=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw sapbits_storage_account_name | tr -d \")
@@ -1328,7 +1328,7 @@ if [ "${deployment_system}" == sap_library ]; then
 
   fi
 
-  get_and_store_sa_details "${REMOTE_STATE_SA}" "${system_config_information}"
+  getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${system_config_information}"
   rg_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw created_resource_group_name | tr -d \")
 
   echo ""

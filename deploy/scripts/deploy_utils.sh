@@ -126,7 +126,7 @@ function fail_if_null {
   exit 1
 }
 
-function get_and_store_sa_details {
+function getAndStoreTerraformStateStorageAccountDetails {
   local REMOTE_STATE_SA="${1}"
   local config_file_name="${2}"
 
