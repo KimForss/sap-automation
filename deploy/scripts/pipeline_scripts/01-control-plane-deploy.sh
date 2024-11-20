@@ -209,12 +209,13 @@ if [ "$USE_WEBAPP" = "true" ]; then
     echo "##vso[task.logissue type=error]Variable WEB_APP_CLIENT_SECRET was not defined."
     exit 2
   fi
-  TF_VAR_app_registration_app_id=$(APP_REGISTRATION_APP_ID)
-  echo "App Registration ID:                  ${TF_VAR_app_registration_app_id}"
-  export TF_VAR_app_registration_app_id
-  TF_VAR_webapp_client_secret=$(WEB_APP_CLIENT_SECRET)
+  echo "App Registration ID:                  $APP_REGISTRATION_APP_ID"
+
+  TF_VAR_webapp_client_secret=                $WEB_APP_CLIENT_SECRET
   export TF_VAR_webapp_client_secret
-  export TF_VAR_use_webapp=true
+
+  TF_VAR_use_webapp=true
+  export TF_VAR_use_webapp
 else
   echo "Deploy Web Application:               false"
 fi

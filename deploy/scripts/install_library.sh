@@ -371,8 +371,8 @@ else
   fi
   allParameters=$(printf " -var-file=%s %s" "${var_file}" "${extra_vars}")
   allImportParameters=$(printf " -var-file=%s %s" "${var_file}" "${extra_vars}")
-
 fi
+
 return_value=$?
 
 if [ 1 == $return_value ]; then
@@ -440,6 +440,7 @@ if [ -f apply_output.json ]; then
     if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
       return_value=$?
     fi
+
     if [ -f apply_output.json ]; then
       # shellcheck disable=SC2086
       if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
