@@ -103,6 +103,9 @@ pwd
 
 ls -la
 
+echo "${parameterfile_name}"
+echo basename "${parameterfile_name}"
+
 if [ ! -f "${parameterfile_name}" ]; then
   printf -v val %-40.40s "$parameterfile_name"
   echo ""
