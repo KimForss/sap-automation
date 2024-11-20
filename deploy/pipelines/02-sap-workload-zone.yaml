@@ -117,7 +117,7 @@ stages:
             inputs:
               targetType:              'filePath'
               filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/02-sap-workload-zone.sh"
-              failOnStderr:            true
+              failOnStderr:            false
               workingDirectory:        "$(System.DefaultWorkingDirectory)"
             displayName:               Deploy SAP Workload Zone
             env:
@@ -142,4 +142,4 @@ stages:
               CONFIG_REPO_PATH:        ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
               LOGON_USING_SPN:         $(Logon_Using_SPN)
               USE_MSI:                 $(Use_MSI)
-            failOnStderr:              false
+
