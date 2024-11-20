@@ -116,6 +116,7 @@ stages:
               library_folder:                 $(libraryfolder)
               deployer_config:                $(deployerconfig)
               library_config:                 $(libraryconfig)
+              sourceBranchName:               $(Build.SourceBranchName)
 
 
   - stage:                             Deploy_controlplane

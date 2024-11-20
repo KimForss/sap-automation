@@ -21,10 +21,10 @@ deployer_tfstate_key="$deployer_folder.terraform.tfstate"
 cd "$CONFIG_REPO_PATH" || exit
 mkdir -p .sap_deployment_automation
 
-# shellcheck disable=SC2005
-ENVIRONMENT=$(echo $deployer_folder | awk -F'-' '{print $1}' | xargs)
-# shellcheck disable=SC2005
-LOCATION=$(echo $deployer_folder | awk -F'-' '{print $2}' | xargs)
+
+ENVIRONMENT=$(echo "$deployer_folder" | awk -F'-' '{print $1}' | xargs)
+
+LOCATION=$(echo "$deployer_folder" | awk -F'-' '{print $2}' | xargs)
 
 deployer_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}"
 echo "Configuration file:                  $deployer_environment_file_name"
@@ -40,8 +40,8 @@ if [ -f "${deployer_environment_file_name}" ]; then
   fi
 fi
 
-echo -e "$green--- Checkout $(Build.SourceBranchName) ---$reset"
-git checkout -q "$(Build.SourceBranchName)"
+echo -e "$green--- Checkout $sourceBranchName ---$reset"
+git checkout -q "$sourceBranchName"
 echo -e "$green--- Configure devops CLI extension ---$reset"
 az config set extension.use_dynamic_install=yes_without_prompt --only-show-errors
 
@@ -265,7 +265,7 @@ if [ 1 = $added ]; then
   git config --global user.email "$(Build.RequestedForEmail)"
   git config --global user.name "$(Build.RequestedFor)"
   git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"
-  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set-upstream origin "$(Build.SourceBranchName)"
+  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set-upstream origin "$sourceBranchName"
 fi
 if [ -f "$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md" ]; then
   echo "##vso[task.uploadsummary]$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md"
