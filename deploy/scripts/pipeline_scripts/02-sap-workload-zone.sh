@@ -78,22 +78,22 @@ if [ "$USE_MSI" != "true" ]; then
   fi
 
   if [ -z "$CP_ARM_SUBSCRIPTION_ID" ]; then
-    echo "##vso[task.logissue type=error]Variable CP_ARM_SUBSCRIPTION_ID was not defined in the $(parent_variable_group) variable group."
+    echo "##vso[task.logissue type=error]Variable CP_ARM_SUBSCRIPTION_ID was not defined in the $PARENT_VARIABLE_GROUP variable group."
     exit 2
   fi
 
   if [ -z "$CP_ARM_CLIENT_ID" ]; then
-    echo "##vso[task.logissue type=error]Variable CP_ARM_CLIENT_ID was not defined in the $(parent_variable_group) variable group."
+    echo "##vso[task.logissue type=error]Variable CP_ARM_CLIENT_ID was not defined in the $PARENT_VARIABLE_GROUP variable group."
     exit 2
   fi
 
   if [ -z "$CP_ARM_CLIENT_SECRET" ]; then
-    echo "##vso[task.logissue type=error]Variable CP_ARM_CLIENT_SECRET was not defined in the $(parent_variable_group) variable group."
+    echo "##vso[task.logissue type=error]Variable CP_ARM_CLIENT_SECRET was not defined in the $PARENT_VARIABLE_GROUP variable group."
     exit 2
   fi
 
   if [ -z "$CP_ARM_TENANT_ID" ]; then
-    echo "##vso[task.logissue type=error]Variable CP_ARM_TENANT_ID was not defined in the $(parent_variable_group) variable group."
+    echo "##vso[task.logissue type=error]Variable CP_ARM_TENANT_ID was not defined in the $PARENT_VARIABLE_GROUP variable group."
     exit 2
   fi
 fi
@@ -110,7 +110,7 @@ export ARM_SUBSCRIPTION_ID
 
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-  configureNonDeployer "$(tf_version)"
+  configureNonDeployer "$TF_VERSION"
   echo -e "$green--- az login ---$reset"
   LogonToAzure false
 else
@@ -134,12 +134,12 @@ ENVIRONMENT=$(grep -m1 "^environment" "$tfvarsFile" | awk -F'=' '{print $2}' | t
 LOCATION=$(grep -m1 "^location" "$tfvarsFile" | awk -F'=' '{print $2}' | tr 'A-Z' 'a-z' | tr -d ' \t\n\r\f"')
 NETWORK=$(grep -m1 "^network_logical_name" "$tfvarsFile" | awk -F'=' '{print $2}' | tr -d ' \t\n\r\f"')
 
-ENVIRONMENT_IN_FILENAME=$(echo $WORKLOAD_ZONE_FOLDER | awk -F'-' '{print $1}')
+ENVIRONMENT_IN_FILENAME=$(echo "$WORKLOAD_ZONE_FOLDER" | awk -F'-' '{print $1}')
 
-LOCATION_CODE_IN_FILENAME_IN_FILENAME=$(echo $WORKLOAD_ZONE_FOLDER | awk -F'-' '{print $2}')
+LOCATION_CODE_IN_FILENAME_IN_FILENAME=$(echo "$WORKLOAD_ZONE_FOLDER" | awk -F'-' '{print $2}')
 LOCATION_IN_FILENAME=$(get_region_from_code "$LOCATION_CODE_IN_FILENAME")
 
-NETWORK_IN_FILENAME=$(echo $WORKLOAD_ZONE_FOLDER | awk -F'-' '{print $3}')
+NETWORK_IN_FILENAME=$(echo "$WORKLOAD_ZONE_FOLDER" | awk -F'-' '{print $3}')
 
 echo "Environment:                         $ENVIRONMENT"
 echo "Location:                            $LOCATION"
@@ -149,12 +149,12 @@ echo "Environment(filename):               $ENVIRONMENT_IN_FILENAME"
 echo "Location(filename):                  $LOCATION_IN_FILENAME"
 echo "Network(filename):                   $NETWORK_IN_FILENAME"
 
-echo "Deployer Environment                 $(deployer_environment)"
-echo "Deployer Region                      $(deployer_region)"
+echo "Deployer Environment                 $DEPLOYER_ENVIRONMENT"
+echo "Deployer Region                      $DEPLOYER__REGION"
 echo "Workload TFvars                      $WORKLOAD_ZONE_CONFIGURATION_FILE"
 echo ""
 
-echo "Agent pool:                          $(this_agent)"
+echo "Agent pool:                          $THIS_AGENT"
 echo "Organization:                        $ENDPOINT_URL_SYSTEMVSSCONNECTION"
 echo "Project:                             $SYSTEM_TEAMPROJECT"
 echo ""
@@ -177,11 +177,11 @@ if [ "$NETWORK" != "$NETWORK_IN_FILENAME" ]; then
   exit 2
 fi
 
-deployer_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$(deployer_environment)$(deployer_region)"
+deployer_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$DEPLOYER_ENVIRONMENT$DEPLOYER_REGION"
 echo "Deployer Environment File:           $deployer_environment_file_name"
 if [ ! -f "${deployer_environment_file_name}" ]; then
-  echo -e "$boldred--- $(deployer_environment)$(deployer_region) was not found ---$reset"
-  echo "##vso[task.logissue type=error]Control plane configuration file $(deployer_environment)$(deployer_region) was not found."
+  echo -e "$boldred--- $DEPLOYER_ENVIRONMENT$DEPLOYER_REGION was not found ---$reset"
+  echo "##vso[task.logissue type=error]Control plane configuration file $DEPLOYER_ENVIRONMENT$DEPLOYER_REGION was not found."
   exit 2
 fi
 workload_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}${NETWORK}"
@@ -192,12 +192,12 @@ az config set extension.use_dynamic_install=yes_without_prompt --output none
 
 az extension add --name azure-devops --output none --only-show-errors
 
-az devops configure --defaults organization=$ENDPOINT_URL_SYSTEMVSSCONNECTION project='$SYSTEM_TEAMPROJECT' --output none
+az devops configure --defaults organization="$ENDPOINT_URL_SYSTEMVSSCONNECTION" project="$SYSTEM_TEAMPROJECT" --output none
 
-PARENT_VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(parent_variable_group)'].id | [0]")
+PARENT_VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$PARENT_VARIABLE_GROUP'].id | [0]")
 
 if [ -z "${PARENT_VARIABLE_GROUP_ID}" ]; then
-  echo "##vso[task.logissue type=error]Variable group $(parent_variable_group) could not be found."
+  echo "##vso[task.logissue type=error]Variable group $PARENT_VARIABLE_GROUP could not be found."
   exit 2
 fi
 export PARENT_VARIABLE_GROUP_ID
@@ -214,7 +214,7 @@ printf -v tempval '%s id:' "$VARIABLE_GROUP"
 printf -v val '%-20s' "${tempval}"
 echo "$val                 $VARIABLE_GROUP_ID"
 
-printf -v tempval '%s id:' "$(parent_variable_group)"
+printf -v tempval '%s id:' "$PARENT_VARIABLE_GROUP"
 printf -v val '%-20s' "${tempval}"
 echo "$val                 $PARENT_VARIABLE_GROUP_ID"
 
@@ -360,7 +360,7 @@ fi
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
 
 "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/install_workloadzone.sh" --parameterfile "$WORKLOAD_ZONE_CONFIGURATION_FILE" \
-  --deployer_environment "$(deployer_environment)" --subscription "$WL_ARM_SUBSCRIPTION_ID" \
+  --deployer_environment "$DEPLOYER_ENVIRONMENT" --subscription "$WL_ARM_SUBSCRIPTION_ID" \
   --deployer_tfstate_key "${deployer_tfstate_key}" --keyvault "${key_vault}" --storageaccountname "${REMOTE_STATE_SA}" \
   --state_subscription "${STATE_SUBSCRIPTION}" --auto-approve --ado --msi
 
@@ -371,11 +371,11 @@ cd "$CONFIG_REPO_PATH" || exit
 workload_environment_file_name=".sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}${NETWORK}"
 
 if [ -f "${workload_environment_file_name}" ]; then
-  workload_key_vault=$(grep "workloadkeyvault=" ${workload_environment_file_name} | awk -F'=' '{print $2}' | xargs)
+  workload_key_vault=$(grep "workloadkeyvault=" "${workload_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
   export workload_key_vault
   echo "Workload zone key vault:             ${workload_key_vault}"
 
-  workload_prefix=$(grep "workload_zone_prefix=" ${workload_environment_file_name} | awk -F'=' '{print $2}' | xargs)
+  workload_prefix=$(grep "workload_zone_prefix=" "${workload_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
   export workload_prefix
   echo "Workload zone prefix:                ${workload_prefix}"
 
@@ -404,20 +404,18 @@ if [ -z "${az_var}" ]; then
 else
   fencing_id=$(az keyvault secret list --vault-name "$workload_key_vault" --subscription "$STATE_SUBSCRIPTION" --query [].name -o tsv | grep "${workload_prefix}-fencing-spn-id" | xargs || true)
   if [ -z "$fencing_id" ]; then
-    az keyvault secret set --name "${workload_prefix}-fencing-spn-id" --vault-name "$workload_key_vault" --value "$(FENCING_SPN_ID)" --subscription "$STATE_SUBSCRIPTION" --expires "$(date -d '+1 year' -u +%Y-%m-%dT%H:%M:%SZ)" --output none
+    az keyvault secret set --name "${workload_prefix}-fencing-spn-id" --vault-name "$workload_key_vault" --value "$FENCING_SPN_ID" --subscription "$STATE_SUBSCRIPTION" --expires "$(date -d '+1 year' -u +%Y-%m-%dT%H:%M:%SZ)" --output none
     az keyvault secret set --name "${workload_prefix}-fencing-spn-pwd" --vault-name "$workload_key_vault" --value="$FENCING_SPN_PWD" --subscription "$STATE_SUBSCRIPTION" --expires "$(date -d '+1 year' -u +%Y-%m-%dT%H:%M:%SZ)" --output none
-    az keyvault secret set --name "${workload_prefix}-fencing-spn-tenant" --vault-name "$workload_key_vault" --value "$(FENCING_SPN_TENANT)" --subscription "$STATE_SUBSCRIPTION" --expires "$(date -d '+1 year' -u +%Y-%m-%dT%H:%M:%SZ)" --output none
+    az keyvault secret set --name "${workload_prefix}-fencing-spn-tenant" --vault-name "$workload_key_vault" --value "$FENCING_SPN_TENANT" --subscription "$STATE_SUBSCRIPTION" --expires "$(date -d '+1 year' -u +%Y-%m-%dT%H:%M:%SZ)" --output none
   fi
 fi
 
 set +o errexit
 
 echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
-cd "$(Build.Repository.LocalPath)" || exit
-git pull
 
-echo -e "$green--- Pull latest ---$reset"
 cd "$CONFIG_REPO_PATH" || exit
+git pull
 
 added=0
 if [ -f ".sap_deployment_automation/${prefix}" ]; then
