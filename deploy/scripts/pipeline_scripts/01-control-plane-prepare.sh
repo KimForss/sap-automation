@@ -1,12 +1,12 @@
 #!/bin/bash
-echo "##vso[build.updatebuildnumber]Deploying the control plane defined in $(deployerfolder) $(libraryfolder)"
+echo "##vso[build.updatebuildnumber]Deploying the control plane defined in $deployer_folder $library_folder"
 green="\e[1;32m"
 reset="\e[0m"
 boldred="\e[1;31m"
 cyan="\e[1;36m"
 
 #External helper functions
-source "$(System.DefaultWorkingDirectory)/deploy/scripts/pipeline_scripts/helper.sh"
+source "helper.sh"
 
 if [ "$SYSTEM_DEBUG" = True ]; then
   set -x
@@ -15,16 +15,16 @@ if [ "$SYSTEM_DEBUG" = True ]; then
 fi
 set -eu
 
-file_deployer_tfstate_key=$(deployerfolder).tfstate
-deployer_tfstate_key="$(deployerfolder).terraform.tfstate"
+file_deployer_tfstate_key=$deployer_folder.tfstate
+deployer_tfstate_key="$deployer_folder.terraform.tfstate"
 
 cd "$CONFIG_REPO_PATH" || exit
 mkdir -p .sap_deployment_automation
 
 # shellcheck disable=SC2005
-ENVIRONMENT=$(echo $(deployerfolder) | awk -F'-' '{print $1}' | xargs)
+ENVIRONMENT=$(echo $deployer_folder | awk -F'-' '{print $1}' | xargs)
 # shellcheck disable=SC2005
-LOCATION=$(echo $(deployerfolder) | awk -F'-' '{print $2}' | xargs)
+LOCATION=$(echo $deployer_folder | awk -F'-' '{print $2}' | xargs)
 
 deployer_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}"
 echo "Configuration file:                  $deployer_environment_file_name"
@@ -48,14 +48,14 @@ az config set extension.use_dynamic_install=yes_without_prompt --only-show-error
 az extension add --name azure-devops --output none --only-show-errors
 
 echo -e "$green--- File Validations ---$reset"
-if [ ! -f "${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig)" ]; then
-  echo -e "$boldred--- File ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig) was not found ---$reset"
-  echo "##vso[task.logissue type=error]File ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig) was not found."
+if [ ! -f "${CONFIG_REPO_PATH}/DEPLOYER/$deployer_folder/$(deployerconfig)" ]; then
+  echo -e "$boldred--- File ${CONFIG_REPO_PATH}/DEPLOYER/$deployer_folder/$(deployerconfig) was not found ---$reset"
+  echo "##vso[task.logissue type=error]File ${CONFIG_REPO_PATH}/DEPLOYER/$deployer_folder/$(deployerconfig) was not found."
   exit 2
 fi
-if [ ! -f "${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/$(libraryconfig)" ]; then
-  echo -e "$boldred--- File ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/$(libraryconfig)  was not found ---$reset"
-  echo "##vso[task.logissue type=error]File ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/$(libraryconfig) was not found."
+if [ ! -f "${CONFIG_REPO_PATH}/LIBRARY/$library_folder/$(libraryconfig)" ]; then
+  echo -e "$boldred--- File ${CONFIG_REPO_PATH}/LIBRARY/$library_folder/$(libraryconfig)  was not found ---$reset"
+  echo "##vso[task.logissue type=error]File ${CONFIG_REPO_PATH}/LIBRARY/$library_folder/$(libraryconfig) was not found."
   exit 2
 fi
 
@@ -142,8 +142,8 @@ az account set --subscription "$ARM_SUBSCRIPTION_ID"
 echo "Deployer subscription:               $ARM_SUBSCRIPTION_ID"
 
 echo -e "$green--- Convert config files to UX format ---$reset"
-dos2unix -q "${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig)"
-dos2unix -q "${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/$(libraryconfig)"
+dos2unix -q "${CONFIG_REPO_PATH}/DEPLOYER/$deployer_folder/$(deployerconfig)"
+dos2unix -q "${CONFIG_REPO_PATH}/LIBRARY/$library_folder/$(libraryconfig)"
 
 if [ "$(force_reset)" = "True" ]; then
   echo "##vso[task.logissue type=warning]Forcing a re-install"
@@ -186,12 +186,12 @@ fi
 TF_VAR_use_webapp=$(use_webapp)
 export TF_VAR_use_webapp
 
-if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip" ]; then
+if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$deployer_folder/state.zip" ]; then
   # shellcheck disable=SC2001
   # shellcheck disable=SC2005
   pass=$(echo "$(System.CollectionId)" | sed 's/-//g')
   echo "Unzipping state.zip"
-  unzip -qq -o -P "${pass}" "${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip" -d "${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)"
+  unzip -qq -o -P "${pass}" "${CONFIG_REPO_PATH}/DEPLOYER/$deployer_folder/state.zip" -d "${CONFIG_REPO_PATH}/DEPLOYER/$deployer_folder"
 fi
 
 export TF_LOG_PATH=$CONFIG_REPO_PATH/.sap_deployment_automation/terraform.log
@@ -199,16 +199,16 @@ set +eu
 
 if [ "$USE_MSI" != "true" ]; then
   "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh" \
-    --deployer_parameter_file "${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig)" \
-    --library_parameter_file "${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/$(libraryconfig)" \
+    --deployer_parameter_file "${CONFIG_REPO_PATH}/DEPLOYER/$deployer_folder/$(deployerconfig)" \
+    --library_parameter_file "${CONFIG_REPO_PATH}/LIBRARY/$library_folder/$(libraryconfig)" \
     --subscription "$ARM_SUBSCRIPTION_ID" --spn_id "$ARM_CLIENT_ID" \
     --spn_secret "$ARM_CLIENT_SECRET" --tenant_id "$ARM_TENANT_ID" \
     --auto-approve --ado --only_deployer
 
 else
   "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh" \
-    --deployer_parameter_file "${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig)" \
-    --library_parameter_file "${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/$(libraryconfig)" \
+    --deployer_parameter_file "${CONFIG_REPO_PATH}/DEPLOYER/$deployer_folder/$(deployerconfig)" \
+    --library_parameter_file "${CONFIG_REPO_PATH}/LIBRARY/$library_folder/$(libraryconfig)" \
     --subscription "$ARM_SUBSCRIPTION_ID" --auto-approve --ado --only_deployer --msi
 fi
 return_code=$?
@@ -248,17 +248,17 @@ if [ -f ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}" ]; then
   git add ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}"
   added=1
 fi
-if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/.terraform/terraform.tfstate" ]; then
-  git add -f "${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/.terraform/terraform.tfstate"
+if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$deployer_folder/.terraform/terraform.tfstate" ]; then
+  git add -f "${CONFIG_REPO_PATH}/DEPLOYER/$deployer_folder/.terraform/terraform.tfstate"
   added=1
 fi
-if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate" ]; then
+if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$deployer_folder/terraform.tfstate" ]; then
   sudo apt-get install zip -y
   # shellcheck disable=SC2001
   # shellcheck disable=SC2005
   pass=$(echo "$(System.CollectionId)" | sed 's/-//g')
-  zip -q -j -P "${pass}" "${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state" "${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate"
-  git add -f "${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip"
+  zip -q -j -P "${pass}" "${CONFIG_REPO_PATH}/DEPLOYER/$deployer_folder/state" "${CONFIG_REPO_PATH}/DEPLOYER/$deployer_folder/terraform.tfstate"
+  git add -f "${CONFIG_REPO_PATH}/DEPLOYER/$deployer_folder/state.zip"
   added=1
 fi
 if [ 1 = $added ]; then
