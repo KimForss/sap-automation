@@ -521,6 +521,8 @@ if [ 2 == $step ]; then
   echo "Calling install_library.sh with:    $allParameters"
 
   # shellcheck disable=SC2086
+  set -x
+  pwd
   "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_library.sh" "$allParameters"
   return_code=$?
   if [ 0 != $return_code ]; then

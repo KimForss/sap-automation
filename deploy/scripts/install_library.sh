@@ -27,16 +27,19 @@ function showhelp {
   echo "#   This file contains the logic to deploy the deployer.                                #"
   echo "#   The script experts the following exports:                                           #"
   echo "#                                                                                       #"
-  echo "#     ARM_SUBSCRIPTION_ID to specify which subscription to deploy to                    #"
-  echo "#     SAP_AUTOMATION_REPO_PATH the path to the folder containing the cloned sap-automation        #"
+  echo "#     ARM_SUBSCRIPTION_ID      to specify which subscription to deploy to               #"
+  echo "#     SAP_AUTOMATION_REPO_PATH the path to the folder containing                        #"
+  echo "#                              the cloned sap-automation                                #"
   echo "#                                                                                       #"
   echo "#   The script will persist the parameters needed between the executions in the         #"
-  echo "#   [CONFIG_REPO_PATH]/.sap_deployment_automation folder                                                 #"
+  echo "#   [CONFIG_REPO_PATH]/.sap_deployment_automation folder                                #"
   echo "#                                                                                       #"
   echo "#                                                                                       #"
-  echo "#   Usage: install_deployer.sh                                                          #"
-  echo "#    -p deployer parameter file                                                         #"
-  echo "#    -i interactive true/false setting the value to false will not prompt before apply  #"
+  echo "#   Usage: install_library.sh                                                           #"
+  echo "#    -p or --parameterfile                    library parameter file                    #"
+  echo "#    -v or --keyvault                         Name of key vault containing credentiols  #"
+  echo "#    -s or --deployer_statefile_foldername    relative path to deployer folder          #"
+  echo "#    -i or --auto-approve                     if set will not prompt before apply       #"
   echo "#    -h Show help                                                                       #"
   echo "#                                                                                       #"
   echo "#   Example:                                                                            #"
@@ -95,6 +98,10 @@ if [ "$debug" = True ]; then
   set -x
   set -o errexit
 fi
+
+pwd
+
+ls -la
 
 if [ ! -f "${parameterfile_name}" ]; then
   printf -v val %-40.40s "$parameterfile_name"
