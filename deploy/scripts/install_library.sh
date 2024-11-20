@@ -432,8 +432,6 @@ else
   fi
 fi
 
-ls
-
 if [ -f apply_output.json ]; then
   errors_occurred=$(jq 'select(."@level" == "error") | length' apply_output.json)
 
@@ -472,6 +470,18 @@ if [ 1 == $return_value ]; then
   unset TF_DATA_DIR
   exit $return_value
 fi
+
+if ! terraform -chdir="${terraform_module_directory}" refresh  -input=false $allParameters ; then
+    return_value=$?
+    if [ $return_value -eq 1 ]; then
+      echo "Errors when running Terraform apply"
+    else
+      # return code 2 is ok
+      return_value=0
+    fi
+  else
+    return_value=0
+  fi
 
 if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
 
