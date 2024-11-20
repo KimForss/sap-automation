@@ -430,9 +430,12 @@ else
   fi
 fi
 
-if [ -f apply_output.json ]; then
-  errors_occurred=$(jq 'select(."@level" == "error") | length' apply_output.json)
+ls
 
+if [ -f apply_output.json ]; then
+  jq 'select(."@level" == "error") | length' apply_output.json
+  errors_occurred=$(jq 'select(."@level" == "error") | length' apply_output.json)
+  set +x
   if [[ -n $errors_occurred ]]; then
     # shellcheck disable=SC2086
     if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters $parallelism; then
