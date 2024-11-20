@@ -109,14 +109,14 @@ az extension add --name azure-devops --output none --only-show-errors
 # shellcheck disable=SC2016
 az devops configure --defaults organization="$ENDPOINT_URL_SYSTEMVSSCONNECTION" project='$SYSTEM_TEAMPROJECT'
 
-VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(variable_group)'].id | [0]")
+VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$VARIABLE_GROUP'].id | [0]")
 export VARIABLE_GROUP_ID
 if [ -z "${VARIABLE_GROUP_ID}" ]; then
-  echo "##vso[task.logissue type=error]Variable group $(variable_group) could not be found."
+  echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP could not be found."
   exit 2
 fi
 
-printf -v tempval '%s id:' "$(variable_group)"
+printf -v tempval '%s id:' "$VARIABLE_GROUP"
 printf -v val '%-20s' "${tempval}"
 echo "$val                 $VARIABLE_GROUP_ID"
 
@@ -409,7 +409,7 @@ if [ -f "${CONFIG_REPO_PATH}"/.sap_deployment_automation/"${ENVIRONMENT}""${LOCA
   echo "##vso[task.uploadsummary]${CONFIG_REPO_PATH}/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md"
 fi
 
-echo -e "$green--- Adding variables to the variable group: $(variable_group) ---$reset"
+echo -e "$green--- Adding variables to the variable group: $VARIABLE_GROUP ---$reset"
 if [ 0 = $return_code ]; then
   if [ -n "${file_REMOTE_STATE_SA}" ]; then
     saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Terraform_Remote_Storage_Account_Name" "${file_REMOTE_STATE_SA}"
