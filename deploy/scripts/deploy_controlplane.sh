@@ -660,11 +660,6 @@ if [ 3 == $step ]; then
   echo "Calling installer.sh with:          --parameterfile ${deployer_file_parametername} \
   --storageaccountname ${REMOTE_STATE_SA} --state_subscription ${STATE_SUBSCRIPTION} --type sap_deployer ${autoApproveParameter} ${ado_flag}"
 
-  echo "Calling installer.sh with:          \
-        --type sap_deployer \
-      --parameterfile ${deployer_file_parametername} \
-      --storageaccountname ${REMOTE_STATE_SA}"
-
   if [ "$ado_flag" == "--ado" ] || [ "$approve" == "--auto-approve" ]; then
 
     if ! "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/installer.sh" \
