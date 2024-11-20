@@ -1,109 +1,102 @@
 #!/bin/bash
-echo "##vso[build.updatebuildnumber]Deploying the control plane defined in $(deployerfolder) $(libraryfolder)"
+echo "##vso[build.updatebuildnumber]Deploying the control plane defined in $deployer_folder $library_folder"
 green="\e[1;32m"
 reset="\e[0m"
 boldred="\e[1;31m"
 cyan="\e[1;36m"
 
 #External helper functions
-source "$(System.DefaultWorkingDirectory)/deploy/scripts/pipeline_scripts/helper.sh"
+#. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
+full_script_path="$(realpath "${BASH_SOURCE[0]}")"
+script_directory="$(dirname "${full_script_path}")"
 
-debug=False
+#call stack has full scriptname when using source
+source "${script_directory}/helper.sh"
 
 if [ "$SYSTEM_DEBUG" = True ]; then
   set -x
-  debug=True
+  debug=true
   export debug
 fi
 set -eu
 
-ENVIRONMENT=$(echo "$(deployerfolder)" | awk -F'-' '{print $1}' | xargs)
-LOCATION=$(echo "$(deployerfolder)" | awk -F'-' '{print $2}' | xargs)
-deployer_environment_file_name="${CONFIG_REPO_PATH}/.sap_deployment_automation/${ENVIRONMENT}$LOCATION"
-deployer_configfile="${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig)"
-library_configfile="${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/$(libraryconfig)"
-deployer_tfstate_key="$(deployerfolder).terraform.tfstate"
+file_deployer_tfstate_key=$deployer_folder.tfstate
+deployer_tfstate_key="$deployer_folder.terraform.tfstate"
 
-file_deployer_tfstate_key=$(deployerfolder).tfstate
-file_key_vault=""
-file_REMOTE_STATE_SA=""
-file_REMOTE_STATE_RG=$(deployerfolder)
-REMOTE_STATE_SA=""
-REMOTE_STATE_RG=$(deployerfolder)
-sourced_from_file=0
+cd "$CONFIG_REPO_PATH" || exit
+mkdir -p .sap_deployment_automation
 
-if [[ -f /etc/profile.d/deploy_server.sh ]]; then
-  path=$(grep -m 1 "export PATH=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
-  export PATH=$PATH:$path
+
+ENVIRONMENT=$(echo "$deployer_folder" | awk -F'-' '{print $1}' | xargs)
+
+LOCATION=$(echo "$deployer_folder" | awk -F'-' '{print $2}' | xargs)
+
+deployer_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}"
+echo "Configuration file:                  $deployer_environment_file_name"
+echo "Environment:                         $ENVIRONMENT"
+echo "Location:                            $LOCATION"
+
+if [ -f "${deployer_environment_file_name}" ]; then
+  step=$(grep -m1 "^step=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs)
+  echo "Step:                                $step"
+  if [ "0" != "${step}" ]; then
+    echo "##vso[task.logissue type=warning]Already prepared"
+    exit 0
+  fi
 fi
+
+echo -e "$green--- Checkout $sourceBranchName ---$reset"
+git checkout -q "$sourceBranchName"
+echo -e "$green--- Configure devops CLI extension ---$reset"
+az config set extension.use_dynamic_install=yes_without_prompt --only-show-errors
+
+az extension add --name azure-devops --output none --only-show-errors
 
 echo -e "$green--- File Validations ---$reset"
-
-if [ ! -f "${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig)" ]; then
-  echo -e "$boldred--- File ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig) was not found ---$reset"
-  echo "##vso[task.logissue type=error]File ${CONFIG_REPO_PATH}/${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig) was not found."
+if [ ! -f "${CONFIG_REPO_PATH}/DEPLOYER/$deployer_folder/$deployer_config" ]; then
+  echo -e "$boldred--- File ${CONFIG_REPO_PATH}/DEPLOYER/$deployer_folder/$deployer_config was not found ---$reset"
+  echo "##vso[task.logissue type=error]File ${CONFIG_REPO_PATH}/DEPLOYER/$deployer_folder/$deployer_config was not found."
+  exit 2
+fi
+if [ ! -f "${CONFIG_REPO_PATH}/LIBRARY/$library_folder/$library_config" ]; then
+  echo -e "$boldred--- File ${CONFIG_REPO_PATH}/LIBRARY/$library_folder/$library_config  was not found ---$reset"
+  echo "##vso[task.logissue type=error]File ${CONFIG_REPO_PATH}/LIBRARY/$library_folder/$library_config was not found."
   exit 2
 fi
 
-if [ ! -f "${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/$(libraryconfig)" ]; then
-  echo -e "$boldred--- File ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/$(libraryconfig)  was not found ---$reset"
-  echo "##vso[task.logissue type=error]File ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/$(libraryconfig) was not found."
-  exit 2
-fi
-
-echo -e "$green--- Information ---$reset"
-echo "Environment:                         ${ENVIRONMENT}"
-echo "Location:                            ${LOCATION}"
+echo ""
 echo "Agent:                               $(this_agent)"
-echo "Organization:                        $(System.CollectionUri)"
-echo "Project:                             $(System.TeamProject)"
+echo "Organization:                        $ENDPOINT_URL_SYSTEMVSSCONNECTION"
+echo "Project:                             $SYSTEM_TEAMPROJECT"
+if [ -n "$(PAT)" ]; then
+  echo "Deployer Agent PAT:                  IsDefined"
+fi
 if [ -n "$(POOL)" ]; then
   echo "Deployer Agent Pool:                 $(POOL)"
 fi
+echo ""
+if [ "$(use_webapp)" = "true" ]; then
+  echo "Deploy Web App:                      true"
 
-echo ""
-echo "Deployer Folder:                     $(deployerfolder)"
-echo "Deployer TFvars:                     $(deployerconfig)"
-echo "Library Folder:                      $(libraryfolder)"
-echo "Library TFvars:                      $(libraryconfig)"
-
-echo ""
-echo "Azure CLI version:"
-echo "-------------------------------------------------"
-az --version
-echo ""
-echo "Terraform version:"
-echo "-------------------------------------------------"
-if [ -f /opt/terraform/bin/terraform ]; then
-  tfPath="/opt/terraform/bin/terraform"
 else
-  tfPath=$(which terraform)
+  echo "Deploy Web App:                      false"
 fi
 
-"${tfPath}" --version
-echo -e "$green--- Checkout $(Build.SourceBranchName) ---$reset"
-cd "$CONFIG_REPO_PATH" || exit
-ls -lart
-
-git checkout -q "$(Build.SourceBranchName)"
-
-echo -e "$green--- Configure devops CLI extension ---$reset"
-az config set extension.use_dynamic_install=yes_without_prompt --only-show-errors
-az extension add --name azure-devops --output none --only-show-errors
-
-# shellcheck disable=SC2016
-az devops configure --defaults organization="$(System.CollectionUri)" project='$(System.TeamProject)'
+az devops configure --defaults organization="$ENDPOINT_URL_SYSTEMVSSCONNECTION" project='$SYSTEM_TEAMPROJECT' --output none --only-show-errors
 
 VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(variable_group)'].id | [0]")
-export VARIABLE_GROUP_ID
 if [ -z "${VARIABLE_GROUP_ID}" ]; then
   echo "##vso[task.logissue type=error]Variable group $(variable_group) could not be found."
   exit 2
 fi
+export VARIABLE_GROUP_ID
 
 printf -v tempval '%s id:' "$(variable_group)"
 printf -v val '%-20s' "${tempval}"
 echo "$val                 $VARIABLE_GROUP_ID"
+
+az account set --subscription "$ARM_SUBSCRIPTION_ID"
+echo "Deployer subscription:               $ARM_SUBSCRIPTION_ID"
 
 # Set logon variables
 ARM_CLIENT_ID="$CP_ARM_CLIENT_ID"
@@ -118,9 +111,26 @@ export ARM_SUBSCRIPTION_ID
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
   configureNonDeployer "$(tf_version)"
-  echo -e "$green--- az login ---$reset"
-  LogonToAzure false
+
+  ARM_CLIENT_ID="$servicePrincipalId"
+  export ARM_CLIENT_ID
+
+  ARM_OIDC_TOKEN="$idToken"
+  export ARM_OIDC_TOKEN
+
+  ARM_TENANT_ID="$tenantId"
+  export ARM_TENANT_ID
+
+  ARM_USE_OIDC=true
+  export ARM_USE_OIDC
+
+  ARM_USE_AZUREAD=true
+  export ARM_USE_AZUREAD
+
+  unset ARM_CLIENT_SECRET
+
 else
+  echo -e "$green--- az login ---$reset"
   LogonToAzure "$USE_MSI"
 fi
 return_code=$?
@@ -129,299 +139,145 @@ if [ 0 != $return_code ]; then
   echo "##vso[task.logissue type=error]az login failed."
   exit $return_code
 fi
+
+# Reset the account if the sourcing was done
 ARM_SUBSCRIPTION_ID=$CP_ARM_SUBSCRIPTION_ID
 export ARM_SUBSCRIPTION_ID
-TF_VAR_subscription_id=$ARM_SUBSCRIPTION_ID
-export TF_VAR_subscription_id
-
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
 echo "Deployer subscription:               $ARM_SUBSCRIPTION_ID"
 
-echo -e "$green--- Configuring variables ---$reset"
-
 echo -e "$green--- Convert config files to UX format ---$reset"
-dos2unix -q "${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig)"
-dos2unix -q "${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/$(libraryconfig)"
+dos2unix -q "${CONFIG_REPO_PATH}/DEPLOYER/$deployer_folder/$deployer_config"
+dos2unix -q "${CONFIG_REPO_PATH}/LIBRARY/$library_folder/$library_config"
 
-echo -e "$green--- Variables ---$reset"
-key_vault=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_Key_Vault" "${deployer_environment_file_name}" "keyvault")
-if [ "$sourced_from_file" == 1 ]; then
-  az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name Deployer_Key_Vault --value "${key_vault}" --output none --only-show-errors
-fi
-echo "Deployer TFvars:                     $(deployerconfig)"
+if [ "$(force_reset)" = "True" ]; then
+  echo "##vso[task.logissue type=warning]Forcing a re-install"
+  echo "Running on:            $(this_agent)"
+  sed -i 's/step=1/step=0/' "$deployer_environment_file_name"
+  sed -i 's/step=2/step=0/' "$deployer_environment_file_name"
+  sed -i 's/step=3/step=0/' "$deployer_environment_file_name"
 
-if [ -n "${key_vault}" ]; then
+  export FORCE_RESET=true
+  key_vault=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_Key_Vault" "${deployer_environment_file_name}" "keyvault")
   echo "Deployer Key Vault:                  ${key_vault}"
-  keyvault_parameter=" --keyvault ${key_vault} "
-else
-  echo "Deployer Key Vault:                  undefined"
-  exit 2
-
-fi
-
-STATE_SUBSCRIPTION=$ARM_SUBSCRIPTION_ID
-
-echo "Terraform state subscription:        $STATE_SUBSCRIPTION"
-
-REMOTE_STATE_SA=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Terraform_Remote_Storage_Account_Name" "${deployer_environment_file_name}" "REMOTE_STATE_SA")
-export REMOTE_STATE_SA
-if [ -n "${REMOTE_STATE_SA}" ]; then
-  echo "Terraform storage account:           $REMOTE_STATE_SA"
-  storage_account_parameter=" --storageaccountname ${REMOTE_STATE_SA} "
-else
-  echo "Terraform storage account:           undefined"
-  storage_account_parameter=
-fi
-
-REMOTE_STATE_RG=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Terraform_Remote_Storage_Resource_Group_Name" "${deployer_environment_file_name}" "REMOTE_STATE_RG")
-export REMOTE_STATE_RG
-
-echo -e "$green--- Validations ---$reset"
-
-if [ -z "${TF_VAR_ansible_core_version}" ]; then
-  export TF_VAR_ansible_core_version=2.17
-fi
-
-if [ "$USE_WEBAPP" = "true" ]; then
-  echo "Deploy Web Application:              true"
-
-  if [ -z "${APP_REGISTRATION_APP_ID}" ]; then
-    echo "##vso[task.logissue type=error]Variable APP_REGISTRATION_APP_ID was not defined."
-    exit 2
-  fi
-
-  if [ -z "${WEB_APP_CLIENT_SECRET}" ]; then
-    echo "##vso[task.logissue type=error]Variable WEB_APP_CLIENT_SECRET was not defined."
-    exit 2
-  fi
-  TF_VAR_app_registration_app_id=$(APP_REGISTRATION_APP_ID)
-  echo "App Registration ID:                  ${TF_VAR_app_registration_app_id}"
-  export TF_VAR_app_registration_app_id
-  TF_VAR_webapp_client_secret=$(WEB_APP_CLIENT_SECRET)
-  export TF_VAR_webapp_client_secret
-  export TF_VAR_use_webapp=true
-else
-  echo "Deploy Web Application:              false"
-fi
-
-bootstrapped=0
-file_REMOTE_STATE_SA=""
-file_REMOTE_STATE_RG=""
-
-echo -e "$green--- Update .sap_deployment_automation/config as SAP_AUTOMATION_REPO_PATH can change on devops agent ---$reset"
-cd "${CONFIG_REPO_PATH}" || exit
-mkdir -p .sap_deployment_automation
-echo "SAP_AUTOMATION_REPO_PATH=$SAP_AUTOMATION_REPO_PATH" >.sap_deployment_automation/config
-export SAP_AUTOMATION_REPO_PATH
-
-ip_added=0
-
-if [ -n "${key_vault}" ]; then
 
   key_vault_id=$(az resource list --name "${key_vault}" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
+  export TF_VAR_deployer_kv_user_arm_id=${key_vault_id}
   if [ -n "${key_vault_id}" ]; then
-    if [ "azure pipelines" = "$(this_agent)" ]; then
-      this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
-      az keyvault network-rule add --name "${key_vault}" --ip-address "${this_ip}" --only-show-errors --output none
-      ip_added=1
-    fi
+    this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
+    az keyvault network-rule add --name "${key_vault}" --ip-address "${this_ip}" --subscription "$(Terraform_Remote_Storage_Subscription)" --only-show-errors --output none
   fi
+
+  tfstate_resource_id=$(az resource list --name "$(Terraform_Remote_Storage_Account_Name)" --subscription "$(Terraform_Remote_Storage_Subscription)" --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
+  if [ -n "${tfstate_resource_id}" ]; then
+    this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
+    az storage account network-rule add --account-name "$(Terraform_Remote_Storage_Account_Name)" --resource-group "$(Terraform_Remote_Storage_Resource_Group_Name)" --ip-address "${this_ip}" --only-show-errors --output none
+  fi
+
+  REINSTALL_ACCOUNTNAME=$(Terraform_Remote_Storage_Account_Name)
+  export REINSTALL_ACCOUNTNAME
+  REINSTALL_SUBSCRIPTION=$(Terraform_Remote_Storage_Subscription)
+  export REINSTALL_SUBSCRIPTION
+  REINSTALL_RESOURCE_GROUP=$(Terraform_Remote_Storage_Resource_Group_Name)
+  export REINSTALL_RESOURCE_GROUP
 fi
 
-echo -e "$green--- Preparing for the Control Plane deployment---$reset"
+echo -e "$green--- Variables ---$reset"
+storage_account_parameter=""
+if [ -z "${TF_VAR_ansible_core_version}" ]; then
+  TF_VAR_ansible_core_version=2.17
+  export TF_VAR_ansible_core_version
+fi
+TF_VAR_use_webapp=$(use_webapp)
+export TF_VAR_use_webapp
 
-if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state.zip" ]; then
+if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$deployer_folder/state.zip" ]; then
   # shellcheck disable=SC2001
   # shellcheck disable=SC2005
   pass=$(echo "$(System.CollectionId)" | sed 's/-//g')
-
-  echo "Unzipping the library state file"
-  unzip -o -qq -P "${pass}" "${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state.zip" -d "${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)"
+  echo "Unzipping state.zip"
+  unzip -qq -o -P "${pass}" "${CONFIG_REPO_PATH}/DEPLOYER/$deployer_folder/state.zip" -d "${CONFIG_REPO_PATH}/DEPLOYER/$deployer_folder"
 fi
 
-ls -lart "${CONFIG_REPO_PATH}/DEPLOYER"
-ls -lart "${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)"
+export TF_LOG_PATH=$CONFIG_REPO_PATH/.sap_deployment_automation/terraform.log
+set +eu
 
-if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip" ]; then
-  # shellcheck disable=SC2001
-  # shellcheck disable=SC2005
-  pass=$(echo "$(System.CollectionId)" | sed 's/-//g')
-
-  echo "Unzipping the deployer state file"
-  unzip -o -qq -P "${pass}" "${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip" -d "${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)"
-  ls -lart "${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)"
-fi
-
-if [ "$debug" = True ]; then
-  ls -lart "${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)"
-  ls -lart "${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)"
-fi
-
-export TF_LOG_PATH=${CONFIG_REPO_PATH}/.sap_deployment_automation/terraform.log
-
-sudo chmod +x "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh"
 if [ "$USE_MSI" != "true" ]; then
-
-  export TF_VAR_use_spn=true
-
   "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh" \
-    --deployer_parameter_file "${deployer_configfile}" \
-    --library_parameter_file "${library_configfile}" \
-    --subscription "$ARM_SUBSCRIPTION_ID" \
-    --spn_secret "$ARM_CLIENT_SECRET" \
-    --tenant_id "$ARM_TENANT_ID" \
-    --auto-approve --ado \
-    "${storage_account_parameter}" "${keyvault_parameter}"
+    --deployer_parameter_file "${CONFIG_REPO_PATH}/DEPLOYER/$deployer_folder/$deployer_config" \
+    --library_parameter_file "${CONFIG_REPO_PATH}/LIBRARY/$library_folder/$library_config" \
+    --subscription "$ARM_SUBSCRIPTION_ID" --spn_id "$ARM_CLIENT_ID" \
+    --spn_secret "$ARM_CLIENT_SECRET" --tenant_id "$ARM_TENANT_ID" \
+    --auto-approve --ado --only_deployer
+
 else
-  export TF_VAR_use_spn=false
-
-  "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/deploy_controlplane.sh" \
-    --deployer_parameter_file "${deployer_configfile}" \
-    --library_parameter_file "${library_configfile}" \
-    --subscription "$ARM_SUBSCRIPTION_ID" \
-    --auto-approve --ado --msi \
-    "${storage_account_parameter}" "${keyvault_parameter}"
-
+  "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh" \
+    --deployer_parameter_file "${CONFIG_REPO_PATH}/DEPLOYER/$deployer_folder/$deployer_config" \
+    --library_parameter_file "${CONFIG_REPO_PATH}/LIBRARY/$library_folder/$library_config" \
+    --subscription "$ARM_SUBSCRIPTION_ID" --auto-approve --ado --only_deployer --msi
 fi
-
 return_code=$?
+echo "Deploy_controlplane returned          $return_code."
 
-if [ 0 != $return_code ]; then
-  echo "##vso[task.logissue type=error]Return code from deploy_controlplane $return_code."
-  if [ -f .sap_deployment_automation/"${ENVIRONMENT}${LOCATION}".err ]; then
-    error_message=$(cat .sap_deployment_automation/"${ENVIRONMENT}${LOCATION}".err)
-    echo "##vso[task.logissue type=error]Error message: $error_message."
-  fi
-fi
-
-echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
-added=0
-cd "${CONFIG_REPO_PATH}" || exit
-git fetch -q --all
-git pull -q
+set -eu
 
 if [ -f "${deployer_environment_file_name}" ]; then
+  file_deployer_tfstate_key=$(grep -m1 "^deployer_tfstate_key" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
+  if [ -z "$file_deployer_tfstate_key" ]; then
+    deployer_tfstate_key=$file_deployer_tfstate_key
+    export deployer_tfstate_key
+  fi
+  echo "Deployer State File                   $deployer_tfstate_key"
 
-  file_deployer_tfstate_key=$(grep "^deployer_tfstate_key=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs)
-  echo "Deployer State:       ${file_deployer_tfstate_key}"
+  file_key_vault=$(grep -m1 "^keyvault=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
+  echo "Deployer Key Vault:                   ${file_key_vault}"
 
-  file_key_vault=$(grep "^keyvault=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs)
-  echo "Deployer Keyvault:    ${file_key_vault}"
-
-  file_REMOTE_STATE_SA=$(grep "^REMOTE_STATE_SA=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs)
+  file_REMOTE_STATE_SA=$(grep -m1 "^REMOTE_STATE_SA" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
   if [ -n "${file_REMOTE_STATE_SA}" ]; then
-    echo "Terraform account:    ${file_REMOTE_STATE_SA}"
+    echo "Terraform Remote State Account:       ${file_REMOTE_STATE_SA}"
   fi
 
-  file_REMOTE_STATE_RG=$(grep "^REMOTE_STATE_RG=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs)
-  if [ -n "${file_REMOTE_STATE_RG}" ]; then
-    echo "Terraform rgname:     ${file_REMOTE_STATE_RG}"
+  file_REMOTE_STATE_RG=$(grep -m1 "^REMOTE_STATE_RG" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
+  if [ -n "${file_REMOTE_STATE_SA}" ]; then
+    echo "Terraform Remote State RG Name:       ${file_REMOTE_STATE_RG}"
   fi
+
+  echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
+  added=0
+  cd "$CONFIG_REPO_PATH" || exit
+  git pull -q
+
 fi
-
 echo -e "$green--- Update repo ---$reset"
-if [ -f .sap_deployment_automation/"${ENVIRONMENT}${LOCATION}" ]; then
-  git add .sap_deployment_automation/"${ENVIRONMENT}${LOCATION}"
+if [ -f ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}" ]; then
+  git add ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}"
   added=1
 fi
-
-if [ -f .sap_deployment_automation/"${ENVIRONMENT}${LOCATION}".md ]; then
-  git add .sap_deployment_automation/"${ENVIRONMENT}${LOCATION}".md
+if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$deployer_folder/.terraform/terraform.tfstate" ]; then
+  git add -f "${CONFIG_REPO_PATH}/DEPLOYER/$deployer_folder/.terraform/terraform.tfstate"
   added=1
 fi
-
-if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/.terraform/terraform.tfstate" ]; then
-  git add -f "${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/.terraform/terraform.tfstate"
+if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$deployer_folder/terraform.tfstate" ]; then
+  sudo apt-get install zip -y
+  # shellcheck disable=SC2001
+  # shellcheck disable=SC2005
+  pass=$(echo "$(System.CollectionId)" | sed 's/-//g')
+  zip -q -j -P "${pass}" "${CONFIG_REPO_PATH}/DEPLOYER/$deployer_folder/state" "${CONFIG_REPO_PATH}/DEPLOYER/$deployer_folder/terraform.tfstate"
+  git add -f "${CONFIG_REPO_PATH}/DEPLOYER/$deployer_folder/state.zip"
   added=1
 fi
-# || true suppresses the exitcode of grep. To not trigger the strict exit on error
-backend=$(grep "local" "${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/.terraform/terraform.tfstate" || true)
-if [ -n "${backend}" ]; then
-  echo "Local Terraform state"
-  if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate" ]; then
-    sudo apt-get -qq install zip
-    echo "Compressing the deployer state file"
-    # shellcheck disable=SC2001
-    # shellcheck disable=SC2005
-    pass=$(echo "$(System.CollectionId)" | sed 's/-//g')
-    zip -q -j -P "${pass}" "${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state" "${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate"
-    git add -f "${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip"
-    added=1
-  fi
-else
-  echo "Remote Terraform state"
-  if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate" ]; then
-    git rm -q --ignore-unmatch -f "${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate"
-    added=1
-  fi
-  if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip" ]; then
-    git rm -q --ignore-unmatch -f "${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip"
-    added=1
-  fi
-fi
-
-if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/.terraform/terraform.tfstate" ]; then
-  git add -f "${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/.terraform/terraform.tfstate"
-  added=1
-fi
-# || true suppresses the exitcode of grep. To not trigger the strict exit on error
-backend=$(grep "local" "${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/.terraform/terraform.tfstate" || true)
-if [ -n "${backend}" ]; then
-  echo "Local Terraform state"
-  if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/terraform.tfstate" ]; then
-    sudo apt-get -qq install zip
-    echo "Compressing the library state file"
-    # shellcheck disable=SC2001
-    # shellcheck disable=SC2005
-    pass=$(echo "$(System.CollectionId)" | sed 's/-//g')
-    zip -q -j -P "${pass}" "${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state" "${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/terraform.tfstate"
-    git add -f "${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state.zip"
-    added=1
-  fi
-else
-  echo "Remote Terraform state"
-  if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/terraform.tfstate" ]; then
-    git rm -q -f --ignore-unmatch "${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/terraform.tfstate"
-    added=1
-  fi
-  if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state.zip" ]; then
-    git rm -q --ignore-unmatch -f "${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state.zip"
-    added=1
-  fi
-fi
-
-if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/.terraform/terraform.tfstate" ]; then
-  git add -f "${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/.terraform/terraform.tfstate"
-  added=1
-fi
-
 if [ 1 = $added ]; then
   git config --global user.email "$(Build.RequestedForEmail)"
   git config --global user.name "$(Build.RequestedFor)"
-  git commit -m "Added updates from control plane deployment $(Build.DefinitionName) [skip ci]"
-  if git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set-upstream origin "$(Build.SourceBranchName)"; then
-    echo "##vso[task.logissue type=warning]Control plane deployment changes pushed to $(Build.SourceBranchName)"
-  else
-    echo "##vso[task.logissue type=error]Failed to push changes to $(Build.SourceBranchName)"
-  fi
-
+  git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"
+  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set-upstream origin "$sourceBranchName"
 fi
-
-if [ -f "${CONFIG_REPO_PATH}"/.sap_deployment_automation/"${ENVIRONMENT}""${LOCATION}".md ]; then
-  echo "##vso[task.uploadsummary]${CONFIG_REPO_PATH}/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md"
+if [ -f "$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md" ]; then
+  echo "##vso[task.uploadsummary]$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md"
 fi
-
 echo -e "$green--- Adding variables to the variable group: $(variable_group) ---$reset"
 if [ 0 = $return_code ]; then
-  if [ -n "${file_REMOTE_STATE_SA}" ]; then
-    saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Terraform_Remote_Storage_Account_Name" "${file_REMOTE_STATE_SA}"
-  fi
 
-  if [ -n "${file_REMOTE_STATE_RG}" ]; then
-    saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Terraform_Remote_Storage_Resource_Group_Name" "${file_REMOTE_STATE_RG}"
-  fi
-
-  saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Terraform_Remote_Storage_Subscription" "$ARM_SUBSCRIPTION_ID"
   saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_State_FileName" "$deployer_tfstate_key"
   saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_Key_Vault" "$file_key_vault"
   saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "ControlPlaneEnvironment" "$ENVIRONMENT"
