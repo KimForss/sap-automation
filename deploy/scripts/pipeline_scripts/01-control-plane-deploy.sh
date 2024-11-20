@@ -108,6 +108,7 @@ cd "$CONFIG_REPO_PATH" || exit
 
 echo -e "$green--- Checkout $BRANCH ---$reset"
 git checkout -q "$BRANCH"
+git pull -q
 
 echo -e "$green--- Configure devops CLI extension ---$reset"
 az config set extension.use_dynamic_install=yes_without_prompt --only-show-errors
@@ -311,7 +312,6 @@ return_code=$?
 echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
 added=0
 cd "${CONFIG_REPO_PATH}" || exit
-git pull -q --rebase
 
 echo -e "$green--- Update repo ---$reset"
 if [ -f .sap_deployment_automation/"${ENVIRONMENT}${LOCATION}" ]; then

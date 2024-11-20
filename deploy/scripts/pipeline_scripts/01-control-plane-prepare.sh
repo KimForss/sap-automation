@@ -13,12 +13,14 @@ script_directory="$(dirname "${full_script_path}")"
 #call stack has full scriptname when using source
 source "${script_directory}/helper.sh"
 
-printenv
-
 if [ "$SYSTEM_DEBUG" = True ]; then
   set -x
   debug=true
   export debug
+
+  echo "Environment variables:"
+  printenv
+
 fi
 set -eu
 
@@ -30,10 +32,12 @@ mkdir -p .sap_deployment_automation
 
 
 ENVIRONMENT=$(echo "$DEPLOYERFOLDER" | awk -F'-' '{print $1}' | xargs)
-
 LOCATION=$(echo "$DEPLOYERFOLDER" | awk -F'-' '{print $2}' | xargs)
 
 deployer_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}"
+deployer_tfvars_file_name="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYERFOLDER/$DEPLOYERCONFIG"
+library_tfvars_file_name="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/$LIBRARYCONFIG"
+
 echo "Configuration file:                  $deployer_environment_file_name"
 echo "Environment:                         $ENVIRONMENT"
 echo "Location:                            $LOCATION"
@@ -49,20 +53,22 @@ fi
 
 echo -e "$green--- Checkout $BRANCH ---$reset"
 git checkout -q "$BRANCH"
+
 echo -e "$green--- Configure devops CLI extension ---$reset"
 az config set extension.use_dynamic_install=yes_without_prompt --only-show-errors
-
 az extension add --name azure-devops --output none --only-show-errors
+az devops configure --defaults organization="$ENDPOINT_URL_SYSTEMVSSCONNECTION" project="$SYSTEM_TEAMPROJECT""" --output none --only-show-errors
+
 
 echo -e "$green--- File Validations ---$reset"
-if [ ! -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYERFOLDER/$DEPLOYERCONFIG" ]; then
-  echo -e "$boldred--- File ${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYERFOLDER/$DEPLOYERCONFIG was not found ---$reset"
-  echo "##vso[task.logissue type=error]File ${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYERFOLDER/$DEPLOYERCONFIG was not found."
+if [ ! -f  "$deployer_tfvars_file_name" ]; then
+  echo -e "$boldred--- File "$deployer_tfvars_file_name" was not found ---$reset"
+  echo "##vso[task.logissue type=error]File DEPLOYER/$DEPLOYERFOLDER/$DEPLOYERCONFIG was not found."
   exit 2
 fi
-if [ ! -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/$LIBRARYCONFIG" ]; then
-  echo -e "$boldred--- File ${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/$LIBRARYCONFIG  was not found ---$reset"
-  echo "##vso[task.logissue type=error]File ${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/$LIBRARYCONFIG was not found."
+if [ ! -f $library_tfvars_file_name ]; then
+  echo -e "$boldred--- File $library_tfvars_file_name  was not found ---$reset"
+  echo "##vso[task.logissue type=error]File LIBRARY/$LIBRARYFOLDER/$LIBRARYCONFIG was not found."
   exit 2
 fi
 
@@ -85,8 +91,6 @@ fi
 
 TF_VAR_use_webapp=$USE_WEBAPP
 export TF_VAR_use_webapp
-
-az devops configure --defaults organization="$ENDPOINT_URL_SYSTEMVSSCONNECTION" project="$SYSTEM_TEAMPROJECT""" --output none --only-show-errors
 
 VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$VARIABLE_GROUP'].id | [0]")
 if [ -z "${VARIABLE_GROUP_ID}" ]; then
@@ -144,15 +148,15 @@ if [ 0 != $return_code ]; then
   exit $return_code
 fi
 
-# Reset the account if the sourcing was done
+# Reset the account if sourcing was done
 ARM_SUBSCRIPTION_ID=$CP_ARM_SUBSCRIPTION_ID
 export ARM_SUBSCRIPTION_ID
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
 echo "Deployer subscription:               $ARM_SUBSCRIPTION_ID"
 
 echo -e "$green--- Convert config files to UX format ---$reset"
-dos2unix -q "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYERFOLDER/$DEPLOYERCONFIG"
-dos2unix -q "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/$LIBRARYCONFIG"
+dos2unix -q "$deployer_tfvars_file_name"
+dos2unix -q "$library_tfvars_file_name"
 
 if [ "$FORCE_RESET" = "True" ]; then
   echo "##vso[task.logissue type=warning]Forcing a re-install"
@@ -187,9 +191,9 @@ g
 fi
 
 echo -e "$green--- Variables ---$reset"
-storage_account_parameter=""
+
 if [ -z "${TF_VAR_ansible_core_version}" ]; then
-  TF_VAR_ansible_core_version=2.17
+  TF_VAR_ansible_core_version=2.16
   export TF_VAR_ansible_core_version
 fi
 
