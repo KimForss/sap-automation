@@ -103,8 +103,10 @@ else
 fi
 
 "${tfPath}" --version
-echo -e "$green--- Checkout $BRANCH ---$reset"
+
 cd "$CONFIG_REPO_PATH" || exit
+
+echo -e "$green--- Checkout $BRANCH ---$reset"
 git checkout -q "$BRANCH"
 
 echo -e "$green--- Configure devops CLI extension ---$reset"
@@ -309,8 +311,7 @@ return_code=$?
 echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
 added=0
 cd "${CONFIG_REPO_PATH}" || exit
-git fetch -q --all
-git pull -q
+git pull -q --rebase
 
 echo -e "$green--- Update repo ---$reset"
 if [ -f .sap_deployment_automation/"${ENVIRONMENT}${LOCATION}" ]; then

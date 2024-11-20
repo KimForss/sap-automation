@@ -667,7 +667,7 @@ if [ 3 == $step ]; then
 
   if [ "$ado_flag" == "--ado" ] || [ "$approve" == "--auto-approve" ]; then
 
-    if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/installer.sh" \
+    if ! "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/installer.sh" \
       --type sap_deployer \
       --parameterfile ${deployer_file_parametername} \
       --storageaccountname "${REMOTE_STATE_SA}" \
@@ -679,7 +679,7 @@ if [ 3 == $step ]; then
       exit 30
     fi
   else
-    if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/installer.sh" \
+    if ! "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/installer.sh" \
       --type sap_deployer \
       --parameterfile ${deployer_file_parametername} \
       --storageaccountname "${REMOTE_STATE_SA}"; then
@@ -691,12 +691,6 @@ if [ 3 == $step ]; then
   fi
   return_code=$?
 
-  if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/installer.sh" --parameterfile "${deployer_file_parametername}" \
-    --storageaccountname "${REMOTE_STATE_SA}" --state_subscription "${STATE_SUBSCRIPTION}" --type sap_deployer "${autoApproveParameter}" "${ado_flag}"; then
-    echo "Migrating the deployer state failed"
-    exit 30
-  fi
-  return_code=$?
 
   cd "${curdir}" || exit
   export step=4
