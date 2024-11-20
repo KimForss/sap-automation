@@ -342,6 +342,15 @@ if [ -n "$tenant_id" ]; then
 fi
 
 curdir=$(pwd)
+
+##########################################################################################
+#                                                                                        #
+#                                      STEP 0                                            #
+#                           Bootstrapping the deployer                                   #
+#                                                                                        #
+#                                                                                        #
+##########################################################################################
+
 if [ 0 == $step ]; then
   echo ""
   echo "#########################################################################################"
@@ -418,6 +427,16 @@ fi
 
 cd "$root_dirname" || exit
 
+##########################################################################################
+#                                                                                        #
+#                                     Step 1                                             #
+#                           Validating Key Vault Access                                  #
+#                                                                                        #
+#                                                                                        #
+##########################################################################################
+
+echo "Step:                                $step"
+
 if [ 1 == $step ] || [ 3 == $step ]; then
   # If the keyvault is not set, check the terraform state file
   if [ -z "$keyvault" ]; then
@@ -449,7 +468,6 @@ unset TF_DATA_DIR
 cd "$root_dirname" || exit
 
 if [ 1 = "${only_deployer:-}" ]; then
-
   step=2
   save_config_var "step" "${deployer_config_information}"
   exit 0
@@ -458,6 +476,8 @@ fi
 if validate_key_vault "$keyvault"; then
   echo "Key vault:                           ${keyvault}"
   save_config_var "keyvault" "${deployer_config_information}"
+  step=2
+  save_config_var "step" "${deployer_config_information}"
 else
   return_code=$?
   echo "#########################################################################################"
@@ -468,8 +488,16 @@ else
   exit $return_code
 fi
 
-if [ 2 == "$step" ]; then
 
+##########################################################################################
+#                                                                                        #
+#                                      STEP 2                                            #
+#                           Bootstrapping the library                                    #
+#                                                                                        #
+#                                                                                        #
+##########################################################################################
+
+if [ 2 == $step ]; then
   echo ""
   echo "#########################################################################################"
   echo "#                                                                                       #"
@@ -497,9 +525,12 @@ if [ 2 == "$step" ]; then
   return_code=$?
   if [ 0 != $return_code ]; then
     echo "Bootstrapping of the SAP Library failed"
-    step=1
+    step=2
     save_config_var "step" "${deployer_config_information}"
     exit 20
+  else
+    step=3
+    save_config_var "step" "${deployer_config_information}"
   fi
 
   if [ -z "$REMOTE_STATE_SA" ]; then
