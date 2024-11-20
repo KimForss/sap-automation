@@ -395,6 +395,10 @@ if [ 0 == $step ]; then
 
     load_config_vars "${deployer_config_information}" "step"
     echo "Step:                                $step"
+
+    if [ 1 = "${only_deployer:-}" ]; then
+      exit 0
+    fi
   fi
 
   load_config_vars "${deployer_config_information}" "keyvault"
@@ -478,17 +482,10 @@ unset TF_DATA_DIR
 
 cd "$root_dirname" || exit
 
-if [ 1 = "${only_deployer:-}" ]; then
-  step=2
-  save_config_var "step" "${deployer_config_information}"
-  exit 0
-fi
 
 if validate_key_vault "$keyvault"; then
   echo "Key vault:                           ${keyvault}"
   save_config_var "keyvault" "${deployer_config_information}"
-  step=2
-  save_config_var "step" "${deployer_config_information}"
 else
   return_code=$?
   echo "#########################################################################################"
@@ -497,6 +494,8 @@ else
   echo "#                                                                                       #"
   echo "#########################################################################################"
   exit $return_code
+  step=1
+  save_config_var "step" "${deployer_config_information}"
 fi
 
 ##########################################################################################
