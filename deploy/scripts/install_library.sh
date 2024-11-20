@@ -401,6 +401,8 @@ fi
 
 echo "Parallelism count:                   $parallelism"
 
+return_value=0
+
 echo ""
 echo "#########################################################################################"
 echo "#                                                                                       #"

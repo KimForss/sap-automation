@@ -278,60 +278,39 @@ if [ "$USE_MSI" != "true" ]; then
 
   export TF_VAR_use_spn=true
 
-  "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh" \
+  if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh" \
     --deployer_parameter_file "${deployer_configfile}" \
     --library_parameter_file "${library_configfile}" \
     --subscription "$ARM_SUBSCRIPTION_ID" \
     --spn_secret "$ARM_CLIENT_SECRET" \
     --tenant_id "$ARM_TENANT_ID" \
     --auto-approve --ado \
-    "${storage_account_parameter}" "${keyvault_parameter}"
+    "${storage_account_parameter}" "${keyvault_parameter}"; then
+    return_code=$?
+    echo "##vso[task.logissue type=error]Return code from deploy_controlplane $return_code."
+  fi
 else
   export TF_VAR_use_spn=false
 
-  "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/deploy_controlplane.sh" \
+  if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/deploy_controlplane.sh" \
     --deployer_parameter_file "${deployer_configfile}" \
     --library_parameter_file "${library_configfile}" \
     --subscription "$ARM_SUBSCRIPTION_ID" \
     --auto-approve --ado --msi \
-    "${storage_account_parameter}" "${keyvault_parameter}"
+    "${storage_account_parameter}" "${keyvault_parameter}"; then
+    return_code=$?
+    echo "##vso[task.logissue type=error]Return code from deploy_controlplane $return_code."
+  fi
 
 fi
 
 return_code=$?
-
-if [ 0 != $return_code ]; then
-  echo "##vso[task.logissue type=error]Return code from deploy_controlplane $return_code."
-  if [ -f .sap_deployment_automation/"${ENVIRONMENT}${LOCATION}".err ]; then
-    error_message=$(cat .sap_deployment_automation/"${ENVIRONMENT}${LOCATION}".err)
-    echo "##vso[task.logissue type=error]Error message: $error_message."
-  fi
-fi
 
 echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
 added=0
 cd "${CONFIG_REPO_PATH}" || exit
 git fetch -q --all
 git pull -q
-
-if [ -f "${deployer_environment_file_name}" ]; then
-
-  file_deployer_tfstate_key=$(grep "^deployer_tfstate_key=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
-  echo "Deployer State:       ${file_deployer_tfstate_key}"
-
-  file_key_vault=$(grep "^keyvault=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
-  echo "Deployer Keyvault:    ${file_key_vault}"
-
-  file_REMOTE_STATE_SA=$(grep "^REMOTE_STATE_SA=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
-  if [ -n "${file_REMOTE_STATE_SA}" ]; then
-    echo "Terraform account:    ${file_REMOTE_STATE_SA}"
-  fi
-
-  file_REMOTE_STATE_RG=$(grep "^REMOTE_STATE_RG=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
-  if [ -n "${file_REMOTE_STATE_RG}" ]; then
-    echo "Terraform rgname:     ${file_REMOTE_STATE_RG}"
-  fi
-fi
 
 echo -e "$green--- Update repo ---$reset"
 if [ -f .sap_deployment_automation/"${ENVIRONMENT}${LOCATION}" ]; then
@@ -429,6 +408,25 @@ fi
 
 if [ -f "${CONFIG_REPO_PATH}"/.sap_deployment_automation/"${ENVIRONMENT}""${LOCATION}".md ]; then
   echo "##vso[task.uploadsummary]${CONFIG_REPO_PATH}/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md"
+fi
+
+if [ -f "${deployer_environment_file_name}" ]; then
+
+  file_deployer_tfstate_key=$(grep "^deployer_tfstate_key=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
+  echo "Deployer State:       ${file_deployer_tfstate_key}"
+
+  file_key_vault=$(grep "^keyvault=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
+  echo "Deployer Keyvault:    ${file_key_vault}"
+
+  file_REMOTE_STATE_SA=$(grep "^REMOTE_STATE_SA=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
+  if [ -n "${file_REMOTE_STATE_SA}" ]; then
+    echo "Terraform account:    ${file_REMOTE_STATE_SA}"
+  fi
+
+  file_REMOTE_STATE_RG=$(grep "^REMOTE_STATE_RG=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
+  if [ -n "${file_REMOTE_STATE_RG}" ]; then
+    echo "Terraform rgname:     ${file_REMOTE_STATE_RG}"
+  fi
 fi
 
 echo -e "$green--- Adding variables to the variable group: $VARIABLE_GROUP ---$reset"

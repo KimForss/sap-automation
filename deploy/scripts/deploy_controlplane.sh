@@ -372,7 +372,11 @@ if [ 0 == $step ]; then
   echo "Deployer State File:                 ${deployer_tfstate_key}"
 
   # shellcheck disable=SC2086
-  if ! "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer.sh" $allParameters ; then
+  if
+    ! "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer.sh" \
+      --parameterfile "${deployer_file_parametername}"
+    "${autoApproveParameter}"
+  then
     echo "Bootstrapping of the deployer failed"
     step=0
     save_config_var "step" "${deployer_config_information}"
@@ -493,7 +497,6 @@ else
   exit $return_code
 fi
 
-
 ##########################################################################################
 #                                                                                        #
 #                                      STEP 2                                            #
@@ -522,14 +525,18 @@ if [ 2 == $step ]; then
     rm -Rf .terraform terraform.tfstate*
   fi
 
-  allParameters=$(printf " --parameterfile %s --deployer_statefile_foldername %s --keyvault %s %s" "${library_file_parametername}" "${relative_path}" "${keyvault}" "${autoApproveParameter}")
-  echo "Calling install_library.sh with:    $allParameters"
+  echo "Calling install_library.sh with:    --parameterfile "${library_file_parametername}"    \
+                                            --deployer_statefile_foldername "${relative_path}" \
+                                            --keyvault "${keyvault}" "${autoApproveParameter}""
 
   # shellcheck disable=SC2086
 
-
   return_code=$?
-  if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_library.sh" $allParameters ; then
+  if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_library.sh" \
+    --parameterfile "${library_file_parametername}" \
+    --deployer_statefile_foldername "${relative_path}" \
+    --keyvault "${keyvault}" \
+    "${autoApproveParameter}"; then
     echo "Bootstrapping of the SAP Library failed"
     step=2
     save_config_var "step" "${deployer_config_information}"
@@ -578,6 +585,16 @@ unset TF_DATA_DIR
 cd "$root_dirname" || exit
 echo "##vso[task.setprogress value=80;]Progress Indicator"
 
+
+##########################################################################################
+#                                                                                        #
+#                                      STEP 3                                            #
+#                           Migrating the state file for the deployer                    #
+#                                                                                        #
+#                                                                                        #
+##########################################################################################
+
+
 if [ 3 == $step ]; then
   echo ""
   echo "#########################################################################################"
@@ -622,8 +639,6 @@ if [ 3 == $step ]; then
     load_config_vars "${deployer_config_information}" "ARM_SUBSCRIPTION_ID"
   fi
 
-  allParameters=$(printf "  ")
-
   if [ -z "${REMOTE_STATE_SA}" ]; then
     export step=2
     save_config_var "step" "${deployer_config_information}"
@@ -642,8 +657,11 @@ if [ 3 == $step ]; then
   echo "Calling installer.sh with:          --parameterfile ${deployer_file_parametername} \
   --storageaccountname ${REMOTE_STATE_SA} --state_subscription ${STATE_SUBSCRIPTION} --type sap_deployer ${autoApproveParameter} ${ado_flag}"
 
-  "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/installer.sh" --parameterfile "${deployer_file_parametername}" \
-    --storageaccountname "${REMOTE_STATE_SA}" --state_subscription "${STATE_SUBSCRIPTION}" --type sap_deployer "${autoApproveParameter}" "${ado_flag}"
+  if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/installer.sh" --parameterfile "${deployer_file_parametername}" \
+    --storageaccountname "${REMOTE_STATE_SA}" --state_subscription "${STATE_SUBSCRIPTION}" --type sap_deployer "${autoApproveParameter}" "${ado_flag}" ; then
+    echo "Migrating the deployer state failed"
+    exit 11
+  fi
   return_code=$?
   if [ 0 != $return_code ]; then
     echo "Migrating the deployer state failed"
