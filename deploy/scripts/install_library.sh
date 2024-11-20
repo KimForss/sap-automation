@@ -522,7 +522,7 @@ if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"
   export REMOTE_STATE_SA
 
   getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${library_config_information}"
-
+  return_value=0
 else
   return_value=20
 fi

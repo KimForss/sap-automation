@@ -531,7 +531,7 @@ if [ 2 == $step ]; then
 
   if [ "$ado_flag" == "--ado" ] || [ "$approve" == "--auto-approve" ]; then
 
-    if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_library.sh" \
+    if ! "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_library.sh" \
       --parameterfile "${library_file_parametername}" \
       --deployer_statefile_foldername "${relative_path}" \
       --keyvault "${keyvault}" --auto-approve; then
@@ -541,7 +541,7 @@ if [ 2 == $step ]; then
       exit 20
     fi
   else
-    if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_library.sh" \
+    if ! "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_library.sh" \
       --parameterfile "${library_file_parametername}" \
       --deployer_statefile_foldername "${relative_path}" \
       --keyvault "${keyvault}"; then

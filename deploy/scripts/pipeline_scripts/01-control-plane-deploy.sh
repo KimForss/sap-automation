@@ -327,13 +327,15 @@ if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYERFOLDER/.terraform/terraform.tfsta
   git add -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYERFOLDER/.terraform/terraform.tfstate"
   added=1
 fi
+
 # || true suppresses the exitcode of grep. To not trigger the strict exit on error
 backend=$(grep "local" "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYERFOLDER/.terraform/terraform.tfstate" || true)
 if [ -n "${backend}" ]; then
   echo "Local Terraform state"
   if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYERFOLDER/terraform.tfstate" ]; then
     echo "Compressing the deployer state file"
-    sudo apt-get -qq zip
+    sudo apt-get -qq install zip
+
     pass=${SYSTEM_COLLECTIONID//-/}
     zip -q -j -P "${pass}" "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYERFOLDER/state" "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYERFOLDER/terraform.tfstate"
     git add -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYERFOLDER/state.zip"
@@ -356,22 +358,13 @@ if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/.terraform/terraform.tfstate
   added=1
 fi
 
-if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/terraform.tfstate" ]; then
-
-  echo "Compressing the library state file"
-  pass=${SYSTEM_COLLECTIONID//-/}
-  zip -q -j -P "${pass}" "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/state" "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/terraform.tfstate"
-  git add -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/state.zip"
-  added=1
-fi
-
 if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/.terraform/terraform.tfstate" ]; then
   # || true suppresses the exitcode of grep. To not trigger the strict exit on error
   backend=$(grep "local" "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/.terraform/terraform.tfstate" || true)
   if [ -n "${backend}" ]; then
     echo "Local Terraform state"
     if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/terraform.tfstate" ]; then
-      sudo apt-get -qq zip
+      sudo apt-get -qq install zip
 
       echo "Compressing the library state file"
       pass=${SYSTEM_COLLECTIONID//-/}
