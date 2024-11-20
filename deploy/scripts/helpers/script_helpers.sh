@@ -500,7 +500,6 @@ function ImportAndReRunApply {
 
   return_value=0
 
-  set -x
   if [ -f "$fileName" ]; then
 
     errors_occurred=$(jq 'select(."@level" == "error") | length' "$fileName")
@@ -533,9 +532,6 @@ function ImportAndReRunApply {
           fi
         done
         rm "$fileName"
-
-        echo ""
-        echo $applyParameters
 
         echo "#########################################################################################"
         echo "#                                                                                       #"

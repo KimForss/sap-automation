@@ -202,7 +202,6 @@ init "${automation_config_directory}" "${generic_config_information}" "${library
 export TF_DATA_DIR="${param_dirname}"/.terraform
 var_file="${param_dirname}"/"${parameterfile_name}"
 
-
 if [ -z "${SAP_AUTOMATION_REPO_PATH}" ]; then
   echo ""
   echo "#########################################################################################"
@@ -352,7 +351,6 @@ echo "#                                                                         
 echo "#########################################################################################"
 echo ""
 
-
 if [ -f terraform.tfvars ]; then
   extra_vars=" -var-file=${param_dirname}/terraform.tfvars "
 else
@@ -368,7 +366,7 @@ if [ -n "${deployer_statefile_foldername}" ]; then
   allImportParameters=$(printf " -var-file=%s -var deployer_statefile_foldername=%s %s " "${var_file}" "${deployer_statefile_foldername}" "${extra_vars}")
 
 else
-  if ! terraform -chdir="${terraform_module_directory}" plan -no-color -detailed-exitcode -var-file="${var_file}" -input=false  | tee -a plan_output.log 2>&1; then
+  if ! terraform -chdir="${terraform_module_directory}" plan -no-color -detailed-exitcode -var-file="${var_file}" -input=false | tee -a plan_output.log 2>&1; then
     return_value=$?
   fi
   allParameters=$(printf " -var-file=%s %s" "${var_file}" "${extra_vars}")
@@ -389,7 +387,6 @@ if [ 1 == $return_value ]; then
   unset TF_DATA_DIR
   exit $return_value
 fi
-
 
 parallelism=10
 
@@ -438,9 +435,8 @@ fi
 ls
 
 if [ -f apply_output.json ]; then
-  jq 'select(."@level" == "error") | length' apply_output.json
   errors_occurred=$(jq 'select(."@level" == "error") | length' apply_output.json)
-  set +x
+
   if [[ -n $errors_occurred ]]; then
     # shellcheck disable=SC2086
     if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
@@ -477,41 +473,46 @@ if [ 1 == $return_value ]; then
   exit $return_value
 fi
 
-tfstate_resource_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw tfstate_resource_id | tr -d \")
-STATE_SUBSCRIPTION=$(echo "$tfstate_resource_id" | cut -d/ -f3 | tr -d \" | xargs)
+if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
 
-az account set --sub "$STATE_SUBSCRIPTION"
+  tfstate_resource_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw tfstate_resource_id | tr -d \")
+  STATE_SUBSCRIPTION=$(echo "$tfstate_resource_id" | cut -d/ -f3 | tr -d \" | xargs)
 
-REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw remote_state_storage_account_name | tr -d \")
+  az account set --sub "$STATE_SUBSCRIPTION"
 
-get_and_store_sa_details "${REMOTE_STATE_SA}" "${library_config_information}"
+  REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw remote_state_storage_account_name | tr -d \")
 
-REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw remote_state_storage_account_name | tr -d \")
-temp=$(echo "${REMOTE_STATE_SA}" | grep -m1 "Warning")
-if [ -z "${temp}" ]; then
-  temp=$(echo "${REMOTE_STATE_SA}" | grep "Backend reinitialization required")
+  get_and_store_sa_details "${REMOTE_STATE_SA}" "${library_config_information}"
+
+  REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw remote_state_storage_account_name | tr -d \")
+  temp=$(echo "${REMOTE_STATE_SA}" | grep -m1 "Warning")
   if [ -z "${temp}" ]; then
-    save_config_var "REMOTE_STATE_SA" "${library_config_information}"
+    temp=$(echo "${REMOTE_STATE_SA}" | grep "Backend reinitialization required")
+    if [ -z "${temp}" ]; then
+      save_config_var "REMOTE_STATE_SA" "${library_config_information}"
+    fi
   fi
-fi
 
-tfstate_resource_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw tfstate_resource_id | tr -d \")
-temp=$(echo "$tfstate_resource_id" | grep -m1 "Warning")
-if [ -z "${temp}" ]; then
-  temp=$(echo "${tfstate_resource_id}" | grep "Backend reinitialization required")
+  tfstate_resource_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw tfstate_resource_id | tr -d \")
+  temp=$(echo "$tfstate_resource_id" | grep -m1 "Warning")
   if [ -z "${temp}" ]; then
-    save_config_var "tfstate_resource_id" "${library_config_information}"
+    temp=$(echo "${tfstate_resource_id}" | grep "Backend reinitialization required")
+    if [ -z "${temp}" ]; then
+      save_config_var "tfstate_resource_id" "${library_config_information}"
+    fi
   fi
-fi
 
-REMOTE_STATE_RG=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw created_resource_group_name | tr -d \")
-temp=$(echo "${REMOTE_STATE_RG}" | grep -m1 "Warning")
-if [ -z "${temp}" ]; then
-  temp=$(echo "${REMOTE_STATE_RG}" | grep "Backend reinitialization required")
+  REMOTE_STATE_RG=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw created_resource_group_name | tr -d \")
+  temp=$(echo "${REMOTE_STATE_RG}" | grep -m1 "Warning")
   if [ -z "${temp}" ]; then
-    save_config_var "REMOTE_STATE_RG" "${library_config_information}"
-    return_value=0
+    temp=$(echo "${REMOTE_STATE_RG}" | grep "Backend reinitialization required")
+    if [ -z "${temp}" ]; then
+      save_config_var "REMOTE_STATE_RG" "${library_config_information}"
+      return_value=0
+    fi
   fi
+else
+return_value=10
 fi
 
 exit $return_value
