@@ -28,9 +28,9 @@ function saveVariableInVariableGroup() {
   echo "Variable value: $az_var"
   echo "Variable length: ${#az_var}"
   if [  ${#az_var} -gt 0 ]; then
-    az pipelines variable-group variable update --group-id "${variable_group_id}" --name "$variable_name" --value "${variable_value}" --output none --only-show-errors
+    az pipelines variable-group variable update --group-id "${variable_group_id}" --name "${variable_name}" --value "${variable_value}" --output none --only-show-errors
   else
-    az pipelines variable-group variable create --group-id "${variable_group_id}" --name "$variable_name" --value "${variable_value}" --output none --only-show-errors
+    az pipelines variable-group variable create --group-id "${variable_group_id}" --name "${variable_name}" --value "${variable_value}" --output none --only-show-errors
   fi
 
 }
