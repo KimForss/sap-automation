@@ -70,7 +70,13 @@ stages:
           clean:                       all
         steps:
           - template: templates\download.yaml
-          - bash: |
+          - task:                      PostBuildCleanup@4
+          - task:                      Bash@3
+            inputs:
+              targetType:              'filePath'
+              filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/10-remover-terraform-system.sh"
+              failOnStderr:            true
+              workingDirectory:        "$(System.DefaultWorkingDirectory)"
 
             displayName:               "Remove SAP system"
             env:

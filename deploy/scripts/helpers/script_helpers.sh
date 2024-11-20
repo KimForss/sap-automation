@@ -543,7 +543,7 @@ function ImportAndReRunApply {
 
         echo terraform -chdir="${terraform_module_directory}" apply -no-color -compact-warnings -json -input=false --auto-approve $applyParameters
         # shellcheck disable=SC2086
-        if ! terraform -chdir="${terraform_module_directory}" apply -no-color -compact-warnings -json -input=false --auto-approve $applyParameters  | tee -a "$fileName"; then
+        if ! terraform -chdir="${terraform_module_directory}" apply -no-color -compact-warnings -json -input=false --auto-approve $applyParameters | tee -a "$fileName"; then
           return_value=$?
           if [ $return_value -eq 1 ]; then
             echo "Errors when running Terraform apply"
@@ -581,4 +581,51 @@ function testIfResourceWouldBeRecreated {
     return_value=1
   fi
   return $return_value
+}
+
+function validate_key_vault {
+  local keyvault_to_check=$1
+  return_value=0
+
+  kv_name_check=$(az keyvault list --query "[?name=='$keyvault_to_check'].name | [0]")
+  if [ -z "$kv_name_check" ]; then
+    echo ""
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo -e "#                             $cyan  Retrying keyvault access $resetformatting                               #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    echo ""
+    sleep 60
+    kv_name_check=$(az keyvault list --query "[?name=='$keyvault_to_check'].name | [0]")
+  fi
+
+  if [ -z "$kv_name_check" ]; then
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo -e "#                               $boldred  Unable to access keyvault: $keyvault_to_check $resetformatting                            #"
+    echo "#                             Please ensure the key vault exists.                       #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    echo ""
+    exit 10
+  fi
+
+  access_error=$(az keyvault secret list --vault "$keyvault_to_check" --only-show-errors | grep "The user, group or application" || true)
+  if [ -n "${access_error}" ]; then
+
+    az_subscription_id=$(az account show --query id -o tsv)
+    printf -v val %-40.40s "$az_subscription_id"
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo -e "#$boldred User account ${val} does not have access to: $keyvault  $resetformatting"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+
+    echo "##vso[task.setprogress value=40;]Progress Indicator"
+    return 65
+
+  fi
+  return $return_value
+
 }

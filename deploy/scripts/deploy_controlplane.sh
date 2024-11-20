@@ -385,7 +385,7 @@ if [ 0 == $step ]; then
     exit 10
   fi
   if [ -n "${FORCE_RESET}" ]; then
-    step=3
+    step=0
     save_config_var "step" "${deployer_config_information}"
     exit 0
   else
@@ -414,11 +414,10 @@ fi
 cd "$root_dirname" || exit
 
 if [ 1 == $step ] || [ 3 == $step ]; then
-
+  # If the keyvault is not set, check the terraform state file
   if [ -z "$keyvault" ]; then
-
     key=$(echo "${deployer_file_parametername}" | cut -d. -f1)
-    if [ $recover == 1 ]; then
+    if [ $recover == 1 ] && [ -n "$REMOTE_STATE_SA" ]; then
       terraform_module_directory="$SAP_AUTOMATION_REPO_PATH"/deploy/terraform/run/sap_deployer/
       terraform -chdir="${terraform_module_directory}" init -upgrade=true \
         --backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
@@ -438,125 +437,8 @@ if [ 1 == $step ] || [ 3 == $step ]; then
       exit 10
     fi
   fi
-
-  secretname="${environment}"-subscription-id
-  echo ""
-  echo "#########################################################################################"
-  echo "#                                                                                       #"
-  echo -e "#              $cyan Validating keyvault access to $keyvault $resetformatting                      #"
-  echo "#                                                                                       #"
-  echo "#########################################################################################"
-  echo ""
-
-  kv_name_check=$(az keyvault list --query "[?name=='$keyvault'].name | [0]" --subscription "${subscription}")
-  if [ -z "$kv_name_check" ]; then
-    echo ""
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo -e "#                             $cyan  Retrying keyvault access $resetformatting                               #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    echo ""
-    sleep 60
-    kv_name_check=$(az keyvault list --query "[?name=='$keyvault'].name | [0]" --subscription "${subscription}")
-  fi
-
-  if [ -z "$kv_name_check" ]; then
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo -e "#                               $boldred  Unable to access keyvault: $keyvault $resetformatting                            #"
-    echo "#                             Please ensure the key vault exists.                       #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    echo ""
-    exit 10
-  fi
-
-  access_error=$(az keyvault secret list --vault "$keyvault" --subscription "${subscription}" --only-show-errors | grep "The user, group or application" || true)
-  if [ -z "${access_error}" ]; then
-    # save_config_var "client_id" "${deployer_config_information}"
-    # save_config_var "tenant_id" "${deployer_config_information}"
-
-    if [ -n "$spn_secret" ]; then
-      allParameters=$(printf " -e %s -r %s -v %s --spn_secret %s " "${environment}" "${region_code}" "${keyvault}" "${spn_secret}")
-
-      # shellcheck disable=SC2086
-      "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/set_secrets.sh $allParameters
-      if [ -f secret.err ]; then
-        error_message=$(cat secret.err)
-        echo "##vso[task.logissue type=error]${error_message}"
-
-        exit 65
-      fi
-
-      return_code=$?
-      if [ 0 != $return_code ]; then
-        echo "Could not set the secrets in key vault" >"${deployer_config_information}".err
-        exit $return_code
-      fi
-    else
-      if [ 0 = "${deploy_using_msi_only:-}" ]; then
-
-        read -p -r "Do you want to specify the SPN Details Y/N?" ans
-        answer=${ans^^}
-        if [ "$answer" == 'Y' ]; then
-          allParameters=$(printf " -e %s -r %s -v %s " "${environment}" "${region_code}" "${keyvault}")
-
-          #$allParameters as an array (); array math can be done in shell, allowing dynamic parameter lists to be created
-          #"${allParameters[@]}" - quotes all elements of the array
-
-          # shellcheck disable=SC2086
-          "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/set_secrets.sh $allParameters
-          return_code=$?
-          if [ 0 != $return_code ]; then
-            exit $return_code
-          fi
-        fi
-      else
-        allParameters=$(printf " -e %s -r %s -v %s --subscription %s --msi " "${environment}" "${region_code}" "${keyvault}" "${subscription}")
-
-        # shellcheck disable=SC2086
-        "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/set_secrets.sh $allParameters
-        if [ -f secret.err ]; then
-          error_message=$(cat secret.err)
-          echo "##vso[task.logissue type=error]${error_message}"
-
-          exit 65
-        fi
-
-      fi
-    fi
-
-    if [ -f post_deployment.sh ]; then
-      ./post_deployment.sh
-      return_code=$?
-      if [ 0 != $return_code ]; then
-        exit $return_code
-      fi
-    fi
-    cd "${curdir}" || exit
-    if [ 1 == $step ]; then
-      step=2
-      save_config_var "step" "${deployer_config_information}"
-    fi
-  else
-    az_subscription_id=$(az account show --query id -o tsv)
-    printf -v val %-40.40s "$az_subscription_id"
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo -e "#$boldred User account ${val} does not have access to: $keyvault  $resetformatting"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    echo "User account ${val} does not have access to: $keyvault" >"${deployer_config_information}".err
-
-    echo "##vso[task.setprogress value=40;]Progress Indicator"
-    exit 65
-
-  fi
-
-else
-  echo "##vso[task.setprogress value=40;]Progress Indicator"
 fi
+
 unset TF_DATA_DIR
 
 cd "$root_dirname" || exit
@@ -568,10 +450,18 @@ if [ 1 = "${only_deployer:-}" ]; then
   exit 0
 fi
 
-echo "$step"
-echo "$step"
-echo "$step"
-echo "$step"
+if validate_key_vault "$keyvault"; then
+  echo "Key vault:                           ${keyvault}"
+  save_config_var "keyvault" "${deployer_config_information}"
+else
+  return_code=$?
+  echo "#########################################################################################"
+  echo "#                                                                                       #"
+  echo -e "#                       $boldred  Key vault not found $resetformatting                                      #"
+  echo "#                                                                                       #"
+  echo "#########################################################################################"
+  exit return_code
+fi
 
 if [ "2" == "$step" ]; then
 
@@ -588,6 +478,7 @@ if [ "2" == "$step" ]; then
   relative_path="${deployer_dirname}"
 
   cd "${library_dirname}" || exit
+  terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/sap_library/
 
   if [ $force == 1 ]; then
     rm -Rf .terraform terraform.tfstate*
@@ -596,7 +487,7 @@ if [ "2" == "$step" ]; then
   allParameters=$(printf " --parameterfile %s --deployer_statefile_foldername %s --keyvault %s %s" "${library_file_parametername}" "${relative_path}" "${keyvault}" "${autoApproveParameter}")
   echo "Calling install_library.sh with:    $allParameters"
 
-    # shellcheck disable=SC2086
+  # shellcheck disable=SC2086
   "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_library.sh" "$allParameters"
   return_code=$?
   if [ 0 != $return_code ]; then
@@ -605,8 +496,6 @@ if [ "2" == "$step" ]; then
     save_config_var "step" "${deployer_config_information}"
     exit 20
   fi
-
-  terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/sap_library/
 
   if [ -z "$REMOTE_STATE_SA" ]; then
     REMOTE_STATE_RG=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw sapbits_sa_resource_group_name | tr -d \")
