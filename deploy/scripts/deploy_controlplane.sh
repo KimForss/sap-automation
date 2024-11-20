@@ -775,8 +775,8 @@ echo ""
 echo "#########################################################################################"
 echo "#                                                                                       #"
 echo -e "# $cyan Please save these values: $resetformatting                                                           #"
-echo "#     - Key Vault: ${kvname}                             #"
-echo "#     - Deployer IP: ${dep_ip}                           #"
+echo "#     - Key Vault:       ${kvname}                       #"
+echo "#     - Deployer IP:     ${dep_ip}                       #"
 echo "#     - Storage Account: ${storage_account}                       #"
 echo "#                                                                                       #"
 echo "#########################################################################################"
@@ -800,10 +800,15 @@ Date : "${now}"
 EOF
 
 cat "${deployer_config_information}".md
+
 deployer_keyvault="${keyvault}"
 export deployer_keyvault
-deployer_ip="${deployer_public_ip_address}"
-export deployer_ip
+
+if [ -n "${deployer_public_ip_address}" ]; then
+  deployer_ip="${deployer_public_ip_address}"
+  export deployer_ip
+fi
+
 terraform_state_storage_account="${REMOTE_STATE_SA}"
 export terraform_state_storage_account
 

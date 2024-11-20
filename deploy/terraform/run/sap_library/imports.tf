@@ -5,7 +5,6 @@
 
 data "terraform_remote_state" "deployer"          {
                                                     backend =    "azurerm"
-                                                    provider     = azurerm.deployer
                                                     count        = length(var.deployer_tfstate_key) > 0 ? 1 : 0
                                                     config       = {
                                                                      resource_group_name  = local.saplib_resource_group_name
@@ -14,7 +13,6 @@ data "terraform_remote_state" "deployer"          {
                                                                      key                  = local.deployer_tfstate_key
                                                                      subscription_id      = local.saplib_subscription_id
                                                                      use_msi              = var.use_spn ? false : true
-                                                                     use_azuread_auth     = true
                                                                    }
                                                   }
 
