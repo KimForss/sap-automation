@@ -78,7 +78,8 @@ stages:
             inputs:
               azureSubscription:       ${{parameters.connection_name}}
               scriptType:              bash
-              scriptLocation:          $(System.DefaultWorkingDirectory)/sap-automation/deploy/pipelines/pipeline_scripts/01-control-plane-prepare.sh
+              scriptLocation:          'scriptPath'
+              scriptPath:              $(System.DefaultWorkingDirectory)/sap-automation/deploy/pipelines/pipeline_scripts/01-control-plane-prepare.sh
               addSpnToEnvironment:     true
               visibleAzLogin:          false
 
