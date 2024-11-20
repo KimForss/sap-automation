@@ -133,8 +133,7 @@ fi
 echo "ADO flag:                            ${ado_flag}"
 
 if [ "$ado_flag" == "--ado" ] || [ "$approve" == "--auto-approve" ]; then
-  autoApproveParameter=" --auto-approve"
-  approve="--auto-approve"
+  echo "Approve:                             Automatically"
 fi
 
 key=$(basename "${deployer_parameter_file}" | cut -d. -f1)
@@ -154,11 +153,6 @@ root_dirname=$(pwd)
 
 if [ ! -f /etc/profile.d/deploy_server.sh ]; then
   export TF_VAR_Agent_IP=$this_ip
-fi
-
-if [ -n "$approve" ]; then
-  autoApproveParameter=" --auto-approve"
-  echo "Approve:                             Automatically"
 fi
 
 if [ ! -f "$deployer_parameter_file" ]; then
@@ -371,18 +365,26 @@ if [ 0 == $step ]; then
   echo "Calling install_deployer.sh:         $allParameters"
   echo "Deployer State File:                 ${deployer_tfstate_key}"
 
-  # shellcheck disable=SC2086
-  if
-    ! "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer.sh" \
-      --parameterfile "${deployer_file_parametername}"
-    "${autoApproveParameter}"
-  then
-    echo "Bootstrapping of the deployer failed"
-    step=0
-    save_config_var "step" "${deployer_config_information}"
-    exit 10
+  if [ "$ado_flag" == "--ado" ] || [ "$approve" == "--auto-approve" ]; then
+
+    if ! "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer.sh" \
+      --parameterfile "${deployer_file_parametername}" --auto-approve; then
+      echo "Bootstrapping of the deployer failed"
+      step=0
+      save_config_var "step" "${deployer_config_information}"
+      exit 10
+    fi
+  else
+    if ! "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer.sh" \
+      --parameterfile "${deployer_file_parametername}"; then
+      echo "Bootstrapping of the deployer failed"
+      step=0
+      save_config_var "step" "${deployer_config_information}"
+      exit 10
+    fi
   fi
   return_code=$?
+
   echo "Return code from install_Deployer:   ${return_code}"
   if [ 0 != $return_code ]; then
     echo "Bootstrapping of the deployer failed" >"${deployer_config_information}".err
@@ -525,28 +527,31 @@ if [ 2 == $step ]; then
     rm -Rf .terraform terraform.tfstate*
   fi
 
-  echo "Calling install_library.sh with:    --parameterfile "${library_file_parametername}"    \
-                                            --deployer_statefile_foldername "${relative_path}" \
-                                            --keyvault "${keyvault}" "${autoApproveParameter}""
+  echo "Calling install_library.sh with: --parameterfile ${library_file_parametername} --deployer_statefile_foldername ${relative_path} --keyvault ${keyvault} ${autoApproveParameter}"
 
-  # shellcheck disable=SC2086
+  if [ "$ado_flag" == "--ado" ] || [ "$approve" == "--auto-approve" ]; then
 
-  return_code=$?
-  if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_library.sh" \
-    --parameterfile "${library_file_parametername}" \
-    --deployer_statefile_foldername "${relative_path}" \
-    --keyvault "${keyvault}" \
-    "${autoApproveParameter}"; then
-    echo "Bootstrapping of the SAP Library failed"
-    step=2
-    save_config_var "step" "${deployer_config_information}"
-    exit 20
+    if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_library.sh" \
+      --parameterfile "${library_file_parametername}" \
+      --deployer_statefile_foldername "${relative_path}" \
+      --keyvault "${keyvault}" --auto-approve; then
+      echo "Bootstrapping of the SAP Library failed"
+      step=2
+      save_config_var "step" "${deployer_config_information}"
+      exit 20
+    fi
   else
-    return_code=$?
-    step=3
-    save_config_var "step" "${deployer_config_information}"
+    if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_library.sh" \
+      --parameterfile "${library_file_parametername}" \
+      --deployer_statefile_foldername "${relative_path}" \
+      --keyvault "${keyvault}"; then
+      echo "Bootstrapping of the SAP Library failed"
+      step=2
+      save_config_var "step" "${deployer_config_information}"
+      exit 20
+    fi
   fi
-
+  return_code=$?
   if [ -z "$REMOTE_STATE_SA" ]; then
     REMOTE_STATE_RG=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw sapbits_sa_resource_group_name | tr -d \")
   fi
@@ -585,7 +590,6 @@ unset TF_DATA_DIR
 cd "$root_dirname" || exit
 echo "##vso[task.setprogress value=80;]Progress Indicator"
 
-
 ##########################################################################################
 #                                                                                        #
 #                                      STEP 3                                            #
@@ -593,7 +597,6 @@ echo "##vso[task.setprogress value=80;]Progress Indicator"
 #                                                                                        #
 #                                                                                        #
 ##########################################################################################
-
 
 if [ 3 == $step ]; then
   echo ""
@@ -657,17 +660,43 @@ if [ 3 == $step ]; then
   echo "Calling installer.sh with:          --parameterfile ${deployer_file_parametername} \
   --storageaccountname ${REMOTE_STATE_SA} --state_subscription ${STATE_SUBSCRIPTION} --type sap_deployer ${autoApproveParameter} ${ado_flag}"
 
-  if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/installer.sh" --parameterfile "${deployer_file_parametername}" \
-    --storageaccountname "${REMOTE_STATE_SA}" --state_subscription "${STATE_SUBSCRIPTION}" --type sap_deployer "${autoApproveParameter}" "${ado_flag}" ; then
-    echo "Migrating the deployer state failed"
-    exit 11
+  echo "Calling installer.sh with:          \
+        --type sap_deployer \
+      --parameterfile ${deployer_file_parametername} \
+      --storageaccountname ${REMOTE_STATE_SA}"
+
+  if [ "$ado_flag" == "--ado" ] || [ "$approve" == "--auto-approve" ]; then
+
+    if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/installer.sh" \
+      --type sap_deployer \
+      --parameterfile ${deployer_file_parametername} \
+      --storageaccountname "${REMOTE_STATE_SA}" \
+      $ado_flag \
+      --auto-approve; then
+      echo "Migrating the Deployer state failed"
+      step=3
+      save_config_var "step" "${deployer_config_information}"
+      exit 30
+    fi
+  else
+    if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/installer.sh" \
+      --type sap_deployer \
+      --parameterfile ${deployer_file_parametername} \
+      --storageaccountname "${REMOTE_STATE_SA}"; then
+      echo "Migrating the SAP Library state failed"
+      step=3
+      save_config_var "step" "${deployer_config_information}"
+      exit 30
+    fi
   fi
   return_code=$?
-  if [ 0 != $return_code ]; then
-    echo "Migrating the deployer state failed"
 
-    exit 11
+  if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/installer.sh" --parameterfile "${deployer_file_parametername}" \
+    --storageaccountname "${REMOTE_STATE_SA}" --state_subscription "${STATE_SUBSCRIPTION}" --type sap_deployer "${autoApproveParameter}" "${ado_flag}"; then
+    echo "Migrating the deployer state failed"
+    exit 30
   fi
+  return_code=$?
 
   cd "${curdir}" || exit
   export step=4
@@ -682,6 +711,14 @@ load_config_vars "${deployer_config_information}" "keyvault"
 load_config_vars "${deployer_config_information}" "deployer_public_ip_address"
 load_config_vars "${deployer_config_information}" "REMOTE_STATE_SA"
 
+##########################################################################################
+#                                                                                        #
+#                                      STEP 3                                            #
+#                           Migrating the state file for the deployer                    #
+#                                                                                        #
+#                                                                                        #
+##########################################################################################
+
 if [ 4 == $step ]; then
   echo ""
   echo "#########################################################################################"
@@ -692,17 +729,40 @@ if [ 4 == $step ]; then
   echo ""
 
   cd "${library_dirname}" || exit
-  allParameters=$(printf " --parameterfile %s --storageaccountname %s --type sap_library --deployer_tfstate_key %s %s %s " "${library_file_parametername}" "${REMOTE_STATE_SA}" "${deployer_tfstate_key}" "${autoApproveParameter}" "${ado_flag}")
 
-  echo "Calling installer.sh with:          $allParameters"
+  echo "Calling installer.sh with:          \
+        --type sap_library \
+      --parameterfile ${library_file_parametername} \
+      --storageaccountname ${REMOTE_STATE_SA} \
+      --deployer_tfstate_key ${deployer_tfstate_key}"
 
-  # shellcheck disable=SC2086
-  "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/installer.sh $allParameters
-  return_code=$?
-  if [ 0 != $return_code ]; then
-    echo "Migrating the SAP Library state failed" >"${deployer_config_information}".err
-    exit 21
+  if [ "$ado_flag" == "--ado" ] || [ "$approve" == "--auto-approve" ]; then
+
+    if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/installer.sh" \
+      --type sap_library \
+      --parameterfile "${library_file_parametername}" \
+      --storageaccountname "${REMOTE_STATE_SA}" \
+      --deployer_tfstate_key "${deployer_tfstate_key}" \
+      $ado_flag \
+      --auto-approve; then
+      echo "Migrating the SAP Library state failed"
+      step=4
+      save_config_var "step" "${deployer_config_information}"
+      exit 40
+    fi
+  else
+    if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/installer.sh" \
+      --type sap_library \
+      --parameterfile "${library_file_parametername}" \
+      --storageaccountname "${REMOTE_STATE_SA}" \
+      --deployer_tfstate_key "${deployer_tfstate_key}"; then
+      echo "Migrating the SAP Library state failed"
+      step=4
+      save_config_var "step" "${deployer_config_information}"
+      exit 40
+    fi
   fi
+  return_code=$?
 
   cd "$root_dirname" || exit
 
@@ -723,10 +783,6 @@ echo "#     - Storage Account: ${storage_account}                       #"
 echo "#                                                                                       #"
 echo "#########################################################################################"
 
-if [ -f "${deployer_config_information}".err ]; then
-  rm "${deployer_config_information}".err
-fi
-
 now=$(date)
 cat <<EOF >"${deployer_config_information}".md
 # Control Plane Deployment #
@@ -746,9 +802,12 @@ Date : "${now}"
 EOF
 
 cat "${deployer_config_information}".md
-export deployer_keyvault="${keyvault}"
-export deployer_ip="${deployer_public_ip_address}"
-export terraform_state_storage_account="${REMOTE_STATE_SA}"
+deployer_keyvault="${keyvault}"
+export deployer_keyvault
+deployer_ip="${deployer_public_ip_address}"
+export deployer_ip
+terraform_state_storage_account="${REMOTE_STATE_SA}"
+export terraform_state_storage_account
 
 if [ 5 == $step ]; then
   if [ "${ado_flag}" != "--ado" ]; then
