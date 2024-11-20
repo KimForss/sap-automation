@@ -68,19 +68,21 @@ echo ""
 echo "Agent:                               $THIS_AGENT"
 echo "Organization:                        $ENDPOINT_URL_SYSTEMVSSCONNECTION"
 echo "Project:                             $SYSTEM_TEAMPROJECT"
-if [ -n "$(PAT)" ]; then
+if [ -n "$TF_VAR_agent_pat" ]; then
   echo "Deployer Agent PAT:                  IsDefined"
 fi
 if [ -n "$POOL" ]; then
   echo "Deployer Agent Pool:                 $POOL"
 fi
 echo ""
-if [ "$(use_webapp)" = "true" ]; then
+if [ "$USE_WEBAPP" = "true" ]; then
   echo "Deploy Web App:                      true"
-
 else
   echo "Deploy Web App:                      false"
 fi
+
+TF_VAR_use_webapp=$USE_WEBAPP
+export TF_VAR_use_webapp
 
 az devops configure --defaults organization="$ENDPOINT_URL_SYSTEMVSSCONNECTION" project='$SYSTEM_TEAMPROJECT' --output none --only-show-errors
 
@@ -183,18 +185,13 @@ if [ "$(force_reset)" = "True" ]; then
 fi
 
 echo -e "$green--- Variables ---$reset"
-storage_account_parameter=""
 if [ -z "${TF_VAR_ansible_core_version}" ]; then
   TF_VAR_ansible_core_version=2.17
   export TF_VAR_ansible_core_version
 fi
-TF_VAR_use_webapp=$(use_webapp)
-export TF_VAR_use_webapp
 
 if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$deployer_folder/state.zip" ]; then
-  # shellcheck disable=SC2001
-  # shellcheck disable=SC2005
-  pass=$(echo "$(System.CollectionId)" | sed 's/-//g')
+  pass=$(echo "$SYSTEM_COLLECTIONID" | sed 's/-//g')
   echo "Unzipping state.zip"
   unzip -qq -o -P "${pass}" "${CONFIG_REPO_PATH}/DEPLOYER/$deployer_folder/state.zip" -d "${CONFIG_REPO_PATH}/DEPLOYER/$deployer_folder"
 fi
@@ -261,7 +258,7 @@ if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$deployer_folder/terraform.tfstate" ]; the
   sudo apt-get install zip -y
   # shellcheck disable=SC2001
   # shellcheck disable=SC2005
-  pass=$(echo "$(System.CollectionId)" | sed 's/-//g')
+  pass=$(echo "$SYSTEM_COLLECTIONID" | sed 's/-//g')
   zip -q -j -P "${pass}" "${CONFIG_REPO_PATH}/DEPLOYER/$deployer_folder/state" "${CONFIG_REPO_PATH}/DEPLOYER/$deployer_folder/terraform.tfstate"
   git add -f "${CONFIG_REPO_PATH}/DEPLOYER/$deployer_folder/state.zip"
   added=1
@@ -270,7 +267,7 @@ if [ 1 = $added ]; then
   git config --global user.email "$(Build.RequestedForEmail)"
   git config --global user.name "$(Build.RequestedFor)"
   git commit -m "Added updates from devops deployment $BUILD_BUILDNUMBER [skip ci]"
-  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set-upstream origin "$BRANCH"
+  git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BRANCH"
 fi
 if [ -f "$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md" ]; then
   echo "##vso[task.uploadsummary]$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md"
