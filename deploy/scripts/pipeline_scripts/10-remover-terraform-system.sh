@@ -303,7 +303,7 @@ if [ 0 == $return_code ]; then
     git config --global user.name "$BUILD_REQUESTEDFOR"
 
     git commit -m "Infrastructure for $SAP_SYSTEM_CONFIGURATION removed. [skip ci]"
-    if git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BRANCH" --force; then
+    if git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BRANCH" --force-with-lease; then
       echo "##vso[task.logissue type=warning]Removal of $SAP_SYSTEM_CONFIGURATION updated in $(Build.SourceBranchName)"
     else
       echo "##vso[task.logissue type=error]Failed to push changes to $BRANCH"
