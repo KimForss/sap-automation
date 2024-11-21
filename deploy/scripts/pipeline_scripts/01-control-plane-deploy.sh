@@ -397,7 +397,7 @@ git pull -q origin "$BRANCH"
 if [ 1 = $added ]; then
   git config --global user.email "$BUILD_REQUESTEDFOREMAIL"
   git config --global user.name "$BUILD_REQUESTEDFOR"
-  git commit -m "Added updates from Control Plane Deployment for $DEPLOYERFOLDER $LIBRARYFOLDER ($BUILD_BUILDNUMBER) [skip ci]"
+  git commit -m "Added updates from Control Plane Deployment for $DEPLOYERFOLDER $LIBRARYFOLDER $BUILD_BUILDNUMBER [skip ci]"
   if git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BRANCH" --force-with-lease ; then
     echo "##vso[task.logissue type=error]Failed to push changes to the repository."
   fi
