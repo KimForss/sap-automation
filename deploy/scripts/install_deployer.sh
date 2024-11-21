@@ -83,6 +83,7 @@ done
 deployment_system=sap_deployer
 
 param_dirname=$(dirname "${parameterfile}")
+export TF_DATA_DIR="${param_dirname}/.terraform"
 
 echo "Parameter file:                      ${parameterfile}"
 
@@ -193,7 +194,12 @@ else
           export TF_VAR_tfstate_resource_id=$tfstate_resource_id
           export TF_LOG=DEBUG
 
-          terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/run/sap_deployer"/
+          terraform -chdir="${terraform_module_directory}" init -force-copy -migrate-state --backend-config "path=${param_dirname}/terraform.tfstate"
+          terraform -chdir="${terraform_module_directory}" init -reconfigure --backend-config "path=${param_dirname}/terraform.tfstate"
+
+
+          terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/bootstrap/sap_deployer"/
+
           terraform -chdir="${terraform_module_directory}" init  \
            --backend-config "subscription_id=dcb2713e-5dc8-4139-a9af-9768287bbb8d" --backend-config "resource_group_name=CPLN-NOEU-SAP_LIBRARY" --backend-config "storage_account_name=cplnnoeutfstate748" --backend-config "container_name=tfstate" --backend-config "key=CPLN-NOEU-DEP01-INFRASTRUCTURE.terraform.tfstate"
             # --backend-config "subscription_id=$REINSTALL_SUBSCRIPTION" \

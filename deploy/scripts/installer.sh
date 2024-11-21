@@ -284,6 +284,7 @@ fi
 echo "Parallelism count:                   $parallelism"
 
 param_dirname=$(pwd)
+export TF_DATA_DIR="${param_dirname}/.terraform"
 
 init "${automation_config_directory}" "${generic_config_information}" "${system_config_information}"
 
@@ -525,7 +526,6 @@ if [ -n "${deployer_tfstate_key}" ]; then
 fi
 
 terraform_module_directory="$SAP_AUTOMATION_REPO_PATH/deploy/terraform/run/${deployment_system}"
-export TF_DATA_DIR="${param_dirname}/.terraform"
 cd "${param_dirname}" || exit
 
 if [ ! -d "${terraform_module_directory}" ]; then
