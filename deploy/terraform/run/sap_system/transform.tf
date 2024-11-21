@@ -198,6 +198,7 @@ locals {
                                                                           )
 
                                         avset_arm_ids                   = var.application_server_vm_avset_arm_ids
+                                        avset_arm_ids_count             = length(var.application_server_vm_avset_arm_ids)
                                         scs_server_count                = local.enable_app_tier_deployment ? (
                                                                             var.scs_server_count
                                                                             ) : (
