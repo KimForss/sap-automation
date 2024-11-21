@@ -161,7 +161,18 @@ echo -e "$green--- Convert config files to UX format ---$reset"
 dos2unix -q "$deployer_tfvars_file_name"
 dos2unix -q "$library_tfvars_file_name"
 
-if [ $FORCE_RESET = "true" ]; then
+key_vault=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_Key_Vault" "${deployer_environment_file_name}" "keyvault")
+if [ -n $key_vault ]; then
+  echo "Deployer Key Vault:                  ${key_vault}"
+  key_vault_id=$(az resource list --name "${key_vault}" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
+  export TF_VAR_deployer_kv_user_arm_id=${key_vault_id}
+  this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
+  az keyvault network-rule add --name "${key_vault}" --ip-address "${this_ip}" --subscription "$TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION" --only-show-errors --output none
+else
+  echo "Deployer Key Vault:                  undefined"
+fi
+
+if [ $FORCE_RESET = true ]; then
   echo "##vso[task.logissue type=warning]Forcing a re-install"
   echo "Running on:            $THIS_AGENT"
   sed -i 's/step=1/step=0/' "$deployer_environment_file_name"
@@ -169,15 +180,6 @@ if [ $FORCE_RESET = "true" ]; then
   sed -i 's/step=3/step=0/' "$deployer_environment_file_name"
 
   export FORCE_RESET=true
-  key_vault=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_Key_Vault" "${deployer_environment_file_name}" "keyvault")
-  echo "Deployer Key Vault:                  ${key_vault}"
-
-  key_vault_id=$(az resource list --name "${key_vault}" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
-  export TF_VAR_deployer_kv_user_arm_id=${key_vault_id}
-  if [ -n "${key_vault_id}" ]; then
-    this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
-    az keyvault network-rule add --name "${key_vault}" --ip-address "${this_ip}" --subscription "$TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION" --only-show-errors --output none
-  fi
 
   tfstate_resource_id=$(az resource list --name "$TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME" --subscription "$TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION" --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
   if [ -n "${tfstate_resource_id}" ]; then
