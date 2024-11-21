@@ -192,16 +192,7 @@ else
           az storage account network-rule add --account-name "$REINSTALL_ACCOUNTNAME" --resource-group "$REINSTALL_RESOURCE_GROUP" --ip-address "${this_ip}" --only-show-errors --output none
           sleep 30
           export TF_VAR_tfstate_resource_id=$tfstate_resource_id
-          export TF_LOG=DEBUG
-          terraform --version || true
-          ls /opt/terraform/ || true
-          /opt/terraform/bin/terraform --version || true
-
-
-          if terraform -chdir="${terraform_module_directory}" init -force-copy -migrate-state --backend-config "path=${param_dirname}/terraform.tfstate"; then
-            terraform -chdir="${terraform_module_directory}" refresh -var-file="${var_file}"
-          else
-            terraform -chdir="${terraform_module_directory}" init -reconfigure --backend-config "path=${param_dirname}/terraform.tfstate"
+          if terraform -chdir="${terraform_module_directory}" init -reconfigure --backend-config "path=${param_dirname}/terraform.tfstate"
             terraform -chdir="${terraform_module_directory}" refresh -var-file="${var_file}"
           fi
 
@@ -220,7 +211,6 @@ else
     terraform -chdir="${terraform_module_directory}" init -upgrade=true -backend-config "path=${param_dirname}/terraform.tfstate"
   fi
 fi
-exit 10
 return_value=$?
 if [ 1 == $return_value ]; then
   echo ""
