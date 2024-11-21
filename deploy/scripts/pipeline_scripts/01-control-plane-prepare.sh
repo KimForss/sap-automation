@@ -1,5 +1,5 @@
 #!/bin/bash
-echo "##vso[build.updatebuildnumber]Deploying the control plane defined in $DEPLOYERFOLDER $LIBRARYFOLDER"
+echo "##vso[build.updatebuildnumber]Deploying the control plane defined in $DEPLOYER_FOLDERNAME $LIBRARY_FOLDERNAME"
 green="\e[1;32m"
 reset="\e[0m"
 boldred="\e[1;31m"
@@ -24,18 +24,18 @@ if [ "$SYSTEM_DEBUG" = True ]; then
 fi
 set -eu
 
-file_deployer_tfstate_key=$DEPLOYERFOLDER.tfstate
-deployer_tfstate_key="$DEPLOYERFOLDER.terraform.tfstate"
+file_deployer_tfstate_key=$DEPLOYER_FOLDERNAME.tfstate
+deployer_tfstate_key="$DEPLOYER_FOLDERNAME.terraform.tfstate"
 
 cd "$CONFIG_REPO_PATH" || exit
 mkdir -p .sap_deployment_automation
 
-ENVIRONMENT=$(echo "$DEPLOYERFOLDER" | awk -F'-' '{print $1}' | xargs)
-LOCATION=$(echo "$DEPLOYERFOLDER" | awk -F'-' '{print $2}' | xargs)
+ENVIRONMENT=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $1}' | xargs)
+LOCATION=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $2}' | xargs)
 
 deployer_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}"
-deployer_tfvars_file_name="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYERFOLDER/$DEPLOYERCONFIG"
-library_tfvars_file_name="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/$LIBRARYCONFIG"
+deployer_tfvars_file_name="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
+library_tfvars_file_name="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME"
 
 echo "Configuration file:                  $deployer_environment_file_name"
 echo "Environment:                         $ENVIRONMENT"
@@ -61,12 +61,12 @@ az devops configure --defaults organization="$ENDPOINT_URL_SYSTEMVSSCONNECTION" 
 echo -e "$green--- File Validations ---$reset"
 if [ ! -f "$deployer_tfvars_file_name" ]; then
   echo -e "$boldred--- File "$deployer_tfvars_file_name" was not found ---$reset"
-  echo "##vso[task.logissue type=error]File DEPLOYER/$DEPLOYERFOLDER/$DEPLOYERCONFIG was not found."
+  echo "##vso[task.logissue type=error]File DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME was not found."
   exit 2
 fi
 if [ ! -f $library_tfvars_file_name ]; then
   echo -e "$boldred--- File $library_tfvars_file_name  was not found ---$reset"
-  echo "##vso[task.logissue type=error]File LIBRARY/$LIBRARYFOLDER/$LIBRARYCONFIG was not found."
+  echo "##vso[task.logissue type=error]File LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME was not found."
   exit 2
 fi
 
@@ -195,12 +195,12 @@ if [ -z "${TF_VAR_ansible_core_version}" ]; then
   export TF_VAR_ansible_core_version
 fi
 
-if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYERFOLDER/state.zip" ]; then
+if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" ]; then
   # shellcheck disable=SC2001
   # shellcheck disable=SC2005
   pass=${SYSTEM_COLLECTIONID//-/}
   echo "Unzipping state.zip"
-  unzip -qq -o -P "${pass}" "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYERFOLDER/state.zip" -d "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYERFOLDER"
+  unzip -qq -o -P "${pass}" "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" -d "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME"
 fi
 
 export TF_LOG_PATH=$CONFIG_REPO_PATH/.sap_deployment_automation/terraform.log
@@ -208,16 +208,16 @@ set +eu
 
 if [ "$USE_MSI" != "true" ]; then
   "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh" \
-    --deployer_parameter_file "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYERFOLDER/$DEPLOYERCONFIG" \
-    --library_parameter_file "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/$LIBRARYCONFIG" \
+    --deployer_parameter_file "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME" \
+    --library_parameter_file "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME" \
     --subscription "$ARM_SUBSCRIPTION_ID" --spn_id "$ARM_CLIENT_ID" \
     --spn_secret "$ARM_CLIENT_SECRET" --tenant_id "$ARM_TENANT_ID" \
     --auto-approve --ado --only_deployer
 
 else
   "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh" \
-    --deployer_parameter_file "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYERFOLDER/$DEPLOYERCONFIG" \
-    --library_parameter_file "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/$LIBRARYCONFIG" \
+    --deployer_parameter_file "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME" \
+    --library_parameter_file "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME" \
     --subscription "$ARM_SUBSCRIPTION_ID" --auto-approve --ado --only_deployer --msi
 fi
 return_code=$?
@@ -258,23 +258,23 @@ if [ -f ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}" ]; then
   git add ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}"
   added=1
 fi
-if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYERFOLDER/.terraform/terraform.tfstate" ]; then
-  git add -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYERFOLDER/.terraform/terraform.tfstate"
+if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate" ]; then
+  git add -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate"
   added=1
 fi
-if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYERFOLDER/terraform.tfstate" ]; then
+if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate" ]; then
   sudo apt-get install zip -y
   # shellcheck disable=SC2001
   # shellcheck disable=SC2005
   pass=${SYSTEM_COLLECTIONID//-/}
-  zip -q -j -P "${pass}" "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYERFOLDER/state" "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYERFOLDER/terraform.tfstate"
-  git add -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYERFOLDER/state.zip"
+  zip -q -j -P "${pass}" "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state" "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate"
+  git add -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip"
   added=1
 fi
 if [ 1 = $added ]; then
   git config --global user.email "$BUILD_REQUESTEDFOREMAIL"
   git config --global user.name "$BUILD_REQUESTEDFOR"
-  git commit -m "Added updates from Control Plane Deployment for $DEPLOYERFOLDER $LIBRARYFOLDER $BUILD_BUILDNUMBER [skip ci]"
+  git commit -m "Added updates from Control Plane Deployment for $DEPLOYER_FOLDERNAME $LIBRARY_FOLDERNAME $BUILD_BUILDNUMBER [skip ci]"
   if git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BRANCH" --force-with-lease; then
     echo "##vso[task.logissue type=error]Failed to push changes to the repository."
   fi

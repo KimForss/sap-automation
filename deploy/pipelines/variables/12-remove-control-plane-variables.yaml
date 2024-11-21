@@ -21,16 +21,16 @@ variables:
   - name:                              run_on
     value:                             $[replace(replace('True',eq(${{ parameters.use_deployer }}, 'True'), variables['POOL']),'True',variables['Agent'])]
 
-  - name:                              deployerfolder
+  - name:                              deployer_foldername
     value:                             ${{ parameters.deployer }}
 
-  - name:                              deployerconfig
+  - name:                              deployer_tfvars_filename
     value:                             ${{ parameters.deployer }}.tfvars
 
-  - name:                              libraryfolder
+  - name:                              library_foldername
     value:                             ${{ parameters.library }}
 
-  - name:                              libraryconfig
+  - name:                              library_tfvars_filename
     value:                             ${{ parameters.library }}.tfvars
 
   - name:                              tf_url

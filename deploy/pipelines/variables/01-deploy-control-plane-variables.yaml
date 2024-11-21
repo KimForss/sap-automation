@@ -54,16 +54,16 @@ variables:
   - name:                              use_webapp
     value:                             ${{ lower(parameters.use_webapp_param) }}
 
-  - name:                              deployerfolder
+  - name:                              deployer_foldername
     value:                             ${{ parameters.deployer }}
 
-  - name:                              deployerconfig
+  - name:                              deployer_tfvars_filename
     value:                             ${{ parameters.deployer }}.tfvars
 
-  - name:                              libraryfolder
+  - name:                              library_foldernamne
     value:                             ${{ parameters.library }}
 
-  - name:                              libraryconfig
+  - name:                              library_tfvars_filename
     value:                             ${{ parameters.library }}.tfvars
 
   - name:                              log

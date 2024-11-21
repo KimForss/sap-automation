@@ -1,5 +1,5 @@
 #!/bin/bash
-echo "##vso[build.updatebuildnumber]Deploying the control plane defined in $DEPLOYERFOLDER $LIBRARYFOLDER"
+echo "##vso[build.updatebuildnumber]Deploying the control plane defined in $DEPLOYER_FOLDERNAME $LIBRARY_FOLDERNAME"
 green="\e[1;32m"
 reset="\e[0m"
 boldred="\e[1;31m"
@@ -22,24 +22,24 @@ if [ "$SYSTEM_DEBUG" = True ]; then
 fi
 set -eu
 
-ENVIRONMENT=$(echo "$DEPLOYERFOLDER" | awk -F'-' '{print $1}' | xargs)
-LOCATION=$(echo "$DEPLOYERFOLDER" | awk -F'-' '{print $2}' | xargs)
+ENVIRONMENT=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $1}' | xargs)
+LOCATION=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $2}' | xargs)
 
 deployer_environment_file_name="${CONFIG_REPO_PATH}/.sap_deployment_automation/${ENVIRONMENT}$LOCATION"
-deployer_configfile="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYERFOLDER/$DEPLOYERCONFIG"
-library_configfile="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/$LIBRARYCONFIG"
-deployer_tfstate_key="$DEPLOYERFOLDER.terraform.tfstate"
+deployer_configfile="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
+library_configfile="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME"
+deployer_tfstate_key="$DEPLOYER_FOLDERNAME.terraform.tfstate"
 if [ -f "${deployer_environment_file_name}" ]; then
   step=$(grep -m1 "^step=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs)
   echo "Step:                                $step"
 fi
 
-file_deployer_tfstate_key=$DEPLOYERFOLDER.tfstate
+file_deployer_tfstate_key=$DEPLOYER_FOLDERNAME.tfstate
 file_key_vault=""
 file_REMOTE_STATE_SA=""
-file_REMOTE_STATE_RG=$DEPLOYERFOLDER
+file_REMOTE_STATE_RG=$DEPLOYER_FOLDERNAME
 REMOTE_STATE_SA=""
-REMOTE_STATE_RG=$DEPLOYERFOLDER
+REMOTE_STATE_RG=$DEPLOYER_FOLDERNAME
 sourced_from_file=0
 
 if [[ -f /etc/profile.d/deploy_server.sh ]]; then
@@ -49,15 +49,15 @@ fi
 
 echo -e "$green--- File Validations ---$reset"
 
-if [ ! -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYERFOLDER/$DEPLOYERCONFIG" ]; then
-  echo -e "$boldred--- File ${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYERFOLDER/$DEPLOYERCONFIG was not found ---$reset"
-  echo "##vso[task.logissue type=error]File ${CONFIG_REPO_PATH}/${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYERFOLDER/$DEPLOYERCONFIG was not found."
+if [ ! -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME" ]; then
+  echo -e "$boldred--- File ${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME was not found ---$reset"
+  echo "##vso[task.logissue type=error]File ${CONFIG_REPO_PATH}/${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME was not found."
   exit 2
 fi
 
-if [ ! -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/$LIBRARYCONFIG" ]; then
-  echo -e "$boldred--- File ${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/$LIBRARYCONFIG  was not found ---$reset"
-  echo "##vso[task.logissue type=error]File ${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/$LIBRARYCONFIG was not found."
+if [ ! -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME" ]; then
+  echo -e "$boldred--- File ${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME  was not found ---$reset"
+  echo "##vso[task.logissue type=error]File ${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME was not found."
   exit 2
 fi
 
@@ -84,10 +84,10 @@ TF_VAR_use_webapp=$USE_WEBAPP
 export TF_VAR_use_webapp
 
 echo ""
-echo "Deployer Folder:                     $DEPLOYERFOLDER"
-echo "Deployer TFvars:                     $DEPLOYERCONFIG"
-echo "Library Folder:                      $LIBRARYFOLDER"
-echo "Library TFvars:                      $LIBRARYCONFIG"
+echo "Deployer Folder:                     $DEPLOYER_FOLDERNAME"
+echo "Deployer TFvars:                     $DEPLOYER_TFVARS_FILENAME"
+echo "Library Folder:                      $LIBRARY_FOLDERNAME"
+echo "Library TFvars:                      $LIBRARY_TFVARS_FILENAME"
 
 echo ""
 echo "Azure CLI version:"
@@ -162,15 +162,15 @@ echo "Deployer subscription:               $ARM_SUBSCRIPTION_ID"
 echo -e "$green--- Configuring variables ---$reset"
 
 echo -e "$green--- Convert config files to UX format ---$reset"
-dos2unix -q "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYERFOLDER/$DEPLOYERCONFIG"
-dos2unix -q "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/$LIBRARYCONFIG"
+dos2unix -q "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
+dos2unix -q "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME"
 
 echo -e "$green--- Variables ---$reset"
 key_vault=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_Key_Vault" "${deployer_environment_file_name}" "keyvault")
 if [ "$sourced_from_file" == 1 ]; then
   az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name Deployer_Key_Vault --value "${key_vault}" --output none --only-show-errors
 fi
-echo "Deployer TFvars:                      $DEPLOYERCONFIG"
+echo "Deployer TFvars:                      $DEPLOYER_TFVARS_FILENAME"
 
 if [ -n "${key_vault}" ]; then
   echo "Deployer Key Vault:                   ${key_vault}"
@@ -254,24 +254,24 @@ fi
 
 echo -e "$green--- Preparing for the Control Plane deployment---$reset"
 
-if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/state.zip" ]; then
+if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/state.zip" ]; then
   # shellcheck disable=SC2001
   pass=${SYSTEM_COLLECTIONID//-/}
 
   echo "Unzipping the library state file"
-  unzip -o -qq -P "${pass}" "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/state.zip" -d "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER"
+  unzip -o -qq -P "${pass}" "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/state.zip" -d "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME"
 fi
 
-if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYERFOLDER/state.zip" ]; then
+if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" ]; then
   pass=${SYSTEM_COLLECTIONID//-/}
 
   echo "Unzipping the deployer state file"
-  unzip -o -qq -P "${pass}" "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYERFOLDER/state.zip" -d "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYERFOLDER"
+  unzip -o -qq -P "${pass}" "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" -d "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME"
 fi
 
 if [ "$debug" = True ]; then
-  ls -lart "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYERFOLDER"
-  ls -lart "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER"
+  ls -lart "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME"
+  ls -lart "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME"
 fi
 
 export TF_LOG_PATH=${CONFIG_REPO_PATH}/.sap_deployment_automation/terraform.log
@@ -324,70 +324,70 @@ if [ -f .sap_deployment_automation/"${ENVIRONMENT}${LOCATION}".md ]; then
   added=1
 fi
 
-if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYERFOLDER/.terraform/terraform.tfstate" ]; then
-  git add -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYERFOLDER/.terraform/terraform.tfstate"
+if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate" ]; then
+  git add -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate"
   added=1
 fi
 
 # || true suppresses the exitcode of grep. To not trigger the strict exit on error
-backend=$(grep "local" "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYERFOLDER/.terraform/terraform.tfstate" || true)
+backend=$(grep "local" "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate" || true)
 if [ -n "${backend}" ]; then
   echo "Local Terraform state"
-  if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYERFOLDER/terraform.tfstate" ]; then
+  if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate" ]; then
     echo "Compressing the deployer state file"
     sudo apt-get -qq install zip
 
     pass=${SYSTEM_COLLECTIONID//-/}
-    zip -q -j -P "${pass}" "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYERFOLDER/state" "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYERFOLDER/terraform.tfstate"
-    git add -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYERFOLDER/state.zip"
+    zip -q -j -P "${pass}" "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state" "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate"
+    git add -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip"
     added=1
   fi
 else
   echo "Remote Terraform state"
-  if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYERFOLDER/terraform.tfstate" ]; then
-    git rm -q --ignore-unmatch -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYERFOLDER/terraform.tfstate"
+  if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate" ]; then
+    git rm -q --ignore-unmatch -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate"
     added=1
   fi
-  if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYERFOLDER/state.zip" ]; then
-    git rm -q --ignore-unmatch -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYERFOLDER/state.zip"
+  if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" ]; then
+    git rm -q --ignore-unmatch -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip"
     added=1
   fi
 fi
 
-if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/.terraform/terraform.tfstate" ]; then
-  git add -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/.terraform/terraform.tfstate"
+if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate" ]; then
+  git add -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate"
   added=1
 fi
 
-if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/.terraform/terraform.tfstate" ]; then
+if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate" ]; then
   # || true suppresses the exitcode of grep. To not trigger the strict exit on error
-  backend=$(grep "local" "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/.terraform/terraform.tfstate" || true)
+  backend=$(grep "local" "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate" || true)
   if [ -n "${backend}" ]; then
     echo "Local Terraform state"
-    if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/terraform.tfstate" ]; then
+    if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate" ]; then
       sudo apt-get -qq install zip
 
       echo "Compressing the library state file"
       pass=${SYSTEM_COLLECTIONID//-/}
-      zip -q -j -P "${pass}" "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/state" "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/terraform.tfstate"
-      git add -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/state.zip"
+      zip -q -j -P "${pass}" "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/state" "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate"
+      git add -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/state.zip"
       added=1
     fi
   else
     echo "Remote Terraform state"
-    if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/terraform.tfstate" ]; then
-      git rm -q -f --ignore-unmatch "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/terraform.tfstate"
+    if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate" ]; then
+      git rm -q -f --ignore-unmatch "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate"
       added=1
     fi
-    if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/state.zip" ]; then
-      git rm -q --ignore-unmatch -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/state.zip"
+    if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/state.zip" ]; then
+      git rm -q --ignore-unmatch -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/state.zip"
       added=1
     fi
   fi
 fi
 
-if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/.terraform/terraform.tfstate" ]; then
-  git add -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/.terraform/terraform.tfstate"
+if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate" ]; then
+  git add -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate"
   added=1
 fi
 
@@ -397,7 +397,7 @@ git pull -q origin "$BRANCH"
 if [ 1 = $added ]; then
   git config --global user.email "$BUILD_REQUESTEDFOREMAIL"
   git config --global user.name "$BUILD_REQUESTEDFOR"
-  git commit -m "Added updates from Control Plane Deployment for $DEPLOYERFOLDER $LIBRARYFOLDER $BUILD_BUILDNUMBER [skip ci]"
+  git commit -m "Added updates from Control Plane Deployment for $DEPLOYER_FOLDERNAME $LIBRARY_FOLDERNAME $BUILD_BUILDNUMBER [skip ci]"
   if git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BRANCH" --force-with-lease ; then
     echo "##vso[task.logissue type=error]Failed to push changes to the repository."
   fi

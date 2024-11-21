@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "##vso[build.updatebuildnumber]Removing the control plane defined in $DEPLOYERFOLDER $LIBRARYFOLDER"
+echo "##vso[build.updatebuildnumber]Removing the control plane defined in $DEPLOYER_FOLDERNAME $LIBRARY_FOLDERNAME"
 green="\e[1;32m"
 reset="\e[0m"
 boldred="\e[1;31m"
@@ -26,21 +26,21 @@ fi
 # stage of the pipefile has a non-zero exit status.
 set -o pipefail
 
-deployerTFvarsFile="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYERFOLDER/$DEPLOYERCONFIG"
-libraryTFvarsFile="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/$LIBRARYCONFIG"
-deployer_tfstate_key="$DEPLOYERFOLDER.terraform.tfstate"
+deployerTFvarsFile="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
+libraryTFvarsFile="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME"
+deployer_tfstate_key="$DEPLOYER_FOLDERNAME.terraform.tfstate"
 
 echo -e "$green--- File Validations ---$reset"
 
 if [ ! -f "$deployerTFvarsFile" ]; then
   echo -e "$boldred--- File ${deployerTFvarsFile} was not found ---$reset"
-  echo "##vso[task.logissue type=error]File DEPLOYER/$DEPLOYERFOLDER/$DEPLOYERCONFIG was not found."
+  echo "##vso[task.logissue type=error]File DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME was not found."
   exit 2
 fi
 
 if [ ! -f "${libraryTFvarsFile}" ]; then
   echo -e "$boldred--- File "${libraryTFvarsFile}"  was not found ---$reset"
-  echo "##vso[task.logissue type=error]File LIBRARY/$LIBRARYFOLDER/$LIBRARYCONFIG was not found."
+  echo "##vso[task.logissue type=error]File LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME was not found."
   exit 2
 fi
 
@@ -53,9 +53,9 @@ LOCATION=$(grep -m1 "^location" "$deployerTFvarsFile" | awk -F'=' '{print $2}' |
 deployer_environment_file_name="${CONFIG_REPO_PATH}/.sap_deployment_automation/${ENVIRONMENT}$LOCATION"
 
 # shellcheck disable=SC2005
-ENVIRONMENT_IN_FILENAME=$(echo $DEPLOYERFOLDER | awk -F'-' '{print $1}')
+ENVIRONMENT_IN_FILENAME=$(echo $DEPLOYER_FOLDERNAME | awk -F'-' '{print $1}')
 
-LOCATION_CODE_IN_FILENAME=$(echo $DEPLOYERFOLDER | awk -F'-' '{print $2}')
+LOCATION_CODE_IN_FILENAME=$(echo $DEPLOYER_FOLDERNAME | awk -F'-' '{print $2}')
 LOCATION_IN_FILENAME=$(get_region_from_code "$LOCATION_CODE_IN_FILENAME" || true)
 
 echo "Environment:                         ${ENVIRONMENT}"
@@ -74,12 +74,12 @@ if [ -n "$POOL" ]; then
 fi
 
 if [ "$ENVIRONMENT" != "$ENVIRONMENT_IN_FILENAME" ]; then
-  echo "##vso[task.logissue type=error]The environment setting in $deployerTFvarsFile $ENVIRONMENT does not match the $DEPLOYERFOLDER file name $ENVIRONMENT_IN_FILENAME. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
+  echo "##vso[task.logissue type=error]The environment setting in $deployerTFvarsFile $ENVIRONMENT does not match the $DEPLOYER_FOLDERNAME file name $ENVIRONMENT_IN_FILENAME. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
   exit 2
 fi
 
 if [ "$LOCATION" != "$LOCATION_IN_FILENAME" ]; then
-  echo "##vso[task.logissue type=error]The location setting in $deployerTFvarsFile $LOCATION does not match the $DEPLOYERFOLDER file name $LOCATION_IN_FILENAME. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
+  echo "##vso[task.logissue type=error]The location setting in $deployerTFvarsFile $LOCATION does not match the $DEPLOYER_FOLDERNAME file name $LOCATION_IN_FILENAME. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
   exit 2
 fi
 
@@ -87,7 +87,7 @@ deployer_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$EN
 echo "Environment file:                    $deployer_environment_file_name"
 
 REMOTE_STATE_SA=""
-REMOTE_STATE_RG=$LIBRARYFOLDER
+REMOTE_STATE_RG=$LIBRARY_FOLDERNAME
 
 echo -e "$green--- Configure devops CLI extension ---$reset"
 az config set extension.use_dynamic_install=yes_without_prompt --only-show-errors
@@ -191,22 +191,22 @@ fi
 
 echo -e "$green--- Running the remove_deployer script that destroys deployer VM ---$reset"
 
-if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYERFOLDER/state.zip" ]; then
+if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" ]; then
   pass=${SYSTEM_COLLECTIONID//-/}
-  unzip -qq -o -P "${pass}" "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYERFOLDER/state.zip" -d "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYERFOLDER"
+  unzip -qq -o -P "${pass}" "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" -d "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME"
 fi
 
 echo -e "$green--- Running the remove region script that destroys deployer VM and SAP library ---$reset"
 
-cd "$CONFIG_REPO_PATH/DEPLOYER/$DEPLOYERFOLDER" || exit
+cd "$CONFIG_REPO_PATH/DEPLOYER/$DEPLOYER_FOLDERNAME" || exit
 
 if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/remove_deployer.sh" --auto-approve \
-  --parameterfile "$DEPLOYERCONFIG"; then
-  echo "Control Plane $DEPLOYERFOLDER removal step 2 completed."
-  echo "##vso[task.logissue type=warning]Control Plane $DEPLOYERFOLDER removal step 2 completed."
+  --parameterfile "$DEPLOYER_TFVARS_FILENAME"; then
+  echo "Control Plane $DEPLOYER_FOLDERNAME removal step 2 completed."
+  echo "##vso[task.logissue type=warning]Control Plane $DEPLOYER_FOLDERNAME removal step 2 completed."
 else
   return_code=$?
-  echo "Control Plane $DEPLOYERFOLDER removal step 2 failed."
+  echo "Control Plane $DEPLOYER_FOLDERNAME removal step 2 failed."
 fi
 
 return_code=$?
@@ -222,28 +222,28 @@ if [ 0 == $return_code ]; then
   cd "$CONFIG_REPO_PATH" || exit
   changed=0
 
-  if [ -f "DEPLOYER/$DEPLOYERFOLDER/.terraform/terraform.tfstate" ]; then
-    git rm -q -f --ignore-unmatch "DEPLOYER/$DEPLOYERFOLDER/.terraform/terraform.tfstate"
+  if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate" ]; then
+    git rm -q -f --ignore-unmatch "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate"
     changed=1
   fi
 
-  if [ -d "DEPLOYER/$DEPLOYERFOLDER/.terraform" ]; then
-    git rm -q -r --ignore-unmatch "DEPLOYER/$DEPLOYERFOLDER/.terraform"
+  if [ -d "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform" ]; then
+    git rm -q -r --ignore-unmatch "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform"
     changed=1
   fi
 
-  if [ -f "DEPLOYER/$DEPLOYERFOLDER/state.zip" ]; then
-    git rm -q -f --ignore-unmatch "DEPLOYER/$DEPLOYERFOLDER/state.zip"
+  if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" ]; then
+    git rm -q -f --ignore-unmatch "DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip"
     changed=1
   fi
 
-  if [ -d "LIBRARY/$LIBRARYFOLDER/.terraform" ]; then
-    git rm -q -r --ignore-unmatch "LIBRARY/$LIBRARYFOLDER/.terraform"
+  if [ -d "LIBRARY/$LIBRARY_FOLDERNAME/.terraform" ]; then
+    git rm -q -r --ignore-unmatch "LIBRARY/$LIBRARY_FOLDERNAME/.terraform"
     changed=1
   fi
 
-  if [ -f "LIBRARY/$LIBRARYFOLDER/state.zip" ]; then
-    git rm -q -f --ignore-unmatch "LIBRARY/$LIBRARYFOLDER/state.zip"
+  if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/state.zip" ]; then
+    git rm -q -f --ignore-unmatch "LIBRARY/$LIBRARY_FOLDERNAME/state.zip"
     changed=1
   fi
 
@@ -258,18 +258,18 @@ if [ 0 == $return_code ]; then
     changed=1
   fi
 
-  if [ -f "LIBRARY/$LIBRARYFOLDER/backend-config.tfvars" ]; then
-    git rm -q --ignore-unmatch "LIBRARY/$LIBRARYFOLDER/backend-config.tfvars"
+  if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/backend-config.tfvars" ]; then
+    git rm -q --ignore-unmatch "LIBRARY/$LIBRARY_FOLDERNAME/backend-config.tfvars"
     changed=1
   fi
 
   if [ 1 == $changed ]; then
     git config --global user.email "$BUILD_REQUESTEDFOREMAIL"
     git config --global user.name "$BUILD_REQUESTEDFOR"
-    git commit -m "Control Plane $DEPLOYERFOLDER removal step 2[skip ci]"
+    git commit -m "Control Plane $DEPLOYER_FOLDERNAME removal step 2[skip ci]"
     if git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BRANCH" --force-with-lease; then
       return_code=$?
-      echo "##vso[task.logissue type=warning]Control Plane $DEPLOYERFOLDER removal step 2 updated in $BRANCH"
+      echo "##vso[task.logissue type=warning]Control Plane $DEPLOYER_FOLDERNAME removal step 2 updated in $BRANCH"
     else
       return_code=$?
       echo "##vso[task.logissue type=error]Failed to push changes to $BRANCH"

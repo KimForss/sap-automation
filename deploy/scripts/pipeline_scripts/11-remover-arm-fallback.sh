@@ -20,14 +20,14 @@ fi
 export AZURE_DEVOPS_EXT_PAT
 return_code=0
 
-ENVIRONMENT=$(echo "$DEPLOYERFOLDER" | awk -F'-' '{print $1}' | xargs)
+ENVIRONMENT=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $1}' | xargs)
 echo "Environment:                           $ENVIRONMENT"
 
-LOCATION=$(echo "$DEPLOYERFOLDER" | awk -F'-' '{print $2}' | xargs)
+LOCATION=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $2}' | xargs)
 echo
 echo "Location:                              $LOCATION"
 
-NETWORK=$(echo "$DEPLOYERFOLDER" | awk -F'-' '{print $3}' | xargs)
+NETWORK=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $3}' | xargs)
 echo "Network:                               $NETWORK"
 
 VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$PARENT_VARIABLE_GROUP'].id | [0]")
@@ -41,27 +41,27 @@ else
 fi
 echo "Subscription:                          $subscription"
 
-resourceGroupName=$(az group list --subscription "$subscription" --query "[?name=='$LIBRARYFOLDER'].name | [0]")
+resourceGroupName=$(az group list --subscription "$subscription" --query "[?name=='$LIBRARY_FOLDERNAME'].name | [0]")
 if [ ${#resourceGroupName} != 0 ]; then
-  echo "Deleting resource group:               $LIBRARYFOLDER"
+  echo "Deleting resource group:               $LIBRARY_FOLDERNAME"
   echo "##vso[task.setprogress value=0;]Progress Indicator"
 
   # shellcheck disable=SC2046
-  az group delete --subscription "$subscription" --name $LIBRARYFOLDER --yes --only-show-errors
+  az group delete --subscription "$subscription" --name $LIBRARY_FOLDERNAME --yes --only-show-errors
   return_code=$?
   echo "##vso[task.setprogress value=30;]Progress Indicator"
 else
-  echo "Resource group $LIBRARYFOLDER does not exist."
+  echo "Resource group $LIBRARY_FOLDERNAME does not exist."
 fi
 
-resourceGroupName=$(az group list --subscription "$subscription" --query "[?name=='$DEPLOYERFOLDER'].name  | [0]")
+resourceGroupName=$(az group list --subscription "$subscription" --query "[?name=='$DEPLOYER_FOLDERNAME'].name  | [0]")
 if [ ${#resourceGroupName} != 0 ]; then
-  echo "Deleting resource group:               $DEPLOYERFOLDER"
+  echo "Deleting resource group:               $DEPLOYER_FOLDERNAME"
   echo "##vso[task.setprogress value=60;]Progress Indicator"
-  az group delete --subscription "$subscription" --name "$DEPLOYERFOLDER" --yes --only-show-errors
+  az group delete --subscription "$subscription" --name "$DEPLOYER_FOLDERNAME" --yes --only-show-errors
   return_code=$?
 else
-  echo "Resource group $DEPLOYERFOLDER does not exist"
+  echo "Resource group $DEPLOYER_FOLDERNAME does not exist"
 fi
 
 echo -e "$green--- Removing deployment automation configuration from devops repository ---$reset"
@@ -73,25 +73,25 @@ if [ 0 == $return_code ]; then
   git checkout -q $BRANCH
   git pull
   changed=0
-  echo "##vso[build.updatebuildnumber]Removing control plane $DEPLOYERFOLDER $LIBRARYFOLDER"
+  echo "##vso[build.updatebuildnumber]Removing control plane $DEPLOYER_FOLDERNAME $LIBRARY_FOLDERNAME"
 
-  if [ -d "DEPLOYER/$DEPLOYERFOLDER/.terraform" ]; then
-    git rm -q -r --ignore-unmatch "DEPLOYER/$DEPLOYERFOLDER/.terraform"
+  if [ -d "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform" ]; then
+    git rm -q -r --ignore-unmatch "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform"
     changed=1
   fi
 
-  if [ -f "DEPLOYER/$DEPLOYERFOLDER/state.zip" ]; then
-    git rm -q --ignore-unmatch "DEPLOYER/$DEPLOYERFOLDER/state.zip"
+  if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" ]; then
+    git rm -q --ignore-unmatch "DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip"
     changed=1
   fi
 
-  if [ -d "LIBRARY/$LIBRARYFOLDER/.terraform" ]; then
-    git rm -q -r --ignore-unmatch "LIBRARY/$LIBRARYFOLDER/.terraform"
+  if [ -d "LIBRARY/$LIBRARY_FOLDERNAME/.terraform" ]; then
+    git rm -q -r --ignore-unmatch "LIBRARY/$LIBRARY_FOLDERNAME/.terraform"
     changed=1
   fi
 
-  if [ -f "LIBRARY/$LIBRARYFOLDER/state.zip" ]; then
-    git rm -q --ignore-unmatch "LIBRARY/$LIBRARYFOLDER/state.zip"
+  if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/state.zip" ]; then
+    git rm -q --ignore-unmatch "LIBRARY/$LIBRARY_FOLDERNAME/state.zip"
     changed=1
   fi
 
@@ -104,8 +104,8 @@ if [ 0 == $return_code ]; then
     changed=1
   fi
 
-  if [ -f "LIBRARY/$LIBRARYFOLDER/backend-config.tfvars" ]; then
-    git rm -q --ignore-unmatch "LIBRARY/$LIBRARYFOLDER/backend-config.tfvars"
+  if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/backend-config.tfvars" ]; then
+    git rm -q --ignore-unmatch "LIBRARY/$LIBRARY_FOLDERNAME/backend-config.tfvars"
     changed=1
   fi
 
