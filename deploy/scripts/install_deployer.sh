@@ -184,10 +184,11 @@ else
 
       if [ -n "$REINSTALL_ACCOUNTNAME" ] && [ -n "$REINSTALL_SUBSCRIPTION" ]; then
 
-        sed -i /"use_microsoft_graph"/d "${param_dirname}/.terraform/terraform.tfstate"
         tfstate_resource_id=$(az resource list --name "$REINSTALL_ACCOUNTNAME" --subscription "$REINSTALL_SUBSCRIPTION" --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv )
         if [ -n "${tfstate_resource_id}" ]; then
           echo "Reinitializing against remote state"
+          this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
+          az storage account network-rule add --account-name "$REINSTALL_ACCOUNTNAME" --resource-group "$REINSTALL_RESOURCE_GROUP" --ip-address "${this_ip}" --only-show-errors --output none
           export TF_VAR_tfstate_resource_id=$tfstate_resource_id
 
           terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/run/sap_deployer"/
