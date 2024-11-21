@@ -22,9 +22,9 @@ if [ "$SYSTEM_DEBUG" = True ]; then
 fi
 set -eu
 
-echo "##vso[build.updatebuildnumber]Deploying the SAP System defined in $(sap_system_folder)"
+echo "##vso[build.updatebuildnumber]Deploying the SAP System defined in $SAP_SYSTEM_FOLDER"
 
-tfvarsFile="SYSTEM/$(sap_system_folder)/$(sap_system_configuration)"
+tfvarsFile="SYSTEM/$SAP_SYSTEM_FOLDER/$SAP_SYSTEM_CONFIGURATION"
 
 echo -e "$green--- Checkout $BRANCH ---$reset"
 
@@ -32,9 +32,9 @@ cd "${CONFIG_REPO_PATH}" || exit
 mkdir -p .sap_deployment_automation
 git checkout -q "$BRANCH"
 
-if [ ! -f "$CONFIG_REPO_PATH/SYSTEM/$(sap_system_folder)/$(sap_system_configuration)" ]; then
-  echo -e "$boldred--- $(sap_system_configuration) was not found ---$reset"
-  echo "##vso[task.logissue type=error]File $(sap_system_configuration) was not found."
+if [ ! -f "$CONFIG_REPO_PATH/SYSTEM/$SAP_SYSTEM_FOLDER/$SAP_SYSTEM_CONFIGURATION" ]; then
+  echo -e "$boldred--- $SAP_SYSTEM_CONFIGURATION was not found ---$reset"
+  echo "##vso[task.logissue type=error]File $SAP_SYSTEM_CONFIGURATION was not found."
   exit 2
 fi
 
@@ -124,16 +124,16 @@ LOCATION=$(grep -m1 "^location" "$tfvarsFile" | awk -F'=' '{print $2}' | tr '[:u
 NETWORK=$(grep -m1 "^network_logical_name" "$tfvarsFile" | awk -F'=' '{print $2}' | tr -d ' \t\n\r\f"')
 SID=$(grep -m1 "^sid" "$tfvarsFile" | awk -F'=' '{print $2}' | tr -d ' \t\n\r\f"')
 
-ENVIRONMENT_IN_FILENAME=$(echo $(sap_system_folder) | awk -F'-' '{print $1}')
+ENVIRONMENT_IN_FILENAME=$(echo $SAP_SYSTEM_FOLDER | awk -F'-' '{print $1}')
 
-LOCATION_CODE_IN_FILENAME=$(echo $(sap_system_folder) | awk -F'-' '{print $2}')
+LOCATION_CODE_IN_FILENAME=$(echo $SAP_SYSTEM_FOLDER | awk -F'-' '{print $2}')
 LOCATION_IN_FILENAME=$(get_region_from_code "$LOCATION_CODE_IN_FILENAME" || true)
 
-NETWORK_IN_FILENAME=$(echo $(sap_system_folder) | awk -F'-' '{print $3}')
+NETWORK_IN_FILENAME=$(echo $SAP_SYSTEM_FOLDER | awk -F'-' '{print $3}')
 
-SID_IN_FILENAME=$(echo $(sap_system_folder) | awk -F'-' '{print $4}')
+SID_IN_FILENAME=$(echo $SAP_SYSTEM_FOLDER | awk -F'-' '{print $4}')
 
-echo "System TFvars:                       $(sap_system_configuration)"
+echo "System TFvars:                       $SAP_SYSTEM_CONFIGURATION"
 echo "Environment:                         $ENVIRONMENT"
 echo "Location:                            $LOCATION"
 echo "Network:                             $NETWORK"
@@ -146,7 +146,7 @@ echo "SID(filename):                       $SID_IN_FILENAME"
 
 echo ""
 
-echo "Agent pool:                          $(this_agent)"
+echo "Agent pool:                          $THIS_AGENT"
 echo "Organization:                        $ENDPOINT_URL_SYSTEMVSSCONNECTION"
 echo "Project:                             $SYSTEM_TEAMPROJECT"
 echo ""
@@ -155,22 +155,22 @@ echo "-------------------------------------------------"
 az --version
 
 if [ "$ENVIRONMENT" != "$ENVIRONMENT_IN_FILENAME" ]; then
-  echo "##vso[task.logissue type=error]The environment setting in $(sap_system_configuration) '$ENVIRONMENT' does not match the $(sap_system_configuration) file name '$ENVIRONMENT_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
+  echo "##vso[task.logissue type=error]The environment setting in $SAP_SYSTEM_CONFIGURATION '$ENVIRONMENT' does not match the $SAP_SYSTEM_CONFIGURATION file name '$ENVIRONMENT_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
   exit 2
 fi
 
 if [ "$LOCATION" != "$LOCATION_IN_FILENAME" ]; then
-  echo "##vso[task.logissue type=error]The location setting in $(sap_system_configuration) '$LOCATION' does not match the $(sap_system_configuration) file name '$LOCATION_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
+  echo "##vso[task.logissue type=error]The location setting in $SAP_SYSTEM_CONFIGURATION '$LOCATION' does not match the $SAP_SYSTEM_CONFIGURATION file name '$LOCATION_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
   exit 2
 fi
 
 if [ "$NETWORK" != "$NETWORK_IN_FILENAME" ]; then
-  echo "##vso[task.logissue type=error]The network_logical_name setting in $(sap_system_configuration) '$NETWORK' does not match the $(sap_system_configuration) file name '$NETWORK_IN_FILENAME-. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
+  echo "##vso[task.logissue type=error]The network_logical_name setting in $SAP_SYSTEM_CONFIGURATION '$NETWORK' does not match the $SAP_SYSTEM_CONFIGURATION file name '$NETWORK_IN_FILENAME-. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
   exit 2
 fi
 
 if [ "$SID" != "$SID_IN_FILENAME" ]; then
-  echo "##vso[task.logissue type=error]The sid setting in $(sap_system_configuration) '$SID' does not match the $(sap_system_configuration) file name '$SID_IN_FILENAME-. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-[SID]"
+  echo "##vso[task.logissue type=error]The sid setting in $SAP_SYSTEM_CONFIGURATION '$SID' does not match the $SAP_SYSTEM_CONFIGURATION file name '$SID_IN_FILENAME-. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-[SID]"
   exit 2
 fi
 
@@ -233,9 +233,9 @@ tfstate_resource_id=$(az resource list --name "${REMOTE_STATE_SA}" --subscriptio
 export tfstate_resource_id
 
 echo -e "$green--- Deploy the System ---$reset"
-cd "$CONFIG_REPO_PATH/SYSTEM/$(sap_system_folder)" || exit
+cd "$CONFIG_REPO_PATH/SYSTEM/$SAP_SYSTEM_FOLDER" || exit
 
-"$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer.sh" --parameterfile $(sap_system_configuration) --type sap_system \
+"$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer.sh" --parameterfile $SAP_SYSTEM_CONFIGURATION --type sap_system \
   --state_subscription "${STATE_SUBSCRIPTION}" --storageaccountname "${REMOTE_STATE_SA}" \
   --deployer_tfstate_key "${deployer_tfstate_key}" --landscape_tfstate_key "${landscape_tfstate_key}" \
   --ado --auto-approve
@@ -254,7 +254,7 @@ git pull
 
 # Pull changes if there are other deployment jobs
 
-cd "${CONFIG_REPO_PATH}/SYSTEM/$(sap_system_folder)" || exit
+cd "${CONFIG_REPO_PATH}/SYSTEM/$SAP_SYSTEM_FOLDER" || exit
 
 echo -e "$green--- Pull the latest content from DevOps ---$reset"
 git pull
@@ -282,7 +282,7 @@ if [ -f "${SID}_hosts.yaml" ]; then
 fi
 
 if [ -f "${SID}.md" ]; then
-  git add "${CONFIG_REPO_PATH}/SYSTEM/$(sap_system_folder)/${SID}.md"
+  git add "${CONFIG_REPO_PATH}/SYSTEM/$SAP_SYSTEM_FOLDER/${SID}.md"
   # echo "##vso[task.uploadsummary]./${SID}.md)"
   added=1
 fi
@@ -297,8 +297,8 @@ if [ -f "${SID}_resource_names.json" ]; then
   added=1
 fi
 
-if [ -f $(sap_system_configuration) ]; then
-  git add $(sap_system_configuration)
+if [ -f $SAP_SYSTEM_CONFIGURATION ]; then
+  git add $SAP_SYSTEM_CONFIGURATION
   added=1
 fi
 
@@ -312,10 +312,10 @@ git pull -q origin "$BRANCH"
 if [ 1 == $added ]; then
   git config --global user.email "$BUILD_REQUESTEDFOREMAIL"
   git config --global user.name "$BUILD_REQUESTEDFOR"
-  git commit -m "Added updates from devops deployment $BUILD_BUILDNUMBER [skip ci]"
+  git commit -m "Added updates from SAP deployment of $SAP_SYSTEM_FOLDER for $BUILD_BUILDNUMBER [skip ci]"
 
   if git -c http.extraheader="AUTHORIZATION: bearer SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BRANCH" --force-with-lease; then
-    echo "##vso[task.logissue type=warning]Changes pushed to $BRANCH"
+    echo "##vso[task.logissue type=warning]Changes from SAP deployment of $SAP_SYSTEM_FOLDER pushed to $BRANCH"
   else
     echo "##vso[task.logissue type=error]Failed to push changes to $BRANCH"
   fi
