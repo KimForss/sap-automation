@@ -161,6 +161,15 @@ if [ 0 != $return_code ]; then
   exit $return_code
 fi
 
+extra_vars=""
+
+if [ -f terraform.tfvars ]; then
+  extra_vars=" -var-file=${param_dirname}/terraform.tfvars "
+fi
+
+allParameters=$(printf " -var-file=%s %s" "${var_file}" "${extra_vars}")
+allImportParameters=$(printf " -var-file=%s %s " "${var_file}" "${extra_vars}")
+
 if [ ! -d ./.terraform/ ]; then
   echo "#########################################################################################"
   echo "#                                                                                       #"
@@ -183,33 +192,15 @@ else
       REINSTALL_ACCOUNTNAME=$(grep -m1 "storage_account_name" "${param_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
       REINSTALL_RESOURCE_GROUP=$(grep -m1 "resource_group_name" "${param_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
 
-      if [ -n "$REINSTALL_ACCOUNTNAME" ] && [ -n "$REINSTALL_SUBSCRIPTION" ]; then
-
-        tfstate_resource_id=$(az resource list --name "$REINSTALL_ACCOUNTNAME" --subscription "$REINSTALL_SUBSCRIPTION" --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv )
-        if [ -n "${tfstate_resource_id}" ]; then
-          echo "Reinitializing against remote state"
-          this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
-          az storage account network-rule add --account-name "$REINSTALL_ACCOUNTNAME" --resource-group "$REINSTALL_RESOURCE_GROUP" --ip-address "${this_ip}" --only-show-errors --output none
-          sleep 30
-          export TF_VAR_tfstate_resource_id=$tfstate_resource_id
-          if terraform -chdir="${terraform_module_directory}" init -reconfigure --backend-config "path=${param_dirname}/terraform.tfstate"
-            terraform -chdir="${terraform_module_directory}" refresh -var-file="${var_file}"
-          fi
-
-        else
-          terraform -chdir="${terraform_module_directory}" init -reconfigure --backend-config "path=${param_dirname}/terraform.tfstate"
-          terraform -chdir="${terraform_module_directory}" refresh -var-file="${var_file}"
-        fi
-      else
-        terraform -chdir="${terraform_module_directory}" init -reconfigure --backend-config "path=${param_dirname}/terraform.tfstate"
-        terraform -chdir="${terraform_module_directory}" refresh -var-file="${var_file}"
-      fi
-    else
-      terraform -chdir="${terraform_module_directory}" init -reconfigure -backend-config "path=${param_dirname}/terraform.tfstate"
+      terraform -chdir="${terraform_module_directory}" init -reconfigure --backend-config "path=${param_dirname}/terraform.tfstate"
+      terraform -chdir="${terraform_module_directory}" refresh -var-file="${var_file}"
     fi
   else
     terraform -chdir="${terraform_module_directory}" init -upgrade=true -backend-config "path=${param_dirname}/terraform.tfstate"
   fi
+  terraform -chdir="${terraform_module_directory}" init -upgrade=true -backend-config "path=${param_dirname}/terraform.tfstate"
+  echo "Parameters:                          $allParameters"
+  terraform -chdir="${terraform_module_directory}" refresh $allParameters
 fi
 return_value=$?
 if [ 1 == $return_value ]; then
@@ -223,18 +214,6 @@ if [ 1 == $return_value ]; then
   unset TF_DATA_DIR
   exit $return_value
 fi
-
-extra_vars=""
-
-if [ -f terraform.tfvars ]; then
-  extra_vars=" -var-file=${param_dirname}/terraform.tfvars "
-fi
-
-allParameters=$(printf " -var-file=%s %s" "${var_file}" "${extra_vars}")
-allImportParameters=$(printf " -var-file=%s %s " "${var_file}" "${extra_vars}")
-
-echo "Parameters:                          $allParameters"
-terraform -chdir="${terraform_module_directory}" refresh $allParameters
 
 echo ""
 echo "#########################################################################################"
