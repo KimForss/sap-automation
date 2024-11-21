@@ -56,7 +56,7 @@ git checkout -q "$BRANCH"
 echo -e "$green--- Configure devops CLI extension ---$reset"
 az config set extension.use_dynamic_install=yes_without_prompt --only-show-errors
 az extension add --name azure-devops --output none --only-show-errors
-az devops configure --defaults organization="$ENDPOINT_URL_SYSTEMVSSCONNECTION" project="$SYSTEM_TEAMPROJECT""" --output none --only-show-errors
+az devops configure --defaults organization="$ENDPOINT_URL_SYSTEMVSSCONNECTION" project="$SYSTEM_TEAMPROJECT" --output none --only-show-errors
 
 echo -e "$green--- File Validations ---$reset"
 if [ ! -f "$deployer_tfvars_file_name" ]; then

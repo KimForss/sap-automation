@@ -88,7 +88,12 @@ echo "Environment file:                    $deployer_environment_file_name"
 
 REMOTE_STATE_SA=""
 REMOTE_STATE_RG=$LIBRARYFOLDER
-sourced_from_file=0
+
+echo -e "$green--- Configure devops CLI extension ---$reset"
+az config set extension.use_dynamic_install=yes_without_prompt --only-show-errors
+az extension add --name azure-devops --output none --only-show-errors
+az devops configure --defaults organization="$ENDPOINT_URL_SYSTEMVSSCONNECTION" project="$SYSTEM_TEAMPROJECT" --output none --only-show-errors
+
 
 if [[ -f /etc/profile.d/deploy_server.sh ]]; then
   path=$(grep -m 1 "export PATH=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
