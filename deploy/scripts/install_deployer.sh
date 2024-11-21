@@ -223,6 +223,7 @@ else
     terraform -chdir="${terraform_module_directory}" init -upgrade=true -backend-config "path=${param_dirname}/terraform.tfstate"
   fi
 fi
+exit 0
 return_value=$?
 if [ 1 == $return_value ]; then
   echo ""
