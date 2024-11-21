@@ -74,12 +74,12 @@ if [ -n "$POOL" ]; then
 fi
 
 if [ "$ENVIRONMENT" != "$ENVIRONMENT_IN_FILENAME" ]; then
-  echo "##vso[task.logissue type=error]The environment setting in $(workload_zone_configuration_file) '$ENVIRONMENT' does not match the $(workload_zone_configuration_file) file name '$ENVIRONMENT_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
+  echo "##vso[task.logissue type=error]The environment setting in $(workload_zone_configuration_file) '$ENVIRONMENT' does not match the $DEPLOYERFOLDER file name '$ENVIRONMENT_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
   exit 2
 fi
 
 if [ "$LOCATION" != "$LOCATION_IN_FILENAME" ]; then
-  echo "##vso[task.logissue type=error]The location setting in $(workload_zone_configuration_file) '$LOCATION' does not match the $(workload_zone_configuration_file) file name '$LOCATION_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
+  echo "##vso[task.logissue type=error]The location setting in $(workload_zone_configuration_file) '$LOCATION' does not match the $DEPLOYERFOLDER file name '$LOCATION_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
   exit 2
 fi
 
@@ -94,7 +94,6 @@ if [[ -f /etc/profile.d/deploy_server.sh ]]; then
   path=$(grep -m 1 "export PATH=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
   export PATH=$PATH:$path
 fi
-
 
 echo -e "$green--- Information ---$reset"
 VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$PARENT_VARIABLE_GROUP'].id | [0]")
@@ -156,7 +155,7 @@ export ARM_SUBSCRIPTION_ID
 
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-  configureNonDeployer "$(tf_version)" || true
+  configureNonDeployer "$TF_VERSION" || true
   echo -e "$green--- az login ---$reset"
   LogonToAzure false || true
 else
@@ -172,7 +171,6 @@ fi
 ARM_SUBSCRIPTION_ID=$CP_ARM_SUBSCRIPTION_ID
 export ARM_SUBSCRIPTION_ID
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
-
 
 key_vault=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_Key_Vault" "${deployer_environment_file_name}" "keyvault" || true)
 export key_vault
@@ -192,29 +190,30 @@ echo "Terraform state account:             $REMOTE_STATE_SA"
 echo "Deployer Key Vault:                  ${key_vault}"
 
 if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$(library_folder)/state.zip" ]; then
-  # shellcheck disable=SC2005
-  # shellcheck disable=SC2001
-  pass=$(echo "$(System.CollectionId)" | sed 's/-//g')
+  pass=${SYSTEM_COLLECTIONID//-/}
   unzip -qq -o -P "${pass}" "${CONFIG_REPO_PATH}/LIBRARY/$(library_folder)/state.zip" -d "${CONFIG_REPO_PATH}/LIBRARY/$(library_folder)"
 fi
 
 if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYERFOLDER/state.zip" ]; then
-  # shellcheck disable=SC2005
-  # shellcheck disable=SC2001
-  pass=$(echo "$(System.CollectionId)" | sed 's/-//g')
+  pass=${SYSTEM_COLLECTIONID//-/}
   unzip -qq -o -P "${pass}" "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYERFOLDER/state.zip" -d "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYERFOLDER"
 fi
 
 echo -e "$green--- Running the remove region script that destroys deployer VM and SAP library ---$reset"
 
-"$SAP_AUTOMATION_REPO_PATH/deploy/scripts/remove_controlplane.sh" \
+if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/remove_controlplane.sh" \
   --deployer_parameter_file "$deployer_tfvarsFile" \
   --library_parameter_file "$library_tfvarsFile" \
   --storage_account "$REMOTE_STATE_SA" \
   --subscription "${STATE_SUBSCRIPTION}" \
   --resource_group "$REMOTE_STATE_RG" \
-  --ado --auto-approve --keep_agent
-
+  --ado --auto-approve --keep_agent; then
+  echo "Control Plane $DEPLOYERFOLDER removal step 1 completed."
+  echo "##vso[task.logissue type=warning]Control Plane $DEPLOYERFOLDER removal step 1 completed."
+else
+  return_code=$?
+  echo "Control Plane $DEPLOYERFOLDER removal step 1 failed."
+fi
 return_code=$?
 
 echo "Return code from remove_controlplane: $return_code."
@@ -232,9 +231,8 @@ fi
 if [ -f "DEPLOYER/$DEPLOYERFOLDER/terraform.tfstate" ]; then
   echo "Compressing the state file."
   sudo apt-get -qq install zip
-  # shellcheck disable=SC2005
-  # shellcheck disable=SC2001
-  pass=$(echo "$(System.CollectionId)" | sed 's/-//g')
+  pass=${SYSTEM_COLLECTIONID//-/}
+
   zip -q -j -P "${pass}" "DEPLOYER/$DEPLOYERFOLDER/state DEPLOYER/$DEPLOYERFOLDER/terraform.tfstate"
   git add -f "DEPLOYER/$DEPLOYERFOLDER/state.zip"
   changed=1
@@ -246,9 +244,7 @@ if [ $return_code != 0 ]; then
     if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$(library_folder)/terraform.tfstate" ]; then
       sudo apt-get -qq install zip
       echo "Compressing the library state file"
-      # shellcheck disable=SC2005
-      # shellcheck disable=SC2001
-      pass=$(echo "$(System.CollectionId)" | sed 's/-//g')
+      pass=${SYSTEM_COLLECTIONID//-/}
       zip -q -j -P "${pass}" "${CONFIG_REPO_PATH}/LIBRARY/$(library_folder)/state" "${CONFIG_REPO_PATH}/LIBRARY/$(library_folder)/terraform.tfstate"
       git add -f "${CONFIG_REPO_PATH}/LIBRARY/$(library_folder)/state.zip"
       changed=1

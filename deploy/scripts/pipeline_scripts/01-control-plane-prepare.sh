@@ -166,7 +166,7 @@ if [ "$FORCE_RESET" = "True" ]; then
   export FORCE_RESET=true
   key_vault=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_Key_Vault" "${deployer_environment_file_name}" "keyvault")
   echo "Deployer Key Vault:                  ${key_vault}"
-  g
+
   key_vault_id=$(az resource list --name "${key_vault}" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
   export TF_VAR_deployer_kv_user_arm_id=${key_vault_id}
   if [ -n "${key_vault_id}" ]; then
