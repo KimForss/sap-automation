@@ -1,6 +1,4 @@
 #!/bin/bash
-# Treat unset variables as an error when substituting.
-set -u
 
 echo "##vso[build.updatebuildnumber]Removing the control plane defined in $DEPLOYERFOLDER $LIBRARYFOLDER"
 green="\e[1;32m"
@@ -20,10 +18,13 @@ debug=False
 
 if [ "$SYSTEM_DEBUG" = True ]; then
   set -x
+  set -eu
   debug=True
   export debug
 fi
-set -eu
+# Ensure that the exit status of a pipeline command is non-zero if any
+# stage of the pipefile has a non-zero exit status.
+set -o pipefail
 
 deployer_environment_file_name="${CONFIG_REPO_PATH}/.sap_deployment_automation/${ENVIRONMENT}$LOCATION"
 deployerTFvarsFile="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYERFOLDER/$DEPLOYERCONFIG"
