@@ -28,6 +28,7 @@ set -o pipefail
 
 deployer_environment_file_name="${CONFIG_REPO_PATH}/.sap_deployment_automation/${ENVIRONMENT}$LOCATION"
 deployerTFvarsFile="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYERFOLDER/$DEPLOYERCONFIG"
+libraryTFvarsFile="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/$LIBRARYCONFIG"
 deployer_tfstate_key="$DEPLOYERFOLDER.terraform.tfstate"
 
 echo -e "$green--- File Validations ---$reset"
