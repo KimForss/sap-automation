@@ -40,7 +40,7 @@ if [ ! -f "$deployerTFvarsFile" ]; then
 fi
 
 if [ ! -f "${libraryTFvarsFile}" ]; then
-  echo -e "$boldred--- File "${libraryTFvarsFile}"  was not found ---$reset"
+  echo -e "$boldred--- File ${libraryTFvarsFile}  was not found ---$reset"
   echo "##vso[task.logissue type=error]File LIBRARY/$LIBRARYFOLDER/$LIBRARYCONFIG was not found."
   exit 2
 fi
