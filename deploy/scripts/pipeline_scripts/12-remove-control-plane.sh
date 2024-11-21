@@ -49,8 +49,8 @@ TF_VAR_deployer_tfstate_key="$deployer_tfstate_key"
 export TF_VAR_deployer_tfstate_key
 
 echo -e "$green--- Environment information ---$reset"
-ENVIRONMENT=$(grep -m1 "^environment" "$deployer_tfvarsFile" | awk -F'=' '{print $2}' | tr -d ' \t\n\r\f"')
-LOCATION=$(grep -m1 "^location" "$deployer_tfvarsFile" | awk -F'=' '{print $2}' | tr '[:upper:]' '[:lower:]' | tr -d ' \t\n\r\f"')
+ENVIRONMENT=$(grep -m1 "^environment" "$deployerTFvarsFile" | awk -F'=' '{print $2}' | tr -d ' \t\n\r\f"')
+LOCATION=$(grep -m1 "^location" "$deployerTFvarsFile" | awk -F'=' '{print $2}' | tr '[:upper:]' '[:lower:]' | tr -d ' \t\n\r\f"')
 
 # shellcheck disable=SC2005
 ENVIRONMENT_IN_FILENAME=$(echo $DEPLOYERFOLDER | awk -F'-' '{print $1}')
@@ -74,12 +74,12 @@ if [ -n "$POOL" ]; then
 fi
 
 if [ "$ENVIRONMENT" != "$ENVIRONMENT_IN_FILENAME" ]; then
-  echo "##vso[task.logissue type=error]The environment setting in $(workload_zone_configuration_file) '$ENVIRONMENT' does not match the $DEPLOYERFOLDER file name '$ENVIRONMENT_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
+  echo "##vso[task.logissue type=error]The environment setting in $deployerTFvarsFile $ENVIRONMENT does not match the $DEPLOYERFOLDER file name $ENVIRONMENT_IN_FILENAME. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
   exit 2
 fi
 
 if [ "$LOCATION" != "$LOCATION_IN_FILENAME" ]; then
-  echo "##vso[task.logissue type=error]The location setting in $(workload_zone_configuration_file) '$LOCATION' does not match the $DEPLOYERFOLDER file name '$LOCATION_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
+  echo "##vso[task.logissue type=error]The location setting in $deployerTFvarsFile $LOCATION does not match the $DEPLOYERFOLDER file name $LOCATION_IN_FILENAME. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
   exit 2
 fi
 
@@ -202,8 +202,8 @@ fi
 echo -e "$green--- Running the remove region script that destroys deployer VM and SAP library ---$reset"
 
 if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/remove_controlplane.sh" \
-  --deployer_parameter_file "$deployer_tfvarsFile" \
-  --library_parameter_file "$library_tfvarsFile" \
+  --deployer_parameter_file "$deployerTFvarsFile" \
+  --library_parameter_file "$libraryTFvarsFile" \
   --storage_account "$REMOTE_STATE_SA" \
   --subscription "${STATE_SUBSCRIPTION}" \
   --resource_group "$REMOTE_STATE_RG" \
