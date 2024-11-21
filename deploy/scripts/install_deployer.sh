@@ -197,6 +197,7 @@ else
         echo "Reinitializing against remote state"
         this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
         az storage account network-rule add --account-name "$REINSTALL_ACCOUNTNAME" --resource-group "$REINSTALL_RESOURCE_GROUP" --ip-address "${this_ip}" --only-show-errors --output none
+        echo "Sleeping for 30 seconds to allow the network rule to take effect"
         sleep 30
         export TF_VAR_tfstate_resource_id=$tfstate_resource_id
 
