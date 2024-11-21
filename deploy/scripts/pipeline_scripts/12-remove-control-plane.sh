@@ -193,9 +193,9 @@ echo "Terraform state rg name:             $REMOTE_STATE_RG"
 echo "Terraform state account:             $REMOTE_STATE_SA"
 echo "Deployer Key Vault:                  ${key_vault}"
 
-if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$(library_folder)/state.zip" ]; then
+if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/state.zip" ]; then
   pass=${SYSTEM_COLLECTIONID//-/}
-  unzip -qq -o -P "${pass}" "${CONFIG_REPO_PATH}/LIBRARY/$(library_folder)/state.zip" -d "${CONFIG_REPO_PATH}/LIBRARY/$(library_folder)"
+  unzip -qq -o -P "${pass}" "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/state.zip" -d "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER"
 fi
 
 if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYERFOLDER/state.zip" ]; then
@@ -242,41 +242,41 @@ if [ -f "DEPLOYER/$DEPLOYERFOLDER/terraform.tfstate" ]; then
   changed=1
 fi
 if [ $return_code != 0 ]; then
-  backend=$(grep "local" "LIBRARY/$(library_folder)/.terraform/terraform.tfstate" || true)
+  backend=$(grep "local" "LIBRARY/$LIBRARYFOLDER/.terraform/terraform.tfstate" || true)
   if [ -n "${backend}" ]; then
     echo "Local Terraform state"
-    if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$(library_folder)/terraform.tfstate" ]; then
+    if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/terraform.tfstate" ]; then
       sudo apt-get -qq install zip
       echo "Compressing the library state file"
       pass=${SYSTEM_COLLECTIONID//-/}
-      zip -q -j -P "${pass}" "${CONFIG_REPO_PATH}/LIBRARY/$(library_folder)/state" "${CONFIG_REPO_PATH}/LIBRARY/$(library_folder)/terraform.tfstate"
-      git add -f "${CONFIG_REPO_PATH}/LIBRARY/$(library_folder)/state.zip"
+      zip -q -j -P "${pass}" "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/state" "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/terraform.tfstate"
+      git add -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/state.zip"
       changed=1
     fi
   else
     echo "Remote Terraform state"
-    if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$(library_folder)/terraform.tfstate" ]; then
-      git rm -q -f --ignore-unmatch "${CONFIG_REPO_PATH}/LIBRARY/$(library_folder)/terraform.tfstate"
+    if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/terraform.tfstate" ]; then
+      git rm -q -f --ignore-unmatch "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/terraform.tfstate"
       changed=1
     fi
-    if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$(library_folder)/state.zip" ]; then
-      git rm -q --ignore-unmatch -f "${CONFIG_REPO_PATH}/LIBRARY/$(library_folder)/state.zip"
+    if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/state.zip" ]; then
+      git rm -q --ignore-unmatch -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/state.zip"
       changed=1
     fi
   fi
 else
-  if [ -d "LIBRARY/$(library_folder)/.terraform" ]; then
-    git rm -q -r --ignore-unmatch "LIBRARY/$(library_folder)/.terraform"
+  if [ -d "LIBRARY/$LIBRARYFOLDER/.terraform" ]; then
+    git rm -q -r --ignore-unmatch "LIBRARY/$LIBRARYFOLDER/.terraform"
     changed=1
   fi
 
-  if [ -f "LIBRARY/$(library_folder)/state.zip" ]; then
-    git rm -q --ignore-unmatch "LIBRARY/$(library_folder)/state.zip"
+  if [ -f "LIBRARY/$LIBRARYFOLDER/state.zip" ]; then
+    git rm -q --ignore-unmatch "LIBRARY/$LIBRARYFOLDER/state.zip"
     changed=1
   fi
 
-  if [ -f "LIBRARY/$(library_folder)/backend-config.tfvars" ]; then
-    git rm -q --ignore-unmatch "LIBRARY/$(library_folder)/backend-config.tfvars"
+  if [ -f "LIBRARY/$LIBRARYFOLDER/backend-config.tfvars" ]; then
+    git rm -q --ignore-unmatch "LIBRARY/$LIBRARYFOLDER/backend-config.tfvars"
     changed=1
   fi
 fi
