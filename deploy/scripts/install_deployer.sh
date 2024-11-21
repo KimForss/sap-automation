@@ -177,46 +177,34 @@ else
       echo "#                                                                                       #"
       echo "#########################################################################################"
 
-      REINSTALL_SUBSCRIPTION=$(grep -m1 "subscription_id" "./.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d '", ' || true)
-      REINSTALL_ACCOUNTNAME=$(grep -m1 "storage_account_name" "./.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",' || true)
-      REINSTALL_RESOURCE_GROUP=$(grep -m1 "resource_group_name" "./.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",' || true)
+      REINSTALL_SUBSCRIPTION=$(grep -m1 "subscription_id" "${param_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d '", ' || true)
+      REINSTALL_ACCOUNTNAME=$(grep -m1 "storage_account_name" "${param_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",' || true)
+      REINSTALL_RESOURCE_GROUP=$(grep -m1 "resource_group_name" "${param_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",' || true)
 
       if [ -n "$REINSTALL_ACCOUNTNAME" ] && [ -n "$REINSTALL_SUBSCRIPTION" ]; then
 
         sed -i /"use_microsoft_graph"/d "${param_dirname}/.terraform/terraform.tfstate"
-        if [ "$approve" == "--auto-approve" ]; then
-          tfstate_resource_id=$(az resource list --name "$REINSTALL_ACCOUNTNAME" --subscription "$REINSTALL_SUBSCRIPTION" --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv | grep)
-          if [ -n "${tfstate_resource_id}" ]; then
-            echo "Reinitializing against remote state"
-            export TF_VAR_tfstate_resource_id=$tfstate_resource_id
+        tfstate_resource_id=$(az resource list --name "$REINSTALL_ACCOUNTNAME" --subscription "$REINSTALL_SUBSCRIPTION" --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv | grep)
+        if [ -n "${tfstate_resource_id}" ]; then
+          echo "Reinitializing against remote state"
+          export TF_VAR_tfstate_resource_id=$tfstate_resource_id
 
-            terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/run/"${deployment_system}"/
-            terraform -chdir="${terraform_module_directory}" init -upgrade=true \
-              --backend-config "subscription_id=$REINSTALL_SUBSCRIPTION" \
-              --backend-config "resource_group_name=$REINSTALL_RESOURCE_GROUP" \
-              --backend-config "storage_account_name=$REINSTALL_ACCOUNTNAME" \
-              --backend-config "container_name=tfstate" \
-              --backend-config "key=${key}.terraform.tfstate"
-            terraform -chdir="${terraform_module_directory}" refresh -var-file="${var_file}"
+          terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/run/"${deployment_system}"/
+          terraform -chdir="${terraform_module_directory}" init -upgrade=true \
+            --backend-config "subscription_id=$REINSTALL_SUBSCRIPTION" \
+            --backend-config "resource_group_name=$REINSTALL_RESOURCE_GROUP" \
+            --backend-config "storage_account_name=$REINSTALL_ACCOUNTNAME" \
+            --backend-config "container_name=tfstate" \
+            --backend-config "key=${key}.terraform.tfstate"
+          terraform -chdir="${terraform_module_directory}" refresh -var-file="${var_file}"
 
-          else
-            terraform -chdir="${terraform_module_directory}" init -reconfigure --backend-config "path=${param_dirname}/terraform.tfstate"
-            terraform -chdir="${terraform_module_directory}" refresh -var-file="${var_file}"
-          fi
         else
           terraform -chdir="${terraform_module_directory}" init -reconfigure --backend-config "path=${param_dirname}/terraform.tfstate"
           terraform -chdir="${terraform_module_directory}" refresh -var-file="${var_file}"
         fi
       else
-        read -p -r "Do you want to bootstrap the deployer again Y/N?" ans
-        answer=${ans^^}
-        if [ "$answer" == 'Y' ]; then
-          terraform -chdir="${terraform_module_directory}" init -upgrade=true -backend-config "path=${param_dirname}/terraform.tfstate"
-          terraform -chdir="${terraform_module_directory}" refresh -var-file="${var_file}"
-        else
-          unset TF_DATA_DIR
-          exit 0
-        fi
+        terraform -chdir="${terraform_module_directory}" init -reconfigure --backend-config "path=${param_dirname}/terraform.tfstate"
+        terraform -chdir="${terraform_module_directory}" refresh -var-file="${var_file}"
       fi
     else
       terraform -chdir="${terraform_module_directory}" init -reconfigure -backend-config "path=${param_dirname}/terraform.tfstate"
@@ -225,7 +213,7 @@ else
     terraform -chdir="${terraform_module_directory}" init -upgrade=true -backend-config "path=${param_dirname}/terraform.tfstate"
   fi
 fi
-exit 0
+exit 10
 return_value=$?
 if [ 1 == $return_value ]; then
   echo ""
@@ -261,7 +249,7 @@ echo ""
 
 # shellcheck disable=SC2086
 
-if terraform -chdir="$terraform_module_directory" plan -detailed-exitcode $allParameters | tee -a plan_output.log ;then
+if terraform -chdir="$terraform_module_directory" plan -detailed-exitcode $allParameters | tee -a plan_output.log; then
   return_value=0
 else
   return_value=$?
