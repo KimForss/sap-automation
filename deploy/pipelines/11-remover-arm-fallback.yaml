@@ -93,13 +93,13 @@ stages:
           - group:                     SDAF-${{ parameters.workload_environment }}
         steps:
           - task:                      AzureResourceManagerTemplateDeployment@3
-            displayName:               Remove Resource Group $(sap_system_folder)
+            displayName:               Remove Resource Group $(sap_system_foldername)
             inputs:
               deploymentScope:                "Resource Group"
               azureResourceManagerConnection: ${{ parameters.workload_zone_connection }}
               subscriptionId:                 "$(ARM_SUBSCRIPTION_ID)"
               action:                         "DeleteRG"
-              resourceGroupName:              "$(sap_system_folder)"
+              resourceGroupName:              "$(sap_system_foldername)"
 
       - job:                           Remove_sap_deployment_artifacts_in_WORKSPACES
         displayName:                   Remove SAP System deployment artifacts from WORKSPACES
@@ -118,30 +118,30 @@ stages:
                 git checkout -q $(Branch)
                 git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" pull
 
-                echo "##vso[build.updatebuildnumber]Removing $(sap_system_folder)"
+                echo "##vso[build.updatebuildnumber]Removing $(sap_system_foldername)"
 
                 changed=0
-                if [ -d "SYSTEM/$(sap_system_folder)/.terraform" ]; then
-                  git rm -q  --ignore-unmatch -r "SYSTEM/$(sap_system_folder)/.terraform"
+                if [ -d "SYSTEM/$(sap_system_foldername)/.terraform" ]; then
+                  git rm -q  --ignore-unmatch -r "SYSTEM/$(sap_system_foldername)/.terraform"
                   changed=1
                 fi
-                if [ -f  "SYSTEM/$(sap_system_folder)/sap-parameters.yaml" ]; then
-                  git rm -q  --ignore-unmatch "SYSTEM/$(sap_system_folder)/sap-parameters.yaml"
-                  changed=1
-                fi
-
-                if [ $(ls SYSTEM/$(sap_system_folder)/*_hosts.yaml | wc -l ) -gt 0 ] ; then
-                  git rm -q  --ignore-unmatch   SYSTEM/$(sap_system_folder)/*_hosts.yaml
+                if [ -f  "SYSTEM/$(sap_system_foldername)/sap-parameters.yaml" ]; then
+                  git rm -q  --ignore-unmatch "SYSTEM/$(sap_system_foldername)/sap-parameters.yaml"
                   changed=1
                 fi
 
-                if [ $(ls SYSTEM/$(sap_system_folder)/*.md | wc -l ) -gt 0 ] ; then
-                  git rm -q  --ignore-unmatch   SYSTEM/$(sap_system_folder)/*.md
+                if [ $(ls SYSTEM/$(sap_system_foldername)/*_hosts.yaml | wc -l ) -gt 0 ] ; then
+                  git rm -q  --ignore-unmatch   SYSTEM/$(sap_system_foldername)/*_hosts.yaml
                   changed=1
                 fi
 
-                if [ $(ls SYSTEM/$(sap_system_folder)/logs/*.zip | wc -l ) -gt 0 ] ; then
-                  git rm -q   --ignore-unmatch  SYSTEM/$(sap_system_folder)/logs/*.zip
+                if [ $(ls SYSTEM/$(sap_system_foldername)/*.md | wc -l ) -gt 0 ] ; then
+                  git rm -q  --ignore-unmatch   SYSTEM/$(sap_system_foldername)/*.md
+                  changed=1
+                fi
+
+                if [ $(ls SYSTEM/$(sap_system_foldername)/logs/*.zip | wc -l ) -gt 0 ] ; then
+                  git rm -q   --ignore-unmatch  SYSTEM/$(sap_system_foldername)/logs/*.zip
                   changed=1
                 fi
 

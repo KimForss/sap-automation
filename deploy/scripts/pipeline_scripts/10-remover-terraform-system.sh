@@ -1,6 +1,6 @@
 #!/bin/bash
 #!/bin/bash
-echo "##vso[build.updatebuildnumber]Deploying the SAP System defined in $SAP_SYSTEM_FOLDER"
+echo "##vso[build.updatebuildnumber]Deploying the SAP System defined in $SAP_SYSTEM_FOLDERNAME"
 
 green="\e[1;32m"
 reset="\e[0m"
@@ -24,7 +24,7 @@ if [ "$SYSTEM_DEBUG" = True ]; then
 fi
 set -eu
 
-tfvarsFile="SYSTEM/$SAP_SYSTEM_FOLDER/$SAP_SYSTEM_CONFIGURATION"
+tfvarsFile="SYSTEM/$SAP_SYSTEM_FOLDERNAME/$SAP_SYSTEM_TFVARS_FILENAME"
 
 echo -e "$green--- Checkout $(Build.SourceBranchName) ---$reset"
 
@@ -32,9 +32,9 @@ cd "${CONFIG_REPO_PATH}" || exit
 mkdir -p .sap_deployment_automation
 git checkout -q "$(Build.SourceBranchName)"
 
-if [ ! -f "$CONFIG_REPO_PATH/SYSTEM/$SAP_SYSTEM_FOLDER/$SAP_SYSTEM_CONFIGURATION" ]; then
-  echo -e "$boldred--- $SAP_SYSTEM_CONFIGURATION was not found ---$reset"
-  echo "##vso[task.logissue type=error]File $SAP_SYSTEM_CONFIGURATION was not found."
+if [ ! -f "$CONFIG_REPO_PATH/SYSTEM/$SAP_SYSTEM_FOLDERNAME/$SAP_SYSTEM_TFVARS_FILENAME" ]; then
+  echo -e "$boldred--- $SAP_SYSTEM_TFVARS_FILENAME was not found ---$reset"
+  echo "##vso[task.logissue type=error]File $SAP_SYSTEM_TFVARS_FILENAME was not found."
   exit 2
 fi
 
@@ -124,16 +124,16 @@ LOCATION=$(grep -m1 "^location" "$tfvarsFile" | awk -F'=' '{print $2}' | tr '[:u
 NETWORK=$(grep -m1 "^network_logical_name" "$tfvarsFile" | awk -F'=' '{print $2}' | tr -d ' \t\n\r\f"')
 SID=$(grep -m1 "^sid" "$tfvarsFile" | awk -F'=' '{print $2}' | tr -d ' \t\n\r\f"')
 
-ENVIRONMENT_IN_FILENAME=$(echo $SAP_SYSTEM_FOLDER | awk -F'-' '{print $1}')
+ENVIRONMENT_IN_FILENAME=$(echo $SAP_SYSTEM_FOLDERNAME | awk -F'-' '{print $1}')
 
-LOCATION_CODE_IN_FILENAME=$(echo $SAP_SYSTEM_FOLDER | awk -F'-' '{print $2}')
+LOCATION_CODE_IN_FILENAME=$(echo $SAP_SYSTEM_FOLDERNAME | awk -F'-' '{print $2}')
 LOCATION_IN_FILENAME=$(get_region_from_code "$LOCATION_CODE_IN_FILENAME" || true)
 
-NETWORK_IN_FILENAME=$(echo $SAP_SYSTEM_FOLDER | awk -F'-' '{print $3}')
+NETWORK_IN_FILENAME=$(echo $SAP_SYSTEM_FOLDERNAME | awk -F'-' '{print $3}')
 
-SID_IN_FILENAME=$(echo $SAP_SYSTEM_FOLDER | awk -F'-' '{print $4}')
+SID_IN_FILENAME=$(echo $SAP_SYSTEM_FOLDERNAME | awk -F'-' '{print $4}')
 
-echo "System TFvars:                       $SAP_SYSTEM_CONFIGURATION"
+echo "System TFvars:                       $SAP_SYSTEM_TFVARS_FILENAME"
 echo "Environment:                         $ENVIRONMENT"
 echo "Location:                            $LOCATION"
 echo "Network:                             $NETWORK"
@@ -155,22 +155,22 @@ echo "-------------------------------------------------"
 az --version
 
 if [ "$ENVIRONMENT" != "$ENVIRONMENT_IN_FILENAME" ]; then
-  echo "##vso[task.logissue type=error]The environment setting in $SAP_SYSTEM_CONFIGURATION '$ENVIRONMENT' does not match the $SAP_SYSTEM_CONFIGURATION file name '$ENVIRONMENT_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
+  echo "##vso[task.logissue type=error]The environment setting in $SAP_SYSTEM_TFVARS_FILENAME '$ENVIRONMENT' does not match the $SAP_SYSTEM_TFVARS_FILENAME file name '$ENVIRONMENT_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
   exit 2
 fi
 
 if [ "$LOCATION" != "$LOCATION_IN_FILENAME" ]; then
-  echo "##vso[task.logissue type=error]The location setting in $SAP_SYSTEM_CONFIGURATION '$LOCATION' does not match the $SAP_SYSTEM_CONFIGURATION file name '$LOCATION_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
+  echo "##vso[task.logissue type=error]The location setting in $SAP_SYSTEM_TFVARS_FILENAME '$LOCATION' does not match the $SAP_SYSTEM_TFVARS_FILENAME file name '$LOCATION_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
   exit 2
 fi
 
 if [ "$NETWORK" != "$NETWORK_IN_FILENAME" ]; then
-  echo "##vso[task.logissue type=error]The network_logical_name setting in $SAP_SYSTEM_CONFIGURATION '$NETWORK' does not match the $SAP_SYSTEM_CONFIGURATION file name '$NETWORK_IN_FILENAME-. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
+  echo "##vso[task.logissue type=error]The network_logical_name setting in $SAP_SYSTEM_TFVARS_FILENAME '$NETWORK' does not match the $SAP_SYSTEM_TFVARS_FILENAME file name '$NETWORK_IN_FILENAME-. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
   exit 2
 fi
 
 if [ "$SID" != "$SID_IN_FILENAME" ]; then
-  echo "##vso[task.logissue type=error]The sid setting in $SAP_SYSTEM_CONFIGURATION '$SID' does not match the $SAP_SYSTEM_CONFIGURATION file name '$SID_IN_FILENAME-. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-[SID]"
+  echo "##vso[task.logissue type=error]The sid setting in $SAP_SYSTEM_TFVARS_FILENAME '$SID' does not match the $SAP_SYSTEM_TFVARS_FILENAME file name '$SID_IN_FILENAME-. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-[SID]"
   exit 2
 fi
 
@@ -233,10 +233,10 @@ export tfstate_resource_id
 
 echo -e "$green--- Run the remover script that destroys the SAP system ---$reset"
 
-cd "$CONFIG_REPO_PATH/SYSTEM/$SAP_SYSTEM_FOLDER" || exit
+cd "$CONFIG_REPO_PATH/SYSTEM/$SAP_SYSTEM_FOLDERNAME" || exit
 
 ${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/remover.sh \
-  --parameterfile $SAP_SYSTEM_CONFIGURATION \
+  --parameterfile $SAP_SYSTEM_TFVARS_FILENAME \
   --type sap_system \
   --state_subscription "${STATE_SUBSCRIPTION}" \
   --storageaccountname "${REMOTE_STATE_SA}" \
@@ -264,7 +264,7 @@ changed=0
 git checkout -q "$BRANCH"
 git pull origin "$BRANCH"
 
-cd "${CONFIG_REPO_PATH}/SYSTEM/$SAP_SYSTEM_FOLDER" || exit
+cd "${CONFIG_REPO_PATH}/SYSTEM/$SAP_SYSTEM_FOLDERNAME" || exit
 
 if [ 0 == $return_code ]; then
 
@@ -273,8 +273,8 @@ if [ 0 == $return_code ]; then
     changed=1
   fi
 
-  if [ -f "$SAP_SYSTEM_CONFIGURATION" ]; then
-    git add "$SAP_SYSTEM_CONFIGURATION"
+  if [ -f "$SAP_SYSTEM_TFVARS_FILENAME" ]; then
+    git add "$SAP_SYSTEM_TFVARS_FILENAME"
     changed=1
   fi
 
@@ -304,9 +304,9 @@ git pull -q origin "$BRANCH"
     git config --global user.email "$BUILD_REQUESTEDFOREMAIL"
     git config --global user.name "$BUILD_REQUESTEDFOR"
 
-    git commit -m "Infrastructure for $SAP_SYSTEM_CONFIGURATION removed. [skip ci]"
+    git commit -m "Infrastructure for $SAP_SYSTEM_TFVARS_FILENAME removed. [skip ci]"
     if git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BRANCH" --force-with-lease; then
-      echo "##vso[task.logissue type=warning]Removal of $SAP_SYSTEM_CONFIGURATION updated in $(Build.SourceBranchName)"
+      echo "##vso[task.logissue type=warning]Removal of $SAP_SYSTEM_TFVARS_FILENAME updated in $(Build.SourceBranchName)"
     else
       echo "##vso[task.logissue type=error]Failed to push changes to $BRANCH"
     fi

@@ -40,7 +40,7 @@ variables:
   - name: zone_config
     value: ${{ parameters.workload_zone }}.tfvars
 
-  - name: sap_system_folder
+  - name: sap_system_foldername
     value: ${{ parameters.sap_system }}
 
   - name: sap_system_config
