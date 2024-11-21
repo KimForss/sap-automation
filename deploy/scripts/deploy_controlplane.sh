@@ -358,9 +358,11 @@ if [ 0 == $step ]; then
 
   cd "${deployer_dirname}" || exit
 
-  if [ $force == 1 ]; then
-    rm -Rf .terraform terraform.tfstate*
+  if [ -n "${FORCE_RESET}" ]; then
+    step=0
+    save_config_var "step" "${deployer_config_information}"
   fi
+
 
   echo "Calling install_deployer.sh:         $allParameters"
   echo "Deployer State File:                 ${deployer_tfstate_key}"
