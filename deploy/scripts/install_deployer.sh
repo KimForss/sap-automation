@@ -169,7 +169,7 @@ if [ ! -d ./.terraform/ ]; then
   terraform -chdir="${terraform_module_directory}" init -backend-config "path=${param_dirname}/terraform.tfstate"
 else
   if [ -f ./.terraform/terraform.tfstate ]; then
-    cat ./.terraform/terraform.tfstate
+
     if grep "azurerm" ./.terraform/terraform.tfstate; then
       echo "#########################################################################################"
       echo "#                                                                                       #"
@@ -177,9 +177,9 @@ else
       echo "#                                                                                       #"
       echo "#########################################################################################"
 
-      REINSTALL_SUBSCRIPTION=$(grep "\"subscription_id\":" ./.terraform/terraform.tfstate | cut -d ':' -f2 | tr -d '", ' || true)
-      REINSTALL_ACCOUNTNAME=$(grep "\"storage_account_name\":" ./.terraform/terraform.tfstate | cut -d ':' -f2 | tr -d ' ",' || true)
-      REINSTALL_RESOURCE_GROUP=$(grep "\"resource_group_name\":" ./.terraform/terraform.tfstate | cut -d ':' -f2 | tr -d ' ",' || true)
+      REINSTALL_SUBSCRIPTION=$(grep -m1 "subscription_id" terraform/terraform.tfstate | cut -d ':' -f2 | tr -d '", ' || true)
+      REINSTALL_ACCOUNTNAME=$(grep -m1 "storage_account_name" terraform/terraform.tfstate | cut -d ':' -f2 | tr -d ' ",' || true)
+      REINSTALL_RESOURCE_GROUP=$(grep -m1 "resource_group_name" terraform/terraform.tfstate | cut -d ':' -f2 | tr -d ' ",' || true)
 
       if [ -n "$REINSTALL_ACCOUNTNAME" ] && [ -n "$REINSTALL_SUBSCRIPTION" ]; then
 
