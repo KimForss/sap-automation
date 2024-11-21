@@ -188,11 +188,13 @@ else
         if [ -n "${tfstate_resource_id}" ]; then
           echo "Reinitializing against remote state"
           this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
-          az storage account network-rule add --account-name "$REINSTALL_ACCOUNTNAME" --resource-group "$REINSTALL_RESOURCE_GROUP" --ip-address "${this_ip}" --only-show-errors --output none
+          az storage account network-rule add --account-name "$REINSTALL_ACCOUNTNAME" --resource-group "$REINSTALL_RESOURCE_GROUP" --ip-address "${this_ip}" --only-show-errors
+          sleep 30
           export TF_VAR_tfstate_resource_id=$tfstate_resource_id
+          export TF_LOG=DEBUG
 
           terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/run/sap_deployer"/
-          terraform -chdir="${terraform_module_directory}" init -upgrade=true \
+          terraform -chdir="${terraform_module_directory}" init  \
             --backend-config "subscription_id=$REINSTALL_SUBSCRIPTION" \
             --backend-config "resource_group_name=$REINSTALL_RESOURCE_GROUP" \
             --backend-config "storage_account_name=$REINSTALL_ACCOUNTNAME" \
