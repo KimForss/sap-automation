@@ -79,7 +79,7 @@ stages:
               azureSubscription:       ${{parameters.connection_name}}
               scriptType:              bash
               scriptLocation:          'scriptPath'
-              scriptPath:              $(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/01-control-plane-prepare.sh
+              scriptPath:              $(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/11-remover-arm-fallback.sh
               addSpnToEnvironment:     true
               visibleAzLogin:          false
               failOnStandardError:     false
