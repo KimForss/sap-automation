@@ -150,7 +150,7 @@ echo "Location(filename):                  $LOCATION_IN_FILENAME"
 echo "Network(filename):                   $NETWORK_IN_FILENAME"
 
 echo "Deployer Environment                 $DEPLOYER_ENVIRONMENT"
-echo "Deployer Region                      $DEPLOYER__REGION"
+echo "Deployer Region                      $DEPLOYER_REGION"
 echo "Workload TFvars                      $WORKLOAD_ZONE_CONFIGURATION_FILE"
 echo ""
 
