@@ -42,9 +42,14 @@ echo "Environment:                         $ENVIRONMENT"
 echo "Location:                            $LOCATION"
 
 if [ -f "${deployer_environment_file_name}" ]; then
-  step=$(grep -m1 "^step=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs)
+  if [ "$FORCE_RESET" = "true" ]; then
+    step=0
+  else
+    step=$(grep -m1 "^step=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs)
+  fi
   echo "Step:                                $step"
-  if [ "0" != "${step}" ]; then
+
+  if [ 0 != "${step}" ]; then
     echo "##vso[task.logissue type=warning]Already prepared"
     exit 0
   fi
@@ -156,7 +161,7 @@ echo -e "$green--- Convert config files to UX format ---$reset"
 dos2unix -q "$deployer_tfvars_file_name"
 dos2unix -q "$library_tfvars_file_name"
 
-if [ "$FORCE_RESET" = "True" ]; then
+if [ $FORCE_RESET = "true" ]; then
   echo "##vso[task.logissue type=warning]Forcing a re-install"
   echo "Running on:            $THIS_AGENT"
   sed -i 's/step=1/step=0/' "$deployer_environment_file_name"

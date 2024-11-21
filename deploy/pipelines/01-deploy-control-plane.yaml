@@ -113,6 +113,7 @@ stages:
               USE_MSI:                        $(Use_MSI)
               USE_WEBAPP:                     ${{ lower(parameters.use_webapp_param) }}
               WEB_APP_CLIENT_SECRET:          $(WEB_APP_CLIENT_SECRET)
+              FORCE_RESET:                    ${{ lower(parameters.force_reset) }}
 
   - stage:                             Deploy_controlplane
     dependsOn:
