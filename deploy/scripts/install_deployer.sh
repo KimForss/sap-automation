@@ -185,12 +185,12 @@ else
       if [ -n "$REINSTALL_ACCOUNTNAME" ] && [ -n "$REINSTALL_SUBSCRIPTION" ]; then
 
         sed -i /"use_microsoft_graph"/d "${param_dirname}/.terraform/terraform.tfstate"
-        tfstate_resource_id=$(az resource list --name "$REINSTALL_ACCOUNTNAME" --subscription "$REINSTALL_SUBSCRIPTION" --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv | grep)
+        tfstate_resource_id=$(az resource list --name "$REINSTALL_ACCOUNTNAME" --subscription "$REINSTALL_SUBSCRIPTION" --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv )
         if [ -n "${tfstate_resource_id}" ]; then
           echo "Reinitializing against remote state"
           export TF_VAR_tfstate_resource_id=$tfstate_resource_id
 
-          terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/run/"${deployment_system}"/
+          terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/run/sap_deployer"/
           terraform -chdir="${terraform_module_directory}" init -upgrade=true \
             --backend-config "subscription_id=$REINSTALL_SUBSCRIPTION" \
             --backend-config "resource_group_name=$REINSTALL_RESOURCE_GROUP" \
