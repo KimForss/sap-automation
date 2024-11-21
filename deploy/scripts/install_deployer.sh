@@ -195,7 +195,7 @@ else
 
           terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/run/sap_deployer"/
           terraform -chdir="${terraform_module_directory}" init  \
-           --backend-config subscription_id=dcb2713e-5dc8-4139-a9af-9768287bbb8d --backend-config resource_group_name=CPLN-NOEU-SAP_LIBRARY --backend-config storage_account_name=cplnnoeutfstate748 --backend-config container_name=tfstate --backend-config key=CPLN-NOEU-DEP01-INFRASTRUCTURE.terraform.tfstate
+           --backend-config "subscription_id=dcb2713e-5dc8-4139-a9af-9768287bbb8d" --backend-config "resource_group_name=CPLN-NOEU-SAP_LIBRARY" --backend-config "storage_account_name=cplnnoeutfstate748" --backend-config "container_name=tfstate" --backend-config "key=CPLN-NOEU-DEP01-INFRASTRUCTURE.terraform.tfstate"
             # --backend-config "subscription_id=$REINSTALL_SUBSCRIPTION" \
             # --backend-config "resource_group_name=$REINSTALL_RESOURCE_GROUP" \
             # --backend-config "storage_account_name=$REINSTALL_ACCOUNTNAME" \
