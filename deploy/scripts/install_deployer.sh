@@ -196,10 +196,11 @@ else
       if [ -n "${tfstate_resource_id}" ]; then
         echo "Reinitializing against remote state"
         this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
+        az_user_obj_id=$(az ad signed-in-user show --query id -o tsv)
+        az role assignment create --assignee "$az_user_obj_id" --role "Storage Blob Data Contributor" --scope "${tfstate_resource_id}" --output none
         az storage account network-rule add --account-name "$REINSTALL_ACCOUNTNAME" --resource-group "$REINSTALL_RESOURCE_GROUP" --ip-address "${this_ip}" --only-show-errors --output none
         sleep 30
         export TF_VAR_tfstate_resource_id=$tfstate_resource_id
-        terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/run/"${deployment_system}"/
 
         terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/run/sap_deployer"/
 
