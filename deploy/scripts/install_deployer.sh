@@ -193,8 +193,12 @@ else
           sleep 30
           export TF_VAR_tfstate_resource_id=$tfstate_resource_id
           export TF_LOG=DEBUG
+          terraform --version || true
+          ls /opt/terraform/ || true
+          /opt/terraform/bin/terraform --version || true
 
-          if terraform -chdir="${terraform_module_directory}" init -force-copy -migrate-state --backend-config "path=${param_dirname}/terraform.tfstate"]; then
+
+          if terraform -chdir="${terraform_module_directory}" init -force-copy -migrate-state --backend-config "path=${param_dirname}/terraform.tfstate"; then
             terraform -chdir="${terraform_module_directory}" refresh -var-file="${var_file}"
           else
             terraform -chdir="${terraform_module_directory}" init -reconfigure --backend-config "path=${param_dirname}/terraform.tfstate"
