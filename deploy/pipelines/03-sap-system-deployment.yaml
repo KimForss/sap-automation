@@ -48,7 +48,7 @@ stages:
           - task:                      Bash@3
             inputs:
               targetType:              'filePath'
-              filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/03-sap-system-deployment"
+              filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/03-sap-system-deployment.sh"
               failOnStderr:            false
               workingDirectory:        "$(System.DefaultWorkingDirectory)"
             displayName:               Deploy_SAP_infrastructure
