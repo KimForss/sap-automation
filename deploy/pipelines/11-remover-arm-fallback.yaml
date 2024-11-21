@@ -332,16 +332,13 @@ stages:
           - group:                     SDAF-${{ parameters.deployer_environment }}
         steps:
           - template:                  templates\download.yaml
-          - task:                      AzureCLI@2
+          - task:                      Bash@3
             continueOnError:           false
             inputs:
-              azureSubscription:       ${{parameters.connection_name}}
-              scriptType:              bash
-              scriptLocation:          'scriptPath'
-              scriptPath:              $(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/01-control-plane-prepare.sh
-              addSpnToEnvironment:     true
-              visibleAzLogin:          false
-              failOnStandardError:     false
+              targetType:              'filePath'
+              filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/01-control-plane-prepare.sh"
+              failOnStderr:            false
+              workingDirectory:        "$(System.DefaultWorkingDirectory)"
 
             displayName:               Remove Control Plane deployment artifacts from WORKSPACES
             env:
