@@ -164,10 +164,22 @@ dos2unix -q "$library_tfvars_file_name"
 key_vault=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_Key_Vault" "${deployer_environment_file_name}" "keyvault")
 if [ -n $key_vault ]; then
   echo "Deployer Key Vault:                  ${key_vault}"
-  key_vault_id=$(az resource list --name "${key_vault}" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
-  export TF_VAR_deployer_kv_user_arm_id=${key_vault_id}
-  this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
-  az keyvault network-rule add --name "${key_vault}" --ip-address "${this_ip}" --subscription "$TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION" --only-show-errors --output none
+  key_vault_id=$(az resource list --name "${key_vault}" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" --subscription "$ARM_SUBSCRIPTION_ID" --output tsv)
+
+  if [ -z "${key_vault_id}" ]; then
+    echo "##vso[task.logissue type=error]Key Vault $key_vault could not be found, trying to recover"
+    key_vault=$(az keyvault list-deleted --query "[?name=='${key_vault}'].name | [0]" --subscription "$ARM_SUBSCRIPTION_ID")
+    if [ -n $key_vault ]; then
+      echo "Deployer Key Vault:                  ${key_vault} is deleted, recovering"
+      az keyvault recover --name "${key_vault}" --subscription "$ARM_SUBSCRIPTION_ID" --output none
+      key_vault_id=$(az resource list --name "${key_vault}" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" --subscription "$ARM_SUBSCRIPTION_ID" --output tsv)
+      if [ -n "${key_vault_id}" ]; then
+        export TF_VAR_deployer_kv_user_arm_id=${key_vault_id}
+        this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
+        az keyvault network-rule add --name "${key_vault}" --ip-address "${this_ip}" --subscription "$TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION" --only-show-errors --output none
+      fi
+    fi
+  fi
 else
   echo "Deployer Key Vault:                  undefined"
 fi
