@@ -53,6 +53,13 @@ variable "subscription"                         {
                                                 }
 
 
+variable "management_subscription"              {
+                                                  description = "This is the management subscription used by the deployment"
+                                                  type        = string
+                                                  default     = ""
+                                                }
+
+
 #######################################4#######################################8
 #                                                                              #
 #                          Resource group definitioms                          #

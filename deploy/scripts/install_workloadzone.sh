@@ -628,8 +628,6 @@ apply_needed=false
 new_deployment=false
 
 #Plugins
-isInCloudShellCheck=$(checkIfCloudShell)
-
 if checkIfCloudShell; then
   mkdir -p "${HOME}/.terraform.d/plugin-cache"
   export TF_PLUGIN_CACHE_DIR="${HOME}/.terraform.d/plugin-cache"
@@ -770,35 +768,9 @@ if [ 1 == $check_output ]; then
   fi
 fi
 
-# ip_saved=0
-# if [ 1 == $called_from_ado ] ; then
-
-#     load_config_vars "${workload_config_information}" "azure_files_transport_storage_account_id"
-#     echo "Transport SA: " ${azure_files_transport_storage_account_id}
-#     if [ -n "${azure_files_transport_storage_account_id}" ]; then
-#         RG=$(echo "$azure_files_transport_storage_account_id" | cut -d / -f5)
-#         SA=$(echo "$azure_files_transport_storage_account_id" | cut -d / -f9)
-#         SUB=$(echo "$azure_files_transport_storage_account_id" | cut -d / -f3)
-#         az storage account network-rule add --resource-group "${RG}" --account-name "${SA}" --subscription "${SUB}"  --ip-address $this_ip
-#         echo "Wait 60 seconds for network rule"
-#         sleep 60
-#     else
-#         azure_files_transport_storage_account_id=$(terraform -chdir="${terraform_module_directory}"  output azure_files_transport_storage_account_id | tr -d \")
-#         echo "Transport SA: " ${azure_files_transport_storage_account_id}
-#         RG=$(echo "$azure_files_transport_storage_account_id" | cut -d / -f5)
-#         SA=$(echo "$azure_files_transport_storage_account_id" | cut -d / -f9)
-#         SUB=$(echo "$azure_files_transport_storage_account_id" | cut -d / -f3)
-#         if [ -n "${SA}" ]; then
-#             az storage account network-rule add --resource-group "${RG}" --account-name "${SA}" --subscription "${SUB}" --ip-address $this_ip
-#             echo "Wait 60 seconds for network rule"
-#             sleep 60
-#             ip_saved=1
-#             save_config_var "azure_files_transport_storage_account_id" "${workload_config_information}"
-#         fi
-#     fi
-# fi
-
 export TF_VAR_tfstate_resource_id="${tfstate_resource_id}"
+export TF_VAR_subscription="${subscription}"
+export TF_VAR_management_subscription="${STATE_SUBSCRIPTION}"
 
 if [ 1 == $check_output ]; then
   deployed_using_version=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw automation_version)
@@ -1023,32 +995,41 @@ if [ 1 == $apply_needed ]; then
 
 fi
 
-rerun_apply=0
+if [ -f apply_output.json ]; then
 
-if [ -f apply_output.json ]; then
-  # shellcheck disable=SC2086
-  if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters $parallelism; then
+  if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
     return_value=$?
   fi
-fi
-if [ -f apply_output.json ]; then
-  # shellcheck disable=SC2086
-  if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters $parallelism; then
-    return_value=$?
+  if [ -f apply_output.json ]; then
+    if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
+      return_value=$?
+    fi
   fi
-fi
-if [ -f apply_output.json ]; then
-  # shellcheck disable=SC2086
-  if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters $parallelism; then
-    return_value=$?
+  if [ -f apply_output.json ]; then
+    if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
+      return_value=$?
+    fi
   fi
-fi
-if [ -f apply_output.json ]; then
-  # shellcheck disable=SC2086
-  if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters $parallelism; then
-    return_value=$?
+  if [ -f apply_output.json ]; then
+    if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
+      return_value=$?
+    fi
   fi
-
+  if [ -f apply_output.json ]; then
+    if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
+      return_value=$?
+    fi
+  fi
+  if [ -f apply_output.json ]; then
+    if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
+      return_value=$?
+    fi
+  fi
+  if [ -f apply_output.json ]; then
+    if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
+      return_value=$?
+    fi
+  fi
 fi
 
 if [ -f apply_output.json ]; then
