@@ -26,7 +26,6 @@ fi
 # stage of the pipefile has a non-zero exit status.
 set -o pipefail
 
-deployer_environment_file_name="${CONFIG_REPO_PATH}/.sap_deployment_automation/${ENVIRONMENT}$LOCATION"
 deployerTFvarsFile="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYERFOLDER/$DEPLOYERCONFIG"
 libraryTFvarsFile="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARYFOLDER/$LIBRARYCONFIG"
 deployer_tfstate_key="$DEPLOYERFOLDER.terraform.tfstate"
@@ -51,6 +50,7 @@ export TF_VAR_deployer_tfstate_key
 echo -e "$green--- Environment information ---$reset"
 ENVIRONMENT=$(grep -m1 "^environment" "$deployerTFvarsFile" | awk -F'=' '{print $2}' | tr -d ' \t\n\r\f"' || true)
 LOCATION=$(grep -m1 "^location" "$deployerTFvarsFile" | awk -F'=' '{print $2}' | tr '[:upper:]' '[:lower:]' | tr -d ' \t\n\r\f"' || true)
+deployer_environment_file_name="${CONFIG_REPO_PATH}/.sap_deployment_automation/${ENVIRONMENT}$LOCATION"
 
 # shellcheck disable=SC2005
 ENVIRONMENT_IN_FILENAME=$(echo $DEPLOYERFOLDER | awk -F'-' '{print $1}')

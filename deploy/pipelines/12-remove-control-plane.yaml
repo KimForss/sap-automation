@@ -114,7 +114,7 @@ stages:
               azureSubscription:       ${{parameters.connection_name}}
               scriptType:              bash
               scriptLocation:          'scriptPath'
-              scriptPath:              $(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/12-remove-control-plane-finalize
+              scriptPath:              $(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/12-remove-control-plane-finalize.sh
               addSpnToEnvironment:     true
               visibleAzLogin:          false
               failOnStandardError:     false
