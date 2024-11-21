@@ -60,7 +60,7 @@ variables:
   - name:                              deployer_tfvars_filename
     value:                             ${{ parameters.deployer }}.tfvars
 
-  - name:                              library_foldernamne
+  - name:                              library_foldername
     value:                             ${{ parameters.library }}
 
   - name:                              library_tfvars_filename
