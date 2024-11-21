@@ -169,13 +169,14 @@ if [ ! -d ./.terraform/ ]; then
   terraform -chdir="${terraform_module_directory}" init -backend-config "path=${param_dirname}/terraform.tfstate"
 else
   if [ -f ./.terraform/terraform.tfstate ]; then
+    cat ./.terraform/terraform.tfstate
     if grep "azurerm" ./.terraform/terraform.tfstate; then
       echo "#########################################################################################"
       echo "#                                                                                       #"
       echo "#                     The state is already migrated to Azure!!!                         #"
       echo "#                                                                                       #"
       echo "#########################################################################################"
-      cat ./.terraform/terraform.tfstate
+
       REINSTALL_SUBSCRIPTION=$(grep "\"subscription_id\":" ./.terraform/terraform.tfstate | cut -d ':' -f2 | tr -d '", ' || true)
       REINSTALL_ACCOUNTNAME=$(grep "\"storage_account_name\":" ./.terraform/terraform.tfstate | cut -d ':' -f2 | tr -d ' ",' || true)
       REINSTALL_RESOURCE_GROUP=$(grep "\"resource_group_name\":" ./.terraform/terraform.tfstate | cut -d ':' -f2 | tr -d ' ",' || true)
