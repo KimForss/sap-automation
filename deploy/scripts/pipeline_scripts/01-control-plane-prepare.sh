@@ -168,7 +168,7 @@ if [ -n $key_vault ]; then
 
   if [ -z "${key_vault_id}" ]; then
     echo "##vso[task.logissue type=error]Key Vault $key_vault could not be found, trying to recover"
-    key_vault=$(az keyvault list-deleted --query "[?name=='${key_vault}'].name | [0]" --subscription "$ARM_SUBSCRIPTION_ID")
+    key_vault=$(az keyvault list-deleted --query "[?name=='${key_vault}'].name | [0]" --subscription "$ARM_SUBSCRIPTION_ID" --output tsv)
     if [ -n $key_vault ]; then
       echo "Deployer Key Vault:                  ${key_vault} is deleted, recovering"
       az keyvault recover --name "${key_vault}" --subscription "$ARM_SUBSCRIPTION_ID" --output none
