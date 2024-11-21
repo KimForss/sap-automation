@@ -201,7 +201,7 @@ export REMOTE_STATE_RG
 echo -e "$green--- Validations ---$reset"
 
 if [ -z "${TF_VAR_ansible_core_version}" ]; then
-  export TF_VAR_ansible_core_version=2.17
+  export TF_VAR_ansible_core_version=2.16
 fi
 
 if [ "$USE_WEBAPP" = "true" ]; then
