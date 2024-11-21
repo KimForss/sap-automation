@@ -162,6 +162,7 @@ if [ 0 != $return_code ]; then
 fi
 
 extra_vars=""
+reinstalled=0
 
 if [ -f terraform.tfvars ]; then
   extra_vars=" -var-file=${param_dirname}/terraform.tfvars "
@@ -186,14 +187,34 @@ else
       echo "#                     The state is already migrated to Azure!!!                         #"
       echo "#                                                                                       #"
       echo "#########################################################################################"
-      set -x
 
       REINSTALL_SUBSCRIPTION=$(grep -m1 "subscription_id" "${param_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
       REINSTALL_ACCOUNTNAME=$(grep -m1 "storage_account_name" "${param_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
       REINSTALL_RESOURCE_GROUP=$(grep -m1 "resource_group_name" "${param_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
 
-      terraform -chdir="${terraform_module_directory}" init -reconfigure --backend-config "path=${param_dirname}/terraform.tfstate"
-      terraform -chdir="${terraform_module_directory}" refresh -var-file="${var_file}"
+      tfstate_resource_id=$(az resource list --name "$REINSTALL_ACCOUNTNAME" --subscription "$REINSTALL_SUBSCRIPTION" --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
+      if [ -n "${tfstate_resource_id}" ]; then
+        echo "Reinitializing against remote state"
+        this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
+        az storage account network-rule add --account-name "$REINSTALL_ACCOUNTNAME" --resource-group "$REINSTALL_RESOURCE_GROUP" --ip-address "${this_ip}" --only-show-errors --output none
+        sleep 30
+        export TF_VAR_tfstate_resource_id=$tfstate_resource_id
+        terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/run/"${deployment_system}"/
+
+        terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/run/sap_deployer"/
+
+        terraform -chdir="${terraform_module_directory}" init \
+          --backend-config "subscription_id=$REINSTALL_SUBSCRIPTION" \
+          --backend-config "resource_group_name=$REINSTALL_RESOURCE_GROUP" \
+          --backend-config "storage_account_name=$REINSTALL_ACCOUNTNAME" \
+          --backend-config "container_name=tfstate" \
+          --backend-config "key=${key}.terraform.tfstate"
+        terraform -chdir="${terraform_module_directory}" refresh -var-file="${var_file}"
+      else
+
+        terraform -chdir="${terraform_module_directory}" init -reconfigure --backend-config "path=${param_dirname}/terraform.tfstate"
+        terraform -chdir="${terraform_module_directory}" refresh -var-file="${var_file}"
+      fi
     fi
   else
     terraform -chdir="${terraform_module_directory}" init -upgrade=true -backend-config "path=${param_dirname}/terraform.tfstate"
