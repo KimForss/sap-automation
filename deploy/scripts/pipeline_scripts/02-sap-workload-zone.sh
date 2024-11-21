@@ -359,12 +359,18 @@ fi
 
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
 
-"$SAP_AUTOMATION_REPO_PATH/deploy/scripts/install_workloadzone.sh" --parameterfile "$WORKLOAD_ZONE_CONFIGURATION_FILE" \
+if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/install_workloadzone.sh" --parameterfile "$WORKLOAD_ZONE_CONFIGURATION_FILE" \
   --deployer_environment "$DEPLOYER_ENVIRONMENT" --subscription "$WL_ARM_SUBSCRIPTION_ID" \
   --deployer_tfstate_key "${deployer_tfstate_key}" --keyvault "${key_vault}" --storageaccountname "${REMOTE_STATE_SA}" \
-  --state_subscription "${STATE_SUBSCRIPTION}" --auto-approve --ado --msi
+  --state_subscription "${STATE_SUBSCRIPTION}" --auto-approve --ado --msi; then
+  echo "##vso[task.logissue type=warning]Workload zone deployment completed successfully."
+else
+  return_code=$?
+  echo "##vso[task.logissue type=error]Workload zone deployment failed."
+  exit 1
+fi
 
-return_code=$?
+
 echo "Return code from deployment:         ${return_code}"
 cd "$CONFIG_REPO_PATH" || exit
 

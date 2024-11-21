@@ -24,13 +24,23 @@ function saveVariableInVariableGroup() {
   local variable_name="$2"
   local variable_value="$3"
 
-  az_var=$(az pipelines variable-group variable list --group-id "${variable_group_id}" --query "${variable_name}.value" --out tsv)
-  echo "Variable value: $az_var"
-  echo "Variable length: ${#az_var}"
-  if [  ${#az_var} -gt 0 ]; then
-    az pipelines variable-group variable update --group-id "${variable_group_id}" --name "${variable_name}" --value "${variable_value}" --output none --only-show-errors
+  if [ -n "$variable_value" ]; then
+
+    az_var=$(az pipelines variable-group variable list --group-id "${variable_group_id}" --query "${variable_name}.value" --out tsv)
+    echo "Variable value: $az_var"
+    echo "Variable length: ${#az_var}"
+    if [ ${#az_var} -gt 0 ]; then
+      az pipelines variable-group variable update --group-id "${variable_group_id}" --name "${variable_name}" --value "${variable_value}" --output none --only-show-errors
+    else
+      az pipelines variable-group variable create --group-id "${variable_group_id}" --name "${variable_name}" --value "${variable_value}" --output none --only-show-errors
+    fi
   else
-    az pipelines variable-group variable create --group-id "${variable_group_id}" --name "${variable_name}" --value "${variable_value}" --output none --only-show-errors
+    az_var=$(az pipelines variable-group variable list --group-id "${variable_group_id}" --query "${variable_name}.value" --out tsv)
+    echo "Variable value: $az_var"
+    echo "Variable length: ${#az_var}"
+    if [ ${#az_var} -gt 0 ]; then
+      az pipelines variable-group variable delete --group-id "${variable_group_id}" --name "${variable_name}" --output none --only-show-errors
+    fi
   fi
 
 }
@@ -75,67 +85,66 @@ function LogonToAzure() {
 
 }
 
-
 function get_region_from_code() {
-code_upper=$(echo "$1" | tr [:lower:] [:upper:] | xargs | tr -d '\r')
-case "$code_upper" in
-"AUCE") LOCATION_IN_FILENAME="australiacentral" ;;
-"AUC2") LOCATION_IN_FILENAME="australiacentral2" ;;
-"AUEA") LOCATION_IN_FILENAME="australiaeast" ;;
-"AUSE") LOCATION_IN_FILENAME="australiasoutheast" ;;
-"BRSO") LOCATION_IN_FILENAME="brazilsouth" ;;
-"BRSE") LOCATION_IN_FILENAME="brazilsoutheast" ;;
-"BRUS") LOCATION_IN_FILENAME="brazilus" ;;
-"CACE") LOCATION_IN_FILENAME="canadacentral" ;;
-"CAEA") LOCATION_IN_FILENAME="canadaeast" ;;
-"CEIN") LOCATION_IN_FILENAME="centralindia" ;;
-"CEUS") LOCATION_IN_FILENAME="centralus" ;;
-"CEUA") LOCATION_IN_FILENAME="centraluseuap" ;;
-"EAAS") LOCATION_IN_FILENAME="eastasia" ;;
-"EAUS") LOCATION_IN_FILENAME="eastus" ;;
-"EUSA") LOCATION_IN_FILENAME="eastus2euap" ;;
-"EUS2") LOCATION_IN_FILENAME="eastus2" ;;
-"EUSG") LOCATION_IN_FILENAME="eastusstg" ;;
-"FRCE") LOCATION_IN_FILENAME="francecentral" ;;
-"FRSO") LOCATION_IN_FILENAME="francesouth" ;;
-"GENO") LOCATION_IN_FILENAME="germanynorth" ;;
-"GEWE") LOCATION_IN_FILENAME="germanywest" ;;
-"GEWC") LOCATION_IN_FILENAME="germanywestcentral" ;;
-"ISCE") LOCATION_IN_FILENAME="israelcentral" ;;
-"ITNO") LOCATION_IN_FILENAME="italynorth" ;;
-"JAEA") LOCATION_IN_FILENAME="japaneast" ;;
-"JAWE") LOCATION_IN_FILENAME="japanwest" ;;
-"JINC") LOCATION_IN_FILENAME="jioindiacentral" ;;
-"JINW") LOCATION_IN_FILENAME="jioindiawest" ;;
-"KOCE") LOCATION_IN_FILENAME="koreacentral" ;;
-"KOSO") LOCATION_IN_FILENAME="koreasouth" ;;
-"NCUS") LOCATION_IN_FILENAME="northcentralus" ;;
-"NOEU") LOCATION_IN_FILENAME="northeurope" ;;
-"NOEA") LOCATION_IN_FILENAME="norwayeast" ;;
-"NOWE") LOCATION_IN_FILENAME="norwaywest" ;;
-"PLCE") LOCATION_IN_FILENAME="polandcentral" ;;
-"QACE") LOCATION_IN_FILENAME="qatarcentral" ;;
-"SANO") LOCATION_IN_FILENAME="southafricanorth" ;;
-"SAWE") LOCATION_IN_FILENAME="southafricawest" ;;
-"SCUS") LOCATION_IN_FILENAME="southcentralus" ;;
-"SCUG") LOCATION_IN_FILENAME="southcentralusstg" ;;
-"SOEA") LOCATION_IN_FILENAME="southeastasia" ;;
-"SOIN") LOCATION_IN_FILENAME="southindia" ;;
-"SECE") LOCATION_IN_FILENAME="swedencentral" ;;
-"SWNO") LOCATION_IN_FILENAME="switzerlandnorth" ;;
-"SWWE") LOCATION_IN_FILENAME="switzerlandwest" ;;
-"UACE") LOCATION_IN_FILENAME="uaecentral" ;;
-"UANO") LOCATION_IN_FILENAME="uaenorth" ;;
-"UKSO") LOCATION_IN_FILENAME="uksouth" ;;
-"UKWE") LOCATION_IN_FILENAME="ukwest" ;;
-"WCUS") LOCATION_IN_FILENAME="westcentralus" ;;
-"WEEU") LOCATION_IN_FILENAME="westeurope" ;;
-"WEIN") LOCATION_IN_FILENAME="westindia" ;;
-"WEUS") LOCATION_IN_FILENAME="westus" ;;
-"WUS2") LOCATION_IN_FILENAME="westus2" ;;
-"WUS3") LOCATION_IN_FILENAME="westus3" ;;
-*) LOCATION_IN_FILENAME="westeurope" ;;
-esac
-echo "$LOCATION_IN_FILENAME"
+  code_upper=$(echo "$1" | tr [:lower:] [:upper:] | xargs | tr -d '\r')
+  case "$code_upper" in
+  "AUCE") LOCATION_IN_FILENAME="australiacentral" ;;
+  "AUC2") LOCATION_IN_FILENAME="australiacentral2" ;;
+  "AUEA") LOCATION_IN_FILENAME="australiaeast" ;;
+  "AUSE") LOCATION_IN_FILENAME="australiasoutheast" ;;
+  "BRSO") LOCATION_IN_FILENAME="brazilsouth" ;;
+  "BRSE") LOCATION_IN_FILENAME="brazilsoutheast" ;;
+  "BRUS") LOCATION_IN_FILENAME="brazilus" ;;
+  "CACE") LOCATION_IN_FILENAME="canadacentral" ;;
+  "CAEA") LOCATION_IN_FILENAME="canadaeast" ;;
+  "CEIN") LOCATION_IN_FILENAME="centralindia" ;;
+  "CEUS") LOCATION_IN_FILENAME="centralus" ;;
+  "CEUA") LOCATION_IN_FILENAME="centraluseuap" ;;
+  "EAAS") LOCATION_IN_FILENAME="eastasia" ;;
+  "EAUS") LOCATION_IN_FILENAME="eastus" ;;
+  "EUSA") LOCATION_IN_FILENAME="eastus2euap" ;;
+  "EUS2") LOCATION_IN_FILENAME="eastus2" ;;
+  "EUSG") LOCATION_IN_FILENAME="eastusstg" ;;
+  "FRCE") LOCATION_IN_FILENAME="francecentral" ;;
+  "FRSO") LOCATION_IN_FILENAME="francesouth" ;;
+  "GENO") LOCATION_IN_FILENAME="germanynorth" ;;
+  "GEWE") LOCATION_IN_FILENAME="germanywest" ;;
+  "GEWC") LOCATION_IN_FILENAME="germanywestcentral" ;;
+  "ISCE") LOCATION_IN_FILENAME="israelcentral" ;;
+  "ITNO") LOCATION_IN_FILENAME="italynorth" ;;
+  "JAEA") LOCATION_IN_FILENAME="japaneast" ;;
+  "JAWE") LOCATION_IN_FILENAME="japanwest" ;;
+  "JINC") LOCATION_IN_FILENAME="jioindiacentral" ;;
+  "JINW") LOCATION_IN_FILENAME="jioindiawest" ;;
+  "KOCE") LOCATION_IN_FILENAME="koreacentral" ;;
+  "KOSO") LOCATION_IN_FILENAME="koreasouth" ;;
+  "NCUS") LOCATION_IN_FILENAME="northcentralus" ;;
+  "NOEU") LOCATION_IN_FILENAME="northeurope" ;;
+  "NOEA") LOCATION_IN_FILENAME="norwayeast" ;;
+  "NOWE") LOCATION_IN_FILENAME="norwaywest" ;;
+  "PLCE") LOCATION_IN_FILENAME="polandcentral" ;;
+  "QACE") LOCATION_IN_FILENAME="qatarcentral" ;;
+  "SANO") LOCATION_IN_FILENAME="southafricanorth" ;;
+  "SAWE") LOCATION_IN_FILENAME="southafricawest" ;;
+  "SCUS") LOCATION_IN_FILENAME="southcentralus" ;;
+  "SCUG") LOCATION_IN_FILENAME="southcentralusstg" ;;
+  "SOEA") LOCATION_IN_FILENAME="southeastasia" ;;
+  "SOIN") LOCATION_IN_FILENAME="southindia" ;;
+  "SECE") LOCATION_IN_FILENAME="swedencentral" ;;
+  "SWNO") LOCATION_IN_FILENAME="switzerlandnorth" ;;
+  "SWWE") LOCATION_IN_FILENAME="switzerlandwest" ;;
+  "UACE") LOCATION_IN_FILENAME="uaecentral" ;;
+  "UANO") LOCATION_IN_FILENAME="uaenorth" ;;
+  "UKSO") LOCATION_IN_FILENAME="uksouth" ;;
+  "UKWE") LOCATION_IN_FILENAME="ukwest" ;;
+  "WCUS") LOCATION_IN_FILENAME="westcentralus" ;;
+  "WEEU") LOCATION_IN_FILENAME="westeurope" ;;
+  "WEIN") LOCATION_IN_FILENAME="westindia" ;;
+  "WEUS") LOCATION_IN_FILENAME="westus" ;;
+  "WUS2") LOCATION_IN_FILENAME="westus2" ;;
+  "WUS3") LOCATION_IN_FILENAME="westus3" ;;
+  *) LOCATION_IN_FILENAME="westeurope" ;;
+  esac
+  echo "$LOCATION_IN_FILENAME"
 
 }
