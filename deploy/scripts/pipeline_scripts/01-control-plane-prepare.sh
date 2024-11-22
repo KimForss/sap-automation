@@ -179,6 +179,11 @@ if [ -n $key_vault ]; then
         az keyvault network-rule add --name "${key_vault}" --ip-address "${this_ip}" --subscription "$TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION" --only-show-errors --output none
       fi
     fi
+  else
+    export TF_VAR_deployer_kv_user_arm_id=${key_vault_id}
+    this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
+    az keyvault network-rule add --name "${key_vault}" --ip-address "${this_ip}" --subscription "$TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION" --only-show-errors --output none
+
   fi
 else
   echo "Deployer Key Vault:                  undefined"
