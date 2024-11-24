@@ -164,7 +164,6 @@ if [ "$NETWORK" != "$NETWORK_IN_FILENAME" ]; then
   exit 2
 fi
 
-
 workload_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}${NETWORK}"
 echo "Workload Zone Environment File:      $workload_environment_file_name"
 
@@ -255,14 +254,32 @@ changed=0
 git checkout -q "$BRANCH"
 git pull origin "$BRANCH"
 
-cd "${CONFIG_REPO_PATH}/LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME" || exit
+cd "${CONFIG_REPO_PATH}" || exit
 
 if [ 0 == $return_code ]; then
+
+  if [ -f ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}${NETWORK}" ]; then
+    git rm --ignore-unmatch -f ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}${NETWORK}"
+    changed=1
+  fi
+
+  if [ -f ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}${NETWORK}.md" ]; then
+    git rm --ignore-unmatch -f ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}${NETWORK}.md"
+    changed=1
+  fi
+
+  cd "${CONFIG_REPO_PATH}/LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME" || exit
 
   if [ -d ".terraform" ]; then
     git rm -q -r --ignore-unmatch -f ".terraform"
     changed=1
   fi
+
+  if [ -f "${ENVIRONMENT}${LOCATION}${NETWORK}.md" ]; then
+    git rm --ignore-unmatch -f "${ENVIRONMENT}${LOCATION}${NETWORK}.md"
+    changed=1
+  fi
+
 
   if [ -f "$WORKLOAD_ZONE_TFVARS_FILENAME" ]; then
     git add "$WORKLOAD_ZONE_TFVARS_FILENAME"
