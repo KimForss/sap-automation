@@ -268,8 +268,13 @@ if [ 0 == $return_code ]; then
   git checkout -q "$BRANCH"
   git pull origin "$BRANCH"
 
+  if [ -f ".terraform/terraform.tfstate" ]; then
+    git rm --ignore-unmatch -q  --ignore-unmatch ".terraform/terraform.tfstate"
+    changed=1
+  fi
+
   if [ -d ".terraform" ]; then
-    git rm -q -r --ignore-unmatch -f ".terraform"
+    git rm -q -r --ignore-unmatch ".terraform"
     changed=1
   fi
 
