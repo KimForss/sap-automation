@@ -212,20 +212,20 @@ echo "Agent IP:                            $this_ip"
 automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation
 generic_config_information="${automation_config_directory}"/config
 
-system_config_information="${automation_config_directory}"/"${environment}""${region_code}"
+system_config_information="${automation_config_directory}/${environment}${region_code}"
 
 if [ "${deployment_system}" == sap_landscape ]; then
   load_config_vars "$parameterfile_name" "network_logical_name"
-  network_logical_name=$(echo "${network_logical_name}" | tr "[:lower:]" "[:upper:]")
+  network_logical_name=$(echo "${network_logical_name}" | tr "[:lower:]" "[:upper:]" | tr -d ' \r\n')
 
-  system_config_information="${automation_config_directory}"/"${environment}""${region_code}""${network_logical_name}"
+  system_config_information="${automation_config_directory}/${environment}${region_code}${network_logical_name}"
 fi
 
 if [ "${deployment_system}" == sap_system ]; then
   load_config_vars "$parameterfile_name" "network_logical_name"
-  network_logical_name=$(echo "${network_logical_name}" | tr "[:lower:]" "[:upper:]")
+  network_logical_name=$(echo "${network_logical_name}" | tr "[:lower:]" "[:upper:]"  | tr -d ' \r\n')
 
-  system_config_information="${automation_config_directory}"/"${environment}""${region_code}""${network_logical_name}"
+  system_config_information="${automation_config_directory}/${environment}${region_code}${network_logical_name}"
 fi
 
 echo "Configuration file:                  $system_config_information"
