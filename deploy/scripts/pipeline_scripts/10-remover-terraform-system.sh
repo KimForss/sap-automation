@@ -302,8 +302,18 @@ if [ 0 == $return_code ]; then
     changed=1
   fi
 
+  if [ -f "${SID}_inventory.md" ]; then
+    git rm --ignore-unmatch -q "${SID}_inventory.md"
+    changed=1
+  fi
+
   if [ -f "${SID}_virtual_machines.json" ]; then
     git rm --ignore-unmatch -q "${SID}_virtual_machines.json"
+    changed=1
+  fi
+
+  if [ -d "logs" ]; then
+    git rm -q -r --ignore-unmatch "logs"
     changed=1
   fi
 
