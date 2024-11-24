@@ -162,14 +162,14 @@ dos2unix -q "$deployer_tfvars_file_name"
 dos2unix -q "$library_tfvars_file_name"
 
 key_vault=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_Key_Vault" "${deployer_environment_file_name}" "keyvault")
-if [ -n $key_vault ]; then
+if [ -n "$key_vault" ]; then
   echo "Deployer Key Vault:                  ${key_vault}"
   key_vault_id=$(az resource list --name "${key_vault}" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" --subscription "$ARM_SUBSCRIPTION_ID" --output tsv)
 
   if [ -z "${key_vault_id}" ]; then
     echo "##vso[task.logissue type=error]Key Vault $key_vault could not be found, trying to recover"
     key_vault=$(az keyvault list-deleted --query "[?name=='${key_vault}'].name | [0]" --subscription "$ARM_SUBSCRIPTION_ID" --output tsv)
-    if [ -n $key_vault ]; then
+    if [ -n "$key_vault" ]; then
       echo "Deployer Key Vault:                  ${key_vault} is deleted, recovering"
       az keyvault recover --name "${key_vault}" --subscription "$ARM_SUBSCRIPTION_ID" --output none
       key_vault_id=$(az resource list --name "${key_vault}" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" --subscription "$ARM_SUBSCRIPTION_ID" --output tsv)
