@@ -26,6 +26,8 @@ fi
 # stage of the pipefile has a non-zero exit status.
 set -o pipefail
 
+cd "$CONFIG_REPO_PATH" || exit
+
 deployerTFvarsFile="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
 libraryTFvarsFile="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME"
 deployer_tfstate_key="$DEPLOYER_FOLDERNAME.terraform.tfstate"
@@ -39,7 +41,7 @@ if [ ! -f "$deployerTFvarsFile" ]; then
 fi
 
 if [ ! -f "${libraryTFvarsFile}" ]; then
-  echo -e "$boldred--- File "${libraryTFvarsFile}"  was not found ---$reset"
+  echo -e "$boldred--- File ${libraryTFvarsFile}  was not found ---$reset"
   echo "##vso[task.logissue type=error]File LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME was not found."
   exit 2
 fi
