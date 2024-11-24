@@ -324,70 +324,70 @@ if [ -f .sap_deployment_automation/"${ENVIRONMENT}${LOCATION}".md ]; then
   added=1
 fi
 
-if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate" ]; then
-  git add -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate"
+if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate" ]; then
+  git add -f "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate"
   added=1
 fi
 
 # || true suppresses the exitcode of grep. To not trigger the strict exit on error
-backend=$(grep "local" "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate" || true)
-if [ -n "${backend}" ]; then
+backend=$(grep "local" "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate" || true)
+if [ "$return_code" != 0 ]; then
   echo "Local Terraform state"
-  if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate" ]; then
+  if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate" ]; then
     echo "Compressing the deployer state file"
     sudo apt-get -qq install zip
 
     pass=${SYSTEM_COLLECTIONID//-/}
-    zip -q -j -P "${pass}" "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state" "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate"
-    git add -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip"
+    zip -q -j -P "${pass}" "DEPLOYER/$DEPLOYER_FOLDERNAME/state" "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate"
+    git add -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip"
     added=1
   fi
 else
   echo "Remote Terraform state"
-  if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate" ]; then
-    git rm -q --ignore-unmatch -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate"
+  if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate" ]; then
+    git rm -q --ignore-unmatch -f "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate"
     added=1
   fi
-  if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" ]; then
-    git rm -q --ignore-unmatch -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip"
+  if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" ]; then
+    git rm -q --ignore-unmatch -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip"
     added=1
   fi
 fi
 
-if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate" ]; then
-  git add -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate"
+if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate" ]; then
+  git add -f "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate"
   added=1
 fi
 
-if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate" ]; then
+if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate" ]; then
   # || true suppresses the exitcode of grep. To not trigger the strict exit on error
-  backend=$(grep "local" "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate" || true)
-  if [ -n "${backend}" ]; then
+  backend=$(grep "local" "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate" || true)
+  if [ "$return_code" != 0 ]; then
     echo "Local Terraform state"
-    if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate" ]; then
+    if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate" ]; then
       sudo apt-get -qq install zip
 
       echo "Compressing the library state file"
       pass=${SYSTEM_COLLECTIONID//-/}
-      zip -q -j -P "${pass}" "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/state" "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate"
-      git add -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/state.zip"
+      zip -q -j -P "${pass}" "LIBRARY/$LIBRARY_FOLDERNAME/state" "LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate"
+      git add -f "LIBRARY/$LIBRARY_FOLDERNAME/state.zip"
       added=1
     fi
   else
     echo "Remote Terraform state"
-    if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate" ]; then
-      git rm -q -f --ignore-unmatch "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate"
+    if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate" ]; then
+      git rm -q -f --ignore-unmatch "LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate"
       added=1
     fi
-    if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/state.zip" ]; then
-      git rm -q --ignore-unmatch -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/state.zip"
+    if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/state.zip" ]; then
+      git rm -q --ignore-unmatch -f "LIBRARY/$LIBRARY_FOLDERNAME/state.zip"
       added=1
     fi
   fi
 fi
 
-if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate" ]; then
-  git add -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate"
+if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate" ]; then
+  git add -f "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate"
   added=1
 fi
 
@@ -404,8 +404,8 @@ if [ 1 = $added ]; then
 
 fi
 
-if [ -f "${CONFIG_REPO_PATH}"/.sap_deployment_automation/"${ENVIRONMENT}""${LOCATION}".md ]; then
-  echo "##vso[task.uploadsummary]${CONFIG_REPO_PATH}/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md"
+if [ -f ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md" ]; then
+  echo "##vso[task.uploadsummary].sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md"
 fi
 
 if [ -f "${deployer_environment_file_name}" ]; then
