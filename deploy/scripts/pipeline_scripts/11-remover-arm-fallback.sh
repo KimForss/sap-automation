@@ -10,7 +10,6 @@ if [ "$SYSTEM_DEBUG" = True ]; then
   export debug
 fi
 
-az devops configure --defaults organization="$ENDPOINT_URL_SYSTEMVSSCONNECTION" project="$SYSTEM_TEAMPROJECT" --output none
 if [ -n "$PAT" ]; then
   AZURE_DEVOPS_EXT_PAT=$PAT
 else
@@ -18,6 +17,8 @@ else
 fi
 
 export AZURE_DEVOPS_EXT_PAT
+az devops configure --defaults organization="$ENDPOINT_URL_SYSTEMVSSCONNECTION" project="$SYSTEM_TEAMPROJECT" --output none
+
 return_code=0
 
 ENVIRONMENT=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $1}' | xargs)

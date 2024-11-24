@@ -332,18 +332,19 @@ stages:
           - group:                     SDAF-${{ parameters.deployer_environment }}
         steps:
           - template:                  templates\download.yaml
-          - task:                      Bash@3
+          - task:                      AzureCLI@2
             continueOnError:           false
             inputs:
-              targetType:              'filePath'
-              filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/11-remover-arm-fallback.sh"
+              azureSubscription:       $(AZURE_CONNECTION_NAME)
+              scriptType:              bash
+              scriptLocation:          'scriptPath'
+              scriptPath:              $(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/11-remover-arm-fallback.sh"
               failOnStderr:            false
               workingDirectory:        "$(System.DefaultWorkingDirectory)"
 
             displayName:               Remove Control Plane deployment artifacts from WORKSPACES
             env:
               ARM_SUBSCRIPTION_ID:      $(CP_ARM_SUBSCRIPTION_ID)
-              AZURE_DEVOPS_EXT_PAT:     $(PAT)
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
               CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
               USE_MSI:                  $(Use_MSI)

@@ -216,8 +216,6 @@ else
   export TF_PLUGIN_CACHE_DIR=/opt/terraform/.terraform.d/plugin-cache
 fi
 
-
-
 echo "Deployer environment:                  $environment"
 
 this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
@@ -320,21 +318,31 @@ if [ -f ./.terraform/terraform.tfstate ]; then
     echo "#                                                                                       #"
     echo "#########################################################################################"
     echo ""
-    sed -i /"use_microsoft_graph"/d "${param_dirname}/.terraform/terraform.tfstate"
-    terraform -chdir="${terraform_module_directory}" init -force-copy -migrate-state --backend-config "path=${param_dirname}/terraform.tfstate"
-    terraform -chdir="${terraform_module_directory}" init -reconfigure --backend-config "path=${param_dirname}/terraform.tfstate"
+    if terraform -chdir="${terraform_module_directory}" init -force-copy -migrate-state --backend-config "path=${param_dirname}/terraform.tfstate"; then
+      return_value=$?
+    else
+      return_value=$?
+    fi
   else
     terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/sap_deployer/
-    terraform -chdir="${terraform_module_directory}" init -reconfigure -backend-config "path=${param_dirname}/terraform.tfstate"
+    if terraform -chdir="${terraform_module_directory}" init -reconfigure -backend-config "path=${param_dirname}/terraform.tfstate"; then
+      return_value=$?
+    else
+      return_value=$?
+    fi
   fi
 else
   terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/sap_deployer/
-  terraform -chdir="${terraform_module_directory}" init -reconfigure -backend-config "path=${param_dirname}/terraform.tfstate"
+  if terraform -chdir="${terraform_module_directory}" init -reconfigure -backend-config "path=${param_dirname}/terraform.tfstate"; then
+    return_value=$?
+  else
+    return_value=$?
+  fi
 fi
 return_value=$?
 
 deployer_statefile_foldername_path="${param_dirname}"
-if [ -f init_error.log ]; then
+if [ 0 != $return_value ]; then
   echo ""
   echo "#########################################################################################"
   echo "#                                                                                       #"
@@ -345,7 +353,7 @@ if [ -f init_error.log ]; then
   cat init_error.log
   rm init_error.log
   unset TF_DATA_DIR
-  exit 1
+  exit 10
 fi
 cd "${curdir}" || exit
 
@@ -388,21 +396,30 @@ if [ -f ./.terraform/terraform.tfstate ]; then
     echo ""
 
     #Initialize the statefile and copy to local
-    sed -i /"use_microsoft_graph"/d "${param_dirname}/.terraform/terraform.tfstate"
-    terraform -chdir="${terraform_module_directory}" init -force-copy -migrate-state --backend-config \
-      "path=${param_dirname}/terraform.tfstate" -var deployer_statefile_folder="${deployer_statefile_foldername_path}"
-    terraform -chdir="${terraform_module_directory}" init -reconfigure --backend-config "path=${param_dirname}/terraform.tfstate" \
-      -var deployer_statefile_folder="${deployer_statefile_foldername_path}"
+    if terraform -chdir="${terraform_module_directory}" init -force-copy -migrate-state --backend-config \
+      "path=${param_dirname}/terraform.tfstate" -var deployer_statefile_folder="${deployer_statefile_foldername_path}"; then
+      return_value=$?
+    else
+      return_value=$?
+    fi
   else
-    terraform -chdir="${terraform_module_directory}" init -reconfigure --backend-config "path=${param_dirname}/terraform.tfstate" \
-      -var deployer_statefile_folder="${deployer_statefile_foldername_path}"
+    if terraform -chdir="${terraform_module_directory}" init -reconfigure --backend-config "path=${param_dirname}/terraform.tfstate" \
+      -var deployer_statefile_folder="${deployer_statefile_foldername_path}"; then
+      return_value=$?
+    else
+      return_value=$?
+    fi
   fi
 else
-  terraform -chdir="${terraform_module_directory}" init -reconfigure --backend-config "path=${param_dirname}/terraform.tfstate" \
-    -var deployer_statefile_folder="${deployer_statefile_foldername_path}"
+  if terraform -chdir="${terraform_module_directory}" init -reconfigure --backend-config "path=${param_dirname}/terraform.tfstate" \
+    -var deployer_statefile_folder="${deployer_statefile_foldername_path}"; then
+    return_value=$?
+  else
+    return_value=$?
+  fi
 fi
 
-if [ -f init_error.log ]; then
+if [ 0 != $return_code ]; then
   echo ""
   echo "#########################################################################################"
   echo "#                                                                                       #"
@@ -410,8 +427,6 @@ if [ -f init_error.log ]; then
   echo "#                                                                                       #"
   echo "#########################################################################################"
   echo ""
-  cat init_error.log
-  rm init_error.log
   unset TF_DATA_DIR
   exit 1
 
@@ -436,9 +451,12 @@ echo "#                                                                         
 echo "#########################################################################################"
 echo ""
 
-terraform -chdir="${terraform_module_directory}" destroy -var-file="${var_file}" -var use_deployer=false \
-  -var deployer_statefile_foldername="${deployer_statefile_foldername_path}" "${approve_parameter}"
-return_value=$?
+if terraform -chdir="${terraform_module_directory}" destroy -var-file="${var_file}" -var use_deployer=false \
+  -var deployer_statefile_foldername="${deployer_statefile_foldername_path}" "${approve_parameter}"; then
+  return_value=$?
+else
+  return_value=$?
+fi
 
 if [ 0 != $return_value ]; then
   exit $return_value

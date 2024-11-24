@@ -91,6 +91,15 @@ REMOTE_STATE_SA=""
 REMOTE_STATE_RG=$LIBRARY_FOLDERNAME
 
 echo -e "$green--- Configure devops CLI extension ---$reset"
+
+if [ -n "$PAT" ]; then
+  AZURE_DEVOPS_EXT_PAT=$PAT
+else
+  AZURE_DEVOPS_EXT_PAT=$SYSTEM_ACCESSTOKEN
+fi
+
+export AZURE_DEVOPS_EXT_PAT
+
 az config set extension.use_dynamic_install=yes_without_prompt --only-show-errors
 az extension add --name azure-devops --output none --only-show-errors
 az devops configure --defaults organization="$ENDPOINT_URL_SYSTEMVSSCONNECTION" project="$SYSTEM_TEAMPROJECT" --output none --only-show-errors
@@ -242,6 +251,12 @@ if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate" ]; then
   git add -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip"
   changed=1
 fi
+
+if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate" ]; then
+  git add -f "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate"
+  changed=1
+fi
+
 if [ $return_code != 0 ]; then
   backend=$(grep "local" "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate" || true)
   if [ -n "${backend}" ]; then
