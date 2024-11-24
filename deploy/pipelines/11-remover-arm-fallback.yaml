@@ -117,6 +117,8 @@ stages:
             displayName:               Remove_SAP_infrastructure
             env:
               SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
+              SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
+              CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
 
   - stage:                             Remove_SAP_workload_zone
     displayName:                       Remove SAP workload zone
