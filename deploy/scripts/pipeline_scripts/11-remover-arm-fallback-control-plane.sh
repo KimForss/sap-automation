@@ -10,13 +10,16 @@ if [ "$SYSTEM_DEBUG" = True ]; then
   export debug
 fi
 
-if [ -n "$PAT" ]; then
+if [  "${#PAT}" -gt 0 ]; then
+  echo "Using PAT for authentication"
   AZURE_DEVOPS_EXT_PAT=$PAT
 else
+  echo "Using SYSTEM_ACCESSTOKEN for authentication"
   AZURE_DEVOPS_EXT_PAT=$SYSTEM_ACCESSTOKEN
 fi
 
 export AZURE_DEVOPS_EXT_PAT
+
 az devops configure --defaults organization="$ENDPOINT_URL_SYSTEMVSSCONNECTION" project="$SYSTEM_TEAMPROJECT" --output none
 
 return_code=0
