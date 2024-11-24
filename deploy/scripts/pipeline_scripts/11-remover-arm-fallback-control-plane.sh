@@ -10,6 +10,9 @@ if [ "$SYSTEM_DEBUG" = True ]; then
   export debug
 fi
 
+printenv
+exit 10
+
 if [  "${#PAT}" -gt 0 ]; then
   echo "Using PAT for authentication"
   AZURE_DEVOPS_EXT_PAT=$PAT
