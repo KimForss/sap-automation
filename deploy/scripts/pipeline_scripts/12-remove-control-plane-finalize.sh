@@ -269,13 +269,14 @@ if [ 0 == $return_code ]; then
   if [ 1 == $changed ]; then
     git config --global user.email "$BUILD_REQUESTEDFOREMAIL"
     git config --global user.name "$BUILD_REQUESTEDFOR"
-    git commit -m "Control Plane $DEPLOYER_FOLDERNAME removal step 2[skip ci]"
-    if git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BRANCH" --force-with-lease; then
-      return_code=$?
-      echo "##vso[task.logissue type=warning]Control Plane $DEPLOYER_FOLDERNAME removal step 2 updated in $BRANCH"
-    else
-      return_code=$?
-      echo "##vso[task.logissue type=error]Failed to push changes to $BRANCH"
+    if git commit -m "Control Plane $DEPLOYER_FOLDERNAME removal step 2[skip ci]"; then
+      if git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BRANCH" --force-with-lease; then
+        return_code=$?
+        echo "##vso[task.logissue type=warning]Control Plane $DEPLOYER_FOLDERNAME removal step 2 updated in $BRANCH"
+      else
+        return_code=$?
+        echo "##vso[task.logissue type=error]Failed to push changes to $BRANCH"
+      fi
     fi
   fi
   echo -e "$green--- Deleting variables ---$reset"
