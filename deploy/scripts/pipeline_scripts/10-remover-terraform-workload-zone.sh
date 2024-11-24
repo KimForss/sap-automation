@@ -281,7 +281,6 @@ if [ 0 == $return_code ]; then
     changed=1
   fi
 
-
   if [ -f "$WORKLOAD_ZONE_TFVARS_FILENAME" ]; then
     git add "$WORKLOAD_ZONE_TFVARS_FILENAME"
     changed=1
@@ -291,11 +290,12 @@ if [ 0 == $return_code ]; then
     git config --global user.email "$BUILD_REQUESTEDFOREMAIL"
     git config --global user.name "$BUILD_REQUESTEDFOR"
 
-    git commit -m "Infrastructure for $WORKLOAD_ZONE_TFVARS_FILENAME removed. [skip ci]"
-    if git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BRANCH" --force-with-lease; then
-      echo "##vso[task.logissue type=warning]Removal of $WORKLOAD_ZONE_TFVARS_FILENAME updated in $BRANCH"
-    else
-      echo "##vso[task.logissue type=error]Failed to push changes to $BRANCH"
+    if git commit -m "Infrastructure for $WORKLOAD_ZONE_TFVARS_FILENAME removed. [skip ci]"; then
+      if git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BRANCH" --force-with-lease; then
+        echo "##vso[task.logissue type=warning]Removal of $WORKLOAD_ZONE_TFVARS_FILENAME updated in $BRANCH"
+      else
+        echo "##vso[task.logissue type=error]Failed to push changes to $BRANCH"
+      fi
     fi
   fi
 fi
