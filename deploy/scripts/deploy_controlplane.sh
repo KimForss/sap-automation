@@ -488,6 +488,9 @@ cd "$root_dirname" || exit
 if validate_key_vault "$keyvault"; then
   echo "Key vault:                           ${keyvault}"
   save_config_var "keyvault" "${deployer_config_information}"
+  export step=2
+  save_config_var "step" "${deployer_config_information}"
+
 else
   return_code=$?
   echo "#########################################################################################"
@@ -580,7 +583,6 @@ if [ 2 == $step ]; then
   export TF_VAR_tfstate_resource_id
 
   cd "${curdir}" || exit
-  export step=3
   save_config_var "step" "${deployer_config_information}"
   echo "##vso[task.setprogress value=60;]Progress Indicator"
 
