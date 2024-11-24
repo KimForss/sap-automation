@@ -97,7 +97,7 @@ stages:
             inputs:
               deploymentScope:                "Resource Group"
               azureResourceManagerConnection: ${{ parameters.workload_zone_connection }}
-              subscriptionId:                 "$(ARM_SUBSCRIPTION_ID)"
+              subscriptionId:                 "$(WL_ARM_SUBSCRIPTION_ID)"
               action:                         "DeleteRG"
               resourceGroupName:              "$(sap_system_foldername)"
 
@@ -181,9 +181,9 @@ stages:
             inputs:
               deploymentScope:                "Resource Group"
               azureResourceManagerConnection: ${{ parameters.workload_zone_connection }}
-              subscriptionId:                 "$(ARM_SUBSCRIPTION_ID)"
+              subscriptionId:                 "$(WL_ARM_SUBSCRIPTION_ID)"
               action:                         "DeleteRG"
-              resourceGroupName:              "$(zone_folder)"
+              resourceGroupName:              "$(workload_zone_foldername)"
 
       - job:                           Remove_zone_deployment_artifacts_in_WORKSPACES
         displayName:                   Remove Workload Zone deployment artifacts
