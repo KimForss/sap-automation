@@ -24,7 +24,7 @@ if [ "$SYSTEM_DEBUG" = True ]; then
 fi
 set -eu
 
-tfvarsFile="SYSTEM/$WORKLOAD_ZONE_FOLDERNAME/$WORKLOAD_ZONE_TFVARS_FILENAME"
+tfvarsFile="LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME/$WORKLOAD_ZONE_TFVARS_FILENAME"
 
 echo -e "$green--- Checkout $BRANCH ---$reset"
 
@@ -142,9 +142,9 @@ echo "Network(filename):                   $NETWORK_IN_FILENAME"
 
 echo ""
 
-echo "Agent pool:                          $(this_agent)"
-echo "Organization:                        $(System.CollectionUri)"
-echo "Project:                             $(System.TeamProject)"
+echo "Agent pool:                          $THIS_AGENT"
+echo "Organization:                        $SYSTEM_COLLECTIONURI"
+echo "Project:                             $SYSTEM_TEAMPROJECT"
 echo ""
 echo "Azure CLI version:"
 echo "-------------------------------------------------"
