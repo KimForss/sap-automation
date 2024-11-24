@@ -36,12 +36,13 @@ NETWORK=$(echo "$WORKLOAD_ZONE_FOLDERNAME" | awk -F'-' '{print $3}' | xargs)
 echo "Network:                               $NETWORK"
 
 cd "$CONFIG_REPO_PATH" || exit
-    git config --global user.email "$BUILD_REQUESTEDFOREMAIL"
-    git config --global user.name "$BUILD_REQUESTEDFOR"
-    git commit -m "Added updates from devops deployment $BUILD_BUILDNUMBER [skip ci]"
+git config --global user.email "$BUILD_REQUESTEDFOREMAIL"
+git config --global user.name "$BUILD_REQUESTEDFOR"
+git commit -m "Added updates from devops deployment $BUILD_BUILDNUMBER [skip ci]"
 
-git checkout -q "$(Branch)"
-git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" pull
+git checkout -q "$BRANCH"
+git clean -d -f -X
+
 
 echo "##vso[build.updatebuildnumber]Removing workload zone $WORKLOAD_ZONE_FOLDERNAME"
 changed=0
@@ -71,7 +72,7 @@ fi
 echo -e "$green--- Configure devops CLI extension ---$reset"
 az config set extension.use_dynamic_install=yes_without_prompt
 
-VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(variable_group)'].id | [0]")
+VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$VARIABLE_GROUP'].id | [0]")
 
 prefix="${ENVIRONMENT}${LOCATION}${NETWORK}"
 
