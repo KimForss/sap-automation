@@ -272,6 +272,9 @@ if [ 0 == $return_code ]; then
   git checkout -q "$BRANCH"
   git pull origin "$BRANCH"
 
+
+  git clean  -d -f -X
+
   if [ -f ".terraform/terraform.tfstate" ]; then
     git rm --ignore-unmatch -q  --ignore-unmatch ".terraform/terraform.tfstate"
     changed=1
@@ -307,7 +310,6 @@ if [ 0 == $return_code ]; then
     changed=1
   fi
 
-  git clean -d -f
 
   if [ 1 == $changed ]; then
     git config --global user.email "$BUILD_REQUESTEDFOREMAIL"
