@@ -273,6 +273,7 @@ if [ 0 == $return_code ]; then
   if [ -d ".terraform" ]; then
     git rm -q -r --ignore-unmatch -f ".terraform"
     changed=1
+    rm -rf .terraform
   fi
 
   if [ -f "${ENVIRONMENT}${LOCATION}${NETWORK}.md" ]; then
