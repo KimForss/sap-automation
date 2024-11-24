@@ -134,7 +134,6 @@ echo "Workload TFvars:                     $WORKLOAD_ZONE_TFVARS_FILENAME"
 echo "Environment:                         $ENVIRONMENT"
 echo "Location:                            $LOCATION"
 echo "Network:                             $NETWORK"
-echo "SID:                                 $SID"
 
 echo "Environment(filename):               $ENVIRONMENT_IN_FILENAME"
 echo "Location(filename):                  $LOCATION_IN_FILENAME"
