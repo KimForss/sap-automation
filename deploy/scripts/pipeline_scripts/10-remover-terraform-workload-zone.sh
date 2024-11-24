@@ -26,11 +26,11 @@ set -eu
 
 tfvarsFile="SYSTEM/$WORKLOAD_ZONE_FOLDERNAME/$WORKLOAD_ZONE_TFVARS_FILENAME"
 
-echo -e "$green--- Checkout $(Build.SourceBranchName) ---$reset"
+echo -e "$green--- Checkout $BRANCH ---$reset"
 
 cd "${CONFIG_REPO_PATH}" || exit
 mkdir -p .sap_deployment_automation
-git checkout -q "$(Build.SourceBranchName)"
+git checkout -q "$BRANCH"
 
 if [ ! -f "$CONFIG_REPO_PATH/LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME/$WORKLOAD_ZONE_TFVARS_FILENAME" ]; then
   echo -e "$boldred--- $WORKLOAD_ZONE_TFVARS_FILENAME was not found ---$reset"
@@ -237,7 +237,7 @@ ${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/remover.sh \
 
 return_code=$?
 echo -e "$green--- Pull latest from DevOps Repository ---$reset"
-git checkout -q "$(Build.SourceBranchName)"
+git checkout -q "$BRANCH"
 git pull
 
 #stop the pipeline after you have reset the whitelisting on your resources
@@ -248,7 +248,8 @@ if [ 0 != $return_code ]; then
 fi
 
 echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
-cd "$(Build.Repository.LocalPath)"
+
+cd "$CONFIG_REPO_PATH" || exit
 
 changed=0
 # Pull changes
@@ -275,7 +276,7 @@ if [ 0 == $return_code ]; then
 
     git commit -m "Infrastructure for $WORKLOAD_ZONE_TFVARS_FILENAME removed. [skip ci]"
     if git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BRANCH" --force-with-lease; then
-      echo "##vso[task.logissue type=warning]Removal of $WORKLOAD_ZONE_TFVARS_FILENAME updated in $(Build.SourceBranchName)"
+      echo "##vso[task.logissue type=warning]Removal of $WORKLOAD_ZONE_TFVARS_FILENAME updated in $BRANCH"
     else
       echo "##vso[task.logissue type=error]Failed to push changes to $BRANCH"
     fi

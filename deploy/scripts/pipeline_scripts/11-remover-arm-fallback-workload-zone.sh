@@ -60,9 +60,9 @@ if [ -f ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}${NETWORK}.md" ]; t
 fi
 
 if [ 1 == $changed ]; then
-  git commit -m "Removal of Workload zone $(Build.DefinitionName) [skip ci]"
-  if git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push; then
-    echo "Removal of Workload zone $(Build.DefinitionName) pushed to devops repository"
+  git commit -m "Removal of Workload zone $BUILD_BUILDNUMBER [skip ci]"
+  if git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push; then
+    echo "Removal of Workload zone $BUILD_BUILDNUMBER pushed to devops repository"
   else
     echo "Failed to push changes to devops repository"
     return_code=1

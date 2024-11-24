@@ -249,7 +249,7 @@ fi
 set +o errexit
 
 echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
-cd "$(Build.Repository.LocalPath)" || exit
+cd "$CONFIG_REPO_PATH" || exit
 git pull
 
 # Pull changes if there are other deployment jobs
