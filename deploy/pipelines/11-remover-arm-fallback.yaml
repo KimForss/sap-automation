@@ -336,7 +336,7 @@ stages:
             continueOnError:           false
             inputs:
               targetType:              'filePath'
-              filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/01-control-plane-prepare.sh"
+              filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/11-remover-arm-fallback.sh"
               failOnStderr:            false
               workingDirectory:        "$(System.DefaultWorkingDirectory)"
 
