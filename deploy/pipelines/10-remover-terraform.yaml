@@ -75,7 +75,7 @@ stages:
             inputs:
               targetType:              'filePath'
               filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/10-remover-terraform-system.sh"
-              failOnStderr:            true
+              failOnStderr:            false
               workingDirectory:        "$(System.DefaultWorkingDirectory)"
 
             displayName:               "Remove SAP system"
@@ -89,8 +89,6 @@ stages:
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
               CONFIG_REPO_PATH:        ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
               USE_MSI:                 $(Use_MSI)
-
-            failOnStderr: false
 
   - stage:                             Remove_SAP_workload_zone
     displayName:                       "Removing the SAP workload zone"
@@ -117,7 +115,7 @@ stages:
             inputs:
               targetType:              'filePath'
               filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/10-remover-terraform-workload-zone.sh"
-              failOnStderr:            true
+              failOnStderr:            false
               workingDirectory:        "$(System.DefaultWorkingDirectory)"
             displayName:               Remove SAP workload_zone
             env:
@@ -130,5 +128,3 @@ stages:
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
               CONFIG_REPO_PATH:        ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
               USE_MSI:                 $(Use_MSI)
-
-            failOnStderr: false
