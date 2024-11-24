@@ -363,7 +363,6 @@ if [ 0 == $step ]; then
     save_config_var "step" "${deployer_config_information}"
   fi
 
-
   echo "Calling install_deployer.sh:         $allParameters"
   echo "Deployer State File:                 ${deployer_tfstate_key}"
 
@@ -484,12 +483,13 @@ unset TF_DATA_DIR
 
 cd "$root_dirname" || exit
 
-
 if validate_key_vault "$keyvault"; then
   echo "Key vault:                           ${keyvault}"
   save_config_var "keyvault" "${deployer_config_information}"
-  export step=2
-  save_config_var "step" "${deployer_config_information}"
+  if [ 1 == $step ]; then
+    export step=2
+    save_config_var "step" "${deployer_config_information}"
+  fi
 
 else
   return_code=$?
