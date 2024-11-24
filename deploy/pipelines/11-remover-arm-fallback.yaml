@@ -203,7 +203,6 @@ stages:
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
               CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
               SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
-            failOnStderr:              false
 
   - stage:                             Remove_Control_plane
     displayName:                       Remove Control Plane
