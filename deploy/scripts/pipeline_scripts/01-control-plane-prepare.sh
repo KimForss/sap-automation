@@ -176,13 +176,13 @@ if [ -n $key_vault ]; then
       if [ -n "${key_vault_id}" ]; then
         export TF_VAR_deployer_kv_user_arm_id=${key_vault_id}
         this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
-        az keyvault network-rule add --name "${key_vault}" --ip-address "${this_ip}" --subscription "$TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION" --only-show-errors --output none
+        az keyvault network-rule add --name "${key_vault}" --ip-address "${this_ip}" --subscription "$ARM_SUBSCRIPTION_ID" --only-show-errors --output none
       fi
     fi
   else
     export TF_VAR_deployer_kv_user_arm_id=${key_vault_id}
     this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
-    az keyvault network-rule add --name "${key_vault}" --ip-address "${this_ip}" --subscription "$TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION" --only-show-errors --output none
+    az keyvault network-rule add --name "${key_vault}" --ip-address "${this_ip}" --subscription "$ARM_SUBSCRIPTION_ID" --only-show-errors --output none
 
   fi
 else
@@ -197,19 +197,31 @@ if [ $FORCE_RESET = true ]; then
   sed -i 's/step=3/step=0/' "$deployer_environment_file_name"
 
   export FORCE_RESET=true
+  TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME" "${deployer_environment_file_name}" "REMOTE_STATE_SA")
+  TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME" "${deployer_environment_file_name}" "REMOTE_STATE_RG")
 
-  tfstate_resource_id=$(az resource list --name "$TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME" --subscription "$TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION" --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
-  if [ -n "${tfstate_resource_id}" ]; then
-    this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
-    az storage account network-rule add --account-name "$TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME" --resource-group "$TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME" --ip-address "${this_ip}" --only-show-errors --output none
+  if [ -n "${TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME}" ]; then
+    echo "Terraform Remote State Account:       ${TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME}"
   fi
 
-  REINSTALL_ACCOUNTNAME=$TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME
-  export REINSTALL_ACCOUNTNAME
-  REINSTALL_SUBSCRIPTION=$TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION
-  export REINSTALL_SUBSCRIPTION
-  REINSTALL_RESOURCE_GROUP=$TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME
-  export REINSTALL_RESOURCE_GROUP
+  if [ -n "${TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME}" ]; then
+    echo "Terraform Remote State RG Name:       ${TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME}"
+  fi
+
+  if [ -n "${TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME}" ] && [ -n "${TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME}" ]; then
+    tfstate_resource_id=$(az resource list --name "$TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME" --subscription "$ARM_SUBSCRIPTION_ID" --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
+    if [ -n "${tfstate_resource_id}" ]; then
+      this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
+      az storage account network-rule add --account-name "$TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME" --resource-group "$TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME" --ip-address "${this_ip}" --only-show-errors --output none
+    fi
+
+    REINSTALL_ACCOUNTNAME=$TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME
+    export REINSTALL_ACCOUNTNAME
+    REINSTALL_SUBSCRIPTION=$ARM_SUBSCRIPTION_ID
+    export REINSTALL_SUBSCRIPTION
+    REINSTALL_RESOURCE_GROUP=$TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME
+    export REINSTALL_RESOURCE_GROUP
+  fi
 fi
 
 echo -e "$green--- Variables ---$reset"
