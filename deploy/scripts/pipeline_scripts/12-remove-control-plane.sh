@@ -86,13 +86,8 @@ REMOTE_STATE_RG=$LIBRARY_FOLDERNAME
 
 echo -e "$green--- Configure devops CLI extension ---$reset"
 
-if [  "${#PAT}" -gt 0 ]; then
-  echo "Using PAT for authentication"
-  AZURE_DEVOPS_EXT_PAT=$PAT
-else
-  echo "Using SYSTEM_ACCESSTOKEN for authentication"
-  AZURE_DEVOPS_EXT_PAT=$SYSTEM_ACCESSTOKEN
-fi
+echo "Using SYSTEM_ACCESSTOKEN for authentication"
+AZURE_DEVOPS_EXT_PAT=$SYSTEM_ACCESSTOKEN
 
 export AZURE_DEVOPS_EXT_PAT
 
