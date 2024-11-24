@@ -34,7 +34,6 @@ echo "Location:                              $LOCATION"
 NETWORK=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $3}' | xargs)
 echo "Network:                               $NETWORK"
 
-az pipelines variable-group list
 VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$PARENT_VARIABLE_GROUP'].id | [0]")
 
 echo "Variable group:                        $VARIABLE_GROUP_ID"
