@@ -260,13 +260,13 @@ echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
 cd "$CONFIG_REPO_PATH" || exit
 
 changed=0
-# Pull changes
-git checkout -q "$BRANCH"
-git pull origin "$BRANCH"
 
 cd "${CONFIG_REPO_PATH}/SYSTEM/$SAP_SYSTEM_FOLDERNAME" || exit
 
 if [ 0 == $return_code ]; then
+  # Pull changes
+  git checkout -q "$BRANCH"
+  git pull origin "$BRANCH"
 
   if [ -d ".terraform" ]; then
     git rm -q -r --ignore-unmatch -f ".terraform"
@@ -297,6 +297,8 @@ if [ 0 == $return_code ]; then
     git rm --ignore-unmatch -q "${SID}_virtual_machines.json"
     changed=1
   fi
+
+  git clean -d -n
 
   if [ 1 == $changed ]; then
     git config --global user.email "$BUILD_REQUESTEDFOREMAIL"
