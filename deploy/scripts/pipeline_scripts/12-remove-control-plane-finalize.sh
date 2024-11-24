@@ -66,7 +66,7 @@ echo "Environment(filename):               $ENVIRONMENT_IN_FILENAME"
 echo "Location(filename):                  $LOCATION_IN_FILENAME"
 echo ""
 echo "Agent:                               $THIS_AGENT"
-echo "Organization:                        $ENDPOINT_URL_SYSTEMVSSCONNECTION"
+echo "Organization:                        $SYSTEM_COLLECTIONURI"
 echo "Project:                             $SYSTEM_TEAMPROJECT"
 if [ -n "$TF_VAR_agent_pat" ]; then
   echo "Deployer Agent PAT:                  IsDefined"
@@ -94,7 +94,7 @@ REMOTE_STATE_RG=$LIBRARY_FOLDERNAME
 echo -e "$green--- Configure devops CLI extension ---$reset"
 az config set extension.use_dynamic_install=yes_without_prompt --only-show-errors
 az extension add --name azure-devops --output none --only-show-errors
-az devops configure --defaults organization="$ENDPOINT_URL_SYSTEMVSSCONNECTION" project="$SYSTEM_TEAMPROJECT" --output none --only-show-errors
+az devops configure --defaults organization="$SYSTEM_COLLECTIONURI" project="$SYSTEM_TEAMPROJECT" --output none --only-show-errors
 
 if [[ -f /etc/profile.d/deploy_server.sh ]]; then
   path=$(grep -m 1 "export PATH=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)

@@ -174,7 +174,7 @@ az config set extension.use_dynamic_install=yes_without_prompt --output none --o
 
 az extension add --name azure-devops --output none --only-show-errors
 
-az devops configure --defaults organization="$ENDPOINT_URL_SYSTEMVSSCONNECTION" project='$SYSTEM_TEAMPROJECT'
+az devops configure --defaults organization="$SYSTEM_COLLECTIONURI" project='$SYSTEM_TEAMPROJECT'
 
 VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$VARIABLE_GROUP'].id | [0]")
 export VARIABLE_GROUP_ID

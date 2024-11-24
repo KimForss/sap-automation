@@ -155,7 +155,7 @@ echo "Workload TFvars                      $WORKLOAD_ZONE_TFVARS_FILENAME"
 echo ""
 
 echo "Agent pool:                          $THIS_AGENT"
-echo "Organization:                        $ENDPOINT_URL_SYSTEMVSSCONNECTION"
+echo "Organization:                        $SYSTEM_COLLECTIONURI"
 echo "Project:                             $SYSTEM_TEAMPROJECT"
 echo ""
 echo "Azure CLI version:"
@@ -192,7 +192,7 @@ az config set extension.use_dynamic_install=yes_without_prompt --output none
 
 az extension add --name azure-devops --output none --only-show-errors
 
-az devops configure --defaults organization="$ENDPOINT_URL_SYSTEMVSSCONNECTION" project="$SYSTEM_TEAMPROJECT" --output none
+az devops configure --defaults organization="$SYSTEM_COLLECTIONURI" project="$SYSTEM_TEAMPROJECT" --output none
 
 PARENT_VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$PARENT_VARIABLE_GROUP'].id | [0]")
 

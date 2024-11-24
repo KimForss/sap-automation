@@ -23,7 +23,7 @@ fi
 
 export AZURE_DEVOPS_EXT_PAT
 
-az devops configure --defaults organization="$ENDPOINT_URL_SYSTEMVSSCONNECTION" project="$SYSTEM_TEAMPROJECT" --output none
+az devops configure --defaults organization="$SYSTEM_COLLECTIONURI" project="$SYSTEM_TEAMPROJECT" --output none
 
 return_code=0
 
