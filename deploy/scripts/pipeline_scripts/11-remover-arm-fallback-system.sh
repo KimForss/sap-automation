@@ -10,21 +10,6 @@ if [ "$SYSTEM_DEBUG" = True ]; then
   export debug
 fi
 
-if [ "${#PAT}" -gt 0 ]; then
-  echo "Using PAT for authentication"
-  AZURE_DEVOPS_EXT_PAT=$PAT
-else
-  echo "Using SYSTEM_ACCESSTOKEN for authentication"
-  AZURE_DEVOPS_EXT_PAT=$SYSTEM_ACCESSTOKEN
-fi
-
-export AZURE_DEVOPS_EXT_PAT
-
-az devops configure --defaults organization="$SYSTEM_COLLECTIONURI" project="$SYSTEM_TEAMPROJECT" --output none
-
-return_code=0
-
-echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
 ENVIRONMENT=$(echo "$SAP_SYSTEM_FOLDERNAME" | awk -F'-' '{print $1}' | xargs)
 echo "Environment:                           $ENVIRONMENT"
 
@@ -35,11 +20,16 @@ echo "Location:                              $LOCATION"
 NETWORK=$(echo "$SAP_SYSTEM_FOLDERNAME" | awk -F'-' '{print $3}' | xargs)
 echo "Network:                               $NETWORK"
 
+
+SID=$(echo "$SAP_SYSTEM_FOLDERNAME" | awk -F'-' '{print $4}' | xargs)
+echo "SID:                                   $SID"
+
 cd "$CONFIG_REPO_PATH/SYSTEM/$SAP_SYSTEM_FOLDERNAME" || exit
 
 echo "##vso[build.updatebuildnumber]Removing SAP System zone $SAP_SYSTEM_FOLDERNAME"
 changed=0
 
+git checkout -q "$BRANCH"
 git clean -d -f -X
 
 if [ -f ".terraform/terraform.tfstate" ]; then
