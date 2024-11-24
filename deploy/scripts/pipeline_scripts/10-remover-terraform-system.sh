@@ -263,7 +263,11 @@ changed=0
 
 cd "${CONFIG_REPO_PATH}/SYSTEM/$SAP_SYSTEM_FOLDERNAME" || exit
 
+
 if [ 0 == $return_code ]; then
+  if [ -d .terraform ]; then
+    rm -r .terraform
+  fi
   # Pull changes
   git checkout -q "$BRANCH"
   git pull origin "$BRANCH"
@@ -303,7 +307,7 @@ if [ 0 == $return_code ]; then
     changed=1
   fi
 
-  git clean -d -n
+  git clean -d -f
 
   if [ 1 == $changed ]; then
     git config --global user.email "$BUILD_REQUESTEDFOREMAIL"
