@@ -67,12 +67,6 @@ echo ""
 echo "Agent:                               $THIS_AGENT"
 echo "Organization:                        $SYSTEM_COLLECTIONURI"
 echo "Project:                             $SYSTEM_TEAMPROJECT"
-if [ -n "$TF_VAR_agent_pat" ]; then
-  echo "Deployer Agent PAT:                  IsDefined"
-fi
-if [ -n "$POOL" ]; then
-  echo "Deployer Agent Pool:                 $POOL"
-fi
 
 if [ "$ENVIRONMENT" != "$ENVIRONMENT_IN_FILENAME" ]; then
   echo "##vso[task.logissue type=error]The environment setting in $deployerTFvarsFile $ENVIRONMENT does not match the $DEPLOYER_FOLDERNAME file name $ENVIRONMENT_IN_FILENAME. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
