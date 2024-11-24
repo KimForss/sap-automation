@@ -35,80 +35,58 @@ echo "Location:                              $LOCATION"
 NETWORK=$(echo "$SAP_SYSTEM_FOLDERNAME" | awk -F'-' '{print $3}' | xargs)
 echo "Network:                               $NETWORK"
 
-cd "$CONFIG_REPO_PATH" || exit
-    git config --global user.email "$BUILD_REQUESTEDFOREMAIL"
-    git config --global user.name "$BUILD_REQUESTEDFOR"
-    git commit -m "Added updates from devops deployment $BUILD_BUILDNUMBER [skip ci]"
+cd "$CONFIG_REPO_PATH/SYSTEM/$SAP_SYSTEM_FOLDERNAME" || exit
 
-git checkout -q "$(Branch)"
-git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" pull
-
-echo "##vso[build.updatebuildnumber]Removing workload zone $SAP_SYSTEM_FOLDERNAME"
+echo "##vso[build.updatebuildnumber]Removing SAP System zone $SAP_SYSTEM_FOLDERNAME"
 changed=0
 
-if [ -d "SYSTEM/$SAP_SYSTEM_FOLDERNAME/.terraform" ]; then
-  git rm -r -f --ignore-unmatch "SYSTEM/$SAP_SYSTEM_FOLDERNAME/.terraform"
+git clean -d -f -X
+
+if [ -f ".terraform/terraform.tfstate" ]; then
+  git rm --ignore-unmatch -q --ignore-unmatch ".terraform/terraform.tfstate"
   changed=1
 fi
-if [ -f ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}${NETWORK}" ]; then
-  git rm --ignore-unmatch -f ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}${NETWORK}"
+
+if [ -d ".terraform" ]; then
+  git rm -q -r --ignore-unmatch ".terraform"
   changed=1
 fi
-if [ -f ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}${NETWORK}.md" ]; then
-  git rm --ignore-unmatch -f ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}${NETWORK}.md"
+
+if [ -f "$SAP_SYSTEM_TFVARS_FILENAME" ]; then
+  git add "$SAP_SYSTEM_TFVARS_FILENAME"
+  changed=1
+fi
+
+if [ -f "sap-parameters.yaml" ]; then
+  git rm --ignore-unmatch -q "sap-parameters.yaml"
+  changed=1
+fi
+
+if [ -f "${SID}_hosts.yaml" ]; then
+  git rm --ignore-unmatch -q "${SID}_hosts.yaml"
+  changed=1
+fi
+
+if [ -f "${SID}.md" ]; then
+  git rm --ignore-unmatch -q "${SID}.md"
+  changed=1
+fi
+
+if [ -f "${SID}_virtual_machines.json" ]; then
+  git rm --ignore-unmatch -q "${SID}_virtual_machines.json"
   changed=1
 fi
 
 if [ 1 == $changed ]; then
-  git commit -m "Removal of System zone $BUILD_BUILDNUMBER [skip ci]"
-  if git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push; then
-    echo "Removal of Workload zone $BUILD_BUILDNUMBER pushed to devops repository"
-  else
-    echo "Failed to push changes to devops repository"
-    return_code=1
+  git config --global user.email "$BUILD_REQUESTEDFOREMAIL"
+  git config --global user.name "$BUILD_REQUESTEDFOR"
+
+  if git commit -m "Infrastructure for $SAP_SYSTEM_TFVARS_FILENAME removed. [skip ci]"; then
+    if git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BRANCH" --force-with-lease; then
+      echo "##vso[task.logissue type=warning]Removal of $SAP_SYSTEM_TFVARS_FILENAME updated in $BUILD_BUILDNUMBER"
+    else
+      echo "##vso[task.logissue type=error]Failed to push changes to $BRANCH"
+    fi
   fi
 fi
-echo -e "$green--- Configure devops CLI extension ---$reset"
-az config set extension.use_dynamic_install=yes_without_prompt
-
-VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(variable_group)'].id | [0]")
-
-prefix="${ENVIRONMENT}${LOCATION}${NETWORK}"
-
-echo "Variable Group:                        $VARIABLE_GROUP_ID"
-
-if [ -n "$VARIABLE_GROUP_ID" ]; then
-  echo "Deleting variables"
-  if [ -n "$(Terraform_Remote_Storage_Account_Name)" ]; then
-    az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name Terraform_Remote_Storage_Account_Name --yes --only-show-errors
-  fi
-
-  if [ -n "$(Terraform_Remote_Storage_Subscription)" ]; then
-    az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name Terraform_Remote_Storage_Subscription --yes --only-show-errors >/dev/null 2>&1
-  fi
-
-  if [ -n "$(Deployer_State_FileName)" ]; then
-    az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name Deployer_State_FileName --yes --only-show-errors >/dev/null 2>&1
-  fi
-
-  if [ -n "$(Deployer_Key_Vault)" ]; then
-    az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name Deployer_Key_Vault --yes --only-show-errors >/dev/null 2>&1
-  fi
-
-  az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "${prefix}Workload_Key_Vault.value")
-  if [ -n "${az_var}" ]; then
-    az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name "${prefix}Workload_Key_Vault" --yes --only-show-errors
-  fi
-
-  az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "${prefix}Workload_Zone_State_FileName.value")
-  if [ -n "${az_var}" ]; then
-    az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name "${prefix}Workload_Zone_State_FileName" --yes --only-show-errors
-  fi
-
-  az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "${prefix}Workload_Secret_Prefix.value")
-  if [ -n "${az_var}" ]; then
-    az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name "${prefix}Workload_Secret_Prefix" --yes --only-show-errors
-  fi
-fi
-
 exit $return_code

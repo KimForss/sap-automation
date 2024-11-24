@@ -262,7 +262,6 @@ changed=0
 
 cd "${CONFIG_REPO_PATH}/SYSTEM/$SAP_SYSTEM_FOLDERNAME" || exit
 
-
 if [ 0 == $return_code ]; then
   if [ -d .terraform ]; then
     rm -r .terraform
@@ -271,11 +270,10 @@ if [ 0 == $return_code ]; then
   git checkout -q "$BRANCH"
   git pull origin "$BRANCH"
 
-
-  git clean  -d -f -X
+  git clean -d -f -X
 
   if [ -f ".terraform/terraform.tfstate" ]; then
-    git rm --ignore-unmatch -q  --ignore-unmatch ".terraform/terraform.tfstate"
+    git rm --ignore-unmatch -q --ignore-unmatch ".terraform/terraform.tfstate"
     changed=1
   fi
 
@@ -309,16 +307,16 @@ if [ 0 == $return_code ]; then
     changed=1
   fi
 
-
   if [ 1 == $changed ]; then
     git config --global user.email "$BUILD_REQUESTEDFOREMAIL"
     git config --global user.name "$BUILD_REQUESTEDFOR"
 
-    git commit -m "Infrastructure for $SAP_SYSTEM_TFVARS_FILENAME removed. [skip ci]"
-    if git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BRANCH" --force-with-lease; then
-      echo "##vso[task.logissue type=warning]Removal of $SAP_SYSTEM_TFVARS_FILENAME updated in $BUILD_BUILDNUMBER"
-    else
-      echo "##vso[task.logissue type=error]Failed to push changes to $BRANCH"
+    if git commit -m "Infrastructure for $SAP_SYSTEM_TFVARS_FILENAME removed. [skip ci]"; then
+      if git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BRANCH" --force-with-lease; then
+        echo "##vso[task.logissue type=warning]Removal of $SAP_SYSTEM_TFVARS_FILENAME updated in $BUILD_BUILDNUMBER"
+      else
+        echo "##vso[task.logissue type=error]Failed to push changes to $BRANCH"
+      fi
     fi
   fi
 fi
