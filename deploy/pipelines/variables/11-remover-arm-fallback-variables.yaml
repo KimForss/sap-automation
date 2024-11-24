@@ -34,10 +34,10 @@ variables:
   - name: library_config
     value: ${{ parameters.library }}.tfvars
 
-  - name: zone_folder
+  - name: workload_zone_foldername
     value: ${{ parameters.workload_zone }}
 
-  - name: zone_config
+  - name: workload_zone_config
     value: ${{ parameters.workload_zone }}.tfvars
 
   - name: sap_system_foldername
