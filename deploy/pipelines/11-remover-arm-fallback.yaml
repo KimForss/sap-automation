@@ -107,53 +107,16 @@ stages:
           - group:                     SDAF-${{ parameters.workload_environment }}
         steps:
           - template:                  templates\download.yaml
-          - bash: |
-              #!/bin/bash
-              green="\e[1;32m" ; reset="\e[0m"
-
-              echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
-                cd "$CONFIG_REPO_PATH"  || exit
-                git config --global user.email "$(Build.RequestedForEmail)"
-                git config --global user.name "$(Build.RequestedFor)"
-                git checkout -q $(Branch)
-                git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" pull
-
-                echo "##vso[build.updatebuildnumber]Removing $(sap_system_foldername)"
-
-                changed=0
-                if [ -d "SYSTEM/$(sap_system_foldername)/.terraform" ]; then
-                  git rm -q  --ignore-unmatch -r "SYSTEM/$(sap_system_foldername)/.terraform"
-                  changed=1
-                fi
-                if [ -f  "SYSTEM/$(sap_system_foldername)/sap-parameters.yaml" ]; then
-                  git rm -q  --ignore-unmatch "SYSTEM/$(sap_system_foldername)/sap-parameters.yaml"
-                  changed=1
-                fi
-
-                if [ $(ls SYSTEM/$(sap_system_foldername)/*_hosts.yaml | wc -l ) -gt 0 ] ; then
-                  git rm -q  --ignore-unmatch   SYSTEM/$(sap_system_foldername)/*_hosts.yaml
-                  changed=1
-                fi
-
-                if [ $(ls SYSTEM/$(sap_system_foldername)/*.md | wc -l ) -gt 0 ] ; then
-                  git rm -q  --ignore-unmatch   SYSTEM/$(sap_system_foldername)/*.md
-                  changed=1
-                fi
-
-                if [ $(ls SYSTEM/$(sap_system_foldername)/logs/*.zip | wc -l ) -gt 0 ] ; then
-                  git rm -q   --ignore-unmatch  SYSTEM/$(sap_system_foldername)/logs/*.zip
-                  changed=1
-                fi
-
-                if [ 1 == $changed ]; then
-                  git commit -m "Removed filed from devops deployment $(Build.DefinitionName) [skip ci]"
-                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push
-                fi
-
-            displayName:               Remove SAP System deployment artifacts from WORKSPACES
+          - task:                      PostBuildCleanup@4
+          - task:                      Bash@3
+            inputs:
+              targetType:              'filePath'
+              filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/11-remover-arm-fallback-system.sh"
+              failOnStderr:            false
+              workingDirectory:        "$(System.DefaultWorkingDirectory)"
+            displayName:               Remove_SAP_infrastructure
             env:
               SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
-            failOnStderr:              false
 
   - stage:                             Remove_SAP_workload_zone
     displayName:                       Remove SAP workload zone
