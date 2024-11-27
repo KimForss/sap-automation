@@ -327,6 +327,12 @@ if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate" ]; then
   added=1
 fi
 
+if [ "$SYSTEM_DEBUG" = True ]; then
+
+  cat "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate"
+  cat "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate"
+fi
+
 if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate" ]; then
   # || true suppresses the exitcode of grep. To not trigger the strict exit on error
   local_backend=$(grep "\"type\": \"local\"" DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate || true)
