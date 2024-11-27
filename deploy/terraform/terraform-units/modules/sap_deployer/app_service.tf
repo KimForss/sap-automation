@@ -77,7 +77,7 @@ resource "azurerm_windows_web_app" "webapp" {
                                                     var.naming.resource_prefixes.app_service_plan,
                                                     var.naming.prefix.LIBRARY,
                                                     var.naming.resource_suffixes.webapp_url,
-                                                    coalesce(var.infrastructure.custom_random_id, substr(random_id.deployer.hex, 0, 3)))
+                                                    coalesce(try(var.infrastructure.custom_random_id, ""), substr(random_id.deployer.hex, 0, 3)))
                                                     )
   resource_group_name                            = local.resourcegroup_name
   location                                       = local.rg_appservice_location
