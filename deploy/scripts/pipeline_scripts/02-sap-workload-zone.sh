@@ -186,6 +186,7 @@ if [ ! -f "${deployer_environment_file_name}" ]; then
 fi
 workload_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}${NETWORK}"
 echo "Workload Zone Environment File:      $workload_environment_file_name"
+touch "$workload_environment_file_name"
 
 echo -e "$green--- Configure devops CLI extension ---$reset"
 az config set extension.use_dynamic_install=yes_without_prompt --output none
