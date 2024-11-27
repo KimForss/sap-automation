@@ -868,10 +868,10 @@ if [ 1 != $return_value ]; then
       save_config_var "keyvault" "${system_config_information}"
       if [ 1 == $called_from_ado ]; then
 
-        if [[ "${TF_VAR_use_webapp}" == "true" && $IS_PIPELINE_DEPLOYMENT = "true" ]]; then
+        if [[ "$TF_VAR_use_webapp" == "true" && $IS_PIPELINE_DEPLOYMENT = "true" ]]; then
           webapp_url_base=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_url_base | tr -d \")
 
-          if [ -n "${webapp_url_base}" ]; then
+          if [ -n "$webapp_url_base" ]; then
             az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "WEBAPP_URL_BASE.value")
             if [ -z "${az_var}" ]; then
               az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name WEBAPP_URL_BASE --value "$webapp_url_base" --output none --only-show-errors
@@ -881,7 +881,7 @@ if [ 1 != $return_value ]; then
           fi
 
           webapp_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_id | tr -d \")
-          if [ -n "${webapp_id}" ]; then
+          if [ -n "$webapp_id" ]; then
             az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "WEBAPP_ID.value")
             if [ -z "${az_var}" ]; then
               az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name WEBAPP_ID --value "$webapp_id" --output none --only-show-errors
@@ -892,7 +892,7 @@ if [ 1 != $return_value ]; then
 
           msi_object_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_user_assigned_identity | tr -d \")
 
-          if [ -n "${msi_object_id}" ]; then
+          if [ -n "$msi_object_id" ]; then
             az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "MSI_ID.value")
             if [ -z "${az_var}" ]; then
               az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name MSI_ID --value "$msi_object_id" --output none --only-show-errors
