@@ -583,8 +583,8 @@ $$tfstate_resource_id$$
 # deployer_tfstate_key is the state file name for the deployer
 $$deployer_tfstate_key$$
 
-# use_spn defines if the deployments are performed using Service Principals or the deployer's managed identiry, true=SPN, false=MSI
-$$use_spn$$
+# use_spn defines if the deployments are performed using Service Principals or the deployer's managed identity, true=SPN, false=MSI
+# $$use_spn$$
 
 
 #########################################################################################

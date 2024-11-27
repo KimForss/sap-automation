@@ -78,9 +78,15 @@ function LogonToAzure() {
     echo "Deployment credential ID (SPN):      $ARM_CLIENT_ID"
     unset ARM_USE_MSI
     az login --service-principal --username "$ARM_CLIENT_ID" --password="$ARM_CLIENT_SECRET" --tenant "$ARM_TENANT_ID" --output none
+    TF_VAR_use_spn=true
+    export TF_VAR_use_spn
+
   else
     echo "Deployment credentials:              Managed Service Identity"
     source "/etc/profile.d/deploy_server.sh"
+    TF_VAR_use_spn=false
+    export TF_VAR_use_spn
+
   fi
 
 }

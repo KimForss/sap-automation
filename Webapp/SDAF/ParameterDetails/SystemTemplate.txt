@@ -863,8 +863,8 @@ $$deployer_tfstate_key$$
 # landscape_tfstate_key is the state file name for the workload deployment
 $$landscape_tfstate_key$$
 
-# use_spn defines if the deployments are performed using Service Principals or the deployer's managed identiry, true=SPN, false=MSI
-$$use_spn$$
+# use_spn defines if the deployments are performed using Service Principals or the deployer's managed identity, true=SPN, false=MSI
+# $$use_spn$$
 
 #########################################################################################
 #                                                                                       #
