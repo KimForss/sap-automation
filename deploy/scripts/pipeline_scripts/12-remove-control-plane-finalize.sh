@@ -68,9 +68,6 @@ echo ""
 echo "Agent:                               $THIS_AGENT"
 echo "Organization:                        $SYSTEM_COLLECTIONURI"
 echo "Project:                             $SYSTEM_TEAMPROJECT"
-if [ -n "$TF_VAR_agent_pat" ]; then
-  echo "Deployer Agent PAT:                  IsDefined"
-fi
 if [ -n "$POOL" ]; then
   echo "Deployer Agent Pool:                 $POOL"
 fi
@@ -87,9 +84,6 @@ fi
 
 deployer_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$ENVIRONMENT$LOCATION_CODE_IN_FILENAME"
 echo "Environment file:                    $deployer_environment_file_name"
-
-REMOTE_STATE_SA=""
-REMOTE_STATE_RG=$LIBRARY_FOLDERNAME
 
 echo -e "$green--- Configure devops CLI extension ---$reset"
 az config set extension.use_dynamic_install=yes_without_prompt --only-show-errors
@@ -192,11 +186,12 @@ if [ -n "${key_vault_id}" ]; then
   fi
 fi
 
+cd "$CONFIG_REPO_PATH" || exit
 echo -e "$green--- Running the remove_deployer script that destroys deployer VM ---$reset"
 
-if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" ]; then
+if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" ]; then
   pass=${SYSTEM_COLLECTIONID//-/}
-  unzip -qq -o -P "${pass}" "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" -d "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME"
+  unzip -qq -o -P "${pass}" "DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" -d "DEPLOYER/$DEPLOYER_FOLDERNAME"
 fi
 
 echo -e "$green--- Running the remove region script that destroys deployer VM and SAP library ---$reset"
@@ -205,6 +200,7 @@ cd "$CONFIG_REPO_PATH/DEPLOYER/$DEPLOYER_FOLDERNAME" || exit
 
 if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/remove_deployer.sh" --auto-approve \
   --parameterfile "$DEPLOYER_TFVARS_FILENAME"; then
+  return_code=$?
   echo "Control Plane $DEPLOYER_FOLDERNAME removal step 2 completed."
   echo "##vso[task.logissue type=warning]Control Plane $DEPLOYER_FOLDERNAME removal step 2 completed."
 else
@@ -217,7 +213,6 @@ return_code=$?
 echo "Return code from remove_deployer: $return_code."
 
 echo -e "$green--- Remove Control Plane Part 2 ---$reset"
-cd "$CONFIG_REPO_PATH" || exit
 git checkout -q "$BRANCH"
 git pull -q
 
