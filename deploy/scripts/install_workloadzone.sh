@@ -703,11 +703,10 @@ save_config_var "STATE_SUBSCRIPTION" "${workload_config_information}"
 save_config_var "tfstate_resource_id" "${workload_config_information}"
 
 if [ 1 == $check_output ]; then
-  outputs=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw)
-  if echo "${outputs}" | grep "No outputs"; then
+  if terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
+
     check_output=0
     apply_needed=1
-    new_deployment=true
     echo "#########################################################################################"
     echo "#                                                                                       #"
     echo -e "#                                  $cyan New deployment $reset_formatting                                     #"
@@ -931,8 +930,7 @@ if [ -f plan_output.log ]; then
 fi
 
 if [ 0 == $return_value ]; then
-  if [ $check_output == 1 ]; then
-
+  if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
     workloadkeyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw workloadzone_kv_name | tr -d \")
     if valid_kv_name "$workloadkeyvault"; then
       save_config_var "workloadkeyvault" "${workload_config_information}"
@@ -958,7 +956,7 @@ if [ 1 == $apply_needed ]; then
     parallelism=$TF_PARALLELLISM
   fi
 
-        allParameters=$(printf " -var-file=%s %s %s %s" "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${deployer_tfstate_key_parameter}")
+  allParameters=$(printf " -var-file=%s %s %s %s" "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${deployer_tfstate_key_parameter}")
   allImportParameters=$(printf " -var-file=%s %s %s %s" "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${deployer_tfstate_key_parameter}")
 
   # shellcheck disable=SC2086
@@ -1037,31 +1035,36 @@ if [ -f apply_output.json ]; then
   rm apply_output.json
 fi
 
-workload_zone_prefix=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw workload_zone_prefix | tr -d \")
-save_config_var "workload_zone_prefix" "${workload_config_information}"
 save_config_var "landscape_tfstate_key" "${workload_config_information}"
 
 if [ 0 == $return_value ]; then
 
-  save_config_vars "landscape_tfstate_key" "${workload_config_information}"
-  workloadkeyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw workloadzone_kv_name | tr -d \")
+  if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
 
-  temp=$(echo "${workloadkeyvault}" | grep "Warning" || true)
-  if [ -z "${temp}" ]; then
-    temp=$(echo "${workloadkeyvault}" | grep "Backend reinitialization required" || true)
+    workload_zone_prefix=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw workload_zone_prefix | tr -d \")
+    save_config_var "workload_zone_prefix" "${workload_config_information}"
+    save_config_vars "landscape_tfstate_key" "${workload_config_information}"
+    workloadkeyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw workloadzone_kv_name | tr -d \")
+
+    resourceGroupName=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw created_resource_group_name | tr -d \")
+
+    temp=$(echo "${workloadkeyvault}" | grep "Warning" || true)
     if [ -z "${temp}" ]; then
+      temp=$(echo "${workloadkeyvault}" | grep "Backend reinitialization required" || true)
+      if [ -z "${temp}" ]; then
 
-      printf -v val %-.20s "$workloadkeyvault"
+        printf -v val %-.20s "$workloadkeyvault"
 
-      echo ""
-      echo "#########################################################################################"
-      echo "#                                                                                       #"
-      echo -e "#                Keyvault to use for System details:$cyan $val $reset_formatting               #"
-      echo "#                                                                                       #"
-      echo "#########################################################################################"
-      echo ""
+        echo ""
+        echo "#########################################################################################"
+        echo "#                                                                                       #"
+        echo -e "#                Keyvault to use for System details:$cyan $val $reset_formatting               #"
+        echo "#                                                                                       #"
+        echo "#########################################################################################"
+        echo ""
 
-      save_config_var "workloadkeyvault" "${workload_config_information}"
+        save_config_var "workloadkeyvault" "${workload_config_information}"
+      fi
     fi
   fi
 
@@ -1083,9 +1086,10 @@ echo ""
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 
-rg_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw created_resource_group_name | tr -d \")
-az deployment group create --resource-group "${rg_name}" --name "SAP-WORKLOAD-ZONE_${rg_name}" --subscription "${subscription}" \
-  --template-file "${script_directory}/templates/empty-deployment.json" --output none
+if [ -n "${resourceGroupName}" ]; then
+  az deployment group create --resource-group "${resourceGroupName}" --name "SAP-WORKLOAD-ZONE_${resourceGroupName}" --subscription "${subscription}" \
+    --template-file "${script_directory}/templates/empty-deployment.json" --output none
+fi
 
 now=$(date)
 cat <<EOF >"${workload_zone_prefix}".md
