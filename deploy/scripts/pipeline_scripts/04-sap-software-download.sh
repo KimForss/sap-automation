@@ -1,6 +1,7 @@
 #!/bin/bash
 green="\e[1;32m"
 reset="\e[0m"
+bold_red="\e[1;31m"
 #External helper functions
 source "sap-automation/deploy/pipelines/helper.sh"
 
@@ -35,23 +36,28 @@ fi
 
 echo -e "$green--- az login ---$reset"
 # Check if running on deployer
-if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
+if [ ! -f /etc/profile.d/deploy_server.sh ]; then
   echo -e "$green--- az login ---$reset"
   LogonToAzure false
 else
   LogonToAzure "$USE_MSI"
 fi
 return_code=$?
+
 if [ 0 != $return_code ]; then
-  echo -e "$boldred--- Login failed ---$reset"
+  echo -e "$bold_red--- Login failed ---$reset"
   echo "##vso[task.logissue type=error]az login failed."
   exit $return_code
 fi
 
 az account set --subscription "$ARM_SUBSCRIPTION_ID" --output none
 
-
-command="ansible-playbook -e download_directory=$AGENTTEMPDIRECTORY -e s_user=$SUSERNAME -e BOM_directory=$sample_path -e bom_base_name=$BOM_NAME -e deployer_kv_name=$KV_NAME -e check_storage_account=$CHECK_STORAGE_ACCOUNT  $EXTRA_PARAMETERS deploy/ansible/playbook_bom_downloader.yaml"
+command="ansible-playbook -e download_directory=$AGENT_TEMP_DIRECTORY \
+-e s_user=$SUSERNAME -e BOM_directory=${sample_path} \
+-e bom_base_name=$BOM_NAME \
+-e deployer_kv_name=$KV_NAME \
+-e check_storage_account=$CHECK_STORAGE_ACCOUNT \
+ $EXTRA_PARAMETERS deploy/ansible/playbook_bom_downloader.yaml"
 
 echo "##[section]Executing [$command]..."
 echo "##[group]- output"

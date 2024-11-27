@@ -119,4 +119,4 @@ stages:
               ANSIBLE_COLLECTIONS_PATHS:     ~/.ansible/collections:/opt/ansible/collections
               USE_MSI:                       $(Use_MSI)
               EXTRA_PARAMETERS:              ${{ parameters.ExtraParams }}
-              AGENTTEMPDIRECTORY:            $(Agent.TempDirectory)
+              AGENT_TEMP_DIRECTORY:          $(Agent.TempDirectory)

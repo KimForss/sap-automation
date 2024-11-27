@@ -84,8 +84,7 @@ echo "Keyvault: $key_vault"
 echo " ##vso[task.setvariable variable=KV_NAME;isOutput=true]$key_vault"
 
 echo -e "$green--- BoM $BOM ---$reset"
-bomName=$(echo $BOM | tr -d ' \t\n\r\f"')
-echo "##vso[build.updatebuildnumber]Downloading BoM defined in $bomName"
+echo "##vso[build.updatebuildnumber]Downloading BoM defined in $BOM"
 
 echo -e "$green--- Set S-Username and S-Password in the key_vault if not yet there ---$reset"
 
@@ -108,7 +107,7 @@ fi
 
 echo "##vso[task.setvariable variable=SUSERNAME;isOutput=true]$SUSERNAME"
 echo "##vso[task.setvariable variable=SPASSWORD;isOutput=true]$SPASSWORD"
-echo "##vso[task.setvariable variable=BOM_NAME;isOutput=true]$bomName"
+echo "##vso[task.setvariable variable=BOM_NAME;isOutput=true]$BOM"
 
 echo -e "$green--- Done ---$reset"
 exit 0
