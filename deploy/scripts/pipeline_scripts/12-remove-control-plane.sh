@@ -148,7 +148,7 @@ if [ "$USE_MSI" != "true" ]; then
 
 fi
 
-if [ "$USEMSI" != "true" ]; then
+if [ "$USE_MSI" != "true" ]; then
   # Set logon variables
   ARM_CLIENT_ID="$CP_ARM_CLIENT_ID"
   export ARM_CLIENT_ID
