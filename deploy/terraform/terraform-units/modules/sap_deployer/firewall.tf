@@ -66,14 +66,18 @@ resource "azurerm_firewall" "firewall" {
                                                  azurerm_resource_group.deployer[0].location
                                                )
 
-  ip_configuration                           {
-                                               name                 = "ipconfig1"
-                                               subnet_id            = local.firewall_subnet_exists ? (
-                                                                        data.azurerm_subnet.firewall[0].id) : (
-                                                                        azurerm_subnet.firewall[0].id
-                                                                      )
-                                               public_ip_address_id = azurerm_public_ip.firewall[0].id
-                                             }
+  ip_configuration                             {
+                                                 name                 = "ipconfig1"
+                                                 subnet_id            = local.firewall_subnet_exists ? (
+                                                                          data.azurerm_subnet.firewall[0].id) : (
+                                                                          azurerm_subnet.firewall[0].id
+                                                                        )
+                                                 public_ip_address_id = azurerm_public_ip.firewall[0].id
+                                               }
+  lifecycle                                    {
+                                                  create_before_destroy = true
+                                               }
+
 }
 
 //Route table
