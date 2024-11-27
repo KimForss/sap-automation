@@ -140,6 +140,12 @@ variable "firewall_allowed_ipaddresses"         {
                                                   default     = []
                                                 }
 
+variable "firewall_public_ip_tags"              {
+                                                   description = "Tags for the public_ip resource"
+                                                   type        = map(string)
+                                                   default     = null
+                                                 }
+
 #######################################4#######################################8
 #                                                                              #
 #                             Bastion Subnet variables                         #
