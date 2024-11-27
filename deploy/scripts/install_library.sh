@@ -286,63 +286,43 @@ if [ ! -d ./.terraform/ ]; then
 
 else
   if [ -f ./.terraform/terraform.tfstate ]; then
-
     if grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate; then
       echo "#########################################################################################"
       echo "#                                                                                       #"
       echo "#                     The state is already migrated to Azure!!!                         #"
       echo "#                                                                                       #"
       echo "#########################################################################################"
-      REINSTALL_SUBSCRIPTION=$(grep "\"subscription_id\":" ./.terraform/terraform.tfstate | cut -d ':' -f2 | tr -d '", ' || true)
-      REINSTALL_ACCOUNTNAME=$(grep "\"storage_account_name\":" ./.terraform/terraform.tfstate | cut -d ':' -f2 | tr -d ' ",' || true)
-      REINSTALL_RESOURCE_GROUP=$(grep "\"resource_group_name\":" ./.terraform/terraform.tfstate | cut -d ':' -f2 | tr -d ' ",' || true)
 
-      if [ "$approve" == "--auto-approve" ]; then
+      REINSTALL_SUBSCRIPTION=$(grep -m1 "subscription_id" "${param_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
+      REINSTALL_ACCOUNTNAME=$(grep -m1 "storage_account_name" "${param_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
+      REINSTALL_RESOURCE_GROUP=$(grep -m1 "resource_group_name" "${param_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
 
-        if [ -n "${REINSTALL_ACCOUNTNAME}" ]; then
-          terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/run/"${deployment_system}"/
+      tfstate_resource_id=$(az resource list --name "$REINSTALL_ACCOUNTNAME" --subscription "$REINSTALL_SUBSCRIPTION" --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
+      if [ -n "${tfstate_resource_id}" ]; then
+        echo "Reinitializing against remote state"
+        this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
+        az storage account network-rule add --account-name "$REINSTALL_ACCOUNTNAME" --resource-group "$REINSTALL_RESOURCE_GROUP" --ip-address "${this_ip}" --only-show-errors --output none
+        echo "Sleeping for 30 seconds to allow the network rule to take effect"
+        sleep 30
+        export TF_VAR_tfstate_resource_id=$tfstate_resource_id
 
-          echo "Reinitializing against remote state"
-          tfstate_resource_id=$(az resource list --name "$REINSTALL_ACCOUNTNAME" --subscription "$REINSTALL_SUBSCRIPTION" --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
-          export TF_VAR_tfstate_resource_id=$tfstate_resource_id
-          terraform -chdir="${terraform_module_directory}" init -reconfigure \
-            --backend-config "subscription_id=$REINSTALL_SUBSCRIPTION" \
-            --backend-config "resource_group_name=$REINSTALL_RESOURCE_GROUP" \
-            --backend-config "storage_account_name=$REINSTALL_ACCOUNTNAME" \
-            --backend-config "container_name=tfstate" \
-            --backend-config "key=${key}.terraform.tfstate"
-          terraform -chdir="${terraform_module_directory}" refresh -var-file="${var_file}"
-          exit 0
+        terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/run/sap_library"/
 
+        if terraform -chdir="${terraform_module_directory}" init \
+          --backend-config "subscription_id=$REINSTALL_SUBSCRIPTION" \
+          --backend-config "resource_group_name=$REINSTALL_RESOURCE_GROUP" \
+          --backend-config "storage_account_name=$REINSTALL_ACCOUNTNAME" \
+          --backend-config "container_name=tfstate" \
+          --backend-config "key=${key}.terraform.tfstate"; then
+          terraform -chdir="${terraform_module_directory}" refresh -var-file="${var_file}" -input=false \
+            -var deployer_statefile_foldername="${deployer_statefile_foldername}"
         else
-          terraform -chdir="${terraform_module_directory}" init -upgrade=true -reconfigure -backend-config "path=${param_dirname}/terraform.tfstate"
-          terraform -chdir="${terraform_module_directory}" refresh -var-file="${var_file}"
+          return 10
         fi
       else
-
-        read -p -r "Do you want to re bootstrap the SAP library Y/N?" ans
-        answer=${ans^^}
-        if [ "$answer" == 'Y' ]; then
-          terraform -chdir="${terraform_module_directory}" init -upgrade=true -reconfigure -backend-config "path=${param_dirname}/terraform.tfstate"
-          return_value=$?
-          if [ 0 != $return_value ]; then
-            echo ""
-            echo "#########################################################################################"
-            echo "#                                                                                       #"
-            echo -e "#                          $bold_red_underscore Errors during the init phase $reset_formatting                               #"
-            echo "#                                                                                       #"
-            echo "#########################################################################################"
-            echo ""
-            unset TF_DATA_DIR
-            exit $return_value
-          fi
-        else
-          unset TF_DATA_DIR
-          exit 0
-        fi
+        terraform -chdir="${terraform_module_directory}" init -reconfigure --backend-config "path=${param_dirname}/terraform.tfstate"
+        terraform -chdir="${terraform_module_directory}" refresh -var-file="${var_file}"
       fi
-    else
-      terraform -chdir="${terraform_module_directory}" init -upgrade=true -backend-config "path=${param_dirname}/terraform.tfstate"
     fi
   else
     terraform -chdir="${terraform_module_directory}" init -upgrade=true -backend-config "path=${param_dirname}/terraform.tfstate"
