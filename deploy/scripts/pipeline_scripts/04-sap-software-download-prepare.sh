@@ -111,4 +111,4 @@ echo "##vso[task.setvariable variable=SPASSWORD;isOutput=true]$SPASSWORD"
 echo "##vso[task.setvariable variable=BOM_NAME;isOutput=true]$bomName"
 
 echo -e "$green--- Done ---$reset"
-return 0
+exit 0
