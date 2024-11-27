@@ -327,7 +327,7 @@ if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate" ]; then
   added=1
 fi
 
-if [ "$SYSTEM_DEBUG" = True ]; then
+if [ "$debug" = "True" ]; then
 
   cat "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate"
   cat "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate"
