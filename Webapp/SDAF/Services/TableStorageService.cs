@@ -24,6 +24,9 @@ namespace AutomationForm.Services
 
       string devops_authentication = Environment.GetEnvironmentVariable("AUTHENTICATION_TYPE");
       string accountName = _configuration.GetConnectionString(_settings.ConnectionStringKey).Replace("blob", "table");
+      string TenantId = Environment.GetEnvironmentVariable("AZURE_TENANT_ID");
+      string ManagedIdentityClientId = Environment.GetEnvironmentVariable("OVERRIDE_USE_MI_FIC_ASSERTION_CLIENTID");
+
       DefaultAzureCredential creds = new DefaultAzureCredential(new DefaultAzureCredentialOptions
       {
         TenantId = Environment.GetEnvironmentVariable("AZURE_TENANT_ID"),
