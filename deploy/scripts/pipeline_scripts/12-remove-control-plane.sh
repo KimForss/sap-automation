@@ -215,6 +215,7 @@ if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/remove_controlplane.sh" \
   --subscription "${STATE_SUBSCRIPTION}" \
   --resource_group "$REMOTE_STATE_RG" \
   --ado --auto-approve --keep_agent; then
+  return_code=$?
   echo "Control Plane $DEPLOYER_FOLDERNAME removal step 1 completed."
   echo "##vso[task.logissue type=warning]Control Plane $DEPLOYER_FOLDERNAME removal step 1 completed."
 else
@@ -235,84 +236,64 @@ if [ -f "$deployer_environment_file_name" ]; then
   changed=1
 fi
 
-if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate" ]; then
-  git add -f "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate"
-  changed=1
-fi
-
-if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate" ]; then
-  echo "Compressing the state file."
-  sudo apt-get -qq install zip
-  pass=${SYSTEM_COLLECTIONID//-/}
-
-  if zip -q -j -P "${pass}" "DEPLOYER/$DEPLOYER_FOLDERNAME/state DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate"; then
-    git add -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip"
-    changed=1
-  fi
-fi
-
 if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate" ]; then
   git add -f "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate"
   changed=1
+  local_backend=$(grep "\"type\": \"local\"" "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate" || true)
+  if [ -n "${local_backend}" ]; then
+
+    if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate" ]; then
+      echo "Compressing the state file."
+      sudo apt-get -qq install zip
+      pass=${SYSTEM_COLLECTIONID//-/}
+
+      if zip -q -j -P "${pass}" "DEPLOYER/$DEPLOYER_FOLDERNAME/state DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate"; then
+        git add -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip"
+      fi
+    fi
+  fi
 fi
 
-if [ $return_code != 0 ]; then
-  backend=$(grep "local" "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate" || true)
-  if [ -n "${backend}" ]; then
+if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate" ]; then
+  git add -f "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate"
+  changed=1
+  local_backend=$(grep "\"type\": \"local\"" "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate" || true)
+  if [ -n "${local_backend}" ]; then
     echo "Local Terraform state"
-    if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate" ]; then
+    if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate" ]; then
       sudo apt-get -qq install zip
       echo "Compressing the library state file"
       pass=${SYSTEM_COLLECTIONID//-/}
-      zip -q -j -P "${pass}" "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/state" "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate"
-      git add -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/state.zip"
+      zip -q -j -P "${pass}" "LIBRARY/$LIBRARY_FOLDERNAME/state" "LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate"
+      git add -f "LIBRARY/$LIBRARY_FOLDERNAME/state.zip"
       changed=1
     fi
   else
     echo "Remote Terraform state"
-    if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate" ]; then
-      git rm -q -f --ignore-unmatch "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate"
+    if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate" ]; then
+      git rm -q -f --ignore-unmatch "LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate"
       changed=1
     fi
-    if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/state.zip" ]; then
-      git rm -q --ignore-unmatch -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/state.zip"
+    if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/state.zip" ]; then
+      git rm -q --ignore-unmatch -f "LIBRARY/$LIBRARY_FOLDERNAME/state.zip"
       changed=1
     fi
   fi
-else
-  if [ -d "LIBRARY/$LIBRARY_FOLDERNAME/.terraform" ]; then
-    git rm -q -r --ignore-unmatch "LIBRARY/$LIBRARY_FOLDERNAME/.terraform"
-    changed=1
-  fi
-
-  if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/state.zip" ]; then
-    git rm -q --ignore-unmatch "LIBRARY/$LIBRARY_FOLDERNAME/state.zip"
-    changed=1
-  fi
-
-  if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/backend-config.tfvars" ]; then
-    git rm -q --ignore-unmatch "LIBRARY/$LIBRARY_FOLDERNAME/backend-config.tfvars"
-    changed=1
-  fi
-fi
-
-if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate" ]; then
-  git add -f "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate"
-  changed=1
 fi
 
 if [ 1 == $changed ]; then
   git config --global user.email "$BUILD_REQUESTEDFOREMAIL"
   git config --global user.name "$BUILD_REQUESTEDFOR"
 
-  git commit -m "Control Plane $DEPLOYER_FOLDERNAME removal step 1[skip ci]"
+  if git commit -m "Control Plane $DEPLOYER_FOLDERNAME removal step 1[skip ci]"; then
 
-  if git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BRANCH" --force-with-lease; then
-    return_code=$?
-    echo "##vso[task.logissue type=warning]Control Plane $DEPLOYER_FOLDERNAME removal step 2 updated in $BRANCH"
-  else
-    return_code=$?
-    echo "##vso[task.logissue type=error]Failed to push changes to $BRANCH"
+    if git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BRANCH" --force-with-lease; then
+      return_code=$?
+      echo "##vso[task.logissue type=warning]Control Plane $DEPLOYER_FOLDERNAME removal step 2 updated in $BRANCH"
+    else
+      return_code=$?
+      echo "##vso[task.logissue type=error]Failed to push changes to $BRANCH"
+    fi
   fi
 
 fi
