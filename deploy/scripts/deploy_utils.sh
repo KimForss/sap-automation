@@ -342,11 +342,16 @@ function set_executing_user_environment_variables() {
       echo -e "\t[set_executing_user_environment_variables]: logged in using System Assigned Identity '${az_exec_user_type}'"
       echo -e "\t[set_executing_user_environment_variables]: unset ARM_CLIENT_SECRET"
       unset ARM_CLIENT_SECRET
+      TF_VAR_use_spn=false
+      export TF_VAR_use_spn
+
       ;;
     "userAssignedIdentity")
       echo -e "\t[set_executing_user_environment_variables]: logged in using User Assigned Identity: '${az_exec_user_type}'"
       echo -e "\t[set_executing_user_environment_variables]: unset ARM_CLIENT_SECRET"
       unset ARM_CLIENT_SECRET
+      TF_VAR_use_spn=false
+      export TF_VAR_use_spn
       ;;
     *)
       if is_valid_guid "${az_exec_user_name}"; then
@@ -356,6 +361,8 @@ function set_executing_user_environment_variables() {
 
         echo -e "\t[set_executing_user_environment_variables]: Identified login type as 'service principal'"
         echo -e "\t[set_executing_user_environment_variables]: Initializing state with SPN named: ${az_user_name}"
+        TF_VAR_use_spn=true
+        export TF_VAR_use_spn
 
         if [ -z "$az_client_secret" ]; then
           #do not output the secret to screen
