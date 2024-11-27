@@ -177,12 +177,12 @@ output "deployer_keyvault_user_arm_id" {
 
 output "firewall_ip" {
   description                          = "Firewall private IP address"
-  value                                = var.firewall_deployment ? azurerm_firewall.firewall[0].ip_configuration[0].private_ip_address : ""
+  value                                = var.firewall.deployment ? azurerm_firewall.firewall[0].ip_configuration[0].private_ip_address : ""
 }
 
 output "firewall_id" {
   description                          = "Firewall ID"
-  value                                = var.firewall_deployment ? azurerm_firewall.firewall[0].id : ""
+  value                                = var.firewall.deployment ? azurerm_firewall.firewall[0].id : ""
 }
 
 
