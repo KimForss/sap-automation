@@ -1,9 +1,9 @@
 #!/bin/bash
 #colors for terminal
-boldreduscore="\e[1;4;31m"
-boldred="\e[1;31m"
+bold_red_underscore="\e[1;4;31m"
+bold_red="\e[1;31m"
 cyan="\e[1;36m"
-resetformatting="\e[0m"
+reset_formatting="\e[0m"
 
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
@@ -182,7 +182,7 @@ function validate_exports {
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo -e "#  $boldred Missing environment variables (SAP_AUTOMATION_REPO_PATH)!!! $resetformatting                            #"
+    echo -e "#  $bold_red Missing environment variables (SAP_AUTOMATION_REPO_PATH)!!! $reset_formatting                            #"
     echo "#                                                                                       #"
     echo "#   Please export the following variables:                                              #"
     echo "#      SAP_AUTOMATION_REPO_PATH (path to the automation repo folder (sap-automation))   #"
@@ -198,7 +198,7 @@ function validate_exports {
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo -e "#  $boldred Missing environment variables (CONFIG_REPO_PATH)!!! $resetformatting                            #"
+    echo -e "#  $bold_red Missing environment variables (CONFIG_REPO_PATH)!!! $reset_formatting                            #"
     echo "#                                                                                       #"
     echo "#   Please export the following variables:                                              #"
     echo "#      CONFIG_REPO_PATH (path to the repo folder (sap-automation))                      #"
@@ -213,7 +213,7 @@ function validate_exports {
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo -e "#  $boldred Missing environment variables (ARM_SUBSCRIPTION_ID)!!! $resetformatting  #"
+    echo -e "#  $bold_red Missing environment variables (ARM_SUBSCRIPTION_ID)!!! $reset_formatting  #"
     echo "#                                                                                       #"
     echo "#   Please export the following variables:                                              #"
     echo "#      SAP_AUTOMATION_REPO_PATH (path to the repo folder (sap-automation))              #"
@@ -233,7 +233,7 @@ function validate_webapp_exports {
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo -e "#        $boldred Missing environment variables (TF_VAR_app_registration_app_id)!!! $resetformatting            #"
+    echo -e "#        $bold_red Missing environment variables (TF_VAR_app_registration_app_id)!!! $reset_formatting            #"
     echo "#                                                                                       #"
     echo "#   Please export the following variables to successfully deploy the Webapp:            #"
     echo "#      TF_VAR_app_registration_app_id (webapp registration application id)              #"
@@ -250,7 +250,7 @@ function validate_webapp_exports {
       echo ""
       echo "#########################################################################################"
       echo "#                                                                                       #"
-      echo -e "#            $boldred Missing environment variables (TF_VAR_webapp_client_secret)!!! $resetformatting           #"
+      echo -e "#            $bold_red Missing environment variables (TF_VAR_webapp_client_secret)!!! $reset_formatting           #"
       echo "#                                                                                       #"
       echo "#   Please export the following variables to successfully deploy the Webapp:            #"
       echo "#      TF_VAR_app_registration_app_id (webapp registration application id)              #"
@@ -353,7 +353,7 @@ function validate_dependencies {
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo -e "#                          $boldreduscore  Please install Terraform $resetformatting                                 #"
+    echo -e "#                          $bold_red_underscore  Please install Terraform $reset_formatting                                 #"
     echo "#                                                                                       #"
     echo "#########################################################################################"
     echo ""
@@ -376,7 +376,7 @@ function validate_dependencies {
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo -e "#                          $boldreduscore Please install the Azure CLI $resetformatting                               #"
+    echo -e "#                          $bold_red_underscore Please install the Azure CLI $reset_formatting                               #"
     echo "#                                                                                       #"
     echo "#########################################################################################"
     echo ""
@@ -387,7 +387,7 @@ function validate_dependencies {
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo -e "#         $boldred Please login using your credentials or service principal credentials! $resetformatting       #"
+    echo -e "#         $bold_red Please login using your credentials or service principal credentials! $reset_formatting       #"
     echo "#                                                                                       #"
     echo "#########################################################################################"
     echo ""
@@ -412,7 +412,7 @@ function validate_key_parameters {
   if [ -z "${environment}" ]; then
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo -e "#                         $boldred  Incorrect parameter file. $resetformatting                                  #"
+    echo -e "#                         $bold_red  Incorrect parameter file. $reset_formatting                                  #"
     echo "#                                                                                       #"
     echo "#                The file must contain the environment attribute!!                      #"
     echo "#                                                                                       #"
@@ -424,7 +424,7 @@ function validate_key_parameters {
   if [ -z "${region}" ]; then
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo -e "#                          $boldred Incorrect parameter file. $resetformatting                                  #"
+    echo -e "#                          $bold_red Incorrect parameter file. $reset_formatting                                  #"
     echo "#                                                                                       #"
     echo "#              The file must contain the region/location attribute!!                    #"
     echo "#                                                                                       #"
@@ -483,7 +483,7 @@ function ReplaceResourceInStateFile {
       echo "Importing storage account state object:           ${moduleID}"
       echo "terraform -chdir=${terraform_module_directory} import -var-file=${var_file} -var deployer_tfstate_key=${deployer_tfstate_key} -var tfstate_resource_id=${tfstate_resource_id} $4 ${moduleID} ${azureResourceID}"
       if ! terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var "deployer_tfstate_key=${deployer_tfstate_key}" -var "tfstate_resource_id=${tfstate_resource_id}" $4 "${moduleID}" "${azureResourceID}"; then
-        echo -e "$boldred Importing storage account state object:           ${moduleID} failed $resetformatting"
+        echo -e "$bold_red Importing storage account state object:           ${moduleID} failed $reset_formatting"
         exit 65
       fi
     fi
@@ -508,7 +508,7 @@ function ImportAndReRunApply {
       echo ""
       echo "#########################################################################################"
       echo "#                                                                                       #"
-      echo -e "#                          $boldreduscore!Errors during the apply phase!$resetformatting                              #"
+      echo -e "#                          $bold_red_underscore!Errors during the apply phase!$reset_formatting                              #"
       echo "#                                                                                       #"
       echo "#                                                                                       #"
       echo "#########################################################################################"
@@ -535,7 +535,7 @@ function ImportAndReRunApply {
 
         echo "#########################################################################################"
         echo "#                                                                                       #"
-        echo -e "#                          $cyan Re-running Terraform apply$resetformatting                                  #"
+        echo -e "#                          $cyan Re-running Terraform apply$reset_formatting                                  #"
         echo "#                                                                                       #"
         echo "#########################################################################################"
         echo ""
@@ -565,12 +565,13 @@ function testIfResourceWouldBeRecreated {
   local shortName="$3"
   printf -v val '%-40s' "$shortName"
   return_value=0
+  # || true suppresses the exitcode of grep. To not trigger the strict exit on error
   willResourceWouldBeRecreated=$(grep "$moduleId" "$fileName" | grep -m1 "must be replaced" || true)
   if [ -n "${willResourceWouldBeRecreated}" ]; then
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo -e "#                               $boldreduscore!!! Risk for Data loss !!!$resetformatting                              #"
+    echo -e "#                               $bold_red_underscore!!! Risk for Data loss !!!$reset_formatting                              #"
     echo "#                                                                                       #"
     echo "#  Resource will be removed: ${val}                   #"
     echo "#                                                                                       #"
@@ -592,7 +593,7 @@ function validate_key_vault {
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo -e "#                             $cyan  Retrying keyvault access $resetformatting                               #"
+    echo -e "#                             $cyan  Retrying keyvault access $reset_formatting                               #"
     echo "#                                                                                       #"
     echo "#########################################################################################"
     echo ""
@@ -603,7 +604,7 @@ function validate_key_vault {
   if [ -z "$kv_name_check" ]; then
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo -e "#                               $boldred  Unable to access keyvault: $keyvault_to_check $resetformatting                            #"
+    echo -e "#                               $bold_red  Unable to access keyvault: $keyvault_to_check $reset_formatting                            #"
     echo "#                             Please ensure the key vault exists.                       #"
     echo "#                                                                                       #"
     echo "#########################################################################################"
@@ -618,7 +619,7 @@ function validate_key_vault {
     printf -v val %-40.40s "$az_subscription_id"
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo -e "#$boldred User account ${val} does not have access to: $keyvault  $resetformatting"
+    echo -e "#$bold_red User account ${val} does not have access to: $keyvault  $reset_formatting"
     echo "#                                                                                       #"
     echo "#########################################################################################"
 

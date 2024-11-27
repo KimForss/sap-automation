@@ -3,10 +3,10 @@
 #error codes include those from /usr/include/sysexits.h
 
 #colors for terminal
-boldreduscore="\e[1;4;31m"
-boldred="\e[1;31m"
+bold_red_underscore="\e[1;4;31m"
+bold_red="\e[1;31m"
 cyan="\e[1;36m"
-resetformatting="\e[0m"
+reset_formatting="\e[0m"
 
 #External helper functions
 #. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
@@ -305,7 +305,7 @@ if [ -f init_error.log ]; then
 fi
 
 if [ -f ./.terraform/terraform.tfstate ]; then
-  if grep "azurerm" ./.terraform/terraform.tfstate; then
+  if grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate; then
     echo "State is stored in Azure"
 
     #Initialize the statefile and copy to local
@@ -346,7 +346,7 @@ if [ 0 != $return_value ]; then
   echo ""
   echo "#########################################################################################"
   echo "#                                                                                       #"
-  echo -e "#               $boldred Error when initializing Terraform (deployer - local) $resetformatting                  #"
+  echo -e "#               $bold_red Error when initializing Terraform (deployer - local) $reset_formatting                  #"
   echo "#                                                                                       #"
   echo "#########################################################################################"
   echo ""
@@ -385,7 +385,7 @@ echo "#  container_name=tfstate"
 echo "#  key=${key}.terraform.tfstate"
 
 if [ -f ./.terraform/terraform.tfstate ]; then
-  if grep "azurerm" ./.terraform/terraform.tfstate; then
+  if grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate; then
     echo "State is stored in Azure"
     echo ""
     echo "#########################################################################################"
@@ -423,7 +423,7 @@ if [ 0 != $return_code ]; then
   echo ""
   echo "#########################################################################################"
   echo "#                                                                                       #"
-  echo -e "#               $boldred Error when initializing Terraform (library - local) $resetformatting                   #"
+  echo -e "#               $bold_red Error when initializing Terraform (library - local) $reset_formatting                   #"
   echo "#                                                                                       #"
   echo "#########################################################################################"
   echo ""

@@ -2,7 +2,7 @@
 echo "##vso[build.updatebuildnumber]Deploying the control plane defined in $DEPLOYER_FOLDERNAME $LIBRARY_FOLDERNAME"
 green="\e[1;32m"
 reset="\e[0m"
-boldred="\e[1;31m"
+bold_red="\e[1;31m"
 cyan="\e[1;36m"
 
 #External helper functions
@@ -65,12 +65,12 @@ az devops configure --defaults organization="$SYSTEM_COLLECTIONURI" project="$SY
 
 echo -e "$green--- File Validations ---$reset"
 if [ ! -f "$deployer_tfvars_file_name" ]; then
-  echo -e "$boldred--- File "$deployer_tfvars_file_name" was not found ---$reset"
+  echo -e "$bold_red--- File "$deployer_tfvars_file_name" was not found ---$reset"
   echo "##vso[task.logissue type=error]File DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME was not found."
   exit 2
 fi
 if [ ! -f $library_tfvars_file_name ]; then
-  echo -e "$boldred--- File $library_tfvars_file_name  was not found ---$reset"
+  echo -e "$bold_red--- File $library_tfvars_file_name  was not found ---$reset"
   echo "##vso[task.logissue type=error]File LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME was not found."
   exit 2
 fi
@@ -146,7 +146,7 @@ else
 fi
 return_code=$?
 if [ 0 != $return_code ]; then
-  echo -e "$boldred--- Login failed ---$reset"
+  echo -e "$bold_red--- Login failed ---$reset"
   echo "##vso[task.logissue type=error]az login failed."
   exit $return_code
 fi

@@ -2,10 +2,10 @@
 #error codes include those from /usr/include/sysexits.h
 
 #colors for terminal
-boldreduscore="\e[1;4;31m"
-boldred="\e[1;31m"
+bold_red_underscore="\e[1;4;31m"
+bold_red="\e[1;31m"
 cyan="\e[1;36m"
-resetformatting="\e[0m"
+reset_formatting="\e[0m"
 
 #External helper functions
 #. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
@@ -24,7 +24,7 @@ function showhelp {
   echo ""
   echo "#########################################################################################"
   echo "#                                                                                       #"
-  echo -e "#                 $boldreduscore !Warning!: This script will remove deployed systems $resetformatting                 #"
+  echo -e "#                 $bold_red_underscore !Warning!: This script will remove deployed systems $reset_formatting                 #"
   echo "#                                                                                       #"
   echo "#   This file contains the logic to remove the different systems                        #"
   echo "#   The script expects the following exports:                                           #"
@@ -140,7 +140,7 @@ if [ "${parameterfile_dirname}" != "${working_directory}" ]; then
   echo ""
   echo "#########################################################################################"
   echo "#                                                                                       #"
-  echo -e "#  $boldred Please run this command from the folder containing the parameter file $resetformatting              #"
+  echo -e "#  $bold_red Please run this command from the folder containing the parameter file $reset_formatting              #"
   echo "#                                                                                       #"
   echo "#########################################################################################"
   exit 3
@@ -151,7 +151,7 @@ if [ ! -f "${parameterfile}" ]; then
   echo ""
   echo "#########################################################################################"
   echo "#                                                                                       #"
-  echo -e "#                 $boldred  Parameter file does not exist: ${val} $resetformatting #"
+  echo -e "#                 $bold_red  Parameter file does not exist: ${val} $reset_formatting #"
   echo "#                                                                                       #"
   echo "#########################################################################################"
   exit 2 #No such file or directory
@@ -161,7 +161,7 @@ if [ -z "${deployment_system}" ]; then
   printf -v val %-40.40s "$deployment_system"
   echo "#########################################################################################"
   echo "#                                                                                       #"
-  echo -e "# $boldred Incorrect system deployment type specified: ${val} $resetformatting #"
+  echo -e "# $bold_red Incorrect system deployment type specified: ${val} $reset_formatting #"
   echo "#                                                                                       #"
   echo "#     Valid options are:                                                                #"
   echo "#       sap_deployer                                                                    #"
@@ -309,7 +309,7 @@ if [ ! -d "${terraform_module_directory}" ]; then
   printf -v val %-40.40s "$deployment_system"
   echo "#########################################################################################"
   echo "#                                                                                       #"
-  echo -e "#  $boldred Incorrect system deployment type specified: ${val} $resetformatting#"
+  echo -e "#  $bold_red Incorrect system deployment type specified: ${val} $reset_formatting#"
   echo "#                                                                                       #"
   echo "#     Valid options are:                                                                #"
   echo "#       sap_deployer                                                                    #"
@@ -343,7 +343,7 @@ fi
 echo ""
 echo "#########################################################################################"
 echo "#                                                                                       #"
-echo -e "#                            $cyan Running Terraform init $resetformatting                                   #"
+echo -e "#                            $cyan Running Terraform init $reset_formatting                                   #"
 echo "#                                                                                       #"
 echo "#########################################################################################"
 echo ""
@@ -376,7 +376,7 @@ if [ "$resource_group_exist" ]; then
   echo ""
   echo "#########################################################################################"
   echo "#                                                                                       #"
-  echo -e "#                            $cyan Running Terraform destroy$resetformatting                                 #"
+  echo -e "#                            $cyan Running Terraform destroy$reset_formatting                                 #"
   echo "#                                                                                       #"
   echo "#########################################################################################"
   echo ""
@@ -385,19 +385,19 @@ if [ "$resource_group_exist" ]; then
     terraform -chdir="${terraform_bootstrap_directory}" refresh -var-file="${var_file}" \
       "$deployer_tfstate_key_parameter"
 
-    echo -e "#$cyan processing $deployment_system removal as defined in $parameterfile_name $resetformatting"
+    echo -e "#$cyan processing $deployment_system removal as defined in $parameterfile_name $reset_formatting"
     terraform -chdir="${terraform_module_directory}" destroy -var-file="${var_file}" \
       "$deployer_tfstate_key_parameter"
 
   elif [ "$deployment_system" == "sap_library" ]; then
-    echo -e "#$cyan processing $deployment_system removal as defined in $parameterfile_name $resetformatting"
+    echo -e "#$cyan processing $deployment_system removal as defined in $parameterfile_name $reset_formatting"
 
     terraform_bootstrap_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/bootstrap/${deployment_system}/"
     if [ ! -d "${terraform_bootstrap_directory}" ]; then
       printf -v val %-40.40s "$terraform_bootstrap_directory"
       echo "#########################################################################################"
       echo "#                                                                                       #"
-      echo -e "#  $boldred Unable to find bootstrap directory: ${val}$resetformatting#"
+      echo -e "#  $bold_red Unable to find bootstrap directory: ${val}$reset_formatting#"
       echo "#                                                                                       #"
       echo "#########################################################################################"
       echo ""
@@ -414,7 +414,7 @@ if [ "$resource_group_exist" ]; then
       "$deployer_tfstate_key_parameter"
   else
 
-    echo -e "#$cyan processing $deployment_system removal as defined in $parameterfile_name $resetformatting"
+    echo -e "#$cyan processing $deployment_system removal as defined in $parameterfile_name $reset_formatting"
     echo "Calling destroy with:          -var-file=${var_file} $approve $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter"
 
     allParameters=$(printf " -var-file=%s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}")
@@ -437,7 +437,7 @@ if [ "$resource_group_exist" ]; then
         echo ""
         echo "#########################################################################################"
         echo "#                                                                                       #"
-        echo -e "#                         $boldreduscore!Errors during the destroy phase!$resetformatting                             #"
+        echo -e "#                         $bold_red_underscore!Errors during the destroy phase!$reset_formatting                             #"
 
         return_value=2
         all_errors=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary, detail: .diagnostic.detail}' destroy_output.json)
@@ -451,10 +451,10 @@ if [ "$resource_group_exist" ]; then
 
             report=$(echo $string_to_report | grep -m1 "Message=" "${var_file}" | cut -d'=' -f2- | tr -d ' ' | tr -d '"')
             if [[ -n ${report} ]]; then
-              echo -e "#                          $boldreduscore  $report $resetformatting"
+              echo -e "#                          $bold_red_underscore  $report $reset_formatting"
               echo "##vso[task.logissue type=error]${report}"
             else
-              echo -e "#                          $boldreduscore  $string_to_report $resetformatting"
+              echo -e "#                          $bold_red_underscore  $string_to_report $reset_formatting"
               echo "##vso[task.logissue type=error]${string_to_report}"
             fi
 
@@ -497,7 +497,7 @@ fi
 
 #     echo "#########################################################################################"
 #     echo "#                                                                                       #"
-#     echo -e "#                            $cyan Clean up load balancer IP $resetformatting        #"
+#     echo -e "#                            $cyan Clean up load balancer IP $reset_formatting        #"
 #     echo "#                                                                                       #"
 #     echo "#########################################################################################"
 

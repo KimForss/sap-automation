@@ -5,11 +5,11 @@
 set -o pipefail
 
 #colors for terminal
-boldreduscore="\e[1;4;31m"
-boldred="\e[1;31m"
+bold_red_underscore="\e[1;4;31m"
+bold_red="\e[1;31m"
 cyan="\e[1;36m"
 green="\e[1;32m"
-resetformatting="\e[0m"
+reset_formatting="\e[0m"
 
 #External helper functions
 #. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
@@ -149,7 +149,7 @@ while :; do
 done
 
 if [ "$debug" = True ]; then
-  echo -e "$cyanEnabling debug mode$resetformatting"
+  echo -e "$cyanEnabling debug mode$reset_formatting"
   set -x
   set -o errexit
 fi
@@ -168,7 +168,7 @@ if [ "${param_dirname}" != '.' ]; then
   echo ""
   echo "#########################################################################################"
   echo "#                                                                                       #"
-  echo -e "#  $boldred Please run this command from the folder containing the parameter file $resetformatting              #"
+  echo -e "#  $bold_red Please run this command from the folder containing the parameter file $reset_formatting              #"
   echo "#                                                                                       #"
   echo "#########################################################################################"
   exit 3
@@ -179,7 +179,7 @@ if [ ! -f "${parameterfile}" ]; then
   echo ""
   echo "#########################################################################################"
   echo "#                                                                                       #"
-  echo -e "#                 $boldred  Parameter file does not exist: ${val} $resetformatting #"
+  echo -e "#                 $bold_red  Parameter file does not exist: ${val} $reset_formatting #"
   echo "#                                                                                       #"
   echo "#########################################################################################"
 
@@ -192,7 +192,7 @@ if [ -z "${deployment_system}" ]; then
   printf -v val %-40.40s "$deployment_system"
   echo "#########################################################################################"
   echo "#                                                                                       #"
-  echo -e "#  $boldred Incorrect system deployment type specified: ${val}$resetformatting#"
+  echo -e "#  $bold_red Incorrect system deployment type specified: ${val}$reset_formatting#"
   echo "#                                                                                       #"
   echo "#     Valid options are:                                                                #"
   echo "#       sap_deployer                                                                    #"
@@ -313,7 +313,7 @@ if [[ -n $STATE_SUBSCRIPTION ]]; then
   echo ""
   echo "#########################################################################################"
   echo "#                                                                                       #"
-  echo -e "#       $cyan Changing the subscription to: $STATE_SUBSCRIPTION $resetformatting            #"
+  echo -e "#       $cyan Changing the subscription to: $STATE_SUBSCRIPTION $reset_formatting            #"
   echo "#                                                                                       #"
   echo "#########################################################################################"
   echo ""
@@ -324,8 +324,8 @@ if [[ -n $STATE_SUBSCRIPTION ]]; then
 
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo -e "#         $boldred  The deployment account (MSI or SPN) does not have access to $resetformatting                #"
-    echo -e "#                      $boldred ${STATE_SUBSCRIPTION} $resetformatting                           #"
+    echo -e "#         $bold_red  The deployment account (MSI or SPN) does not have access to $reset_formatting                #"
+    echo -e "#                      $bold_red ${STATE_SUBSCRIPTION} $reset_formatting                           #"
     echo "#                                                                                       #"
     echo "#########################################################################################"
 
@@ -369,7 +369,7 @@ if [ "${deployment_system}" != sap_deployer ]; then
       echo ""
       echo "#########################################################################################"
       echo "#                                                                                       #"
-      echo -e "#                          $boldreduscore!Deployer state file name is missing!$resetformatting                        #"
+      echo -e "#                          $bold_red_underscore!Deployer state file name is missing!$reset_formatting                        #"
       echo "#                                                                                       #"
       echo "#########################################################################################"
       echo ""
@@ -424,7 +424,7 @@ if [ "${deployment_system}" == sap_system ]; then
       echo ""
       echo "#########################################################################################"
       echo "#                                                                                       #"
-      echo -e "#                     $boldred Workload zone terraform statefile name is missing $resetformatting               #"
+      echo -e "#                     $bold_red Workload zone terraform statefile name is missing $reset_formatting               #"
       echo "#                                                                                       #"
       echo "#########################################################################################"
       echo ""
@@ -447,7 +447,7 @@ else
     printf -v val %-40.40s "$STATE_SUBSCRIPTION"
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo -e "# The provided state_subscription is not valid:$boldred ${val}$resetformatting#"
+    echo -e "# The provided state_subscription is not valid:$bold_red ${val}$reset_formatting#"
     echo "#                                                                                       #"
     echo "#########################################################################################"
     echo "The provided subscription for Terraform remote state is not valid:${val}" >"${system_config_information}".err
@@ -466,7 +466,7 @@ if [[ -n ${subscription} ]]; then
     printf -v val %-40.40s "$subscription"
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo -e "#   The provided subscription is not valid:$boldred ${val} $resetformatting#   "
+    echo -e "#   The provided subscription is not valid:$bold_red ${val} $reset_formatting#   "
     echo "#                                                                                       #"
     echo "#########################################################################################"
     echo "The provided subscription is not valid:${val}" >"${system_config_information}".err
@@ -532,7 +532,7 @@ if [ ! -d "${terraform_module_directory}" ]; then
   printf -v val %-40.40s "$deployment_system"
   echo "#########################################################################################"
   echo "#                                                                                       #"
-  echo -e "#   $boldred Incorrect system deployment type specified: ${val}$resetformatting#"
+  echo -e "#   $bold_red Incorrect system deployment type specified: ${val}$reset_formatting#"
   echo "#                                                                                       #"
   echo "#     Valid options are:                                                                #"
   echo "#       sap_deployer                                                                    #"
@@ -575,7 +575,7 @@ if [ -f terraform.tfstate ]; then
       if [ "${deployment_system}" == sap_deployer ]; then
 
         echo ""
-        echo -e "$cyan Reinitializing deployer in case of on a new deployer $resetformatting"
+        echo -e "$cyan Reinitializing deployer in case of on a new deployer $reset_formatting"
 
         terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/"${deployment_system}"/
         if ! terraform -chdir="${terraform_module_directory}" init -backend-config "path=${param_dirname}/terraform.tfstate" -reconfigure -input=false; then
@@ -649,7 +649,7 @@ else
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo -e "#            $cyan The system has already been deployed and the statefile is in Azure $resetformatting       #"
+    echo -e "#            $cyan The system has already been deployed and the statefile is in Azure $reset_formatting       #"
     echo "#                                                                                       #"
     echo "#########################################################################################"
     echo ""
@@ -673,7 +673,7 @@ if [ "true" == "$check_output" ]; then
   if terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo -e "#                                 $cyan  New deployment $resetformatting                                      #"
+    echo -e "#                                 $cyan  New deployment $reset_formatting                                      #"
     echo "#                                                                                       #"
     echo "#########################################################################################"
 
@@ -685,7 +685,7 @@ if [ "true" == "$check_output" ]; then
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo -e "#                          $cyan Existing deployment was detected$resetformatting                            #"
+    echo -e "#                          $cyan Existing deployment was detected$reset_formatting                            #"
     echo "#                                                                                       #"
     echo "#########################################################################################"
     echo ""
@@ -704,7 +704,7 @@ if [ 0 == $new_deployment ]; then
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo -e "#   $boldred The environment was deployed using an older version of the Terrafrom templates$resetformatting     #"
+    echo -e "#   $bold_red The environment was deployed using an older version of the Terrafrom templates$reset_formatting     #"
     echo "#                                                                                       #"
     echo "#                               !!! Risk for Data loss !!!                              #"
     echo "#                                                                                       #"
@@ -729,7 +729,7 @@ if [ 0 == $new_deployment ]; then
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo -e "#              $cyan Deployed using the Terraform templates version: $val $resetformatting               #"
+    echo -e "#              $cyan Deployed using the Terraform templates version: $val $reset_formatting               #"
     echo "#                                                                                       #"
     echo "#########################################################################################"
     echo ""
@@ -739,7 +739,7 @@ if [ 0 == $new_deployment ]; then
       echo ""
       echo "#########################################################################################"
       echo "#                                                                                       #"
-      echo -e "#           $boldred  Deployed using an older version $resetformatting                                          #"
+      echo -e "#           $bold_red  Deployed using an older version $reset_formatting                                          #"
       echo "#                                                                                       #"
       echo "#########################################################################################"
       echo ""
@@ -788,7 +788,7 @@ if [ 0 == $new_deployment ]; then
             echo "Importing storage account state object:           ${moduleID}"
             echo "terraform -chdir=${terraform_module_directory} import -var-file=${var_file} ${moduleID} ${azureResourceID}"
             if ! terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" "${moduleID}" "${azureResourceID}"; then
-              echo -e "$boldred Importing storage account state object:           ${moduleID} failed $resetformatting"
+              echo -e "$bold_red Importing storage account state object:           ${moduleID} failed $reset_formatting"
               exit 65
             fi
           fi
@@ -822,7 +822,7 @@ fi
 echo ""
 echo "#########################################################################################"
 echo "#                                                                                       #"
-echo -e "#                            $cyan Running Terraform plan $resetformatting                                   #"
+echo -e "#                            $cyan Running Terraform plan $reset_formatting                                   #"
 echo "#                                                                                       #"
 echo "#########################################################################################"
 echo ""
@@ -839,7 +839,7 @@ if ! terraform -chdir="$terraform_module_directory" plan $allParameters -input=f
   if [ $return_value -eq 1 ]; then
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo -e "#                           $boldreduscore !!! Error when running plan !!! $resetformatting                           #"
+    echo -e "#                           $bold_red_underscore !!! Error when running plan !!! $reset_formatting                           #"
     echo "#                                                                                       #"
     echo "#########################################################################################"
     echo ""
@@ -1052,7 +1052,7 @@ if [ "${TEST_ONLY}" == "True" ]; then
   echo ""
   echo "#########################################################################################"
   echo "#                                                                                       #"
-  echo -e "#                                 $cyan Running plan only. $resetformatting                                  #"
+  echo -e "#                                 $cyan Running plan only. $reset_formatting                                  #"
   echo "#                                                                                       #"
   echo "#                                  No deployment performed.                             #"
   echo "#                                                                                       #"
@@ -1066,7 +1066,7 @@ if [ $fatal_errors == 1 ]; then
   echo ""
   echo "#########################################################################################"
   echo "#                                                                                       #"
-  echo -e "#                               $boldreduscore!!! Risk for Data loss !!!$resetformatting                              #"
+  echo -e "#                               $bold_red_underscore!!! Risk for Data loss !!!$reset_formatting                              #"
   echo "#                                                                                       #"
   echo "#        Please inspect the output of Terraform plan carefully before proceeding        #"
   echo "#                                                                                       #"
@@ -1106,7 +1106,7 @@ if [ 1 == $apply_needed ]; then
   echo ""
   echo "#########################################################################################"
   echo "#                                                                                       #"
-  echo -e "#                            $cyan Running Terraform apply $resetformatting                                  #"
+  echo -e "#                            $cyan Running Terraform apply $reset_formatting                                  #"
   echo "#                                                                                       #"
   echo "#########################################################################################"
   echo ""
@@ -1183,7 +1183,7 @@ if [ 1 == $return_value ]; then
   echo ""
   echo "#########################################################################################"
   echo "#                                                                                       #"
-  echo -e "#                          $boldreduscore!Errors during the apply phase!$resetformatting                              #"
+  echo -e "#                          $bold_red_underscore!Errors during the apply phase!$reset_formatting                              #"
   echo "#                                                                                       #"
   echo "#########################################################################################"
   echo ""
@@ -1203,7 +1203,7 @@ if [ "${deployment_system}" == sap_deployer ]; then
   echo ""
   echo "#########################################################################################"
   echo "#                                                                                       #"
-  echo -e "#                        $cyan  Capturing telemetry  $resetformatting                                        #"
+  echo -e "#                        $cyan  Capturing telemetry  $reset_formatting                                        #"
   echo "#                                                                                       #"
   echo "#########################################################################################"
   echo ""
@@ -1268,7 +1268,7 @@ else
   printf -v val %-40.40s "$keyvault"
   echo "#########################################################################################"
   echo "#                                                                                       #"
-  echo -e "#       The provided keyvault is not valid:$boldred ${val} $resetformatting  #"
+  echo -e "#       The provided keyvault is not valid:$bold_red ${val} $reset_formatting  #"
   echo "#                                                                                       #"
   echo "#########################################################################################"
   echo "The provided keyvault is not valid " "${val}" >secret.err
@@ -1284,7 +1284,7 @@ if [ "${deployment_system}" == sap_system ]; then
   echo ""
   echo "#########################################################################################"
   echo "#                                                                                       #"
-  echo -e "#                        $cyan  Capturing telemetry  $resetformatting                                        #"
+  echo -e "#                        $cyan  Capturing telemetry  $reset_formatting                                        #"
   echo "#                                                                                       #"
   echo "#########################################################################################"
   echo ""
@@ -1305,7 +1305,7 @@ if [ "${deployment_system}" == sap_landscape ]; then
   echo ""
   echo "#########################################################################################"
   echo "#                                                                                       #"
-  echo -e "#                        $cyan  Capturing telemetry  $resetformatting                                        #"
+  echo -e "#                        $cyan  Capturing telemetry  $reset_formatting                                        #"
   echo "#                                                                                       #"
   echo "#########################################################################################"
   echo ""
@@ -1340,7 +1340,7 @@ if [ "${deployment_system}" == sap_library ]; then
   echo ""
   echo "#########################################################################################"
   echo "#                                                                                       #"
-  echo -e "#                        $cyan  Capturing telemetry  $resetformatting                                        #"
+  echo -e "#                        $cyan  Capturing telemetry  $reset_formatting                                        #"
   echo "#                                                                                       #"
   echo "#########################################################################################"
   echo ""
@@ -1420,7 +1420,7 @@ fi
 echo ""
 echo "#########################################################################################"
 echo "#                                                                                       #"
-echo -e "#                        $green Deployment completed $resetformatting                                         #"
+echo -e "#                        $green Deployment completed $reset_formatting                                         #"
 echo "#                                                                                       #"
 echo "#########################################################################################"
 echo ""

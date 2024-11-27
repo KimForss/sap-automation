@@ -2,10 +2,10 @@
 #error codes include those from /usr/include/sysexits.h
 
 #colors for terminal
-boldreduscore="\e[1;4;31m"
-boldred="\e[1;31m"
+bold_red_underscore="\e[1;4;31m"
+bold_red="\e[1;31m"
 cyan="\e[1;36m"
-resetformatting="\e[0m"
+reset_formatting="\e[0m"
 
 #External helper functions
 #. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
@@ -181,7 +181,7 @@ then
       echo ""
       echo "#########################################################################################"
       echo "#                                                                                       #"
-      echo -e "#                         $boldreduscore!Errors during the destroy phase!$resetformatting                             #"
+      echo -e "#                         $bold_red_underscore!Errors during the destroy phase!$reset_formatting                             #"
 
       return_value=2
       all_errors=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary, detail: .diagnostic.detail}' destroy_output.json)
@@ -195,7 +195,7 @@ then
                   string_to_report=$(jq -c -r '.summary '  <<< "$errors_string" )
               fi
 
-              echo -e "#                          $boldreduscore  $string_to_report $resetformatting"
+              echo -e "#                          $bold_red_underscore  $string_to_report $reset_formatting"
               echo "##vso[task.logissue type=error]${string_to_report}"
 
           done

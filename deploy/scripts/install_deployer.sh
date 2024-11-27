@@ -2,10 +2,10 @@
 #error codes include those from /usr/include/sysexits.h
 
 #colors for terminal
-boldreduscore="\e[1;4;31m"
-boldred="\e[1;31m"
+bold_red_underscore="\e[1;4;31m"
+bold_red="\e[1;31m"
 cyan="\e[1;36m"
-resetformatting="\e[0m"
+reset_formatting="\e[0m"
 
 #External helper functions
 #. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
@@ -180,8 +180,7 @@ if [ ! -d ./.terraform/ ]; then
   terraform -chdir="${terraform_module_directory}" init -backend-config "path=${param_dirname}/terraform.tfstate"
 else
   if [ -f ./.terraform/terraform.tfstate ]; then
-
-    if grep "azurerm" ./.terraform/terraform.tfstate; then
+    if grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate; then
       echo "#########################################################################################"
       echo "#                                                                                       #"
       echo "#                     The state is already migrated to Azure!!!                         #"
@@ -230,7 +229,7 @@ if [ 1 == $return_value ]; then
   echo ""
   echo "#########################################################################################"
   echo "#                                                                                       #"
-  echo -e "#                             $boldreduscore Errors during the init phase $resetformatting                              #"
+  echo -e "#                             $bold_red_underscore Errors during the init phase $reset_formatting                              #"
   echo "#                                                                                       #"
   echo "#########################################################################################"
   echo ""
@@ -260,7 +259,7 @@ if [ 1 == $return_value ]; then
   echo ""
   echo "#########################################################################################"
   echo "#                                                                                       #"
-  echo -e "#                             $boldreduscore Errors during the plan phase $resetformatting                              #"
+  echo -e "#                             $bold_red_underscore Errors during the plan phase $reset_formatting                              #"
   echo "#                                                                                       #"
   echo "#########################################################################################"
   echo ""
@@ -372,7 +371,7 @@ echo "Terraform Apply return code:         $return_value"
 if [ 0 != $return_value ]; then
   echo "#########################################################################################"
   echo "#                                                                                       #"
-  echo -e "#                      $boldreduscore !!! Error when Creating the deployer !!! $resetformatting                       #"
+  echo -e "#                      $bold_red_underscore !!! Error when Creating the deployer !!! $reset_formatting                       #"
   echo "#                                                                                       #"
   echo "#########################################################################################"
   echo ""
@@ -392,7 +391,7 @@ if [ -z "${temp}" ]; then
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo -e "#                Keyvault to use for SPN details:$cyan $val $resetformatting                 #"
+    echo -e "#                Keyvault to use for SPN details:$cyan $val $reset_formatting                 #"
     echo "#                                                                                       #"
     echo "#########################################################################################"
     echo ""

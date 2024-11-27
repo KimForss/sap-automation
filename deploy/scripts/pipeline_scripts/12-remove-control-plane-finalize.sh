@@ -3,7 +3,7 @@
 echo "##vso[build.updatebuildnumber]Removing the control plane defined in $DEPLOYER_FOLDERNAME $LIBRARY_FOLDERNAME"
 green="\e[1;32m"
 reset="\e[0m"
-boldred="\e[1;31m"
+bold_red="\e[1;31m"
 cyan="\e[1;36m"
 
 # External helper functions
@@ -35,13 +35,13 @@ deployer_tfstate_key="$DEPLOYER_FOLDERNAME.terraform.tfstate"
 echo -e "$green--- File Validations ---$reset"
 
 if [ ! -f "$deployerTFvarsFile" ]; then
-  echo -e "$boldred--- File ${deployerTFvarsFile} was not found ---$reset"
+  echo -e "$bold_red--- File ${deployerTFvarsFile} was not found ---$reset"
   echo "##vso[task.logissue type=error]File DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME was not found."
   exit 2
 fi
 
 if [ ! -f "${libraryTFvarsFile}" ]; then
-  echo -e "$boldred--- File ${libraryTFvarsFile}  was not found ---$reset"
+  echo -e "$bold_red--- File ${libraryTFvarsFile}  was not found ---$reset"
   echo "##vso[task.logissue type=error]File LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME was not found."
   exit 2
 fi

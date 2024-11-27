@@ -4,7 +4,7 @@ echo "##vso[build.updatebuildnumber]Removing the SAP Workload zone defined in $W
 
 green="\e[1;32m"
 reset="\e[0m"
-boldred="\e[1;31m"
+bold_red="\e[1;31m"
 cyan="\e[1;36m"
 
 # External helper functions
@@ -33,7 +33,7 @@ mkdir -p .sap_deployment_automation
 git checkout -q "$BRANCH"
 
 if [ ! -f "$CONFIG_REPO_PATH/LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME/$WORKLOAD_ZONE_TFVARS_FILENAME" ]; then
-  echo -e "$boldred--- $WORKLOAD_ZONE_TFVARS_FILENAME was not found ---$reset"
+  echo -e "$bold_red--- $WORKLOAD_ZONE_TFVARS_FILENAME was not found ---$reset"
   echo "##vso[task.logissue type=error]File $WORKLOAD_ZONE_TFVARS_FILENAME was not found."
   exit 2
 fi
@@ -107,7 +107,7 @@ else
 fi
 return_code=$?
 if [ 0 != $return_code ]; then
-  echo -e "$boldred--- Login failed ---$reset"
+  echo -e "$bold_red--- Login failed ---$reset"
   echo "##vso[task.logissue type=error]az login failed."
   exit $return_code
 fi

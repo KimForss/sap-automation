@@ -255,7 +255,7 @@ function is_running_in_azureCloudShell() {
       echo ""
       echo "#########################################################################################"
       echo "#                                                                                       #"
-      echo -e "#     $boldred Please login using your credentials or service principal credentials! $resetformatting      #"
+      echo -e "#     $bold_red Please login using your credentials or service principal credentials! $reset_formatting      #"
       echo "#                                                                                       #"
       echo "#########################################################################################"
       echo ""

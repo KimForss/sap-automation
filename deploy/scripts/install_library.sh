@@ -2,10 +2,10 @@
 #error codes include those from /usr/include/sysexits.h
 
 #colors for terminal
-boldreduscore="\e[1;4;31m"
-boldred="\e[1;31m"
+bold_red_underscore="\e[1;4;31m"
+bold_red="\e[1;31m"
 cyan="\e[1;36m"
-resetformatting="\e[0m"
+reset_formatting="\e[0m"
 
 #External helper functions
 #. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
@@ -286,7 +286,8 @@ if [ ! -d ./.terraform/ ]; then
 
 else
   if [ -f ./.terraform/terraform.tfstate ]; then
-    if grep "azurerm" ./.terraform/terraform.tfstate; then
+
+    if grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate; then
       echo "#########################################################################################"
       echo "#                                                                                       #"
       echo "#                     The state is already migrated to Azure!!!                         #"
@@ -328,7 +329,7 @@ else
             echo ""
             echo "#########################################################################################"
             echo "#                                                                                       #"
-            echo -e "#                          $boldreduscore Errors during the init phase $resetformatting                               #"
+            echo -e "#                          $bold_red_underscore Errors during the init phase $reset_formatting                               #"
             echo "#                                                                                       #"
             echo "#########################################################################################"
             echo ""
@@ -387,7 +388,7 @@ if [ 1 == $return_value ]; then
   echo ""
   echo "#########################################################################################"
   echo "#                                                                                       #"
-  echo -e "#                          $boldreduscore Errors during the plan phase $resetformatting                               #"
+  echo -e "#                          $bold_red_underscore Errors during the plan phase $reset_formatting                               #"
   echo "#                                                                                       #"
   echo "#########################################################################################"
   echo ""
@@ -488,7 +489,7 @@ if [ 1 == $return_value ]; then
   echo ""
   echo "#########################################################################################"
   echo "#                                                                                       #"
-  echo -e "#                          $boldreduscore Errors during the apply phase $resetformatting                              #"
+  echo -e "#                          $bold_red_underscore Errors during the apply phase $reset_formatting                              #"
   echo "#                                                                                       #"
   echo "#########################################################################################"
   echo ""

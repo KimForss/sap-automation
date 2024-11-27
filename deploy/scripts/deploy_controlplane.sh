@@ -20,10 +20,10 @@
 #error codes include those from /usr/include/sysexits.h
 
 #colors for terminal
-boldreduscore="\e[1;4;31m"
-boldred="\e[1;31m"
+bold_red_underscore="\e[1;4;31m"
+bold_red="\e[1;31m"
 cyan="\e[1;36m"
-resetformatting="\e[0m"
+reset_formatting="\e[0m"
 
 #External helper functions
 #. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
@@ -230,7 +230,7 @@ step=0
 echo ""
 echo "#########################################################################################"
 echo "#                                                                                       #"
-echo -e "#                   $cyan Starting the control plane deployment $resetformatting                             #"
+echo -e "#                   $cyan Starting the control plane deployment $reset_formatting                             #"
 echo "#                                                                                       #"
 echo "#########################################################################################"
 echo ""
@@ -239,7 +239,7 @@ noAccess=$(az account show --query name | grep "N/A(tenant level account)" || tr
 if [ -n "$noAccess" ]; then
   echo "#########################################################################################"
   echo "#                                                                                       #"
-  echo -e "#        $boldred The provided credentials do not have access to the subscription!!! $resetformatting           #"
+  echo -e "#        $bold_red The provided credentials do not have access to the subscription!!! $reset_formatting           #"
   echo "#                                                                                       #"
   echo "#########################################################################################"
 
@@ -256,7 +256,7 @@ if [ -n "${subscription}" ]; then
     printf -v val %-40.40s "$subscription"
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo -e "#   The provided subscription is not valid:$boldred ${val} $resetformatting#   "
+    echo -e "#   The provided subscription is not valid:$bold_red ${val} $reset_formatting#   "
     echo "#                                                                                       #"
     echo "#########################################################################################"
 
@@ -267,7 +267,7 @@ if [ -n "${subscription}" ]; then
   echo ""
   echo "#########################################################################################"
   echo "#                                                                                       #"
-  echo -e "#       $cyan Changing the subscription to: $subscription $resetformatting            #"
+  echo -e "#       $cyan Changing the subscription to: $subscription $reset_formatting            #"
   echo "#                                                                                       #"
   echo "#########################################################################################"
   echo ""
@@ -282,9 +282,9 @@ if [ -n "${subscription}" ]; then
     if [ -z "${kv_found}" ]; then
       echo "#########################################################################################"
       echo "#                                                                                       #"
-      echo -e "#                            $boldred  Detected a failed deployment $resetformatting                            #"
+      echo -e "#                            $bold_red  Detected a failed deployment $reset_formatting                            #"
       echo "#                                                                                       #"
-      echo -e "#                                  $cyan Trying to recover $resetformatting                                  #"
+      echo -e "#                                  $cyan Trying to recover $reset_formatting                                  #"
       echo "#                                                                                       #"
       echo "#########################################################################################"
       step=0
@@ -349,7 +349,7 @@ if [ 0 == $step ]; then
   echo ""
   echo "#########################################################################################"
   echo "#                                                                                       #"
-  echo -e "#                          $cyan Bootstrapping the deployer $resetformatting                                 #"
+  echo -e "#                          $cyan Bootstrapping the deployer $reset_formatting                                 #"
   echo "#                                                                                       #"
   echo "#########################################################################################"
   echo ""
@@ -408,7 +408,7 @@ if [ 0 == $step ]; then
   if [ -z "$keyvault" ]; then
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo -e "#                       $boldred  Bootstrapping of the deployer failed $resetformatting                         #"
+    echo -e "#                       $bold_red  Bootstrapping of the deployer failed $reset_formatting                         #"
     echo "#                                                                                       #"
     echo "#########################################################################################"
     echo "Bootstrapping of the deployer failed" >"${deployer_config_information}".err
@@ -434,7 +434,7 @@ else
   echo ""
   echo "#########################################################################################"
   echo "#                                                                                       #"
-  echo -e "#                          $cyan Deployer is bootstrapped $resetformatting                                   #"
+  echo -e "#                          $cyan Deployer is bootstrapped $reset_formatting                                   #"
   echo "#                                                                                       #"
   echo "#########################################################################################"
   echo ""
@@ -495,7 +495,7 @@ else
   return_code=$?
   echo "#########################################################################################"
   echo "#                                                                                       #"
-  echo -e "#                       $boldred  Key vault not found $resetformatting                                      #"
+  echo -e "#                       $bold_red  Key vault not found $reset_formatting                                      #"
   echo "#                                                                                       #"
   echo "#########################################################################################"
   exit $return_code
@@ -515,7 +515,7 @@ if [ 2 == $step ]; then
   echo ""
   echo "#########################################################################################"
   echo "#                                                                                       #"
-  echo -e "#                          $cyan Bootstrapping the library $resetformatting                                  #"
+  echo -e "#                          $cyan Bootstrapping the library $reset_formatting                                  #"
   echo "#                                                                                       #"
   echo "#########################################################################################"
   echo ""
@@ -590,7 +590,7 @@ else
   echo ""
   echo "#########################################################################################"
   echo "#                                                                                       #"
-  echo -e "#                           $cyan Library is bootstrapped $resetformatting                                   #"
+  echo -e "#                           $cyan Library is bootstrapped $reset_formatting                                   #"
   echo "#                                                                                       #"
   echo "#########################################################################################"
   echo ""
@@ -614,7 +614,7 @@ if [ 3 == $step ]; then
   echo ""
   echo "#########################################################################################"
   echo "#                                                                                       #"
-  echo -e "#                          $cyan Migrating the deployer state $resetformatting                               #"
+  echo -e "#                          $cyan Migrating the deployer state $reset_formatting                               #"
   echo "#                                                                                       #"
   echo "#########################################################################################"
   echo ""
@@ -629,7 +629,7 @@ if [ 3 == $step ]; then
   secretname=sa-connection-string
   deleted=$(az keyvault secret list-deleted --vault-name "${keyvault}" --query "[].{Name:name} | [? contains(Name,'${secretname}')] | [0]" | tr -d \")
   if [ "${deleted}" == "${secretname}" ]; then
-    echo -e "\t $cyan Recovering secret ${secretname} in keyvault ${keyvault} $resetformatting \n"
+    echo -e "\t $cyan Recovering secret ${secretname} in keyvault ${keyvault} $reset_formatting \n"
     az keyvault secret recover --name "${secretname}" --vault-name "${keyvault}"
     sleep 10
   fi
@@ -661,7 +661,7 @@ if [ 3 == $step ]; then
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo -e "#                   $boldred Could not find the SAP Library, please re-run! $resetformatting                    #"
+    echo -e "#                   $bold_red Could not find the SAP Library, please re-run! $reset_formatting                    #"
     echo "#                                                                                       #"
     echo "#########################################################################################"
     echo ""
@@ -723,7 +723,7 @@ if [ 4 == $step ]; then
   echo ""
   echo "#########################################################################################"
   echo "#                                                                                       #"
-  echo -e "#                          $cyan Migrating the library state $resetformatting                                #"
+  echo -e "#                          $cyan Migrating the library state $reset_formatting                                #"
   echo "#                                                                                       #"
   echo "#########################################################################################"
   echo ""
@@ -777,7 +777,7 @@ printf -v storage_account '%-40s' "${REMOTE_STATE_SA}"
 echo ""
 echo "#########################################################################################"
 echo "#                                                                                       #"
-echo -e "# $cyan Please save these values: $resetformatting                                                           #"
+echo -e "# $cyan Please save these values: $reset_formatting                                                           #"
 echo "#     - Key Vault:       ${kvname}                       #"
 echo "#     - Deployer IP:     ${dep_ip}                       #"
 echo "#     - Storage Account: ${storage_account}                       #"
@@ -826,7 +826,7 @@ if [ 5 == $step ]; then
       # Only run this when not on deployer
       echo "#########################################################################################"
       echo "#                                                                                       #"
-      echo -e "#                         $cyan  Copying the parameterfiles $resetformatting                                 #"
+      echo -e "#                         $cyan  Copying the parameterfiles $reset_formatting                                 #"
       echo "#                                                                                       #"
       echo "#########################################################################################"
       echo ""

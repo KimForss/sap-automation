@@ -2,7 +2,7 @@
 echo "##vso[build.updatebuildnumber]Deploying the control plane defined in $DEPLOYER_FOLDERNAME $LIBRARY_FOLDERNAME"
 green="\e[1;32m"
 reset="\e[0m"
-boldred="\e[1;31m"
+bold_red="\e[1;31m"
 cyan="\e[1;36m"
 
 # External helper functions
@@ -26,8 +26,8 @@ ENVIRONMENT=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $1}' | xargs)
 LOCATION=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $2}' | xargs)
 
 deployer_environment_file_name="${CONFIG_REPO_PATH}/.sap_deployment_automation/${ENVIRONMENT}$LOCATION"
-deployer_configfile="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
-library_configfile="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME"
+deployer_configuration_file="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
+library_configuration_file="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME"
 deployer_tfstate_key="$DEPLOYER_FOLDERNAME.terraform.tfstate"
 if [ -f "${deployer_environment_file_name}" ]; then
   step=$(grep -m1 "^step=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs)
@@ -50,13 +50,13 @@ fi
 echo -e "$green--- File Validations ---$reset"
 
 if [ ! -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME" ]; then
-  echo -e "$boldred--- File ${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME was not found ---$reset"
+  echo -e "$bold_red--- File ${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME was not found ---$reset"
   echo "##vso[task.logissue type=error]File ${CONFIG_REPO_PATH}/${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME was not found."
   exit 2
 fi
 
 if [ ! -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME" ]; then
-  echo -e "$boldred--- File ${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME  was not found ---$reset"
+  echo -e "$bold_red--- File ${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME  was not found ---$reset"
   echo "##vso[task.logissue type=error]File ${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME was not found."
   exit 2
 fi
@@ -147,7 +147,7 @@ else
 fi
 return_code=$?
 if [ 0 != $return_code ]; then
-  echo -e "$boldred--- Login failed ---$reset"
+  echo -e "$bold_red--- Login failed ---$reset"
   echo "##vso[task.logissue type=error]az login failed."
   exit $return_code
 fi
@@ -282,8 +282,8 @@ if [ "$USE_MSI" != "true" ]; then
   export TF_VAR_use_spn=true
 
   if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh" \
-    --deployer_parameter_file "${deployer_configfile}" \
-    --library_parameter_file "${library_configfile}" \
+    --deployer_parameter_file "${deployer_configuration_file}" \
+    --library_parameter_file "${library_configuration_file}" \
     --subscription "$ARM_SUBSCRIPTION_ID" \
     --spn_secret "$ARM_CLIENT_SECRET" \
     --tenant_id "$ARM_TENANT_ID" \
@@ -296,8 +296,8 @@ else
   export TF_VAR_use_spn=false
 
   if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/deploy_controlplane.sh" \
-    --deployer_parameter_file "${deployer_configfile}" \
-    --library_parameter_file "${library_configfile}" \
+    --deployer_parameter_file "${deployer_configuration_file}" \
+    --library_parameter_file "${library_configuration_file}" \
     --subscription "$ARM_SUBSCRIPTION_ID" \
     --auto-approve --ado --msi \
     "${storage_account_parameter}" "${keyvault_parameter}"; then
@@ -306,8 +306,6 @@ else
   fi
 
 fi
-
-return_code=$?
 
 echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
 added=0
@@ -329,28 +327,32 @@ if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate" ]; then
   added=1
 fi
 
-# || true suppresses the exitcode of grep. To not trigger the strict exit on error
-backend=$(grep "local" "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate" || true)
-if [ "$return_code" != 0 ]; then
-  echo "Local Terraform state"
-  if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate" ]; then
-    echo "Compressing the deployer state file"
-    sudo apt-get -qq install zip
+if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate" ]; then
+  # || true suppresses the exitcode of grep. To not trigger the strict exit on error
+  local_backend=$(grep "\"type\": \"local\"" DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate || true)
 
-    pass=${SYSTEM_COLLECTIONID//-/}
-    zip -q -j -P "${pass}" "DEPLOYER/$DEPLOYER_FOLDERNAME/state" "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate"
-    git add -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip"
-    added=1
-  fi
-else
-  echo "Remote Terraform state"
-  if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate" ]; then
-    git rm -q --ignore-unmatch -f "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate"
-    added=1
-  fi
-  if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" ]; then
-    git rm -q --ignore-unmatch -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip"
-    added=1
+  if [ -n "$local_backend" ]; then
+    echo "Local Terraform state"
+    if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate" ]; then
+      echo "Compressing the deployer state file"
+      sudo apt-get -qq install zip
+
+      pass=${SYSTEM_COLLECTIONID//-/}
+      zip -q -j -P "${pass}" "DEPLOYER/$DEPLOYER_FOLDERNAME/state" "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate"
+      git add -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip"
+      rm "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate"
+      added=1
+    fi
+  else
+    echo "Remote Terraform state"
+    if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate" ]; then
+      git rm -q --ignore-unmatch -f "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate"
+      added=1
+    fi
+    if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" ]; then
+      git rm -q --ignore-unmatch -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip"
+      added=1
+    fi
   fi
 fi
 
@@ -361,8 +363,8 @@ fi
 
 if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate" ]; then
   # || true suppresses the exitcode of grep. To not trigger the strict exit on error
-  backend=$(grep "local" "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate" || true)
-  if [ "$return_code" != 0 ]; then
+  local_backend=$(grep "\"type\": \"local\"" LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate || true)
+  if [ -n "$local_backend" ]; then
     echo "Local Terraform state"
     if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate" ]; then
       sudo apt-get -qq install zip
@@ -371,6 +373,7 @@ if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate" ]; then
       pass=${SYSTEM_COLLECTIONID//-/}
       zip -q -j -P "${pass}" "LIBRARY/$LIBRARY_FOLDERNAME/state" "LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate"
       git add -f "LIBRARY/$LIBRARY_FOLDERNAME/state.zip"
+      rm "LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate"
       added=1
     fi
   else
@@ -384,11 +387,6 @@ if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate" ]; then
       added=1
     fi
   fi
-fi
-
-if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate" ]; then
-  git add -f "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate"
-  added=1
 fi
 
 # Pull changes

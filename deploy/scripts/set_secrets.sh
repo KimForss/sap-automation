@@ -4,9 +4,9 @@
 
 #colors for terminal
 
-boldred="\e[1;31m"
+bold_red="\e[1;31m"
 cyan="\e[1;36m"
-resetformatting="\e[0m"
+reset_formatting="\e[0m"
 
 #External helper functions
 #. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
@@ -179,7 +179,7 @@ if [ -z "$keyvault" ]; then
     printf -v val %-40.40s "$keyvault"
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo -e "#       The provided keyvault is not valid:$boldred ${val} $resetformatting  #"
+    echo -e "#       The provided keyvault is not valid:$bold_red ${val} $reset_formatting  #"
     echo "#                                                                                       #"
     echo "#########################################################################################"
     echo "The provided keyvault is not valid " "${val}" >secret.err
@@ -209,7 +209,7 @@ if [ 0 = "${deploy_using_msi_only:-}" ]; then
       printf -v val %-40.40s "$client_id"
       echo "#########################################################################################"
       echo "#                                                                                       #"
-      echo -e "#       The provided client_id is not valid:$boldred ${val} $resetformatting  #"
+      echo -e "#       The provided client_id is not valid:$bold_red ${val} $reset_formatting  #"
       echo "#                                                                                       #"
       echo "#########################################################################################"
       return_code=65
@@ -236,7 +236,7 @@ if [ 0 = "${deploy_using_msi_only:-}" ]; then
       printf -v val %-40.40s "$tenant_id"
       echo "#########################################################################################"
       echo "#                                                                                       #"
-      echo -e "#       The provided tenant_id is not valid:$boldred ${val} $resetformatting  #"
+      echo -e "#       The provided tenant_id is not valid:$bold_red ${val} $reset_formatting  #"
       echo "#                                                                                       #"
       echo "#########################################################################################"
       return_code=65
@@ -280,7 +280,7 @@ else
     printf -v val %-40.40s "${subscription}"
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo -e "#     The provided subscription is not valid:$boldred ${val} $resetformatting #"
+    echo -e "#     The provided subscription is not valid:$bold_red ${val} $reset_formatting #"
     echo "#                                                                                       #"
     echo "#########################################################################################"
     return_code=65 #/* data format error */
@@ -319,7 +319,7 @@ secretname="${environment}"-subscription-id
 
 deleted=$(az keyvault secret list-deleted --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --query "[].{Name:name} | [? contains(Name,'${secretname}')] | [0]" -o tsv)
 if [ "${deleted}" == "${secretname}" ]; then
-  echo -e "\t $cyan Recovering secret ${secretname} in keyvault ${keyvault} $resetformatting \n"
+  echo -e "\t $cyan Recovering secret ${secretname} in keyvault ${keyvault} $reset_formatting \n"
   az keyvault secret recover --name "${secretname}" --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}"
   sleep 10
   v=$(az keyvault secret list --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --query [].name | tee grep "${secretname}")
@@ -332,7 +332,7 @@ else
   if [ "${exists}" == "${secretname}" ]; then
     v=$(az keyvault secret show --name "${secretname}" --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --query value -o tsv)
     if [ "${v}" != "${subscription}" ]; then
-      echo -e "\t $cyan Setting secret ${secretname} in keyvault ${keyvault} $resetformatting \n"
+      echo -e "\t $cyan Setting secret ${secretname} in keyvault ${keyvault} $reset_formatting \n"
       az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --value "${subscription}" --expires "$(date -d '+1 year' -u +%Y-%m-%dT%H:%M:%SZ)" >stdout.az 2>&1
     fi
   else
@@ -347,7 +347,7 @@ if [ -f stdout.az ]; then
     printf -v val "%-20.20s" "$keyvault"
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo -e "#          No access to add the secrets in the$boldred" "${val}" "$resetformatting keyvault           #"
+    echo -e "#          No access to add the secrets in the$bold_red" "${val}" "$reset_formatting keyvault           #"
     echo "#            Please add an access policy for the account you use                        #"
     echo "#                                                                                       #"
     echo "#########################################################################################"
@@ -363,7 +363,7 @@ if [ -f stdout.az ]; then
     printf -v val "%-20.20s could not be found!" "$keyvault"
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo -e "#                     $boldred Keyvault" "${val}" "$resetformatting               #"
+    echo -e "#                     $bold_red Keyvault" "${val}" "$reset_formatting               #"
     echo "#                                                                                       #"
     echo "#########################################################################################"
     echo ""
@@ -379,7 +379,7 @@ if [ 0 = "${deploy_using_msi_only:-}" ]; then
   secretname="${environment}"-client-id
   deleted=$(az keyvault secret list-deleted --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --query "[].{Name:name} | [? contains(Name,'${secretname}')] | [0]" -o tsv)
   if [ "${deleted}" == "${secretname}" ]; then
-    echo -e "\t $cyan Recovering secret ${secretname} in keyvault ${keyvault} $resetformatting \n"
+    echo -e "\t $cyan Recovering secret ${secretname} in keyvault ${keyvault} $reset_formatting \n"
     az keyvault secret recover --name "${secretname}" --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}"
     sleep 10
   fi
@@ -398,7 +398,7 @@ if [ 0 = "${deploy_using_msi_only:-}" ]; then
   secretname="${environment}"-tenant-id
   deleted=$(az keyvault secret list-deleted --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --query "[].{Name:name} | [? contains(Name,'${secretname}')] | [0]" -o tsv)
   if [ "${deleted}" == "${secretname}" ]; then
-    echo -e "\t $cyan Recovering secret ${secretname} in keyvault ${keyvault} $resetformatting \n"
+    echo -e "\t $cyan Recovering secret ${secretname} in keyvault ${keyvault} $reset_formatting \n"
     az keyvault secret recover --name "${secretname}" --vault-name "${keyvault}" --subscription "$STATE_SUBSCRIPTION"
     sleep 10
   fi
@@ -416,7 +416,7 @@ if [ 0 = "${deploy_using_msi_only:-}" ]; then
   secretname="${environment}"-client-secret
   deleted=$(az keyvault secret list-deleted --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --query "[].{Name:name} | [? contains(Name,'${secretname}')] | [0]" -o tsv)
   if [ "${deleted}" == "${secretname}" ]; then
-    echo -e "\t $cyan Recovering secret ${secretname} in keyvault ${keyvault} $resetformatting \n"
+    echo -e "\t $cyan Recovering secret ${secretname} in keyvault ${keyvault} $reset_formatting \n"
     az keyvault secret recover --name "${secretname}" --vault-name "${keyvault}" --subscription "$STATE_SUBSCRIPTION"
     sleep 10
   fi
