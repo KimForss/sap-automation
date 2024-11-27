@@ -242,12 +242,20 @@ workload_key_vault=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Worklo
 export workload_key_vault
 
 echo "Deployer statefile:                  $deployer_tfstate_key"
-echo "Deployer Key vault:                  $key_vault"
 echo "Workload Key vault:                  ${workload_key_vault}"
 echo "Target subscription                  $WL_ARM_SUBSCRIPTION_ID"
 
 echo "Terraform state file subscription:   $STATE_SUBSCRIPTION"
 echo "Terraform state file storage account:$REMOTE_STATE_SA"
+
+if [ -n "$key_vault" ]; then
+  echo "Deployer Key Vault:                  ${key_vault}"
+  key_vault_id=$(az resource list --name "${key_vault}" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" --subscription "$STATE_SUBSCRIPTION" --output tsv)
+
+  export TF_VAR_spn_keyvault_id=${key_vault_id}
+else
+  echo "Deployer Key Vault:                  undefined"
+fi
 
 secrets_set=1
 az account set --subscription $STATE_SUBSCRIPTION
