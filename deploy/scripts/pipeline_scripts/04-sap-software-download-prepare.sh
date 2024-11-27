@@ -20,7 +20,7 @@ export AZURE_DEVOPS_EXT_PAT
 
 cd "$CONFIG_REPO_PATH" || exit
 
-environment_file_name=".sap_deployment_automation/$(environment_code)$(location_code)"
+environment_file_name=".sap_deployment_automation/$ENVIRONMENT_CODE$LOCATION_CODE"
 
 az devops configure --defaults organization=$SYSTEM_COLLECTIONURI project='$SYSTEM_TEAMPROJECT' --output none --only-show-errors
 
