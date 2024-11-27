@@ -35,6 +35,15 @@ resource "azurerm_role_assignment" "library_sai" {
 }
 
 
+resource "azurerm_role_assignment" "library_webapp_system_assigned_identity" {
+  provider                             = azurerm.main
+  count                                = length(var.deployer_tfstate.webapp_identity) > 0 ? 1 : 0
+  scope                                = local.resource_group_exists ? var.infrastructure.resource_group.arm_id : azurerm_resource_group.library[0].id
+  role_definition_name                 = "Storage Blob Data Contributor"
+  principal_id                         = var.deployer_tfstate.webapp_identity
+}
+
+
 // TODO: Add management lock when this issue is addressed https://github.com/terraform-providers/terraform-provider-azurerm/issues/5473
 
 

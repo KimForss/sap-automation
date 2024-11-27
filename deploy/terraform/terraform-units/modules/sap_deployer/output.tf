@@ -195,20 +195,17 @@ output "firewall_id" {
 
 output "webapp_url_base" {
   description                          = "Webapp URL Base"
-  value                                = var.use_webapp ? (var.configure ? try(azurerm_windows_web_app.webapp[0].name, "") : "") : ""
+  value                                = var.use_webapp ? try(azurerm_windows_web_app.webapp[0].name, "") : ""
 }
 
 output "webapp_identity" {
   description                          = "Webapp Identity"
-  value                                = var.use_webapp ? (var.configure ? try(azurerm_windows_web_app.webapp[0].identity[0].principal_id, "") : "") : ""
+  value                                = var.use_webapp ? try(azurerm_windows_web_app.webapp[0].identity[0].principal_id, "") :  ""
 }
 
 output "webapp_id" {
   description                          = "Webapp ID"
-  value                                = var.use_webapp ? (
-                                           var.configure ? try(azurerm_windows_web_app.webapp[0].id, "") : "") : (
-                                           ""
-                                         )
+  value                                = var.use_webapp ? try(azurerm_windows_web_app.webapp[0].id, "") : ""
 }
 
 ###############################################################################
