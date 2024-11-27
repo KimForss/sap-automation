@@ -277,16 +277,16 @@ stages:
               printf "az webapp restart --ids %s\n\n $(WEBAPP_ID)" >>"$(Build.Repository.LocalPath)/Web Application Configuration.md"
               printf "\n" >>"$(Build.Repository.LocalPath)/Web Application Configuration.md"
 
-              printf "[Access the Web App](https://%s.azurewebsites.net) $(WEBAPP_URL_BASE)" >>"$(Build.Repository.LocalPath)/Web Application Configuration.md"
+              printf "[Access the Web App](https://%s.azurewebsites.net) \n\n" $(WEBAPP_URL_BASE) >>"$(Build.Repository.LocalPath)/Web Application Configuration.md"
 
               echo "##vso[task.uploadsummary]$(Build.Repository.LocalPath)/Web Application Configuration.md"
               exit 0
 
             displayName: "Documentation"
             env:
-              ARM_SUBSCRIPTION_ID: $(CP_ARM_SUBSCRIPTION_ID)
-              SYSTEM_PIPELINE_ID: $(SYSTEM_PIPELINE_ID)
+              ARM_SUBSCRIPTION_ID:     $(CP_ARM_SUBSCRIPTION_ID)
+              SYSTEM_PIPELINE_ID:      $(SYSTEM_PIPELINE_ID)
               APP_REGISTRATION_APP_ID: $(APP_REGISTRATION_APP_ID)
-              WEBAPP_URL_BASE: $(WEBAPP_URL_BASE)
-              WEBAPP_ID: $(WEBAPP_ID)
-              WEBAPP_IDENTITY: $(WEBAPP_IDENTITY)
+              WEBAPP_URL_BASE:         $(WEBAPP_URL_BASE)
+              WEBAPP_ID:               $(WEBAPP_ID)
+              WEBAPP_IDENTITY:         $(WEBAPP_IDENTITY)
