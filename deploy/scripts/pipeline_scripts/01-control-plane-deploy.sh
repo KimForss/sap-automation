@@ -108,7 +108,6 @@ cd "$CONFIG_REPO_PATH" || exit
 
 echo -e "$green--- Checkout $BRANCH ---$reset"
 git checkout -q "$BRANCH"
-git pull -q
 
 echo -e "$green--- Configure devops CLI extension ---$reset"
 az config set extension.use_dynamic_install=yes_without_prompt --only-show-errors
@@ -311,6 +310,14 @@ echo -e "$green--- Adding deployment automation configuration to devops reposito
 added=0
 cd "${CONFIG_REPO_PATH}" || exit
 
+# Pull changes
+git pull -q origin "$BRANCH"
+
+if [ "$debug" = "True" ]; then
+  cat "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate"
+  cat "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate"
+fi
+
 echo -e "$green--- Update repo ---$reset"
 if [ -f .sap_deployment_automation/"${ENVIRONMENT}${LOCATION}" ]; then
   git add .sap_deployment_automation/"${ENVIRONMENT}${LOCATION}"
@@ -325,15 +332,7 @@ fi
 if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate" ]; then
   git add -f "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate"
   added=1
-fi
 
-if [ "$debug" = "True" ]; then
-
-  cat "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate"
-  cat "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate"
-fi
-
-if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate" ]; then
   # || true suppresses the exitcode of grep. To not trigger the strict exit on error
   local_backend=$(grep "\"type\": \"local\"" DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate || true)
 
@@ -365,9 +364,6 @@ fi
 if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate" ]; then
   git add -f "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate"
   added=1
-fi
-
-if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate" ]; then
   # || true suppresses the exitcode of grep. To not trigger the strict exit on error
   local_backend=$(grep "\"type\": \"local\"" LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate || true)
   if [ -n "$local_backend" ]; then
@@ -395,18 +391,24 @@ if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate" ]; then
   fi
 fi
 
-# Pull changes
-git pull -q origin "$BRANCH"
-
 if [ 1 = $added ]; then
   git config --global user.email "$BUILD_REQUESTEDFOREMAIL"
   git config --global user.name "$BUILD_REQUESTEDFOR"
-  if git commit -m "Added updates from Control Plane Deployment for $DEPLOYER_FOLDERNAME $LIBRARY_FOLDERNAME $BUILD_BUILDNUMBER [skip ci]"; then
-    if git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BRANCH" --force-with-lease; then
-      echo "##vso[task.logissue type=error]Failed to push changes to the repository."
+  if [ $debug = True ]; then
+    git status --verbose
+    if git commit --message --verbose "Added updates from Control Plane Deployment for $DEPLOYER_FOLDERNAME $LIBRARY_FOLDERNAME $BUILD_BUILDNUMBER [skip ci]"; then
+      if git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BRANCH" --force-with-lease; then
+        echo "##vso[task.logissue type=error]Failed to push changes to the repository."
+      fi
+    fi
+
+  else
+    if git commit -m "Added updates from Control Plane Deployment for $DEPLOYER_FOLDERNAME $LIBRARY_FOLDERNAME $BUILD_BUILDNUMBER [skip ci]"; then
+      if git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BRANCH" --force-with-lease; then
+        echo "##vso[task.logissue type=error]Failed to push changes to the repository."
+      fi
     fi
   fi
-
 fi
 
 # if [ -f ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md" ]; then
