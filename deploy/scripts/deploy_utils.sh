@@ -11,7 +11,7 @@ fi
 #########################################################################
 # Helper utilities
 #
-# Acknowledgements: Fergal Mc Carthy, SUSE
+# Acknowledgements: Fergal McCarthy, SUSE
 #########################################################################
 
 function save_config_var() {
@@ -311,7 +311,7 @@ function set_executing_user_environment_variables() {
     az_user_obj_id=$(az ad signed-in-user show --query id -o tsv)
     az_user_name=$(az ad signed-in-user show --query userPrincipalName -o tsv)
 
-    # this is the user object id but exporeted as client_id to make it easier to use in TF
+    # this is the user object id but exported as client_id to make it easier to use in TF
     export TF_VAR_arm_client_id=${az_user_obj_id}
 
     echo -e "\t[set_executing_user_environment_variables]: logged in user id: ${az_user_obj_id} (${az_user_name})"
