@@ -631,8 +631,8 @@ else
   new_deployment=1
   check_output=true
 
-  temp=$(grep "\"type\": \"local\"" .terraform/terraform.tfstate || true)
-  if [ -n "${temp}" ]; then
+  local_backend=$(grep "\"type\": \"local\"" .terraform/terraform.tfstate || true)
+  if [ -n "$local_backend" ]; then
     if ! terraform -chdir="${terraform_module_directory}" init -upgrade=true -force-copy \
       --backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
       --backend-config "resource_group_name=${REMOTE_STATE_RG}" \

@@ -305,7 +305,8 @@ if [ -f init_error.log ]; then
 fi
 
 if [ -f ./.terraform/terraform.tfstate ]; then
-  if grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate; then
+  azure_backend=$(grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate || true)
+  if [ -n "$azure_backend" ]; then
     echo "State is stored in Azure"
 
     #Initialize the statefile and copy to local
@@ -385,7 +386,9 @@ echo "#  container_name=tfstate"
 echo "#  key=${key}.terraform.tfstate"
 
 if [ -f ./.terraform/terraform.tfstate ]; then
-  if grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate; then
+  azure_backend=$(grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate || true)
+  if [ -n "$azure_backend" ]; then
+
     echo "State is stored in Azure"
     echo ""
     echo "#########################################################################################"

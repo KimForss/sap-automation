@@ -180,7 +180,9 @@ if [ ! -d ./.terraform/ ]; then
   terraform -chdir="${terraform_module_directory}" init -backend-config "path=${param_dirname}/terraform.tfstate"
 else
   if [ -f ./.terraform/terraform.tfstate ]; then
-    if grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate; then
+    azure_backend=$(grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate || true)
+    if [ -n "$azure_backend" ]; then
+
       echo "#########################################################################################"
       echo "#                                                                                       #"
       echo "#                     The state is already migrated to Azure!!!                         #"
