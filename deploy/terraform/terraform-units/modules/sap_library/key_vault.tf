@@ -34,7 +34,7 @@ resource "azurerm_key_vault_secret" "sapbits_location_base_path" {
   depends_on                           = [ azurerm_storage_account.storage_tfstate ]
   count                                = length(try(var.key_vault.kv_spn_id, "")) > 0 ? 1 : 0
   name                                 = "sapbits-location-base-path"
-  value                                = format("https://%s.file.core.windows.net/%s", length(var.storage_account_sapbits.arm_id) > 0 ?
+  value                                = format("https://%s%s.blob.core.windows.net/%s", (var.dns_settings.register_storage_accounts_keyvaults_with_dns ? ".privatelink" : ""), length(var.storage_account_sapbits.arm_id) > 0 ?
                                               split("/", var.storage_account_sapbits.arm_id)[8] : replace(
                                               lower(
                                                 format("%s", local.sa_sapbits_name)
