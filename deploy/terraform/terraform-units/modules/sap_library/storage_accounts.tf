@@ -165,7 +165,7 @@ resource "azurerm_private_endpoint" "storage_tfstate" {
                                  azurerm_storage_account.storage_tfstate[0].id
                                )
                                subresource_names = [
-                                 "blob"
+                                 "Blob"
                                ]
                              }
 
@@ -411,7 +411,7 @@ resource "azurerm_private_endpoint" "storage_sapbits" {
                                  azurerm_storage_account.storage_sapbits[0].id
                                )
                                subresource_names = [
-                                                     "blob"
+                                                     "Blob"
                                                    ]
                              }
 
