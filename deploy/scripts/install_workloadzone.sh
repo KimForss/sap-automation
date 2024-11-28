@@ -625,7 +625,6 @@ if [ ! -d "${terraform_module_directory}" ]; then
 fi
 
 apply_needed=false
-new_deployment=false
 
 #Plugins
 if checkIfCloudShell; then
@@ -638,8 +637,6 @@ else
   fi
   export TF_PLUGIN_CACHE_DIR=/opt/terraform/.terraform.d/plugin-cache
 fi
-
-root_dirname=$(pwd)
 
 echo ""
 echo "Terraform details"
@@ -658,12 +655,6 @@ if [ ! -d .terraform/ ]; then
     --backend-config "container_name=tfstate" \
     --backend-config "key=${key}.terraform.tfstate"
   return_value=$?
-  check_output=0
-  echo "#########################################################################################"
-  echo "#                                                                                       #"
-  echo -e "#                                  $cyan New deployment $reset_formatting                                     #"
-  echo "#                                                                                       #"
-  echo "#########################################################################################"
 else
   check_output=1
   local_backend=$(grep "\"type\": \"local\"" .terraform/terraform.tfstate || true)
@@ -686,6 +677,7 @@ else
     return_value=$?
   fi
 fi
+
 if [ 0 != $return_value ]; then
   echo "#########################################################################################"
   echo "#                                                                                       #"
@@ -693,8 +685,14 @@ if [ 0 != $return_value ]; then
   echo "#                                                                                       #"
   echo "#########################################################################################"
   echo ""
-  echo "Terraform initialization failed" >"${workload_config_information}".err
+  echo "Terraform initialization failed"
   exit $return_value
+fi
+
+if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
+  check_output=1
+else
+  check_output=0
 fi
 
 save_config_var "REMOTE_STATE_SA" "${workload_config_information}"
