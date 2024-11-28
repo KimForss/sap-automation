@@ -17,8 +17,8 @@ debug=False
 
 if [ "$SYSTEM_DEBUG" = True ]; then
   set -x
-  debug=True
-  export debug
+  DEBUG=True
+  export DEBUG
 fi
 set -eu
 
@@ -268,7 +268,7 @@ if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" ]; then
   unzip -o -qq -P "${pass}" "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" -d "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME"
 fi
 
-if [ "$debug" = True ]; then
+if [ "$DEBUG" = True ]; then
   ls -lart "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME"
   ls -lart "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME"
 fi
@@ -313,7 +313,7 @@ cd "${CONFIG_REPO_PATH}" || exit
 # Pull changes
 git pull -q origin "$BRANCH"
 
-if [ "$debug" = "True" ]; then
+if [ "$DEBUG" = "True" ]; then
   cat "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate"
   cat "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate"
 fi

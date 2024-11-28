@@ -108,7 +108,7 @@ if [ "$param_dirname" != '.' ]; then
   exit 3
 fi
 
-if [ "$debug" = True ]; then
+if [ "$DEBUG" = True ]; then
   set -x
   set -o errexit
 fi

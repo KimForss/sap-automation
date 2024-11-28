@@ -123,7 +123,7 @@ while :; do
   esac
 done
 
-if [ "$debug" = True ]; then
+if [ "$DEBUG" = True ]; then
   # Enable debugging
   set -x
   # Exit on error

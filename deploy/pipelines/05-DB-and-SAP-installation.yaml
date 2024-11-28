@@ -164,8 +164,8 @@ stages:
               if [ "$SYSTEM_DEBUG" = True ]; then
                 set -x
                 set -o errexit
-                debug=True
-                export debug
+                DEBUG=True
+                export DEBUG
               fi
               set -eu
 

@@ -15,13 +15,13 @@ script_directory="$(dirname "${full_script_path}")"
 #call stack has full scriptname when using source
 source "${script_directory}/helper.sh"
 
-debug=False
+DEBUG=False
 
 if [ "$SYSTEM_DEBUG" = True ]; then
   set -x
-  debug=True
-  export debug
+  DEBUG=True
 fi
+export DEBUG
 set -eu
 
 tfvarsFile="LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME/$WORKLOAD_ZONE_TFVARS_FILENAME"

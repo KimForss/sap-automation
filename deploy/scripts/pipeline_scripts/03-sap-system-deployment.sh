@@ -12,14 +12,15 @@ script_directory="$(dirname "${full_script_path}")"
 #call stack has full scriptname when using source
 source "${script_directory}/helper.sh"
 
-debug=False
+DEBUG=False
 
 if [ "$SYSTEM_DEBUG" = True ]; then
   set -x
   set -o errexit
-  debug=True
-  export debug
+  DEBUG=True
+
 fi
+export DEBUG
 set -eu
 
 echo "##vso[build.updatebuildnumber]Deploying the SAP System defined in $SAP_SYSTEM_FOLDERNAME"

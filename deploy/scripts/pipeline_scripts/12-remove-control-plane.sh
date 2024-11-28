@@ -14,14 +14,15 @@ script_directory="$(dirname "${full_script_path}")"
 #call stack has full scriptname when using source
 source "${script_directory}/helper.sh"
 
-debug=False
+DEBUG=False
 
 if [ "$SYSTEM_DEBUG" = True ]; then
   set -x
   set -eu
-  debug=True
-  export debug
+  DEBUG=True
 fi
+
+export DEBUG
 # Ensure that the exit status of a pipeline command is non-zero if any
 # stage of the pipefile has a non-zero exit status.
 set -o pipefail

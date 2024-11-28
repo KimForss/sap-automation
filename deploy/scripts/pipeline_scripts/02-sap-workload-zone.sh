@@ -7,14 +7,14 @@ cyan="\e[1;36m"
 #External helper functions
 source "sap-automation/deploy/pipelines/helper.sh"
 
-debug=False
+DEBUG=False
 
 if [ "$SYSTEM_DEBUG" = True ]; then
   set -x
   set -o errexit
-  debug=True
+  DEBUG=True
 fi
-export debug
+export DEBUG
 
 set -eu
 
@@ -272,9 +272,6 @@ else
 fi
 secrets_set=$?
 echo "Set Secrets returned: $secrets_set"
-
-debug_variable='--output none'
-debug_variable=''
 
 tfstate_resource_id=$(az resource list --name "${REMOTE_STATE_SA}" --subscription "$STATE_SUBSCRIPTION" --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
 export tfstate_resource_id

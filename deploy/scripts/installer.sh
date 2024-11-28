@@ -148,7 +148,7 @@ while :; do
   esac
 done
 
-if [ "$debug" = True ]; then
+if [ "$DEBUG" = True ]; then
   echo -e "$cyanEnabling debug mode$reset_formatting"
   set -x
   set -o errexit

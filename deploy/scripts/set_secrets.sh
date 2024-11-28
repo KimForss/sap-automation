@@ -113,7 +113,7 @@ while :; do
   esac
 done
 
-if [ "$debug" = True ]; then
+if [ "$DEBUG" = True ]; then
   set -x
 fi
 

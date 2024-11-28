@@ -21,8 +21,10 @@ steps:
     #!/bin/bash
     # Exit immediately if a command exits with a non-zero status.
     # Treat unset variables as an error when substituting.
-    if [ "$debug" = True ]; then
-      echo -e "$cyanEnabling debug mode$resetformatting"
+    if [ "$DEBUG" = True ]; then
+      cyan="\e[1;36m"
+      reset_formatting="\e[0m"
+      echo -e "$cyanEnabling debug mode$reset_formatting"
       set -x
       set -o errexit
     fi

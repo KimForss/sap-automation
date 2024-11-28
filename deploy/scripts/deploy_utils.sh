@@ -97,7 +97,7 @@ function init() {
 }
 
 function error_msg {
-  echo "Error!!! ${@}"
+  echo "Error!!! $*"
 }
 
 function fail_if_null {

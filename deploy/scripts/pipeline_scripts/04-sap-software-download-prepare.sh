@@ -5,12 +5,13 @@ bold_red="\e[1;31m"
 #External helper functions
 source "sap-automation/deploy/pipelines/helper.sh"
 
-debug=False
+DEBUG=False
 
 if [ "$SYSTEM_DEBUG" = True ]; then
   set -x
-  debug=True
+  DEBUG=True
 fi
+export DEBUG
 set -eu
 
 echo -e "$green--- Configure devops CLI extension ---$reset"
