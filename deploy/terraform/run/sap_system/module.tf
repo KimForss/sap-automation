@@ -10,7 +10,7 @@ module "sap_namegenerator" {
   environment                                   = local.infrastructure.environment
   location                                      = local.infrastructure.region
   codename                                      = lower(try(local.infrastructure.codename, ""))
-  random_id                                     = module.common_infrastructure.random_id
+  random_id                                     = coalesce(var.custom_random_id, module.common_infrastructure.random_id)
   sap_vnet_name                                 = local.vnet_logical_name
   sap_sid                                       = local.sap_sid
   db_sid                                        = local.db_sid
