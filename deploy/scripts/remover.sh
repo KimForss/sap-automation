@@ -478,12 +478,43 @@ if [ "$resource_group_exist" ]; then
 
 		allParameters=$(printf " -var-file=%s %s %s  %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${deployer_tfstate_key_parameter}")
 
+		moduleID="module.sap_landscape.azurerm_key_vault_secret.sid_ppk"
+		if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
+			echo "Secret 'sid_ppk' removed from state"
+		fi
+		moduleID="module.sap_landscape.azurerm_key_vault_secret.sid_pk"
+		if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
+			echo "Secret 'sid_pk' removed from state"
+		fi
+		moduleID="module.sap_landscape.azurerm_key_vault_secret.sid_username"
+		if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
+			echo "Secret 'sid_username' removed from state"
+		fi
+		moduleID="module.sap_landscape.azurerm_key_vault_secret.sid_password"
+		if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
+			echo "Secret 'sid_password' removed from state"
+		fi
+		moduleID="module.sap_landscape.azurerm_key_vault_secret.witness_access_key"
+		if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
+			echo "Secret 'witness_access_key' removed from state"
+		fi
+		moduleID="module.sap_landscape.azurerm_key_vault_secret.deployer_keyvault_user_name"
+		if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
+			echo "Secret 'deployer_keyvault_user_name' removed from state"
+		fi
+		moduleID="module.sap_landscape.azurerm_key_vault_secret.witness_name"
+		if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
+			echo "Secret 'witness_name' removed from state"
+		fi
+
+
+
 		if [ -n "${approve}" ]; then
 			# shellcheck disable=SC2086
-			terraform -chdir="${terraform_module_directory}" destroy $allParameters "$approve" -no-color -json -parallelism=1 -target=module.sap_landscape.azurerm_key_vault_secret.sid_password | tee -a destroy_output.json
+			terraform -chdir="${terraform_module_directory}" destroy $allParameters "$approve" -no-color -json  | tee -a destroy_output.json
 		else
 			# shellcheck disable=SC2086
-			terraform -chdir="${terraform_module_directory}" destroy $allParameters -parallelism=1 -target=module.sap_landscape.azurerm_key_vault_secret.sid_password
+			terraform -chdir="${terraform_module_directory}" destroy $allParameters -parallelism=1
 		fi
 	else
 
