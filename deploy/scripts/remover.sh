@@ -523,7 +523,7 @@ if [ "$resource_group_exist" ]; then
 			fi
 		else
 			# shellcheck disable=SC2086
-			if terraform -chdir="${terraform_module_directory}" destroy $allParameters "$approve" -parallelism="$parallelism"; then
+			if terraform -chdir="${terraform_module_directory}" destroy $allParameters -parallelism="$parallelism"; then
 				return_value=$?
 				echo ""
 				echo -e "${cyan}Terraform destroy:                     succeeded$reset_formatting"
@@ -559,7 +559,7 @@ if [ "$resource_group_exist" ]; then
 			fi
 		else
 			# shellcheck disable=SC2086
-			if terraform -chdir="${terraform_module_directory}" destroy $allParameters "$approve" -parallelism="$parallelism"; then
+			if terraform -chdir="${terraform_module_directory}" destroy $allParameters -parallelism="$parallelism"; then
 				return_value=$?
 				echo ""
 				echo -e "${cyan}Terraform destroy:                     succeeded$reset_formatting"
