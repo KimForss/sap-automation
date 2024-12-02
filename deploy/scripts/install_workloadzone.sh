@@ -801,7 +801,15 @@ if [ 1 == $check_output ]; then
 		echo "#                                                                                       #"
 		echo "#########################################################################################"
 		echo ""
-		version_compare "${deployed_using_version}" "3.13.2.0"
+		if version_compare "${deployed_using_version}" "3.13.2.0" ; then
+				echo ""
+				echo "#########################################################################################"
+				echo "#                                                                                       #"
+				echo -e "#           $cyan  Deployed using an latest version $reset_formatting                                         #"
+				echo "#                                                                                       #"
+				echo "#########################################################################################"
+				echo ""
+		fi
 		older_version=$?
 		if [ 2 == $older_version ]; then
 			echo ""
