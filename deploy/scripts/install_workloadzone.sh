@@ -724,18 +724,6 @@ save_config_var "tfstate_resource_id" "${workload_config_information}"
 
 allParameters=$(printf " -var-file=%s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${deployer_tfstate_key_parameter}")
 
-# shellcheck disable=SC2086
-if ! terraform -chdir="$terraform_module_directory" refresh $allParameters -input=false; then
-	echo ""
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo -e "#                            $bold_red_underscore!!! Error when Refreshing !!!$reset_formatting                            #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
-	echo ""
-	exit 1
-fi
-
 if [ 1 == $check_output ]; then
 	if terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
 
@@ -819,10 +807,23 @@ if [ 1 == $check_output ]; then
 
 
 		version_compare "${deployed_using_version}" "3.13.2.0"
-    older_version=$?
+    older_version=2
 
 
 		if [ 2 == $older_version ]; then
+
+			# shellcheck disable=SC2086
+			if ! terraform -chdir="$terraform_module_directory" refresh $allParameters -input=false; then
+				echo ""
+				echo "#########################################################################################"
+				echo "#                                                                                       #"
+				echo -e "#                            $bold_red_underscore!!! Error when Refreshing !!!$reset_formatting                            #"
+				echo "#                                                                                       #"
+				echo "#########################################################################################"
+				echo ""
+				exit 1
+			fi
+
 			echo ""
 			echo "#########################################################################################"
 			echo "#                                                                                       #"
