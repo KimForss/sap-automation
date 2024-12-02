@@ -807,8 +807,7 @@ if [ 1 == $check_output ]; then
 
 
 		version_compare "${deployed_using_version}" "3.13.2.0"
-    older_version=2
-
+    older_version=$?
 
 		if [ 2 == $older_version ]; then
 
