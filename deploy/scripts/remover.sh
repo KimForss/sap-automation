@@ -507,8 +507,6 @@ if [ "$resource_group_exist" ]; then
 			echo "Secret 'witness_name' removed from state"
 		fi
 
-
-
 		if [ -n "${approve}" ]; then
 			# shellcheck disable=SC2086
 			terraform -chdir="${terraform_module_directory}" destroy $allParameters "$approve" -no-color -json  | tee -a destroy_output.json
@@ -542,6 +540,9 @@ if [ "$resource_group_exist" ]; then
 				echo "#########################################################################################"
 				echo "#                                                                                       #"
 				echo -e "#                         $bold_red_underscore!Errors during the destroy phase!$reset_formatting                             #"
+				echo "#                                                                                       #"
+				echo "#########################################################################################"
+				echo ""
 
 				return_value=2
 				all_errors=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary, detail: .diagnostic.detail}' destroy_output.json)
@@ -565,9 +566,6 @@ if [ "$resource_group_exist" ]; then
 					done
 
 				fi
-				echo "#                                                                                       #"
-				echo "#########################################################################################"
-				echo ""
 
 			fi
 
