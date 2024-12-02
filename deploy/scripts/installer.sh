@@ -761,8 +761,8 @@ if [ 0 == $new_deployment ]; then
 			# Remeadiating the Storage Accounts and File Shares
 			if [ "${deployment_system}" == sap_library ]; then
 				moduleID='module.sap_library.azurerm_storage_account.storage_sapbits[0]'
-				azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 " id " | xargs | cut -d "=" -f2 | xargs)
-				ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "id"
+				azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 "providers/Microsoft.Storage/storageAccounts" | xargs | cut -d "=" -f2 | xargs)
+				ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "providers/Microsoft.Storage/storageAccounts"
 
 				resourceGroupName=$(az resource show --ids "${azureResourceID}" --query "resourceGroup" --output tsv)
 				resourceType=$(az resource show --ids "${azureResourceID}" --query "type" --output tsv)
@@ -773,7 +773,7 @@ if [ 0 == $new_deployment ]; then
 				ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "resource_manager_id"
 
 				moduleID='module.sap_library.azurerm_storage_account.storage_tfstate[0]'
-				azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 " id " | xargs | cut -d "=" -f2 | xargs)
+				azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 "providers/Microsoft.Storage/storageAccounts" | xargs | cut -d "=" -f2 | xargs)
 				ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "id"
 
 				resourceGroupName=$(az resource show --ids "${azureResourceID}" --query "resourceGroup" --output tsv)
@@ -792,7 +792,7 @@ if [ 0 == $new_deployment ]; then
 			if [ "${deployment_system}" == sap_deployer ]; then
 
 				moduleID='module.sap_deployer.azurerm_storage_account.deployer[0]'
-				azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 " id " | xargs | cut -d "=" -f2 | xargs)
+				azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 "providers/Microsoft.Storage/storageAccounts" | xargs | cut -d "=" -f2 | xargs)
 				echo "Terraform resource ID:  $moduleID"
 				echo "Azure resource ID:      $azureResourceID"
 				if [ -n "${azureResourceID}" ]; then
@@ -811,18 +811,18 @@ if [ 0 == $new_deployment ]; then
 			if [ "${deployment_system}" == sap_system ]; then
 
 				moduleID='module.common_infrastructure.azurerm_storage_account.sapmnt[0]'
-				ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "id" "${landscape_tfstate_key_parameter}"
+				ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "providers/Microsoft.Storage/storageAccounts" "${landscape_tfstate_key_parameter}"
 
 				moduleID='module.common_infrastructure.azurerm_storage_share.sapmnt[0]'
 				ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "resource_manager_id" "${landscape_tfstate_key_parameter}"
 
 				moduleID='module.hdb_node.azurerm_storage_account.hanashared[0]'
-				ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "id" "${landscape_tfstate_key_parameter}"
+				ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "providers/Microsoft.Storage/storageAccounts" "${landscape_tfstate_key_parameter}"
 				moduleID='module.hdb_node.azurerm_storage_share.hanashared[0]'
 				ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "resource_manager_id" "${landscape_tfstate_key_parameter}"
 
 				moduleID='module.hdb_node.azurerm_storage_account.hanashared[1]'
-				ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "id" "${landscape_tfstate_key_parameter}"
+				ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "providers/Microsoft.Storage/storageAccounts" "${landscape_tfstate_key_parameter}"
 				moduleID='module.hdb_node.azurerm_storage_share.hanashared[1]'
 				ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "resource_manager_id" "${landscape_tfstate_key_parameter}"
 

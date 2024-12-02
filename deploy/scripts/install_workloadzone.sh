@@ -835,13 +835,13 @@ if [ 1 == $check_output ]; then
 			# Remediating the Storage Accounts and File Shares
 
 			moduleID='module.sap_landscape.azurerm_storage_account.storage_bootdiag[0]'
-			ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "id"
+			ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "providers/Microsoft.Storage/storageAccounts"
 
 			moduleID='module.sap_landscape.azurerm_storage_account.witness_storage[0]'
-			ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "id"
+			ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "providers/Microsoft.Storage/storageAccounts"
 
 			moduleID='module.sap_landscape.azurerm_storage_account.install[0]'
-			azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 " id " | xargs | cut -d "=" -f2 | xargs)
+			azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 providers/Microsoft.Storage/storageAccounts | xargs | cut -d "=" -f2 | xargs)
 
 			resourceGroupName=$(az resource show --ids "${azureResourceID}" --query "resourceGroup" --output tsv)
 			resourceType=$(az resource show --ids "${azureResourceID}" --query "type" --output tsv)
@@ -852,7 +852,7 @@ if [ 1 == $check_output ]; then
 			ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "id"
 
 			moduleID='module.sap_landscape.azurerm_storage_account.transport[0]'
-			ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "id"
+			ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "providers/Microsoft.Storage/storageAccounts"
 
 			moduleID='module.sap_landscape.azurerm_storage_share.transport[0]'
 			ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "resource_manager_id"
