@@ -26,6 +26,9 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vnet_sap" {
   private_dns_zone_name                = var.dns_settings.dns_label
   virtual_network_id                   = azurerm_virtual_network.vnet_sap[0].id
   registration_enabled                 = true
+  lifecycle                            {
+                                         prevent_destroy = true
+                                       }
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "vnet_sap_file" {
@@ -48,6 +51,9 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vnet_sap_file" {
   private_dns_zone_name                = var.dns_settings.dns_zone_names.file_dns_zone_name
   virtual_network_id                   = azurerm_virtual_network.vnet_sap[0].id
   registration_enabled                 = false
+  lifecycle                            {
+                                         prevent_destroy = true
+                                       }
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "storage" {
@@ -68,6 +74,9 @@ resource "azurerm_private_dns_zone_virtual_network_link" "storage" {
   resource_group_name                  = var.dns_settings.privatelink_dns_resourcegroup_name
   private_dns_zone_name                = var.dns_settings.dns_zone_names.blob_dns_zone_name
   virtual_network_id                   = azurerm_virtual_network.vnet_sap[0].id
+  lifecycle                            {
+                                         prevent_destroy = true
+                                       }
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "vault" {
@@ -87,6 +96,9 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vault" {
   private_dns_zone_name                = var.dns_settings.dns_zone_names.vault_dns_zone_name
   virtual_network_id                   = azurerm_virtual_network.vnet_sap[0].id
   registration_enabled                 = false
+  lifecycle                            {
+                                         prevent_destroy = true
+                                       }
 }
 
 
