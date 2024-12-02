@@ -471,6 +471,20 @@ if [ "$resource_group_exist" ]; then
 
 		terraform -chdir="${terraform_bootstrap_directory}" destroy -var-file="${var_file}" "${approve}" -var use_deployer=false \
 			"$deployer_tfstate_key_parameter"
+	elif [ "$deployment_system" == "sap_landscape" ]; then
+
+		echo -e "#$cyan processing $deployment_system removal as defined in $parameterfile_name $reset_formatting"
+		echo "Calling destroy with:          -var-file=${var_file} $approve $tfstate_parameter deployer_tfstate_key_parameter"
+
+		allParameters=$(printf " -var-file=%s %s %s  %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${deployer_tfstate_key_parameter}")
+
+		if [ -n "${approve}" ]; then
+			# shellcheck disable=SC2086
+			terraform -chdir="${terraform_module_directory}" destroy $allParameters "$approve" -no-color -json -parallelism=1 -target=module.sap_landscape.azurerm_key_vault_secret.sid_password | tee -a destroy_output.json
+		else
+			# shellcheck disable=SC2086
+			terraform -chdir="${terraform_module_directory}" destroy $allParameters -parallelism=1 -target=module.sap_landscape.azurerm_key_vault_secret.sid_password
+		fi
 	else
 
 		echo -e "#$cyan processing $deployment_system removal as defined in $parameterfile_name $reset_formatting"
@@ -480,7 +494,7 @@ if [ "$resource_group_exist" ]; then
 
 		if [ -n "${approve}" ]; then
 			# shellcheck disable=SC2086
-			terraform -chdir="${terraform_module_directory}" destroy $allParameters "$approve" -no-color -json -parallelism="$parallelism"  | tee -a destroy_output.json
+			terraform -chdir="${terraform_module_directory}" destroy $allParameters "$approve" -no-color -json -parallelism="$parallelism" | tee -a destroy_output.json
 		else
 			# shellcheck disable=SC2086
 			terraform -chdir="${terraform_module_directory}" destroy $allParameters -parallelism="$parallelism"
