@@ -25,12 +25,17 @@ resource "azurerm_storage_account" "storage_bootdiag" {
 
   account_replication_type             = "LRS"
   account_tier                         = "Standard"
-  https_traffic_only_enabled            = true
+  https_traffic_only_enabled           = true
+
   min_tls_version                      = "TLS1_2"
   allow_nested_items_to_be_public      = false
   cross_tenant_replication_enabled     = false
   tags                                 = var.tags
   shared_access_key_enabled            = var.infrastructure.shared_access_key_enabled
+
+  lifecycle {
+              ignore_changes = [enable_https_traffic_only]
+            }
 
 }
 
@@ -154,6 +159,10 @@ resource "azurerm_storage_account" "witness_storage" {
                                                  length(var.Agent_IP) > 0 ? var.Agent_IP : ""
                                                 ])
                 }
+
+  lifecycle {
+              ignore_changes = [enable_https_traffic_only]
+            }
 
 
 }
