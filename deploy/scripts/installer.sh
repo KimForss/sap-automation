@@ -811,20 +811,32 @@ if [ 0 == $new_deployment ]; then
 			if [ "${deployment_system}" == sap_system ]; then
 
 				moduleID='module.common_infrastructure.azurerm_storage_account.sapmnt[0]'
-				ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "providers/Microsoft.Storage/storageAccounts" "${landscape_tfstate_key_parameter}"
+				if terraform -chdir="${terraform_module_directory}" state rm ${moduleID}; then
+					echo "Removed the transport private DNS record"
+				fi
 
 				moduleID='module.common_infrastructure.azurerm_storage_share.sapmnt[0]'
-				ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "resource_manager_id" "${landscape_tfstate_key_parameter}"
+				if terraform -chdir="${terraform_module_directory}" state rm ${moduleID}; then
+					echo "Removed the transport private DNS record"
+				fi
 
 				moduleID='module.hdb_node.azurerm_storage_account.hanashared[0]'
-				ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "providers/Microsoft.Storage/storageAccounts" "${landscape_tfstate_key_parameter}"
+				if terraform -chdir="${terraform_module_directory}" state rm ${moduleID}; then
+					echo "Removed the transport private DNS record"
+				fi
 				moduleID='module.hdb_node.azurerm_storage_share.hanashared[0]'
-				ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "resource_manager_id" "${landscape_tfstate_key_parameter}"
+				if terraform -chdir="${terraform_module_directory}" state rm ${moduleID}; then
+					echo "Removed the transport private DNS record"
+				fi
 
 				moduleID='module.hdb_node.azurerm_storage_account.hanashared[1]'
-				ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "providers/Microsoft.Storage/storageAccounts" "${landscape_tfstate_key_parameter}"
+				if terraform -chdir="${terraform_module_directory}" state rm ${moduleID}; then
+					echo "Removed the transport private DNS record"
+				fi
 				moduleID='module.hdb_node.azurerm_storage_share.hanashared[1]'
-				ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "resource_manager_id" "${landscape_tfstate_key_parameter}"
+				if terraform -chdir="${terraform_module_directory}" state rm ${moduleID}; then
+					echo "Removed the transport private DNS record"
+				fi
 
 			fi
 
