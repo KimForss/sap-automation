@@ -813,6 +813,14 @@ if [ 1 == $check_output ]; then
 
 		if [ 2 == $older_version ]; then
 
+			echo ""
+			echo "#########################################################################################"
+			echo "#                                                                                       #"
+			echo -e "#           $bold_red  Deployed using an older version $reset_formatting                                          #"
+			echo "#                                                                                       #"
+			echo "#########################################################################################"
+			echo ""
+
 			# shellcheck disable=SC2086
 			if ! terraform -chdir="$terraform_module_directory" refresh $allParameters -input=false; then
 				echo ""
@@ -822,16 +830,7 @@ if [ 1 == $check_output ]; then
 				echo "#                                                                                       #"
 				echo "#########################################################################################"
 				echo ""
-				exit 1
 			fi
-
-			echo ""
-			echo "#########################################################################################"
-			echo "#                                                                                       #"
-			echo -e "#           $bold_red  Deployed using an older version $reset_formatting                                          #"
-			echo "#                                                                                       #"
-			echo "#########################################################################################"
-			echo ""
 
 			# Remediating the Storage Accounts and File Shares
 
