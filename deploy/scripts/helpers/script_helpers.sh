@@ -467,9 +467,9 @@ function ReplaceResourceInStateFile {
 
 	local moduleID=$1
 	local terraform_module_directory=$2
-	local resourceId=$3
 
-	if [ -z "${resourceId}" ]; then
+	# shellcheck disable=SC2086
+	if [ -z $STORAGE_ACCOUNT_ID ]; then
 		azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 $3 | xargs | cut -d "=" -f2 | xargs)
 		tempString=$(echo "${azureResourceID}" | grep "/fileshares/")
 		if [ -n "${tempString}" ]; then
@@ -478,7 +478,7 @@ function ReplaceResourceInStateFile {
 			azureResourceID=$(echo "$azureResourceID" | sed 's|/fileshares/|/shares/|g')
 		fi
 	else
-		azureResourceID=$resourceId
+		azureResourceID=$STORAGE_ACCOUNT_ID
 	fi
 
 	echo "Terraform resource ID:  $moduleID"
