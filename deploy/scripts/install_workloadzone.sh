@@ -822,37 +822,9 @@ if [ 1 == $check_output ]; then
 			# Remediating the Storage Accounts and File Shares
 
 			moduleID='module.sap_landscape.azurerm_storage_account.storage_bootdiag[0]'
+			storageaccount_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw storageaccount_name)
 
-			if ! terraform -chdir="$terraform_module_directory" refresh $allParameters -input=false \
-				-replace module.sap_landscape.azurerm_storage_account.storage_bootdiag[0] \
-				-replace module.sap_landscape.azurerm_storage_account.install \
-				-replace module.sap_landscape.azurerm_storage_account.witness_storage \
-				-replace module.sap_landscape.azurerm_storage_account.transport[0] \
-				-replace module.sap_landscape.azurerm_storage_share.transport[0] \
-				-replace module.sap_landscape.azurerm_storage_share.install[0] \
-				-replace module.sap_landscape.azurerm_storage_share.install_smb[0]; then
-				echo ""
-				echo "#########################################################################################"
-				echo "#                                                                                       #"
-				echo -e "#                            $bold_red_underscore!!! Error when Refreshing !!!$reset_formatting                            #"
-				echo "#                                                                                       #"
-				echo "#########################################################################################"
-				echo ""
-			fi
-
-			# shellcheck disable=SC2086
-			if ! terraform -chdir="$terraform_module_directory" refresh $allParameters -input=false; then
-				echo ""
-				echo "#########################################################################################"
-				echo "#                                                                                       #"
-				echo -e "#                            $bold_red_underscore!!! Error when Refreshing !!!$reset_formatting                            #"
-				echo "#                                                                                       #"
-				echo "#########################################################################################"
-				echo ""
-			fi
-
-
-			terraform -chdir="${terraform_module_directory}" state show "${moduleID}"
+			echo $storageaccount_name
 			exit 1
 			ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "providers/Microsoft.Storage/storageAccounts"
 
