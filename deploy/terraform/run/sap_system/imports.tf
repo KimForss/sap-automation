@@ -31,6 +31,7 @@ data "terraform_remote_state" "landscape"            {
                                                      }
 
 data "azurerm_key_vault_secret" "subscription_id"    {
+                                                        count        = length(var.subscription_id) > 0 ? 0 : (var.use_spn ? 1 : 0)
                                                         name         = format("%s-subscription-id", local.environment)
                                                         key_vault_id = local.spn_key_vault_arm_id
                                                       }
