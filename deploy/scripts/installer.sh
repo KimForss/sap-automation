@@ -640,7 +640,7 @@ else
 			echo ""
 
 			check_output=true
-			if ! terraform -chdir="${terraform_module_directory}" init; then
+			if ! terraform -chdir="${terraform_module_directory}" init -upgrade=true; then
 				#  \
 				#   -upgrade=true -reconfigure \
 				# 	--backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
@@ -758,7 +758,7 @@ if [ 0 == $new_deployment ]; then
 			echo ""
 			echo "##vso[task.logissue type=warning]Deployed using an older version ${deployed_using_version}. Performing state management operations"
 
-			# Remeadiating the Storage Accounts and File Shares
+			# Remediating the Storage Accounts and File Shares
 			if [ "${deployment_system}" == sap_library ]; then
 				moduleID='module.sap_library.azurerm_storage_account.storage_sapbits[0]'
 				azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 "providers/Microsoft.Storage/storageAccounts" | xargs | cut -d "=" -f2 | xargs)
