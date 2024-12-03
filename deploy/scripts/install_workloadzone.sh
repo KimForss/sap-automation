@@ -830,7 +830,7 @@ if [ 1 == $check_output ]; then
 			ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "providers/Microsoft.Storage/storageAccounts"
 
 			moduleID='module.sap_landscape.azurerm_storage_account.witness_storage[0]'
-			storage_account_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw witness_storage_accoun)
+			storage_account_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw witness_storage_account)
 			STORAGE_ACCOUNT_ID=$(az storage account show --name "${storage_account_name}" --resource-group "${storage_account_rg_name}" --query "id" --output tsv)
 			export STORAGE_ACCOUNT_ID
 			ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "providers/Microsoft.Storage/storageAccounts"
@@ -862,7 +862,6 @@ if [ 1 == $check_output ]; then
 	fi
 fi
 
-exit 10
 echo ""
 echo "#########################################################################################"
 echo "#                                                                                       #"
