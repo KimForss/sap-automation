@@ -827,6 +827,17 @@ if [ 1 == $check_output ]; then
 
 			moduleID='module.sap_landscape.azurerm_storage_account.storage_bootdiag[0]'
 
+						# shellcheck disable=SC2086
+			if ! terraform -chdir="$terraform_module_directory" refresh $allParameters -input=false -target "${moduleID}"; then
+				echo ""
+				echo "#########################################################################################"
+				echo "#                                                                                       #"
+				echo -e "#                            $bold_red_underscore!!! Error when Refreshing !!!$reset_formatting                            #"
+				echo "#                                                                                       #"
+				echo "#########################################################################################"
+				echo ""
+			fi
+
 			terraform -chdir="${terraform_module_directory}" state show "${moduleID}"
 			ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "providers/Microsoft.Storage/storageAccounts"
 
