@@ -841,7 +841,7 @@ if [ 1 == $check_output ]; then
 			fi
 
 			# shellcheck disable=SC2086
-			if ! terraform -chdir="$terraform_module_directory" refresh $allParameters -input=false -target "${moduleID}"; then
+			if ! terraform -chdir="$terraform_module_directory" refresh $allParameters -input=false; then
 				echo ""
 				echo "#########################################################################################"
 				echo "#                                                                                       #"
@@ -851,7 +851,9 @@ if [ 1 == $check_output ]; then
 				echo ""
 			fi
 
+
 			terraform -chdir="${terraform_module_directory}" state show "${moduleID}"
+			exit 1
 			ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "providers/Microsoft.Storage/storageAccounts"
 
 			moduleID='module.sap_landscape.azurerm_storage_account.witness_storage[0]'
