@@ -823,7 +823,7 @@ if [ 1 == $check_output ]; then
 
 			moduleID='module.sap_landscape.azurerm_storage_account.storage_bootdiag[0]'
 
-			if ! terraform -chdir="$terraform_module_directory" apply $allParameters -input=false \
+			if ! terraform -chdir="$terraform_module_directory" refresh $allParameters -input=false \
 				-replace module.sap_landscape.azurerm_storage_account.storage_bootdiag[0] \
 				-replace module.sap_landscape.azurerm_storage_account.install \
 				-replace module.sap_landscape.azurerm_storage_account.witness_storage \
