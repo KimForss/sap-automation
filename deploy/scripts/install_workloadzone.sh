@@ -1134,7 +1134,7 @@ full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 
 if [ -n "${resourceGroupName}" ]; then
-	az deployment group create --resource-group "${resourceGroupName}" --name "SAP-WORKLOAD-ZONE_${resourceGroupName}" --subscription "ARM_SUBSCRIPTION_ID" \
+	az deployment group create --resource-group "${resourceGroupName}" --name "SAP-WORKLOAD-ZONE_${resourceGroupName}" --subscription "$ARM_SUBSCRIPTION_ID" \
 		--template-file "${script_directory}/templates/empty-deployment.json" --output none --only-show-errors --no-wait
 fi
 
