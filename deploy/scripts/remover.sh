@@ -270,6 +270,8 @@ echo "Target subscription:                 ${ARM_SUBSCRIPTION_ID}"
 echo "Deployer State file:                 ${deployer_tfstate_key}"
 echo "Landscape State file:                ${landscape_tfstate_key}"
 
+
+export TF_VAR_subscription_id="${ARM_SUBSCRIPTION_ID}"
 # Terraform Plugins
 if checkIfCloudShell; then
 	mkdir -p "${HOME}/.terraform.d/plugin-cache"

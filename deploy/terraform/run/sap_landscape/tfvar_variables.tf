@@ -46,7 +46,7 @@ variable "Description"                          {
                                                 }
 
 
-variable "subscription"                         {
+variable "subscription_id"                      {
                                                   description = "This is the target subscription for the deployment"
                                                   type        = string
                                                   default     = ""

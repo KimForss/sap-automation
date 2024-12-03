@@ -1408,7 +1408,7 @@ variable "anchor_vm_accelerated_networking"     {
                                                   default     = true
                                                 }
 
-variable "subscription"                         {
+variable "subscription_id"                      {
                                                   description = "Target subscription"
                                                   default     = ""
                                                 }
