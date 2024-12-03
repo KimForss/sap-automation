@@ -222,7 +222,7 @@ locals {
                                            deployment           = var.firewall_deployment
                                            rule_subnets         = var.firewall_rule_subnets
                                            allowed_ipaddresses  = var.firewall_allowed_ipaddresses
-                                           ip_tags              = try(var.firewall_public_ip_tags, {})
+                                           ip_tags              = var.firewall_public_ip_tags
                                          }
 
   assign_subscription_permissions      = try(var.deployer_assign_subscription_permissions, false)
