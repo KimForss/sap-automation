@@ -834,6 +834,7 @@ if [ 1 == $check_output ]; then
 			STORAGE_ACCOUNT_ID=$(az storage account show --name "${storage_account_name}" --resource-group "${storage_account_rg_name}" --query "id" --output tsv)
 			export STORAGE_ACCOUNT_ID
 			ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "providers/Microsoft.Storage/storageAccounts"
+			unset STORAGE_ACCOUNT_ID
 
 			moduleID='module.sap_landscape.azurerm_storage_account.install[0]'
 			azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 providers/Microsoft.Storage/storageAccounts | xargs | cut -d "=" -f2 | xargs)
