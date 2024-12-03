@@ -36,13 +36,14 @@ resource "azurerm_public_ip" "deployer" {
                                            data.azurerm_resource_group.deployer[0].location) : (
                                            azurerm_resource_group.deployer[0].location
                                          )
+  zones                                = [1,2,3]
   ip_tags                              = var.deployer.deployer_public_ip_tags
-  lifecycle                                  {
+  lifecycle                            {
                                               ignore_changes = [
                                                 ip_tags
                                               ]
                                               create_before_destroy = true
-                                            }
+                                        }
 }
 
 resource "azurerm_network_interface" "deployer" {
