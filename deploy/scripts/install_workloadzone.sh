@@ -811,6 +811,16 @@ if [ 1 == $check_output ]; then
 
 		if [ 2 == $older_version ]; then
 
+			if terraform -chdir="${terraform_module_directory}" state rm module.sap_landscape.azurerm_private_dns_a_record.transport[0]; then
+				echo "Removed the transport private DNS record"
+			fi
+			if terraform -chdir="${terraform_module_directory}" state rm module.sap_landscape.azurerm_private_dns_a_record.install[0]; then
+				echo "Removed the transport private DNS record"
+			fi
+			if terraform -chdir="${terraform_module_directory}" state rm module.sap_landscape.azurerm_private_dns_a_record.keyvault[0]; then
+				echo "Removed the transport private DNS record"
+			fi
+
 			echo ""
 			echo "#########################################################################################"
 			echo "#                                                                                       #"
