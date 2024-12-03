@@ -258,11 +258,3 @@ resource "azurerm_network_security_rule" "nsr_external_db" {
   destination_address_prefixes         = azurerm_subnet.db[0].address_prefixes
 }
 
-
-data "azurerm_resource_group" "mgmt" {
-  provider                             = azurerm.deployer
-  count                                = length(local.deployer_subnet_management_id) > 0 ? 1 : 0
-  name                                 = split("/", local.deployer_subnet_management_id)[4]
-}
-
-
