@@ -36,7 +36,7 @@ resource "azurerm_public_ip" "deployer" {
                                            data.azurerm_resource_group.deployer[0].location) : (
                                            azurerm_resource_group.deployer[0].location
                                          )
-  zones                                = [1,2,3]
+  # zones                                      = [1,2,3] - optional property.
   ip_tags                              = var.deployer.deployer_public_ip_tags
   lifecycle                            {
                                               ignore_changes = [

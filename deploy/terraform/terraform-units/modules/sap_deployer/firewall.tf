@@ -45,7 +45,7 @@ resource "azurerm_public_ip" "firewall" {
                                                  data.azurerm_virtual_network.vnet_mgmt[0].resource_group_name) : (
                                                  azurerm_virtual_network.vnet_mgmt[0].resource_group_name
                                                )
-  zones                                      = [1,2,3]
+  # zones                                      = [1,2,3] - optional property.
   ip_tags                                    = var.firewall.ip_tags
   lifecycle                                  {
                                                 ignore_changes = [
