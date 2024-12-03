@@ -139,7 +139,7 @@ resource "azurerm_storage_account" "witness_storage" {
   tags                                 = var.tags
   network_rules {
                   default_action              = var.enable_firewall_for_keyvaults_and_storage ? "Deny" : "Allow"
-                  virtual_network_subnet_ids  = compact([
+                  virtual_network_subnet_ids  = var.public_network_access_enabled ? compact([
                                                   local.database_subnet_defined ? (
                                                     local.database_subnet_existing ? var.infrastructure.vnets.sap.subnet_db.arm_id : azurerm_subnet.db[0].id) : (
                                                     null
@@ -147,13 +147,14 @@ resource "azurerm_storage_account" "witness_storage" {
                                                     local.application_subnet_existing ? var.infrastructure.vnets.sap.subnet_app.arm_id : azurerm_subnet.app[0].id) : (
                                                     null
                                                   ),
-                                                  length(local.deployer_subnet_management_id) > 0 ? local.deployer_subnet_management_id : null
+                                                  length(local.deployer_subnet_management_id) > 0 ? local.deployer_subnet_management_id : null,
+                                                  length(var.agent_network_id) > 0 ? var.agent_network_id : null
                                                   ]
-                                                )
-                  ip_rules                   = compact([
+                                                ) : null
+                  ip_rules                   = var.public_network_access_enabled ? compact([
                                                  length(local.deployer_public_ip_address) > 0 ? local.deployer_public_ip_address : "",
                                                  length(var.Agent_IP) > 0 ? var.Agent_IP : ""
-                                                ])
+                                                ]) : null
                 }
 
 
@@ -275,7 +276,7 @@ resource "azurerm_storage_account" "transport" {
 
   network_rules {
                   default_action              = var.enable_firewall_for_keyvaults_and_storage ? "Deny" : "Allow"
-                  virtual_network_subnet_ids  = compact([
+                  virtual_network_subnet_ids  = var.public_network_access_enabled ? compact([
                                                   local.database_subnet_defined ? (
                                                     local.database_subnet_existing ? var.infrastructure.vnets.sap.subnet_db.arm_id : azurerm_subnet.db[0].id) : (
                                                     null
@@ -283,14 +284,16 @@ resource "azurerm_storage_account" "transport" {
                                                     local.application_subnet_existing ? var.infrastructure.vnets.sap.subnet_app.arm_id : azurerm_subnet.app[0].id) : (
                                                     null
                                                   ),
-                                                  length(local.deployer_subnet_management_id) > 0 ? local.deployer_subnet_management_id : null
+                                                  length(local.deployer_subnet_management_id) > 0 ? local.deployer_subnet_management_id : null,
+                                                  length(var.agent_network_id) > 0 ? var.agent_network_id : null
                                                   ]
-                                                )
-                  ip_rules                   = compact([
+                                                ) : null
+                  ip_rules                   = var.public_network_access_enabled ? compact([
                                                  length(local.deployer_public_ip_address) > 0 ? local.deployer_public_ip_address : "",
                                                  length(var.Agent_IP) > 0 ? var.Agent_IP : ""
-                                                ])
+                                                ]) : null
                 }
+
 
   tags                                 = var.tags
 
@@ -480,12 +483,12 @@ resource "azurerm_storage_account_network_rules" "install" {
   storage_account_id                   = azurerm_storage_account.install[0].id
   default_action                       = var.enable_firewall_for_keyvaults_and_storage ? "Deny" : "Allow"
 
-  ip_rules                             = compact([
+  ip_rules                             = var.public_network_access_enabled ? compact([
                                                  length(local.deployer_public_ip_address) > 0 ? local.deployer_public_ip_address : "",
                                                  length(var.Agent_IP) > 0 ? var.Agent_IP : ""
-                                                ])
+                                                ]) : null
 
-  virtual_network_subnet_ids           = compact([
+  virtual_network_subnet_ids           = var.public_network_access_enabled ? compact([
                                                   local.database_subnet_defined ? (
                                                     local.database_subnet_existing ? var.infrastructure.vnets.sap.subnet_db.arm_id : azurerm_subnet.db[0].id) : (
                                                     null
@@ -495,7 +498,7 @@ resource "azurerm_storage_account_network_rules" "install" {
                                                   ),
                                                   length(local.deployer_subnet_management_id) > 0 ? local.deployer_subnet_management_id : null
                                                   ]
-                                                )
+                                                ) : null
 
   lifecycle {
               ignore_changes = [virtual_network_subnet_ids]

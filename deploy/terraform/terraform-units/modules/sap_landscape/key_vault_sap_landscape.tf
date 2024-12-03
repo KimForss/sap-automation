@@ -33,7 +33,7 @@ resource "azurerm_key_vault" "kv_user" {
   tags                                 = var.tags
 
   dynamic "network_acls" {
-                           for_each = range(var.enable_firewall_for_keyvaults_and_storage ? 1 : 0)
+                           for_each = range(var.enable_firewall_for_keyvaults_and_storage  ? 1 : 0)
                            content {
 
                                       bypass         = "AzureServices"
