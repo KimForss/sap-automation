@@ -38,7 +38,8 @@ provider "azurerm"                     {
                                          client_secret       = try(data.terraform_remote_state.landscape.outputs.use_spn, true) && var.use_spn ? local.spn.client_secret : null
                                          tenant_id           = try(data.terraform_remote_state.landscape.outputs.use_spn, true) && var.use_spn ? local.spn.tenant_id : null
                                          use_msi             = try(data.terraform_remote_state.landscape.outputs.use_spn, true) && var.use_spn ? false : true
-                                         subscription_id     = var.subscription_id
+                                         subscription_id     = length(var.subscription_id) > 0 ? var.subscription_id : data.azurerm_key_vault_secret.subscription_id[0].value
+
 
                                          partner_id          = "3179cd51-f54b-4c73-ac10-8e99417efce7"
                                          storage_use_azuread = true
