@@ -33,10 +33,6 @@ resource "azurerm_storage_account" "storage_bootdiag" {
   tags                                 = var.tags
   shared_access_key_enabled            = var.infrastructure.shared_access_key_enabled
 
-  lifecycle {
-              ignore_changes = [enable_https_traffic_only]
-            }
-
 }
 
 data "azurerm_storage_account" "storage_bootdiag" {
@@ -159,10 +155,6 @@ resource "azurerm_storage_account" "witness_storage" {
                                                  length(var.Agent_IP) > 0 ? var.Agent_IP : ""
                                                 ])
                 }
-
-  lifecycle {
-              ignore_changes = [enable_https_traffic_only]
-            }
 
 
 }
