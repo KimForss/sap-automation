@@ -1088,37 +1088,33 @@ fi
 
 save_config_var "landscape_tfstate_key" "${workload_config_information}"
 
-if [ 0 == $return_value ]; then
+if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
 
-	if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
+	workload_zone_prefix=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw workload_zone_prefix | tr -d \")
+	save_config_var "workload_zone_prefix" "${workload_config_information}"
+	save_config_vars "landscape_tfstate_key" "${workload_config_information}"
+	workloadkeyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw workloadzone_kv_name | tr -d \")
 
-		workload_zone_prefix=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw workload_zone_prefix | tr -d \")
-		save_config_var "workload_zone_prefix" "${workload_config_information}"
-		save_config_vars "landscape_tfstate_key" "${workload_config_information}"
-		workloadkeyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw workloadzone_kv_name | tr -d \")
+	resourceGroupName=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw created_resource_group_name | tr -d \")
 
-		resourceGroupName=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw created_resource_group_name | tr -d \")
-
-		temp=$(echo "${workloadkeyvault}" | grep "Warning" || true)
+	temp=$(echo "${workloadkeyvault}" | grep "Warning" || true)
+	if [ -z "${temp}" ]; then
+		temp=$(echo "${workloadkeyvault}" | grep "Backend reinitialization required" || true)
 		if [ -z "${temp}" ]; then
-			temp=$(echo "${workloadkeyvault}" | grep "Backend reinitialization required" || true)
-			if [ -z "${temp}" ]; then
 
-				printf -v val %-.20s "$workloadkeyvault"
+			printf -v val %-.20s "$workloadkeyvault"
 
-				echo ""
-				echo "#########################################################################################"
-				echo "#                                                                                       #"
-				echo -e "#                Keyvault to use for System details:$cyan $val $reset_formatting               #"
-				echo "#                                                                                       #"
-				echo "#########################################################################################"
-				echo ""
+			echo ""
+			echo "#########################################################################################"
+			echo "#                                                                                       #"
+			echo -e "#                Keyvault to use for System details:$cyan $val $reset_formatting               #"
+			echo "#                                                                                       #"
+			echo "#########################################################################################"
+			echo ""
 
-				save_config_var "workloadkeyvault" "${workload_config_information}"
-			fi
+			save_config_var "workloadkeyvault" "${workload_config_information}"
 		fi
 	fi
-
 fi
 
 if [ 0 != $return_value ]; then
@@ -1138,8 +1134,8 @@ full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 
 if [ -n "${resourceGroupName}" ]; then
-	az deployment group create --resource-group "${resourceGroupName}" --name "SAP-WORKLOAD-ZONE_${resourceGroupName}" --subscription "${subscription}" \
-		--template-file "${script_directory}/templates/empty-deployment.json" --output none
+	az deployment group create --resource-group "${resourceGroupName}" --name "SAP-WORKLOAD-ZONE_${resourceGroupName}" --subscription "ARM_SUBSCRIPTION_ID" \
+		--template-file "${script_directory}/templates/empty-deployment.json" --output none --only-show-errors --no-wait
 fi
 
 now=$(date)
