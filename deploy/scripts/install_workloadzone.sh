@@ -646,7 +646,8 @@ echo "Resource Group:                      ${REMOTE_STATE_RG}"
 echo "State file:                          ${key}.terraform.tfstate"
 echo "Target subscription:                 $ARM_SUBSCRIPTION_ID"
 
-export TF_VAR_subscription="$ARM_SUBSCRIPTION_ID"
+TF_VAR_subscription_id="$ARM_SUBSCRIPTION_ID"
+export TF_VAR_subscription_id
 
 if [ ! -d .terraform/ ]; then
 	if ! terraform -chdir="${terraform_module_directory}" init -upgrade=true \

@@ -566,6 +566,10 @@ echo "Workload zone state file:            ${landscape_tfstate_key}"
 echo "Terraform state resource ID:         ${tfstate_resource_id}"
 echo ""
 
+TF_VAR_subscription_id="$ARM_SUBSCRIPTION_ID"
+export TF_VAR_subscription_id
+
+
 check_output=0
 if [ -f terraform.tfstate ]; then
 	echo "Local Terraform state file exists"
