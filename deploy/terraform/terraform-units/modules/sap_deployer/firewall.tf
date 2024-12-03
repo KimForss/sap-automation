@@ -45,12 +45,15 @@ resource "azurerm_public_ip" "firewall" {
                                                  data.azurerm_virtual_network.vnet_mgmt[0].resource_group_name) : (
                                                  azurerm_virtual_network.vnet_mgmt[0].resource_group_name
                                                )
+  ip_tags                                    = var.firewall.ip_tags
+  lifecycle                                  {
+                                                ignore_changes = [
+                                                  ip_tags
+                                                ]
+                                                create_before_destroy = true
+                                              }
 
-  lifecycle                                    {
-                                                  create_before_destroy = true
-                                               }
 
-  ip_tags                                    = local.firewall_service_tags
 
 
 }

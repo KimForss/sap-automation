@@ -145,11 +145,10 @@ variable "firewall_allowed_ipaddresses"         {
                                                 }
 
 variable "firewall_public_ip_tags"              {
-                                                   description = "Tags for the public_ip resource"
-                                                   type        = map(string)
-                                                   default     = null
-                                                 }
-
+                                                  description = "Tags for the public_ip resource attached to firewall"
+                                                  type        = map(string)
+                                                  default     = null
+                                                }
 
 #######################################4#######################################8
 #                                                                              #
@@ -178,6 +177,11 @@ variable "bastion_sku"                          {
                                                   default     = "Basic"
                                                 }
 
+variable "bastion_public_ip_tags"              {
+                                                  description = "Tags for the public_ip resource attached to bastion"
+                                                  type        = map(string)
+                                                  default     = null
+                                                }
 #######################################4#######################################8
 #                                                                              #
 #                           App Service Subnet variables                       #
@@ -223,6 +227,11 @@ variable "deployer_enable_public_ip"            {
                                                   type        = bool
                                                 }
 
+variable "deployer_public_ip_tags"              {
+                                                  description = "Tags for the public_ip resource attached to deployer"
+                                                  type        = map(string)
+                                                  default     = null
+                                                }
 ###############################################################################
 #                                                                             #
 #                            Deployer Information                             #
