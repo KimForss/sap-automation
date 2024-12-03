@@ -723,7 +723,6 @@ save_config_var "subscription" "${workload_config_information}"
 save_config_var "STATE_SUBSCRIPTION" "${workload_config_information}"
 save_config_var "tfstate_resource_id" "${workload_config_information}"
 
-
 allParameters=$(printf " -var-file=%s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${deployer_tfstate_key_parameter}")
 
 if [ 1 == $check_output ]; then
@@ -807,9 +806,8 @@ if [ 1 == $check_output ]; then
 		echo "#########################################################################################"
 		echo ""
 
-
 		version_compare "${deployed_using_version}" "3.13.2.0"
-    older_version=$?
+		older_version=$?
 
 		if [ 2 == $older_version ]; then
 
@@ -823,11 +821,26 @@ if [ 1 == $check_output ]; then
 
 			# Remediating the Storage Accounts and File Shares
 
-
-
 			moduleID='module.sap_landscape.azurerm_storage_account.storage_bootdiag[0]'
 
-						# shellcheck disable=SC2086
+			if ! terraform -chdir="$terraform_module_directory" apply $allParameters -input=false \
+				-replace module.sap_landscape.azurerm_storage_account.storage_bootdiag[0] \
+				-replace module.sap_landscape.azurerm_storage_account.install \
+				-replace module.sap_landscape.azurerm_storage_account.witness_storage \
+				-replace module.sap_landscape.azurerm_storage_account.transport[0] \
+				-replace module.sap_landscape.azurerm_storage_share.transport[0] \
+				-replace module.sap_landscape.azurerm_storage_share.install[0] \
+				-replace module.sap_landscape.azurerm_storage_share.install_smb[0]; then
+				echo ""
+				echo "#########################################################################################"
+				echo "#                                                                                       #"
+				echo -e "#                            $bold_red_underscore!!! Error when Refreshing !!!$reset_formatting                            #"
+				echo "#                                                                                       #"
+				echo "#########################################################################################"
+				echo ""
+			fi
+
+			# shellcheck disable=SC2086
 			if ! terraform -chdir="$terraform_module_directory" refresh $allParameters -input=false -target "${moduleID}"; then
 				echo ""
 				echo "#########################################################################################"
