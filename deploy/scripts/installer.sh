@@ -813,6 +813,7 @@ if [ 0 == $new_deployment ]; then
 						fi
 					fi
 				fi
+				exit 10
 			fi
 
 			if [ "${deployment_system}" == sap_system ]; then
