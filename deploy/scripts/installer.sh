@@ -767,14 +767,18 @@ if [ 0 == $new_deployment ]; then
 			# Remediating the Storage Accounts and File Shares
 			if [ "${deployment_system}" == sap_library ]; then
 				moduleID='module.sap_library.azurerm_storage_account.storage_sapbits[0]'
-				STORAGE_ACCOUNT_ID=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw tfstate_resource_id)
+				storage_account_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw sapbits_storage_account_name)
+				storage_account_rg_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw sapbits_sa_resource_group_name)
+				STORAGE_ACCOUNT_ID=$(az storage account show --name "${storage_account_name}" --resource-group "${storage_account_rg_name}" --query "id" --output tsv)
 				export STORAGE_ACCOUNT_ID
 
 				ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "providers/Microsoft.Storage/storageAccounts"
 
+
 				resourceGroupName=$(az resource show --ids "${STORAGE_ACCOUNT_ID}" --query "resourceGroup" --output tsv)
 				resourceType=$(az resource show --ids "${STORAGE_ACCOUNT_ID}" --query "type" --output tsv)
 				resourceName=$(az resource show --ids "${STORAGE_ACCOUNT_ID}" --query "name" --output tsv)
+
 				az resource lock create --lock-type CanNotDelete -n "SAP Media account delete lock" --resource-group "${resourceGroupName}" --resource "${resourceName}" --resource-type "${resourceType}" --output none
 				unset STORAGE_ACCOUNT_ID
 
@@ -782,10 +786,10 @@ if [ 0 == $new_deployment ]; then
 				ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "resource_manager_id"
 
 				moduleID='module.sap_library.azurerm_storage_account.storage_tfstate[0]'
-				storage_account_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw sapbits_storage_account_name)
-				storage_account_rg_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw sapbits_sa_resource_group_name)
-				STORAGE_ACCOUNT_ID=$(az storage account show --name "${storage_account_name}" --resource-group "${storage_account_rg_name}" --query "id" --output tsv)
+
+				STORAGE_ACCOUNT_ID=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw tfstate_resource_id)
 				export STORAGE_ACCOUNT_ID
+
 				ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "providers/Microsoft.Storage/storageAccounts"
 
 				resourceGroupName=$(az resource show --ids "${STORAGE_ACCOUNT_ID}" --query "resourceGroup" --output tsv)
