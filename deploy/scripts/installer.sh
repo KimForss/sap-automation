@@ -799,21 +799,9 @@ if [ 0 == $new_deployment ]; then
 			if [ "${deployment_system}" == sap_deployer ]; then
 
 				moduleID='module.sap_deployer.azurerm_storage_account.deployer[0]'
-				azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 "providers/Microsoft.Storage/storageAccounts" | xargs | cut -d "=" -f2 | xargs)
-				echo "Terraform resource ID:  $moduleID"
-				echo "Azure resource ID:      $azureResourceID"
-				if [ -n "${azureResourceID}" ]; then
-					echo "Removing storage account state object:           ${moduleID} "
-					if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
-						echo "Importing storage account state object:           ${moduleID}"
-						echo "terraform -chdir=${terraform_module_directory} import -var-file=${var_file} ${moduleID} ${azureResourceID}"
-						if ! terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" "${moduleID}" "${azureResourceID}"; then
-							echo -e "$bold_red Importing storage account state object:           ${moduleID} failed $reset_formatting"
-							exit 65
-						fi
-					fi
+				if terraform -chdir="${terraform_module_directory}" state rm ${moduleID}; then
+					echo "Removed the diagnostics storage account state object"
 				fi
-				exit 10
 			fi
 
 			if [ "${deployment_system}" == sap_system ]; then
