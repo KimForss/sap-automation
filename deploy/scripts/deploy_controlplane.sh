@@ -202,7 +202,7 @@ init "${automation_config_directory}" "${generic_config_information}" "${deploye
 save_config_var "deployer_tfstate_key" "${deployer_config_information}"
 
 if [ -z "${keyvault}" ]; then
-	load_config_vars "${system_config_information}" "keyvault"
+	load_config_vars "${deployer_config_information}" "keyvault"
 fi
 
 
