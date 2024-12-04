@@ -433,7 +433,7 @@ ephemeral "azurerm_key_vault_secret" "test" {
                                            azurerm_key_vault_access_policy.kv_user_systemidentity
                                          ]
 
-  name                                 = format("%s-subscription-id-test", upper(var.infrastructure.environment))
+  name                                 = format("%s-subscription-id-tester", upper(var.infrastructure.environment))
   value                                = data.azurerm_client_config.deployer.subscription_id
   key_vault_id                         = var.key_vault.kv_exists ? (
                                            var.key_vault.kv_user_id) : (
