@@ -201,6 +201,11 @@ init "${automation_config_directory}" "${generic_config_information}" "${deploye
 
 save_config_var "deployer_tfstate_key" "${deployer_config_information}"
 
+if [ -z "${keyvault}" ]; then
+	load_config_vars "${system_config_information}" "keyvault"
+fi
+
+
 # Check that the exports ARM_SUBSCRIPTION_ID and SAP_AUTOMATION_REPO_PATH are defined
 validate_exports
 return_code=$?
