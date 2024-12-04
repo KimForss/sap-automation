@@ -569,7 +569,6 @@ echo ""
 TF_VAR_subscription_id="$ARM_SUBSCRIPTION_ID"
 export TF_VAR_subscription_id
 
-
 check_output=0
 if [ -f terraform.tfstate ]; then
 	echo "Local Terraform state file exists"
@@ -648,13 +647,13 @@ else
 			echo ""
 
 			check_output=true
-			if ! terraform -chdir="${terraform_module_directory}" init -upgrade=true  \
-				  -reconfigure \
-					--backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
-					--backend-config "resource_group_name=${REMOTE_STATE_RG}" \
-					--backend-config "storage_account_name=${REMOTE_STATE_SA}" \
-					--backend-config "container_name=tfstate" \
-					--backend-config "key=${key}.terraform.tfstate"; then
+			if ! terraform -chdir="${terraform_module_directory}" init -upgrade=true \
+				-reconfigure \
+				--backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
+				--backend-config "resource_group_name=${REMOTE_STATE_RG}" \
+				--backend-config "storage_account_name=${REMOTE_STATE_SA}" \
+				--backend-config "container_name=tfstate" \
+				--backend-config "key=${key}.terraform.tfstate"; then
 				return_value=$?
 				echo ""
 				echo -e "${bold_red}Terraform init:                        failed$reset_formatting"
@@ -768,25 +767,32 @@ if [ 0 == $new_deployment ]; then
 			# Remediating the Storage Accounts and File Shares
 			if [ "${deployment_system}" == sap_library ]; then
 				moduleID='module.sap_library.azurerm_storage_account.storage_sapbits[0]'
-				azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 "providers/Microsoft.Storage/storageAccounts" | xargs | cut -d "=" -f2 | xargs)
+				STORAGE_ACCOUNT_ID=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw tfstate_resource_id)
+				export STORAGE_ACCOUNT_ID
+
 				ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "providers/Microsoft.Storage/storageAccounts"
 
-				resourceGroupName=$(az resource show --ids "${azureResourceID}" --query "resourceGroup" --output tsv)
-				resourceType=$(az resource show --ids "${azureResourceID}" --query "type" --output tsv)
-				resourceName=$(az resource show --ids "${azureResourceID}" --query "name" --output tsv)
+				resourceGroupName=$(az resource show --ids "${STORAGE_ACCOUNT_ID}" --query "resourceGroup" --output tsv)
+				resourceType=$(az resource show --ids "${STORAGE_ACCOUNT_ID}" --query "type" --output tsv)
+				resourceName=$(az resource show --ids "${STORAGE_ACCOUNT_ID}" --query "name" --output tsv)
 				az resource lock create --lock-type CanNotDelete -n "SAP Media account delete lock" --resource-group "${resourceGroupName}" --resource "${resourceName}" --resource-type "${resourceType}" --output none
+				unset STORAGE_ACCOUNT_ID
 
 				moduleID='module.sap_library.azurerm_storage_container.storagecontainer_sapbits[0]'
 				ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "resource_manager_id"
 
 				moduleID='module.sap_library.azurerm_storage_account.storage_tfstate[0]'
-				azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 "providers/Microsoft.Storage/storageAccounts" | xargs | cut -d "=" -f2 | xargs)
-				ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "id"
+				storage_account_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw sapbits_storage_account_name)
+				storage_account_rg_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw sapbits_sa_resource_group_name)
+				STORAGE_ACCOUNT_ID=$(az storage account show --name "${storage_account_name}" --resource-group "${storage_account_rg_name}" --query "id" --output tsv)
+				export STORAGE_ACCOUNT_ID
+				ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "providers/Microsoft.Storage/storageAccounts"
 
-				resourceGroupName=$(az resource show --ids "${azureResourceID}" --query "resourceGroup" --output tsv)
-				resourceType=$(az resource show --ids "${azureResourceID}" --query "type" --output tsv)
-				resourceName=$(az resource show --ids "${azureResourceID}" --query "name" --output tsv)
+				resourceGroupName=$(az resource show --ids "${STORAGE_ACCOUNT_ID}" --query "resourceGroup" --output tsv)
+				resourceType=$(az resource show --ids "${STORAGE_ACCOUNT_ID}" --query "type" --output tsv)
+				resourceName=$(az resource show --ids "${STORAGE_ACCOUNT_ID}" --query "name" --output tsv)
 				az resource lock create --lock-type CanNotDelete -n "Terraform state account delete lock" --resource-group "${resourceGroupName}" --resource "${resourceName}" --resource-type "${resourceType}" --output none
+				unset STORAGE_ACCOUNT_ID
 
 				moduleID='module.sap_library.azurerm_storage_container.storagecontainer_tfstate[0]'
 				ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "resource_manager_id"
