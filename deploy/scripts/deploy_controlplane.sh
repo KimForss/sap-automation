@@ -450,7 +450,7 @@ if [ 1 == $step ] || [ 3 == $step ]; then
 			if [ -n "$azure_backend" ]; then
 
 				terraform_module_directory="$SAP_AUTOMATION_REPO_PATH"/deploy/terraform/run/sap_deployer/
-				terraform -chdir="${terraform_module_directory}" init -upgrade=true -reconfigure
+				terraform -chdir="${terraform_module_directory}" init -upgrade=true
 
 				keyvault=$(terraform -chdir="${terraform_module_directory}" output deployer_kv_user_name | tr -d \")
 				save_config_var "keyvault" "${deployer_config_information}"
