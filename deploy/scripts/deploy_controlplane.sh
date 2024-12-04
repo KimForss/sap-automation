@@ -226,7 +226,8 @@ library_dirname=$(dirname "${library_parameter_file}")
 library_file_parametername=$(basename "${library_parameter_file}")
 
 relative_path="${deployer_dirname}"
-export TF_DATA_DIR="${relative_path}"/.terraform
+TF_DATA_DIR="${relative_path}"/.terraform
+export TF_DATA_DIR
 
 load_config_vars "${deployer_config_information}" "step"
 if [ -z "${step}" ]; then
@@ -433,6 +434,11 @@ fi
 ##########################################################################################
 
 echo "Step:                                $step"
+
+TF_DATA_DIR="${deployer_dirname}"/.terraform
+export TF_DATA_DIR
+
+cd "${deployer_dirname}" || exit
 
 if [ 1 == $step ] || [ 3 == $step ]; then
 	# If the keyvault is not set, check the terraform state file
