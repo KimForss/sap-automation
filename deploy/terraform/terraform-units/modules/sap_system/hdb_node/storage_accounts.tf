@@ -12,7 +12,7 @@ resource "azurerm_storage_account" "hanashared" {
                                            lower(
                                              format("%s%s%01d%s",
                                                lower(local.sid),
-                                               local.resource_suffixes.hanasharedafs, count.index,var.random_id
+                                               local.resource_suffixes.hanasharedafs, count.index,substr(var.random_id,0,3)
                                              )
                                            ),
                                            "/[^a-z0-9]/",
@@ -29,28 +29,33 @@ resource "azurerm_storage_account" "hanashared" {
   min_tls_version                      = "TLS1_2"
   allow_nested_items_to_be_public      = false
   cross_tenant_replication_enabled     = false
-  shared_access_key_enabled            = var.infrastructure.shared_access_key_enabled_nfs
 
-  public_network_access_enabled        = try(var.landscape_tfstate.public_network_access_enabled, true)
+  shared_access_key_enabled            = var.infrastructure.shared_access_key_enabled_nfs
   tags                                 = var.tags
 
-  network_rules {
-                  default_action = "Deny"
-                  virtual_network_subnet_ids = compact(
-                    [
-                      try(var.landscape_tfstate.admin_subnet_id, ""),
-                      try(var.landscape_tfstate.app_subnet_id, ""),
-                      try(var.landscape_tfstate.db_subnet_id, ""),
-                      try(var.landscape_tfstate.web_subnet_id, ""),
-                      try(var.landscape_tfstate.subnet_mgmt_id, "")
-                    ]
-                  )
-                  ip_rules = compact(
-                    [
-                      length(var.Agent_IP) > 0 ? var.Agent_IP : ""
-                    ]
-                  )
-                }
+  dynamic "network_rules" {
+                             for_each = range(var.enable_firewall_for_keyvaults_and_storage ? 1 : 0)
+                             content {
+
+                                      default_action = var.enable_firewall_for_keyvaults_and_storage ? "Deny" : "Allow"
+                                      virtual_network_subnet_ids = compact(
+                                        [
+                                          try(var.landscape_tfstate.admin_subnet_id, ""),
+                                          try(var.landscape_tfstate.app_subnet_id, ""),
+                                          try(var.landscape_tfstate.db_subnet_id, ""),
+                                          try(var.landscape_tfstate.web_subnet_id, ""),
+                                          try(var.landscape_tfstate.subnet_mgmt_id, "")
+                                        ]
+                                      )
+                                      ip_rules = compact(
+                                        [
+                                          length(var.Agent_IP) > 0 ? var.Agent_IP : ""
+                                        ]
+                                      )
+
+                                    }
+                          }
+
 
 
 }

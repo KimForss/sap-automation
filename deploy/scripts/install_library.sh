@@ -573,7 +573,9 @@ if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"
 	if [ -n "${library_random_id}" ]; then
 		save_config_var "library_random_id" "${library_config_information}"
 		custom_random_id="${library_random_id}"
-		save_config_var "custom_random_id" ${parameterfile}
+		sed -i -e "" -e /"custom_random_id"/d "${parameterfile}"
+		printf "custom_random_id=\"%s\"\n" "${custom_random_id}" >>"${var_file}"
+
 	fi
 
 	return_value=0

@@ -774,7 +774,6 @@ if [ 0 == $new_deployment ]; then
 
 				ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "providers/Microsoft.Storage/storageAccounts"
 
-
 				resourceGroupName=$(az resource show --ids "${STORAGE_ACCOUNT_ID}" --query "resourceGroup" --output tsv)
 				resourceType=$(az resource show --ids "${STORAGE_ACCOUNT_ID}" --query "type" --output tsv)
 				resourceName=$(az resource show --ids "${STORAGE_ACCOUNT_ID}" --query "name" --output tsv)
@@ -1176,6 +1175,9 @@ if [ 1 == $apply_needed ]; then
 				return_value=0
 			fi
 		else
+			echo ""
+			echo -e "${cyan}Terraform apply:                       succeeded$reset_formatting"
+			echo ""
 			return_value=0
 		fi
 
@@ -1202,7 +1204,7 @@ if [ 1 == $apply_needed ]; then
 		errors_occurred=$(jq 'select(."@level" == "error") | length' apply_output.json)
 
 		if [[ -n $errors_occurred ]]; then
-		  return_value=10
+			return_value=10
 			if [ -n "${approve}" ]; then
 				echo -e "${cyan}Retrying Terraform apply:$reset_formatting"
 
@@ -1274,12 +1276,13 @@ if [ "${deployment_system}" == sap_deployer ]; then
 
 	# terraform -chdir="${terraform_module_directory}"  output
 
-
 	deployer_random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id | tr -d \")
 	if [ -n "${deployer_random_id}" ]; then
 		save_config_var "deployer_random_id" "${system_config_information}"
 		custom_random_id="${deployer_random_id}"
-		save_config_var "custom_random_id" ${parameterfile}
+		sed -i -e "" -e /"custom_random_id"/d "${parameterfile}"
+		printf "custom_random_id=\"%s\"\n" "${custom_random_id}" >>"${var_file}"
+
 	fi
 
 	deployer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_public_ip_address | tr -d \")
@@ -1311,7 +1314,6 @@ if [ "${deployment_system}" == sap_deployer ]; then
 				az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name DEPLOYER_RANDOM_ID --value "${deployer_random_id}" --output none --only-show-errors
 			fi
 		fi
-
 
 		if [ -n "${created_resource_group_name}" ]; then
 			az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "WEBAPP_RESOURCE_GROUP.value")
@@ -1419,7 +1421,9 @@ if [ "${deployment_system}" == sap_library ]; then
 	if [ -n "${library_random_id}" ]; then
 		save_config_var "library_random_id" "${system_config_information}"
 		custom_random_id="${library_random_id}"
-		save_config_var "custom_random_id" ${parameterfile}
+		sed -i -e "" -e /"custom_random_id"/d "${parameterfile}"
+		printf "custom_random_id=\"%s\"\n" "${custom_random_id}" >>"${var_file}"
+
 	fi
 	if [ 1 == $called_from_ado ]; then
 

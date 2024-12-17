@@ -171,7 +171,7 @@ steps:
     AZURE_TENANT_ID:                ${{ parameters.azureTenantId }}
     AZURE_SUBSCRIPTION_ID:          ${{ parameters.azureSubscriptionId }}
     USE_MSI:                        ${{ parameters.USE_MSI }}
-    ANSIBLE_COLLECTIONS_PATHS:      ~/.ansible/collections:/opt/ansible/collections
+    ANSIBLE_COLLECTIONS_PATH:       ~/.ansible/collections:/opt/ansible/collections
     ANSIBLE_PYTHON_INTERPRETER:     auto_silent
     ANSIBLE_DISPLAY_SKIPPED_HOSTS:  false
     ANSIBLE_HOST_KEY_CHECKING:      false

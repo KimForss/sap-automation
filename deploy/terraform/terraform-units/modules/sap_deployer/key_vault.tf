@@ -46,11 +46,11 @@ resource "azurerm_key_vault" "kv_user" {
                                                           )
 
                               virtual_network_subnet_ids = compact(local.management_subnet_exists ? (var.use_webapp ? (
-                                                            flatten([data.azurerm_subnet.subnet_mgmt[0].id, data.azurerm_subnet.webapp[0].id, var.subnets_to_add, var.agent_network_id])) : (
-                                                            flatten([data.azurerm_subnet.subnet_mgmt[0].id, var.subnets_to_add, var.agent_network_id]))
+                                                            flatten([data.azurerm_subnet.subnet_mgmt[0].id, data.azurerm_subnet.webapp[0].id, var.subnets_to_add, var.additional_network_id])) : (
+                                                            flatten([data.azurerm_subnet.subnet_mgmt[0].id, var.subnets_to_add, var.additional_network_id]))
                                                             ) : (var.use_webapp ? (
-                                                              compact(flatten([azurerm_subnet.subnet_mgmt[0].id, try(azurerm_subnet.webapp[0].id, null), var.subnets_to_add, var.agent_network_id]))) : (
-                                                              flatten([azurerm_subnet.subnet_mgmt[0].id, var.subnets_to_add, var.agent_network_id])
+                                                              compact(flatten([azurerm_subnet.subnet_mgmt[0].id, try(azurerm_subnet.webapp[0].id, null), var.subnets_to_add, var.additional_network_id]))) : (
+                                                              flatten([azurerm_subnet.subnet_mgmt[0].id, var.subnets_to_add, var.additional_network_id])
                                                             )
                              ))
                            }

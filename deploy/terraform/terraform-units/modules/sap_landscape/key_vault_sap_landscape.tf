@@ -14,8 +14,8 @@ resource "azurerm_key_vault" "kv_user" {
   depends_on                           = [
                                            azurerm_virtual_network_peering.peering_management_sap,
                                            azurerm_virtual_network_peering.peering_sap_management,
-                                           azurerm_virtual_network_peering.peering_agent_sap,
-                                           azurerm_virtual_network_peering.peering_sap_agent,
+                                           azurerm_virtual_network_peering.peering_additional_network_sap,
+                                           azurerm_virtual_network_peering.peering_sap_additional_network,
                                          ]
   name                                 = local.user_keyvault_name
   location                             = local.region
@@ -56,7 +56,7 @@ resource "azurerm_key_vault" "kv_user" {
                                             ""
                                           ),
                                           local.deployer_subnet_management_id,
-                                          var.agent_network_id
+                                          var.additional_network_id
                                         ]
                                       )
                                     }

@@ -218,7 +218,7 @@ variable "ANF_settings"                                 {
 
 variable "place_delete_lock_on_resources"                { description = "If defined, a delete lock will be placed on the key resources" }
 
-variable "agent_network_id"                              {
+variable "additional_network_id"                         {
                                                            description = "Agent Network resource ID"
                                                            default     = ""
                                                          }

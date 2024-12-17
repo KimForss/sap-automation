@@ -940,7 +940,6 @@ if [ -f plan_output.log ]; then
 	LASTERROR=$(grep -m1 'Error: ' plan_output.log || true)
 
 	if [ -n "${LASTERROR}" ]; then
-		echo "3"
 		if [ 1 == $called_from_ado ]; then
 			echo "##vso[task.logissue type=error]$LASTERROR"
 		fi
@@ -1015,30 +1014,47 @@ if [ 1 == $apply_needed ]; then
 
 	if [ -n "${approve}" ]; then
 		# Using if so that no zero return codes don't fail -o errexit
-		# shellcheck disable=SC2086
 		if ! terraform -chdir="${terraform_module_directory}" apply "${approve}" -parallelism="${parallelism}" -no-color -json $allParameters -input=false | tee -a apply_output.json; then
 			return_value=$?
 			if [ $return_value -eq 1 ]; then
-				echo "Errors when running Terraform apply"
+				echo ""
+				echo -e "${bold_red}Terraform apply:                       failed$reset_formatting"
+				echo ""
+				exit $return_value
 			else
 				# return code 2 is ok
+				echo ""
+				echo -e "${cyan}Terraform apply:                       succeeded$reset_formatting"
+				echo ""
 				return_value=0
 			fi
 		else
-			return_value=$?
+			echo ""
+			echo -e "${cyan}Terraform apply:                       succeeded$reset_formatting"
+			echo ""
+			return_value=0
 		fi
 	else
 		# Using if so that no zero return codes don't fail -o errexit
-		# shellcheck disable=SC2086
 		if ! terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" $allParameters -input=false; then
+			return_value=$?
 			if [ $return_value -eq 1 ]; then
-				echo "Errors when running Terraform apply"
+				echo ""
+				echo -e "${bold_red}Terraform apply:                       failed$reset_formatting"
+				echo ""
+				exit $return_value
 			else
 				# return code 2 is ok
+				echo ""
+				echo -e "${cyan}Terraform apply:                       succeeded$reset_formatting"
+				echo ""
 				return_value=0
 			fi
 		else
-			return_value=$?
+			echo ""
+			echo -e "${cyan}Terraform apply:                       succeeded$reset_formatting"
+			echo ""
+			return_value=0
 		fi
 	fi
 
@@ -1113,6 +1129,7 @@ fi
 if [ -f apply_output.json ]; then
 	rm apply_output.json
 fi
+
 save_config_var "landscape_tfstate_key" "${workload_config_information}"
 
 if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
@@ -1120,23 +1137,24 @@ if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"
 	workload_zone_prefix=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw workload_zone_prefix | tr -d \")
 	save_config_var "workload_zone_prefix" "${workload_config_information}"
 	save_config_vars "landscape_tfstate_key" "${workload_config_information}"
-	workloadkeyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw workloadzone_kv_name | tr -d \")
+	workload_keyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw workloadzone_kv_name | tr -d \")
 
 	workload_random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id | tr -d \")
 	if [ -n "${workload_random_id}" ]; then
 		save_config_var "workload_random_id" "${workload_config_information}"
 		custom_random_id="${workload_random_id}"
-		save_config_var "custom_random_id" ${parameterfile}
+		sed -i -e "" -e /"custom_random_id"/d "${parameterfile}"
+		printf "custom_random_id=\"%s\"\n" "${custom_random_id}" >>"${var_file}"
 	fi
 
 	resourceGroupName=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw created_resource_group_name | tr -d \")
 
-	temp=$(echo "${workloadkeyvault}" | grep "Warning" || true)
+	temp=$(echo "${workload_keyvault}" | grep "Warning" || true)
 	if [ -z "${temp}" ]; then
-		temp=$(echo "${workloadkeyvault}" | grep "Backend reinitialization required" || true)
+		temp=$(echo "${workload_keyvault}" | grep "Backend reinitialization required" || true)
 		if [ -z "${temp}" ]; then
 
-			printf -v val %-.20s "$workloadkeyvault"
+			printf -v val %-.20s "$workload_keyvault"
 
 			echo ""
 			echo "#########################################################################################"
@@ -1145,7 +1163,7 @@ if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"
 			echo "#                                                                                       #"
 			echo "#########################################################################################"
 			echo ""
-
+			workloadkeyvault="$workload_keyvault"
 			save_config_var "workloadkeyvault" "${workload_config_information}"
 		fi
 	fi
