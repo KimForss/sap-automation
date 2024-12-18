@@ -113,20 +113,8 @@
 - name:                                "1.17.1 iSCSI configuration block - iterate through the available iSCSI servers"
   when:
     - iscsi_node_type is defined
-    - iscsi_node_type in ['scs', 'db']
     - iscsi_initiator_name is defined
   block:
-    # - name:                            "1.17.1 iSCSI configuration - discovery, login and update node.startup"
-    #   when:
-    #     - iscsi_node_type == item.type
-    #     - iscsi_initiator_name == item.iqn
-    #   ansible.builtin.shell:
-    #     cmd: >-
-    #                                    iscsiadm -m discovery --type=st --portal={{ item.host }}:3260;
-    #                                    iscsiadm -m node -T {{ item.iqn }} --login --portal={{ item.host }}:3260;
-    #                                    iscsiadm -m node -T {{ item.iqn }} -p {{ item.host }}:3260 --op=update \
-    #                                              --name=node.startup --value=automatic
-    #   loop:                            "{{ iscsi_servers }}"
 
     - name:                            "1.17.1 iSCSI configuration on cluster servers - discovery, login and update node.startup"
       community.general.open_iscsi:
@@ -140,7 +128,22 @@
       loop:                            "{{ iscsi_servers }}"
       register:                        iscsi_configuration_result
       when:
-        - iscsi_node_type == item.type
+        - iscsi_node_type == 'scs'
+        - iscsi_initiator_name == item.iqn
+
+    - name:                            "1.17.1 iSCSI configuration on cluster servers - discovery, login and update node.startup"
+      community.general.open_iscsi:
+        login:                         true
+        portal:                        "{{ item.host }}"
+        auto_portal_startup:           true
+        auto_node_startup:             true
+        discover:                      true
+        target:                        "{{ item.iqn }}"
+        rescan:                        true
+      loop:                            "{{ iscsi_servers }}"
+      register:                        iscsi_configuration_result
+      when:
+        - iscsi_node_type == 'db'
         - iscsi_initiator_name == item.iqn
 
 - name:                                "1.17.1 reload iSCSI on cluster servers"
