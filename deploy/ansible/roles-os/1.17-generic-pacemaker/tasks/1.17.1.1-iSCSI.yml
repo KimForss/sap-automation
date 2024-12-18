@@ -117,34 +117,32 @@
   block:
     # error codes:
     # https://github.com/open-iscsi/open-iscsi/blob/master/include/iscsi_err.h
-    - name:                            "1.17.1 iSCSI configuration on cluster servers - discovery, login and update node.startup"
+    - name:                            "1.17.1 iSCSI configuration on cluster servers for {{ iscsi_node_type }} - discovery, login and update node.startup"
       community.general.open_iscsi:
         login:                         true
         portal:                        "{{ item.host }}"
         auto_portal_startup:           true
-        auto_node_startup:             true
+        # auto_node_startup:             true
         discover:                      true
         target:                        "{{ item.iqn }}"
-        rescan:                        true
+        # rescan:                        true
       loop:                            "{{ iscsi_servers }}"
       register:                        iscsi_configuration_result
-      failed_when:                     iscsi_configuration_result.rc not in [0, 15]
       when:
         - iscsi_node_type == 'scs'
         - iscsi_initiator_name == item.iqn
 
-    - name:                            "1.17.1 iSCSI configuration on cluster servers - discovery, login and update node.startup"
+    - name:                            "1.17.1 iSCSI configuration on cluster servers for {{ iscsi_node_type }} - discovery, login and update node.startup"
       community.general.open_iscsi:
         login:                         true
         portal:                        "{{ item.host }}"
         auto_portal_startup:           true
-        auto_node_startup:             true
+        # auto_node_startup:             true
         discover:                      true
         target:                        "{{ item.iqn }}"
-        rescan:                        true
+        # rescan:                        true
       loop:                            "{{ iscsi_servers }}"
       register:                        iscsi_configuration_result
-      failed_when:                     iscsi_configuration_result.rc not in [0, 15]
       when:
         - iscsi_node_type == 'db'
         - iscsi_initiator_name == item.iqn
