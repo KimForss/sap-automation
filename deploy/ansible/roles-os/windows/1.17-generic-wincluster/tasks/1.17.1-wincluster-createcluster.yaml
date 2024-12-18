@@ -54,9 +54,14 @@
   when:
     - ansible_hostname == primary_node
 
+- name:                                "WinCluster-Create: Give DNS time to update info"
+  ansible.builtin.debug:
+    msg:
+      - "Give DNS time 120 seconds to update"
+
 - name:                                "WinCluster-Create: Give DNS time to update"
   ansible.builtin.pause:
-    seconds:                           240
+    seconds:                           120
   when:
     - ansible_hostname == primary_node
 
