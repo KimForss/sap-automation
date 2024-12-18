@@ -542,8 +542,8 @@ function ImportAndReRunApply {
 					fi
 				done
 				rm "$fileName"
-
-				if ! terraform -chdir="${terraform_module_directory}" plan -input=false $applyParameters ; then
+        # shellcheck disable=SC2086
+				if ! terraform -chdir="${terraform_module_directory}" plan -input=false $allImportParameters ; then
 						echo ""
 						echo -e "${bold_red}Terraform plan:                        failed$reset_formatting"
 						echo ""
