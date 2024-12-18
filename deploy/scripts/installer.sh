@@ -1045,7 +1045,7 @@ if ! testIfResourceWouldBeRecreated "module.hdb_node.azurerm_linux_virtual_machi
 fi
 
 # HANA VM disks
-if ! testIfResourceWouldBeRecreated "module.hdb_node.azurerm_managed_disk.data_disk" "plan_output.log" "Database server(s)"; then
+if ! testIfResourceWouldBeRecreated "module.hdb_node.azurerm_managed_disk.data_disk" "plan_output.log" "Database server disk(s)"; then
 	fatal_errors=1
 fi
 
@@ -1059,7 +1059,7 @@ if ! testIfResourceWouldBeRecreated "module.anydb_node.azurerm_linux_virtual_mac
 fi
 
 # AnyDB disks
-if ! testIfResourceWouldBeRecreated "module.anydb_node.azurerm_managed_disk.disks" "plan_output.log" "Database server(s)"; then
+if ! testIfResourceWouldBeRecreated "module.anydb_node.azurerm_managed_disk.disks" "plan_output.log" "Database server disk(s)"; then
 	fatal_errors=1
 fi
 
@@ -1073,7 +1073,7 @@ if ! testIfResourceWouldBeRecreated "module.app_tier.azurerm_linux_virtual_machi
 fi
 
 # App server disks
-if ! testIfResourceWouldBeRecreated "module.app_tier.azurerm_managed_disk.app" "plan_output.log" "Application server(s)"; then
+if ! testIfResourceWouldBeRecreated "module.app_tier.azurerm_managed_disk.app" "plan_output.log" "Application server disk(s)"; then
 	fatal_errors=1
 fi
 
@@ -1087,7 +1087,7 @@ if ! testIfResourceWouldBeRecreated "module.app_tier.azurerm_linux_virtual_machi
 fi
 
 # SCS server disks
-if ! testIfResourceWouldBeRecreated "module.app_tier.azurerm_managed_disk.scs" "plan_output.log" "Application server(s)"; then
+if ! testIfResourceWouldBeRecreated "module.app_tier.azurerm_managed_disk.scs" "plan_output.log" "SCS server disk(s)"; then
 	fatal_errors=1
 fi
 
@@ -1101,7 +1101,7 @@ if ! testIfResourceWouldBeRecreated "module.app_tier.azurerm_linux_virtual_machi
 fi
 
 # Web dispatcher server disks
-if ! testIfResourceWouldBeRecreated "module.app_tier.azurerm_managed_disk.web" "plan_output.log" "Application server(s)"; then
+if ! testIfResourceWouldBeRecreated "module.app_tier.azurerm_managed_disk.web" "plan_output.log" "Web server disk(s)"; then
 	fatal_errors=1
 fi
 
