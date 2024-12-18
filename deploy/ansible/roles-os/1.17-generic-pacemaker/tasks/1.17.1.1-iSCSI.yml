@@ -127,6 +127,7 @@
         rescan:                        true
       loop:                            "{{ iscsi_servers }}"
       register:                        iscsi_configuration_result
+      failed_when:                     iscsi_configuration_result.rc not in [0, 15]
       when:
         - iscsi_node_type == 'scs'
         - iscsi_initiator_name == item.iqn
@@ -142,6 +143,7 @@
         rescan:                        true
       loop:                            "{{ iscsi_servers }}"
       register:                        iscsi_configuration_result
+      failed_when:                     iscsi_configuration_result.rc not in [0, 15]
       when:
         - iscsi_node_type == 'db'
         - iscsi_initiator_name == item.iqn
