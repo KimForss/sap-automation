@@ -133,8 +133,10 @@
         login:                         true
         portal:                        "{{ item.host }}"
         auto_portal_startup:           true
+        auto_node_startup:             true
         discover:                      true
         target:                        "{{ item.iqn }}"
+        rescan:                        true
       loop:                            "{{ iscsi_servers }}"
       register:                        iscsi_configuration_result
       when:
