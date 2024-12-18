@@ -131,9 +131,10 @@
         auto_node_startup:             true
         discover:                      true
         target:                        "{{ item.iqn }}"
-        # rescan:                        true
+        rescan:                        true
       loop:                            "{{ iscsi_servers }}"
       register:                        iscsi_configuration_result
+      failed_when:                     false
       when:
         - iscsi_node_type == 'scs'
         - iscsi_initiator_name == item.iqn
@@ -146,9 +147,10 @@
         auto_node_startup:             true
         discover:                      true
         target:                        "{{ item.iqn }}"
-        # rescan:                        true
+        rescan:                        true
       loop:                            "{{ iscsi_servers }}"
       register:                        iscsi_configuration_result
+      failed_when:                     false
       when:
         - iscsi_node_type == 'db'
         - iscsi_initiator_name == item.iqn
