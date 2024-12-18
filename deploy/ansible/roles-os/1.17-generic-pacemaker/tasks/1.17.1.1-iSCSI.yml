@@ -117,64 +117,41 @@
   block:
     # error codes:
     # https://github.com/open-iscsi/open-iscsi/blob/master/include/iscsi_err.h
-    # sudo iscsiadm -m discovery --type=st --portal=10.0.0.17:3260
-    # sudo iscsiadm -m node -T iqn.2006-04.nfs.local:nfs --login --portal=10.0.0.17:3260
-    # sudo iscsiadm -m node -p 10.0.0.17:3260 -T iqn.2006-04.nfs.local:nfs --op=update --name=node.startup --value=automatic
-    - name:                            "1.17.1 iSCSI configuration on cluster servers for {{ iscsi_node_type }} - discovery, login and update node.startup"
-      when:
-                                       - iscsi_node_type == 'scs'
-                                       - iscsi_initiator_name == item.iqn
-      ansible.builtin.shell: |
-                                       set -o errexit
-                                       iscsiadm -m discovery --type=st --portal={{ item.host }}:3260
-                                       iscsiadm -m node -T {{ item.iqn }} --login --portal={{ item.host }}:3260
-                                       iscsiadm -m node -p {{ item.host }}:3260 -T {{ item.iqn }} --op=update --name=node.startup --value=automatic
-      loop:                            "{{ iscsi_servers }}"
-      register:                        iscsi_configuration_result
-      failed_when:                     iscsi_configuration_result.rc not in [0, 15]
+    # Old code:
+    # set -o errexit
+    # iscsiadm -m discovery --type=st --portal={{ item.host }}:3260
+    # iscsiadm -m node -T {{ item.iqn }} --login --portal={{ item.host }}:3260
+    # iscsiadm -m node -p {{ item.host }}:3260 -T {{ item.iqn }} --op=update --name=node.startup --value=automatic
 
     - name:                            "1.17.1 iSCSI configuration on cluster servers for {{ iscsi_node_type }} - discovery, login and update node.startup"
-      when:
-                                       - iscsi_node_type == 'db'
-                                       - iscsi_initiator_name == item.iqn
-      ansible.builtin.shell: |
-                                       set -o errexit
-                                       iscsiadm -m discovery --type=st --portal={{ item.host }}:3260
-                                       iscsiadm -m node -T {{ item.iqn }} --login --portal={{ item.host }}:3260
-                                       iscsiadm -m node -p {{ item.host }}:3260 -T {{ item.iqn }} --op=update --name=node.startup --value=automatic
+      community.general.open_iscsi:
+        login:                         true
+        portal:                        "{{ item.host }}"
+        # auto_portal_startup:           true
+        auto_node_startup:             true
+        discover:                      true
+        target:                        "{{ item.iqn }}"
+        # rescan:                        true
       loop:                            "{{ iscsi_servers }}"
       register:                        iscsi_configuration_result
-      failed_when:                     iscsi_configuration_result.rc not in [0, 15]
+      when:
+        - iscsi_node_type == 'scs'
+        - iscsi_initiator_name == item.iqn
 
-    # - name:                            "1.17.1 iSCSI configuration on cluster servers for {{ iscsi_node_type }} - discovery, login and update node.startup"
-    #   community.general.open_iscsi:
-    #     login:                         true
-    #     portal:                        "{{ item.host }}"
-    #     auto_portal_startup:           true
-    #     # auto_node_startup:             true
-    #     discover:                      true
-    #     target:                        "{{ item.iqn }}"
-    #     # rescan:                        true
-    #   loop:                            "{{ iscsi_servers }}"
-    #   register:                        iscsi_configuration_result
-    #   when:
-    #     - iscsi_node_type == 'scs'
-    #     - iscsi_initiator_name == item.iqn
-
-    # - name:                            "1.17.1 iSCSI configuration on cluster servers for {{ iscsi_node_type }} - discovery, login and update node.startup"
-    #   community.general.open_iscsi:
-    #     login:                         true
-    #     portal:                        "{{ item.host }}"
-    #     auto_portal_startup:           true
-    #     # auto_node_startup:             true
-    #     discover:                      true
-    #     target:                        "{{ item.iqn }}"
-    #     # rescan:                        true
-    #   loop:                            "{{ iscsi_servers }}"
-    #   register:                        iscsi_configuration_result
-    #   when:
-    #     - iscsi_node_type == 'db'
-    #     - iscsi_initiator_name == item.iqn
+    - name:                            "1.17.1 iSCSI configuration on cluster servers for {{ iscsi_node_type }} - discovery, login and update node.startup"
+      community.general.open_iscsi:
+        login:                         true
+        portal:                        "{{ item.host }}"
+        # auto_portal_startup:           true
+        auto_node_startup:             true
+        discover:                      true
+        target:                        "{{ item.iqn }}"
+        # rescan:                        true
+      loop:                            "{{ iscsi_servers }}"
+      register:                        iscsi_configuration_result
+      when:
+        - iscsi_node_type == 'db'
+        - iscsi_initiator_name == item.iqn
 
 - name:                                "1.17.1 reload iSCSI on cluster servers"
   ansible.builtin.systemd:
@@ -194,29 +171,29 @@
     msg:                               "{{ iscsi_configuration_result }}"
     verbosity:                         2
 
-# - name:                                "1.17.1 iSCSI packages - product of servers in group and iscsi_configuration_result devicenodes attribute"
-#   ansible.builtin.set_fact:
-#     iscsi_devices_on_client:           "{{ iscsi_configuration_result.results | selectattr('devicenodes', 'defined') |
-#                                            map(attribute='devicenodes') | select() | flatten(levels=1) |
-#                                            default([]) | unique | list }}"
-#   when:
-#     - iscsi_configuration_result is defined
+- name:                                "1.17.1 iSCSI packages - product of servers in group and iscsi_configuration_result devicenodes attribute"
+  ansible.builtin.set_fact:
+    iscsi_devices_on_client:           "{{ iscsi_configuration_result.results | selectattr('devicenodes', 'defined') |
+                                           map(attribute='devicenodes') | select() | flatten(levels=1) |
+                                           default([]) | unique | list }}"
+  when:
+    - iscsi_configuration_result is defined
 
-# - name:                                "1.17.1 iSCSI packages - product of ansible_play_hosts_all in group and iscsi_configuration_result devices on client"
-#   ansible.builtin.set_fact:
-#     iscsi_device_map:                  "{{ [ansible_hostname] | product(iscsi_devices_on_client) |
-#                                            default([]) | unique | list }}"
-#   when:
-#     - iscsi_configuration_result is defined
+- name:                                "1.17.1 iSCSI packages - product of ansible_play_hosts_all in group and iscsi_configuration_result devices on client"
+  ansible.builtin.set_fact:
+    iscsi_device_map:                  "{{ [ansible_hostname] | product(iscsi_devices_on_client) |
+                                           default([]) | unique | list }}"
+  when:
+    - iscsi_configuration_result is defined
 
-# - name:                                "1.17.1 iSCSI packages - product of vms in group and iscsi_configuration_result devicenodes attribute"
-#   ansible.builtin.debug:
-#     msg:
-#       - "iscsi_devices_on_client:      {{ iscsi_devices_on_client }}"
-#       - "iscsi_device_map:             {{ iscsi_device_map }}"
-#     verbosity:                         2
-#   when:
-#     - iscsi_configuration_result is defined
+- name:                                "1.17.1 iSCSI packages - product of vms in group and iscsi_configuration_result devicenodes attribute"
+  ansible.builtin.debug:
+    msg:
+      - "iscsi_devices_on_client:      {{ iscsi_devices_on_client }}"
+      - "iscsi_device_map:             {{ iscsi_device_map }}"
+    verbosity:                         2
+  when:
+    - iscsi_configuration_result is defined
 
 
 ...
