@@ -154,7 +154,7 @@ output "spn_kv_id"                               {
 
 output "workloadzone_kv_name"                    {
                                                    description = "Workload zone keyvault name"
-                                                   value       = length(var.user_keyvault_id) > 0 ? split("/", var.user_keyvault_id)[8] : try(split("/", module.sap_landscape.kv_user)[8], "")
+                                                   value       = lower(length(var.user_keyvault_id) > 0 ? split("/", var.user_keyvault_id)[8] : try(split("/", module.sap_landscape.kv_user)[8], ""))
                                                  }
 
 ###############################################################################
