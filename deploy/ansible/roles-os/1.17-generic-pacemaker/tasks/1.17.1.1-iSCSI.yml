@@ -115,7 +115,8 @@
     - iscsi_node_type is defined
     - iscsi_initiator_name is defined
   block:
-
+    # error codes:
+    # https://github.com/open-iscsi/open-iscsi/blob/master/include/iscsi_err.h
     - name:                            "1.17.1 iSCSI configuration on cluster servers - discovery, login and update node.startup"
       community.general.open_iscsi:
         login:                         true
