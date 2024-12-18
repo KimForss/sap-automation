@@ -131,6 +131,7 @@
                                        iscsiadm -m node -p {{ item.host }}:3260 -T {{ item.iqn }} --op=update --name=node.startup --value=automatic
       loop:                            "{{ iscsi_servers }}"
       register:                        iscsi_configuration_result
+      failed_when:                     iscsi_configuration_result.rc not in [0, 15]
 
     - name:                            "1.17.1 iSCSI configuration on cluster servers for {{ iscsi_node_type }} - discovery, login and update node.startup"
       when:
@@ -143,6 +144,7 @@
                                        iscsiadm -m node -p {{ item.host }}:3260 -T {{ item.iqn }} --op=update --name=node.startup --value=automatic
       loop:                            "{{ iscsi_servers }}"
       register:                        iscsi_configuration_result
+      failed_when:                     iscsi_configuration_result.rc not in [0, 15]
 
     # - name:                            "1.17.1 iSCSI configuration on cluster servers for {{ iscsi_node_type }} - discovery, login and update node.startup"
     #   community.general.open_iscsi:
