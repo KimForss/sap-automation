@@ -128,7 +128,7 @@
     #                                              --name=node.startup --value=automatic
     #   loop:                            "{{ iscsi_servers }}"
 
-    - name:                            "1.17.1 iSCSI configuration - discovery, login and update node.startup using community.general.open_iscsi"
+    - name:                            "1.17.1 iSCSI configuration on cluster servers - discovery, login and update node.startup"
       community.general.open_iscsi:
         login:                         true
         portal:                        "{{ item.host }}"
@@ -143,7 +143,7 @@
         - iscsi_node_type == item.type
         - iscsi_initiator_name == item.iqn
 
-- name:                                "1.17.1 reload iSCSI"
+- name:                                "1.17.1 reload iSCSI on cluster servers"
   ansible.builtin.systemd:
     name:                              "{{ item }}"
     enabled:                           true
@@ -161,7 +161,7 @@
     msg:                               "{{ iscsi_configuration_result }}"
     verbosity:                         2
 
-- name:                                "1.17.1 iSCSI packages - product of vms in group and iscsi_configuration_result devicenodes attribute"
+- name:                                "1.17.1 iSCSI packages - product of servers in group and iscsi_configuration_result devicenodes attribute"
   ansible.builtin.set_fact:
     iscsi_devices_on_client:           "{{ iscsi_configuration_result.results | selectattr('devicenodes', 'defined') |
                                            map(attribute='devicenodes') | select() | flatten(levels=1) |
