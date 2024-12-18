@@ -864,7 +864,7 @@ fi
 allParameters=$(printf " -var-file=%s %s %s %s %s" "${var_file}" "${extra_vars}" "${deployment_parameter}" "${version_parameter}" "${deployer_parameter}")
 
 # shellcheck disable=SC2086
-if ! terraform -chdir="$terraform_module_directory" plan $allParameters -input=false -detailed-exitcode -compact-warnings | tee -a plan_output.log; then
+if ! terraform -chdir="$terraform_module_directory" plan $allParameters -input=false -detailed-exitcode -compact-warnings -no-color| tee -a plan_output.log; then
 	return_value=$?
 	echo "Terraform Plan return code:          $return_value"
 
@@ -1040,51 +1040,68 @@ if ! testIfResourceWouldBeRecreated "module.sap_library.azurerm_storage_containe
 fi
 
 # HANA VM
-if ! testIfResourceWouldBeRecreated "vm_dbnode" "plan_output.log" "Database server(s)"; then
+if ! testIfResourceWouldBeRecreated "module.hdb_node.azurerm_linux_virtual_machine.vm_dbnode" "plan_output.log" "Database server(s)"; then
 	fatal_errors=1
 fi
 
 # HANA VM disks
-if ! testIfResourceWouldBeRecreated "azurerm_managed_disk.data_disk" "plan_output.log" "Database server(s)"; then
+if ! testIfResourceWouldBeRecreated "module.hdb_node.azurerm_managed_disk.data_disk" "plan_output.log" "Database server(s)"; then
 	fatal_errors=1
 fi
 
 # AnyDB server
-if ! testIfResourceWouldBeRecreated "dbserver" "plan_output.log" "Database server(s)"; then
+if ! testIfResourceWouldBeRecreated "module.anydb_node.azurerm_windows_virtual_machine.dbserver" "plan_output.log" "Database server(s)"; then
+	fatal_errors=1
+fi
+
+if ! testIfResourceWouldBeRecreated "module.anydb_node.azurerm_linux_virtual_machine.dbserver" "plan_output.log" "Database server(s)"; then
 	fatal_errors=1
 fi
 
 # AnyDB disks
-if ! testIfResourceWouldBeRecreated "azurerm_managed_disk.disks" "plan_output.log" "Database server(s)"; then
+if ! testIfResourceWouldBeRecreated "module.anydb_node.azurerm_managed_disk.disks" "plan_output.log" "Database server(s)"; then
 	fatal_errors=1
 fi
 
 # App server
-if ! testIfResourceWouldBeRecreated "virtual_machine.app" "plan_output.log" "Application server(s)"; then
+if ! testIfResourceWouldBeRecreated "module.app_tier.azurerm_windows_virtual_machine.app" "plan_output.log" "Application server(s)"; then
+	fatal_errors=1
+fi
+
+if ! testIfResourceWouldBeRecreated "module.app_tier.azurerm_linux_virtual_machine.app" "plan_output.log" "Application server(s)"; then
 	fatal_errors=1
 fi
 
 # App server disks
-if ! testIfResourceWouldBeRecreated "azurerm_managed_disk.app" "plan_output.log" "Application server(s)"; then
+if ! testIfResourceWouldBeRecreated "module.app_tier.azurerm_managed_disk.app" "plan_output.log" "Application server(s)"; then
 	fatal_errors=1
 fi
 
 # SCS server
-if ! testIfResourceWouldBeRecreated "virtual_machine.scs" "plan_output.log" "Application server(s)"; then
+if ! testIfResourceWouldBeRecreated "module.app_tier.azurerm_windows_virtual_machine.scs" "plan_output.log" "SCS server(s)"; then
+	fatal_errors=1
+fi
+
+if ! testIfResourceWouldBeRecreated "module.app_tier.azurerm_linux_virtual_machine.scs" "plan_output.log" "SCS server(s)"; then
 	fatal_errors=1
 fi
 
 # SCS server disks
-if ! testIfResourceWouldBeRecreated "azurerm_managed_disk.scs" "plan_output.log" "Application server(s)"; then
+if ! testIfResourceWouldBeRecreated "module.app_tier.azurerm_managed_disk.scs" "plan_output.log" "Application server(s)"; then
 	fatal_errors=1
 fi
 
 # Web server
-if ! testIfResourceWouldBeRecreated "virtual_machine.web" "plan_output.log" "Application server(s)"; then
+if ! testIfResourceWouldBeRecreated "module.app_tier.azurerm_windows_virtual_machine.web" "plan_output.log" "Web server(s)"; then
 	fatal_errors=1
 fi
+
+if ! testIfResourceWouldBeRecreated "module.app_tier.azurerm_linux_virtual_machine.web" "plan_output.log" "Web server(s)"; then
+	fatal_errors=1
+fi
+
 # Web dispatcher server disks
-if ! testIfResourceWouldBeRecreated "azurerm_managed_disk.web" "plan_output.log" "Application server(s)"; then
+if ! testIfResourceWouldBeRecreated "module.app_tier.azurerm_managed_disk.web" "plan_output.log" "Application server(s)"; then
 	fatal_errors=1
 fi
 
@@ -1099,6 +1116,20 @@ if [ "${TEST_ONLY}" == "True" ]; then
 	echo "#                                                                                       #"
 	echo "#########################################################################################"
 	echo ""
+
+	if [ $fatal_errors == 1 ]; then
+		apply_needed=0
+		echo ""
+		echo "#########################################################################################"
+		echo "#                                                                                       #"
+		echo -e "#                               $bold_red_underscore!!! Risk for Data loss !!!$reset_formatting                              #"
+		echo "#                                                                                       #"
+		echo "#        Please inspect the output of Terraform plan carefully before proceeding        #"
+		echo "#                                                                                       #"
+		echo "#########################################################################################"
+		echo ""
+		exit 10
+	fi
 	exit 0
 fi
 
