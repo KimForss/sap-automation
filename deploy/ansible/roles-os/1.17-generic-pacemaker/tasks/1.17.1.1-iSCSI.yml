@@ -139,6 +139,14 @@
         - iscsi_node_type == 'scs'
         - iscsi_initiator_name == item.iqn
 
+    - name:                                "1.17.1 iSCSI packages - print iSCSI configuration result"
+      when:
+        - iscsi_node_type is defined
+        - iscsi_node_type in ['scs', 'db']
+      ansible.builtin.debug:
+        msg:                               "{{ iscsi_configuration_result }}"
+        verbosity:                         2
+
     - name:                            "1.17.1 iSCSI configuration on cluster servers for {{ iscsi_node_type }} - discovery, login and update node.startup"
       community.general.open_iscsi:
         login:                         true
