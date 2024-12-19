@@ -168,7 +168,6 @@
   when:
     - iscsi_node_type is defined
     - iscsi_node_type in ['scs', 'db']
-    - iscsi_initiator_name is defined
   ansible.builtin.debug:
     msg:                               "{{ iscsi_configuration_result }}"
     verbosity:                         2
@@ -188,7 +187,7 @@
   when:
     - iscsi_configuration_result is defined
 
-- name:                                "1.17.1 iSCSI packages - product of vms in group and iscsi_configuration_result devicenodes attribute"
+- name:                                "1.17.1 iSCSI packages - product of servers in group and iscsi_configuration_result devicenodes attribute"
   ansible.builtin.debug:
     msg:
       - "iscsi_devices_on_client:      {{ iscsi_devices_on_client }}"
@@ -197,5 +196,11 @@
   when:
     - iscsi_configuration_result is defined
 
+- name:                                "1.17.1 iSCSI Check if iSCSI configuration was successful"
+  ansible.builtin.fail:
+    msg:                               "iSCSI configuration failed"
+  when:
+    - iscsi_devices_on_client == []
+    - iscsi_device_map == []
 
 ...
