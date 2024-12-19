@@ -173,15 +173,7 @@
     - iscsid
     - iscsi
 
-- name:                                "1.17.1 iSCSI packages - print iSCSI configuration result"
-  when:
-    - iscsi_node_type is defined
-    - iscsi_node_type in ['scs', 'db']
-  ansible.builtin.debug:
-    msg:                               "{{ iscsi_configuration_result }}"
-    verbosity:                         2
-
-- name:                                "1.17.1 iSCSI packages - product of servers in group and iscsi_configuration_result devicenodes attribute"
+- name:                                "1.17.1 iSCSI packages - Select iscsi_configuration_result device nodes list"
   ansible.builtin.set_fact:
     iscsi_devices_on_client:           "{{ iscsi_configuration_result.results | selectattr('devicenodes', 'defined') |
                                            map(attribute='devicenodes') | select() | flatten(levels=1) |
@@ -189,14 +181,14 @@
   when:
     - iscsi_configuration_result is defined
 
-- name:                                "1.17.1 iSCSI packages - product of ansible_play_hosts_all in group and iscsi_configuration_result devices on client"
+- name:                                "1.17.1 iSCSI packages - Set product of ansible_play_hosts_all in group and iscsi_configuration_result devices on client"
   ansible.builtin.set_fact:
     iscsi_device_map:                  "{{ [ansible_hostname] | product(iscsi_devices_on_client) |
                                            default([]) | unique | list }}"
   when:
     - iscsi_configuration_result is defined
 
-- name:                                "1.17.1 iSCSI packages - product of servers in group and iscsi_configuration_result devicenodes attribute"
+- name:                                "1.17.1 iSCSI packages - Show product of servers in group and iscsi_configuration_result devicenodes attribute"
   ansible.builtin.debug:
     msg:
       - "iscsi_devices_on_client:      {{ iscsi_devices_on_client }}"
