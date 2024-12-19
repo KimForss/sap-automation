@@ -136,7 +136,8 @@
       register:                        iscsi_configuration_result
       failed_when:                     false
       when:
-        - iscsi_node_type == 'scs'
+        # - iscsi_node_type == 'scs'
+        - iscsi_node_type in ['scs', 'db']
         - iscsi_initiator_name == item.iqn
 
     - name:                                "1.17.1 iSCSI packages - print iSCSI configuration result"
@@ -147,21 +148,21 @@
         msg:                               "{{ iscsi_configuration_result }}"
         verbosity:                         2
 
-    - name:                            "1.17.1 iSCSI configuration on cluster servers for {{ iscsi_node_type }} - discovery, login and update node.startup"
-      community.general.open_iscsi:
-        login:                         true
-        portal:                        "{{ item.host }}"
-        # auto_portal_startup:           true
-        auto_node_startup:             true
-        discover:                      true
-        target:                        "{{ item.iqn }}"
-        rescan:                        true
-      loop:                            "{{ iscsi_servers }}"
-      register:                        iscsi_configuration_result
-      failed_when:                     false
-      when:
-        - iscsi_node_type == 'db'
-        - iscsi_initiator_name == item.iqn
+    # - name:                            "1.17.1 iSCSI configuration on cluster servers for {{ iscsi_node_type }} - discovery, login and update node.startup"
+    #   community.general.open_iscsi:
+    #     login:                         true
+    #     portal:                        "{{ item.host }}"
+    #     # auto_portal_startup:           true
+    #     auto_node_startup:             true
+    #     discover:                      true
+    #     target:                        "{{ item.iqn }}"
+    #     rescan:                        true
+    #   loop:                            "{{ iscsi_servers }}"
+    #   register:                        iscsi_configuration_result
+    #   failed_when:                     false
+    #   when:
+    #     - iscsi_node_type == 'db'
+    #     - iscsi_initiator_name == item.iqn
 
 - name:                                "1.17.1 reload iSCSI on cluster servers"
   ansible.builtin.systemd:
