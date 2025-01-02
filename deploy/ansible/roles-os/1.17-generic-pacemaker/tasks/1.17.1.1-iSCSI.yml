@@ -9,13 +9,13 @@
 
 
 - name:                                "1.17.1 iSCSI packages (SUSE)"
+  when:                                (ansible_os_family | upper) == "SUSE"
   community.general.zypper:
     name:                              "{{ item }}"
     state:                             present
   loop:
     - open-iscsi
     - sbd
-  when:                                ansible_os_family | upper == "SUSE"
 
 - name:                                "1.17.1 iSCSI packages (REDHAT)"
   ansible.builtin.dnf:
@@ -24,7 +24,7 @@
   loop:
     - open-iscsi
     - sbd
-  when:                                ansible_os_family | upper == "REDHAT"
+  when:                                (ansible_os_family | upper) == "REDHAT"
 
 
 - name:                                "1.17.1 iSCSI packages"
