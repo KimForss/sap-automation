@@ -3,7 +3,7 @@
 
 #######################################4#######################################8
 #                                                                              #
-#                           Environment definitioms                            #
+#                           Environment definitions                            #
 #                                                                              #
 #######################################4#######################################8
 
@@ -1085,7 +1085,15 @@ variable "user_assigned_identity_id"            {
                                                   default     = ""
                                                 }
 
+variable "disk_controller_type_database_tier"   {
+                                                  description = "The disk controller type to use for the virtual machines"
+                                                  default     = "SCSI"
+                                                }
 
+variable "disk_controller_type_app_tier"        {
+                                                  description = "The disk controller type to use for the virtual machines"
+                                                  default     = "SCSI"
+                                                }
 
 #########################################################################################
 #                                                                                       #

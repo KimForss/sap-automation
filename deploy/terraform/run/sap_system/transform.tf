@@ -7,17 +7,19 @@ locals {
   enable_app_tier_deployment           = var.enable_app_tier_deployment && try(var.application_tier.enable_deployment, true)
 
   temp_infrastructure                  = {
-                                            environment                      = coalesce(var.environment, try(var.infrastructure.environment, ""))
-                                            region                           = lower(coalesce(var.location, try(var.infrastructure.region, "")))
-                                            codename                         = try(var.codename, try(var.infrastructure.codename, ""))
-                                            tags                             = try(merge(var.resourcegroup_tags, try(var.infrastructure.tags, {})), {})
-                                            use_app_proximityplacementgroups = var.use_app_proximityplacementgroups
-                                            deploy_monitoring_extension      = var.deploy_monitoring_extension
-                                            deploy_defender_extension        = var.deploy_defender_extension
-                                            patch_mode                       = var.patch_mode
-                                            patch_assessment_mode            = var.patch_assessment_mode
-                                            shared_access_key_enabled        = var.shared_access_key_enabled
-                                            shared_access_key_enabled_nfs    = var.shared_access_key_enabled_nfs
+                                            environment                        = coalesce(var.environment, try(var.infrastructure.environment, ""))
+                                            region                             = lower(coalesce(var.location, try(var.infrastructure.region, "")))
+                                            codename                           = try(var.codename, try(var.infrastructure.codename, ""))
+                                            tags                               = try(merge(var.resourcegroup_tags, try(var.infrastructure.tags, {})), {})
+                                            use_app_proximityplacementgroups   = var.use_app_proximityplacementgroups
+                                            deploy_monitoring_extension        = var.deploy_monitoring_extension
+                                            deploy_defender_extension          = var.deploy_defender_extension
+                                            patch_mode                         = var.patch_mode
+                                            patch_assessment_mode              = var.patch_assessment_mode
+                                            shared_access_key_enabled          = var.shared_access_key_enabled
+                                            shared_access_key_enabled_nfs      = var.shared_access_key_enabled_nfs
+                                            disk_controller_type_app_tier      = var.disk_controller_type_app_tier
+                                            disk_controller_type_database_tier = var.disk_controller_type_database_tier
 
                                          }
 

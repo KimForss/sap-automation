@@ -178,6 +178,9 @@ resource "azurerm_linux_virtual_machine" "dbserver" {
 
   tags                                 = merge(local.tags, var.tags)
 
+  # Set the disc controller type, default SCSI
+  disk_controller_type                 = var.infrastructure.disk_controller_type_database_tier
+
   dynamic "admin_ssh_key" {
                             for_each = range(var.deployment == "new" ? 1 : (local.enable_auth_password ? 0 : 1))
                             content {
