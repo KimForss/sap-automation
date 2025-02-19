@@ -180,6 +180,8 @@ resource "azurerm_linux_virtual_machine" "scs" {
   # Set the disc controller type, default SCSI
   disk_controller_type                 = var.infrastructure.disk_controller_type_app_tier
 
+  encryption_at_host_enabled           = var.infrastructure.encryption_at_host_enabled
+
   dynamic "admin_ssh_key" {
                             for_each = range(var.deployment == "new" ? 1 : (local.enable_auth_password ? 0 : 1))
                             content {
@@ -377,6 +379,8 @@ resource "azurerm_windows_virtual_machine" "scs" {
   license_type                       = length(var.license_type) > 0 ? var.license_type : null
 
   tags                               = merge(var.application_tier.scs_tags, var.tags)
+
+  encryption_at_host_enabled         = var.infrastructure.encryption_at_host_enabled
 
 
   dynamic "os_disk" {
