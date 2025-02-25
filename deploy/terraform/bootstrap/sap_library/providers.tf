@@ -26,9 +26,9 @@ provider "azurerm"                     {
                                                                      prevent_deletion_if_contains_resources = var.prevent_deletion_if_contains_resources
                                                                    }
 
-                                                    storage        {
-                                                                        data_plane_available = var.data_plane_available
-                                                                   }
+                                                    # storage        {
+                                                    #                     data_plane_available = var.data_plane_available
+                                                    #                }
                                                   }
 
                                          storage_use_azuread        = true
@@ -42,9 +42,9 @@ provider "azurerm"                     {
                                                     resource_group {
                                                                      prevent_deletion_if_contains_resources = true
                                                                    }
-                                                    storage        {
-                                                                        data_plane_available = var.data_plane_available
-                                                                   }
+                                                    # storage        {
+                                                    #                     data_plane_available = var.data_plane_available
+                                                    #                }
 
                                                   }
 

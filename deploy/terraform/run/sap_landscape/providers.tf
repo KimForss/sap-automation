@@ -34,9 +34,9 @@ provider "azurerm"                     {
                                                                       purge_soft_deleted_secrets_on_destroy      = !var.enable_purge_control_for_keyvaults
                                                                       purge_soft_deleted_certificates_on_destroy = !var.enable_purge_control_for_keyvaults
                                                                    }
-                                                    storage        {
-                                                                        data_plane_available = var.data_plane_available
-                                                                   }
+                                                    # storage        {
+                                                    #                     data_plane_available = var.data_plane_available
+                                                    #                }
 
                                                   }
                                          subscription_id            = length(var.subscription_id) > 0 ? var.subscription_id : data.azurerm_key_vault_secret.subscription_id[0].value
