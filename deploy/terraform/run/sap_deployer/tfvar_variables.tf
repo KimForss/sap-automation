@@ -466,7 +466,7 @@ variable "encryption_at_host_enabled"           {
                                                   description = "Enable or disable host encryption for the deployer"
                                                   default     = false
                                                   type        = bool
-                                                }                                                  
+                                                }
 #########################################################################################
 #                                                                                       #
 #  DNS settings                                                                         #
@@ -610,7 +610,7 @@ variable "tfstate_resource_id"                       {
 
 variable "data_plane_available"                      {
                                                        description = "Boolean value indicating if storage account access is via data plane"
-                                                       default     = false
+                                                       default     = true
                                                        type        = bool
                                                      }
 

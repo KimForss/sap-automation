@@ -29,6 +29,7 @@ module "sap_library" {
   use_private_endpoint              = var.use_private_endpoint
   use_webapp                        = var.use_webapp
   dns_settings                      = local.dns_settings
+  state_filename_prefix = "foo"
 }
 
 module "sap_namegenerator" {
