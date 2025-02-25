@@ -29,7 +29,7 @@ module "sap_library" {
   use_private_endpoint              = var.use_private_endpoint
   use_webapp                        = var.use_webapp || length(try(data.terraform_remote_state.deployer[0].outputs.webapp_id,"")) > 0
   dns_settings                      = local.dns_settings
-  state_filename_prefix             = "foo"
+
 
 }
 
