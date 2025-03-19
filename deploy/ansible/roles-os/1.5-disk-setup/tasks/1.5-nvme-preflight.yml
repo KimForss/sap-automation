@@ -1,0 +1,157 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                    NVMe Support for Azure VMs                              |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+---
+# -------------------------------------+---------------------------------------8
+#
+# Task: 1.5.4 - NVMe Support - Prepare Linux VM for NVMe disk controller
+#
+# -------------------------------------+---------------------------------------8
+
+# Ensure NVMe modules are installed and loaded in initramfs
+- name:                                "1.5.4 NVMe Support - Check if NVMe module is available"
+  ansible.builtin.shell: |
+                                       if grep -q 'nvme' /boot/System.map-$(uname -r); then
+                                         echo "built-in"
+                                       elif modinfo nvme >/dev/null 2>&1; then
+                                         echo "module"
+                                       else
+                                         echo "missing"
+                                       fi
+  register:                            nvme_module_check
+  changed_when:                        false
+
+- name:                                "1.5.4 NVMe Support - Display NVMe module status"
+  ansible.builtin.debug:
+    msg:                               "NVMe module status: {{ nvme_module_check.stdout }}"
+    verbosity:                         1
+
+- name:                                "1.5.4 NVMe Support - Fail if NVMe module is not available"
+  when:                                nvme_module_check.stdout == "missing"
+  ansible.builtin.fail:
+    msg: |
+                                       NVMe module is not available.
+                                       Please install NVMe module before changing your instance type to NVMe.
+
+
+# Check if NVMe module is loaded in initramfs based on distribution
+- name:                                "1.5.4 NVMe Support - Set distribution facts"
+  ansible.builtin.set_fact:
+    is_redhat:                         "{{ ansible_os_family | upper == 'REDHAT' }}"
+    is_suse:                           "{{ ansible_os_family | upper == 'SUSE' }}"
+
+- name:                                "1.5.4 NVMe Support - Check if NVMe loaded in initramfs (RHEL)"
+  when:                                is_redhat
+  ansible.builtin.shell: |
+                                       set -o pipefail
+                                       lsinitrd /boot/initramfs-$(uname -r).img | grep nvme
+  register:                            initramfs_nvme_rhel
+  failed_when:                         false
+  changed_when:                        false
+
+
+- name:                                "1.5.4 NVMe Support - Check if NVMe loaded in initramfs (SUSE)"
+  when:                                is_suse
+  ansible.builtin.shell: |
+                                       set -o pipefail
+                                       lsinitrd /boot/initrd-$(uname -r) | grep nvme
+  register:                            initramfs_nvme_suse
+  failed_when:                         false
+  changed_when:                        false
+
+- name:                                "1.5.4 NVMe Support - Set initramfs status fact"
+  ansible.builtin.set_fact:
+    nvme_in_initramfs:                 "{{
+                                         (is_redhat and initramfs_nvme_rhel.rc == 0) or
+                                         (is_suse and initramfs_nvme_suse.rc == 0)
+                                       }}"
+
+# Add NVMe to initramfs if not present
+- name:                                "1.5.4 NVMe Support - Create dracut.conf.d directory"
+  when:                                not nvme_in_initramfs and (is_redhat or is_suse)
+  ansible.builtin.file:
+    path:                              /etc/dracut.conf.d
+    state:                             directory
+    mode:                              '0755'
+
+- name:                                "1.5.4 NVMe Support - Add NVMe drivers to dracut configuration"
+  when:                                not nvme_in_initramfs and (is_redhat or is_suse)
+  ansible.builtin.copy:
+    content:                           'add_drivers+=" nvme nvme-core nvme-fabrics nvme-fc nvme-rdma nvme-loop nvmet nvmet-fc nvme-tcp "'
+    dest:                              /etc/dracut.conf.d/nvme.conf
+    mode:                              '0644'
+  register:                            dracut_conf_added
+
+- name:                                "1.5.4 NVMe Support - Rebuild initramfs with dracut (RHEL/SUSE)"
+  when:                                dracut_conf_added.changed and (is_redhat or is_suse)
+  ansible.builtin.command:             dracut -f -v
+
+# Install udev rules for Azure NVMe disks
+- name:                                "1.5.4 NVMe Support - Install udev rules for Azure NVMe disks"
+  ansible.builtin.copy:
+    src:                               88-azure-nvme-data-disk.rules
+    dest:                              /etc/udev/rules.d/88-azure-nvme-data-disk.rules
+    mode:                              '0644'
+  register:                            udev_rules_added
+
+- name:                                "1.5.4 NVMe Support - Reload udev rules if added or modified"
+  when: udev_rules_added.changed
+  ansible.builtin.command:             udevadm control --reload-rules
+
+
+- name:                                "1.5.4 NVMe Support - Set udev rules installed flag"
+  when:                                udev_rules_added.changed or nvme_udev_rules_installed | default(false)
+  ansible.builtin.set_fact:
+    nvme_udev_rules_installed:         true
+
+- name:                                "1.5.4 NVMe Support - Create backup of fstab"
+  ansible.builtin.copy:
+    src:                               /etc/fstab
+    dest:                              "/etc/fstab.backup.{{ ansible_date_time.date }}-{{ ansible_date_time.time }}"
+    remote_src:                        true
+    mode:                              '0644'
+  register:                            fstab_backup
+
+- name:                                "1.5.4 NVMe Support - Find /dev/sd* entries in fstab"
+  ansible.builtin.shell: |
+                                       set -o pipefail
+                                       sed -n 's|^/dev/\(sd[a-z]*[0-9]*\).*|\1|p' </etc/fstab
+  register:                            sd_devices
+  changed_when:                        false
+
+- name:                                "1.5.4 NVMe Support - Find /dev/disk/azure/scsi1/lun* entries in fstab"
+  ansible.builtin.shell: |
+                                       set -o pipefail
+                                       sed -n 's|^/dev/disk/azure/scsi1/\(lun[0-9]*\).*|\1|p' </etc/fstab
+  register:                            azure_scsi_devices
+  changed_when:                        false
+
+- name:                                "1.5.4 NVMe Support - Replace /dev/sd* entries with UUID in fstab"
+  when:                                sd_devices.stdout_lines | length > 0
+  ansible.builtin.shell: |
+                                       set -o pipefail
+                                       device={{ item }}
+                                       uuid=$(ls -l /dev/disk/by-uuid | grep "$device" | sed -n 's/^.* \([^ ]*\) -> .*$/\1/p')
+                                       if [ ! -z "$uuid" ]; then
+                                         sed -i "s|^/dev/${device}|UUID=${uuid}|" /etc/fstab
+                                       fi
+  with_items:                          "{{ sd_devices.stdout_lines }}"
+  register:                            fstab_sd_updated
+
+- name:                                "1.5.4 NVMe Support - Replace /dev/disk/azure/scsi1/lun* entries with UUID in fstab"
+  when:                                azure_scsi_devices.stdout_lines | length > 0
+  ansible.builtin.shell: |
+                                       set -o pipefail
+                                       lun={{ item }}
+                                       realdevice=$(realpath /dev/disk/azure/scsi1/${lun} | sed 's+/dev/++g')
+                                       uuid=$(ls -l /dev/disk/by-uuid | grep "$realdevice" | sed -n 's/^.* \([^ ]*\) -> .*$/\1/p')
+                                       if [ ! -z "$uuid" ]; then
+                                         sed -i "s|^/dev/disk/azure/scsi1/${lun}|UUID=${uuid}|" /etc/fstab
+                                       fi
+  with_items:                          "{{ azure_scsi_devices.stdout_lines }}"
+  register: fstab_azure_updated
