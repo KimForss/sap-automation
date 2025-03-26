@@ -460,7 +460,7 @@ locals {
 
                                          }
 
-dns_settings                         = {
+  dns_settings                         = {
                                            use_custom_dns_a_registration                = var.use_custom_dns_a_registration
                                            dns_label                                    = var.dns_label
                                            dns_zone_names                               = var.dns_zone_names
@@ -477,4 +477,16 @@ dns_settings                         = {
                                            register_virtual_network_to_dns              = var.register_virtual_network_to_dns
                                          }
 
+  # Backup configuration
+  backup                               = {
+                                           enabled                          = var.enable_backup
+                                           sku                              = var.backup_sku
+                                           storage_mode_type                = var.backup_storage_mode
+                                           backup_policies                  = var.backup_policies
+                                           enable_utility_vm_backup         = var.enable_utility_vm_backup
+                                           utility_vm_backup_policy_linux   = var.utility_vm_backup_policy_linux
+                                           utility_vm_backup_policy_windows = var.utility_vm_backup_policy_windows
+                                           enable_iscsi_backup              = var.enable_iscsi_backup
+                                           iscsi_backup_policy_name         = var.iscsi_backup_policy
+                                         }
 }

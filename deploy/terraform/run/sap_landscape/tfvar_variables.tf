@@ -1076,3 +1076,63 @@ variable "spn_id"                                     {
                                                         description = "SPN ID to be used for the deployment"
                                                         default     = ""
                                                       }
+
+#######################################4#######################################8
+#                                                                              #
+#                             Backup settings                                  #
+#                                                                              #
+#######################################4#######################################8
+
+variable "enable_backup"                          {
+                                                    description = "Enable backup for VMs"
+                                                    type        = bool
+                                                    default     = false
+                                                  }
+
+variable "backup_storage_mode"                    {
+                                                    description = "The storage mode for the backup vault - LRS, ZRS or GRS"
+                                                    type        = string
+                                                    default     = "ZoneRedundant" # "GeoRedundant", "LocallyRedundant", "ZoneRedundant"
+                                                  }
+
+variable "backup_sku"                             {
+                                                    description = "The SKU of the Recovery Services Vault"
+                                                    type        = string
+                                                    default     = "Standard" # or "RS0"
+                                                  }
+
+variable "backup_policies"                        {
+                                                    description = "Map of backup policies to create"
+                                                    type        = map(any)
+                                                    default     = {}
+                                                  }
+
+variable "enable_utility_vm_backup"               {
+                                                    description = "Enable backup for utility VMs"
+                                                    type        = bool
+                                                    default     = false
+                                                  }
+
+variable "utility_vm_backup_policy_linux"         {
+                                                    description = "Name of the backup policy to use for Linux utility VMs"
+                                                    type        = string
+                                                    default     = ""
+                                                  }
+
+variable "utility_vm_backup_policy_windows"       {
+                                                    description = "Name of the backup policy to use for Windows utility VMs"
+                                                    type        = string
+                                                    default     = ""
+                                                  }
+
+variable "enable_iscsi_backup"                    {
+                                                    description = "Enable backup for iSCSI VMs"
+                                                    type        = bool
+                                                    default     = false
+                                                  }
+
+variable "iscsi_backup_policy"                    {
+                                                    description = "Name of the backup policy to use for iSCSI VMs"
+                                                    type        = string
+                                                    default     = ""
+                                                  }

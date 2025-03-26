@@ -282,3 +282,23 @@ variable "data_plane_available"                          {
                                                            default     = true
                                                            type        = bool
                                                          }
+
+#########################################################################################
+#                                                                                       #
+#  Backup Settings                                                                      #
+#                                                                                       #
+#########################################################################################
+variable "backup"                                        {
+                                                           description = "Backup configuration for Azure Recovery Vault and VM backups"
+                                                           default     = {
+                                                                           enabled = false
+                                                                           sku = "Standard"
+                                                                           storage_mode_type = "ZoneRedundant"
+                                                                           backup_policies = {}
+                                                                           enable_utility_vm_backup = false
+                                                                           utility_vm_backup_policy_linux = ""
+                                                                           utility_vm_backup_policy_windows = ""
+                                                                           enable_iscsi_backup = false
+                                                                           iscsi_backup_policy_name = ""
+                                                                         }
+                                                         }

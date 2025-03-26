@@ -651,10 +651,12 @@ locals {
   use_Azure_native_DNS                            = length(var.dns_settings.dns_label) > 0 && !var.dns_settings.use_custom_dns_a_registration && !var.infrastructure.virtual_networks.sap.exists
 
 
-  use_AFS_for_shared                             = (var.NFS_provider == "ANF" && var.use_AFS_for_shared_storage) || var.NFS_provider == "AFS"
+  use_AFS_for_shared                              = (var.NFS_provider == "ANF" && var.use_AFS_for_shared_storage) || var.NFS_provider == "AFS"
 
 
-  deploy_monitoring_extension                    = var.infrastructure.deploy_monitoring_extension && length(try(var.infrastructure.user_assigned_identity_id,"")) > 0
+  deploy_monitoring_extension                     = var.infrastructure.deploy_monitoring_extension && length(try(var.infrastructure.user_assigned_identity_id,"")) > 0
 
+  # Backup settings
+  enable_backup                                   = try(var.backup.enabled, false)
 }
 

@@ -391,3 +391,24 @@ output "control_plane_name"                     {
                                                                           data.terraform_remote_state.deployer[0].outputs.control_plane_name
                                                      )
                                                 }
+
+###############################################################################
+#                                                                             #
+#                            Backup Resources                                 #
+#                                                                             #
+###############################################################################
+
+output "recovery_services_vault_id"             {
+                                                  description = "Azure resource identifier for the Recovery Services Vault"
+                                                  value       = var.enable_backup ? module.sap_landscape.recovery_services_vault_id : ""
+                                                }
+
+output "recovery_services_vault_name"           {
+                                                  description = "Name of the Recovery Services Vault"
+                                                  value       = var.enable_backup ? module.sap_landscape.recovery_services_vault_name : ""
+                                                }
+
+output "vm_backup_policies"                     {
+                                                  description = "Map of backup policy names and their IDs"
+                                                  value       = var.enable_backup ? module.sap_landscape.vm_backup_policies : {}
+                                                }

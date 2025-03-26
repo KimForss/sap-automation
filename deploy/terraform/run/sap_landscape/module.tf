@@ -61,6 +61,7 @@ module "sap_landscape" {
   witness_storage_account                      = local.witness_storage_account
   dns_settings                                 = local.dns_settings
   data_plane_available                         = var.data_plane_available
+  backup                                       = local.backup
 }
 
 module "sap_namegenerator" {

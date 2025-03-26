@@ -36,5 +36,40 @@
     "tfstate_resource_id"                      : "",
     "deployer_tfstate_key"                     : "",
     "dns_label"                                : "sap.agcicat.net",
-    "enable_purge_control_for_keyvaults"       : false
+    "enable_purge_control_for_keyvaults"       : false,
+
+    "enable_backup"                            : true,
+    "backup_storage_mode"                      : "LocallyRedundant",
+    "backup_sku"                               : "Standard",
+    "backup_policies"                          : {
+                                                    "daily-policy"              : {
+                                                      "frequency"               : "Daily",
+                                                      "time"                    : "23:00",
+                                                      "retention_daily_count"   : 14,
+                                                      "retention_weekly_count"  : 0,
+                                                      "retention_monthly_count" : 0,
+                                                      "retention_yearly_count"  : 0
+                                                                                  },
+                                                    "weekly-policy"             : {
+                                                      "frequency"               : "Weekly",
+                                                      "time"                    : "23:00",
+                                                      "weekdays"                : ["Sunday"],
+                                                      "retention_daily_count"   : 7,
+                                                      "retention_weekly_count"  : 4,
+                                                      "retention_weekly_days"   : ["Sunday"],
+                                                      "retention_monthly_count" : 0,
+                                                      "retention_yearly_count"  : 0
+                                                                                  },
+                                                    "iscsi-policy"              : {
+                                                      "frequency"               : "Daily",
+                                                      "time"                    : "22:00",
+                                                      "retention_daily_count"   : 30
+                                                                                  }
+                                                  },
+    "enable_utility_vm_backup"                 : true,
+    "utility_vm_backup_policy_linux"           : "daily-policy",
+    "utility_vm_backup_policy_windows"         : "weekly-policy",
+    "enable_iscsi_backup"                      : true,
+    "iscsi_backup_policy"                      : "iscsi-policy"
+
 }

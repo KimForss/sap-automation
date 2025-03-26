@@ -566,3 +566,27 @@ output "ng_resource_id"                        {
                                                   description = "Azure resource identifier for the NAT Gateway"
                                                   value       = local.create_nat_gateway ? azurerm_nat_gateway.ng[0].id : ""
                                                 }
+
+###############################################################################
+#                                                                             #
+#                            Backup Resources                                 #
+#                                                                             #
+###############################################################################
+
+output "recovery_services_vault_id"             {
+                                                  description = "Azure resource identifier for the Recovery Services Vault"
+                                                  value       = local.enable_backup ? azurerm_recovery_services_vault.vault[0].id : ""
+                                                }
+
+output "recovery_services_vault_name"           {
+                                                  description = "Name of the Recovery Services Vault"
+                                                  value       = local.enable_backup ? azurerm_recovery_services_vault.vault[0].name : ""
+                                                }
+
+output "vm_backup_policies"                     {
+                                                  description = "Map of backup policy names and their IDs"
+                                                  value       = local.enable_backup ? {
+                                                                  for policy_name, policy in azurerm_backup_policy_vm.vm_backup_policy :
+                                                                  policy_name => policy.id
+                                                                } : {}
+                                                }
