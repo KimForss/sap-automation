@@ -177,7 +177,7 @@ if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfigur
 	TF_VAR_management_subscription_id=${management_subscription_id}
 	export TF_VAR_management_subscription_id
 else
-  print_banner "$banner_title" "APPLICATION_CONFIGURATION_ID was not found" "error"
+  print_banner "$banner_title" "APPLICATION_CONFIGURATION_ID was not found" "info"
 	echo "##vso[task.logissue type=warning]Variable APPLICATION_CONFIGURATION_ID was not defined."
 	load_config_vars "${control_plane_environment_file_name}" "DEPLOYER_KEYVAULT" "tfstate_resource_id"
 	key_vault_id=$(az resource list --name "${DEPLOYER_KEYVAULT}" --subscription "$ARM_SUBSCRIPTION_ID" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
@@ -202,7 +202,8 @@ terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d
 export terraform_storage_account_name
 export terraform_storage_account_resource_group_name
 export terraform_storage_account_subscription_id
-export tfstate_resource_id
+TF_VAR_tfstate_resource_id=${tfstate_resource_id}
+export TF_VAR_tfstate_resource_id
 
 export workload_key_vault
 
