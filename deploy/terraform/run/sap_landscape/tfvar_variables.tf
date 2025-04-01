@@ -1097,3 +1097,7 @@ variable "spn_id"                                     {
                                                         description = "SPN ID to be used for the deployment"
                                                         default     = ""
                                                       }
+variable "platform_updates"                           {
+                                                        description = "Specifies whether VMAgent Platform Updates is enabled"
+                                                        default     = "true"
+                                                      }
