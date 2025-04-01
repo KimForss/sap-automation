@@ -150,8 +150,6 @@ resource "azurerm_linux_virtual_machine" "utility_vm" {
 
   encryption_at_host_enabled                             = var.infrastructure.encryption_at_host_enabled
 
-  encryption_at_host_enabled                             = var.infrastructure.encryption_at_host_enabled
-
   dynamic "admin_ssh_key"              {
                                         for_each = range(1)
                                         content {
