@@ -77,7 +77,7 @@ variable "infrastructure"                        {
                                          condition = (
                                            contains(keys(var.infrastructure.virtual_networks.sap), "subnet_admin") ? (
                                              var.infrastructure.virtual_networks.sap.subnet_admin != null ? (
-                                               length(trimspace(try(var.infrastructure.virtual_networks.sap.subnet_admin.arm_id, ""))) != 0 || length(trimspace(try(var.infrastructure.virtual_networks.sap.subnet_admin.prefix, ""))) != 0) : (
+                                               length(trimspace(try(var.infrastructure.virtual_networks.sap.subnet_admin.id, ""))) != 0 || length(trimspace(try(var.infrastructure.virtual_networks.sap.subnet_admin.prefix, ""))) != 0) : (
                                                true
                                              )) : (
                                              true
@@ -90,7 +90,7 @@ variable "infrastructure"                        {
                                                     condition = (
                                                       contains(keys(var.infrastructure.virtual_networks.sap), "subnet_app") ? (
                                                         var.infrastructure.virtual_networks.sap.subnet_app != null ? (
-                                                          length(trimspace(try(var.infrastructure.virtual_networks.sap.subnet_app.arm_id, ""))) != 0 || length(trimspace(try(var.infrastructure.virtual_networks.sap.subnet_app.prefix, ""))) != 0) : (
+                                                          length(trimspace(try(var.infrastructure.virtual_networks.sap.subnet_app.id, ""))) != 0 || length(trimspace(try(var.infrastructure.virtual_networks.sap.subnet_app.prefix, ""))) != 0) : (
                                                           true
                                                         )) : (
                                                         true
@@ -103,7 +103,7 @@ variable "infrastructure"                        {
                                                     condition = (
                                                       contains(keys(var.infrastructure.virtual_networks.sap), "subnet_db") ? (
                                                         var.infrastructure.virtual_networks.sap.subnet_db != null ? (
-                                                          length(trimspace(try(var.infrastructure.virtual_networks.sap.subnet_db.arm_id, ""))) != 0 || length(trimspace(try(var.infrastructure.virtual_networks.sap.subnet_db.prefix, ""))) != 0) : (
+                                                          length(trimspace(try(var.infrastructure.virtual_networks.sap.subnet_db.id, ""))) != 0 || length(trimspace(try(var.infrastructure.virtual_networks.sap.subnet_db.prefix, ""))) != 0) : (
                                                           true
                                                         )) : (
                                                         true
