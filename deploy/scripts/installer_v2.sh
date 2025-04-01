@@ -676,7 +676,7 @@ function sdaf_installer() {
 			echo "Terraform state:                     remote"
 			print_banner "Installer" "The system has already been deployed and the state file is in Azure" "info"
 
-			if ! terraform -chdir="${terraform_module_directory}" init -upgrade=true; then
+			if ! terraform -chdir="${terraform_module_directory}" init -migrate-state -upgrade=true; then
 				return_value=$?
 				print_banner "Installer" "Terraform init failed." "error"
 				return $return_value
