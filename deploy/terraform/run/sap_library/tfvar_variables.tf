@@ -81,17 +81,6 @@ variable "assign_permissions"                    {
                                                     default     = true
                                                     type        = bool
                                                   }
-variable "deployer_prefix"                       {
-                                                    description = "Defines the prefix for the deployer"
-                                                    type        = string
-                                                    default     = ""
-                                                 }
-
-variable "assign_permissions"                    {
-                                                    description = "Boolean value indicating if permissions should be assigned to the storage accounts"
-                                                    default     = true
-                                                    type        = bool
-                                                  }
 
 #######################################4#######################################8
 #                                                                              #
@@ -302,10 +291,6 @@ variable "application_configuration_deployment"                         {
                                                         description = "Boolean value indicating if a webapp should be deployed"
                                                         default     = false
                                                       }
-variable "application_configuration_deployment"                         {
-                                                        description = "Boolean value indicating if a webapp should be deployed"
-                                                        default     = false
-                                                      }
 
 variable "Agent_IP"                              {
                                                    description = "IP address of the agent"
@@ -335,12 +320,6 @@ variable "tfstate_resource_id"                       {
 #  DNS settings                                                                         #
 #                                                                                       #
 #########################################################################################
-
-
-variable "dns_label"                             {
-                                                   description = "DNS label"
-                                                   default     = ""
-                                                 }
 
 
 variable "dns_label"                             {

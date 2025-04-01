@@ -558,29 +558,3 @@ resource "azurerm_management_lock" "storage_tfstate" {
   }
 }
 
-// Creates the storage container inside the storage account for sapsystem
-resource "azurerm_storage_container" "storagecontainer_tfvars" {
-  provider                             = azurerm.main
-  count                                = var.storage_account_tfstate.tfvars_blob_container.is_existing ? 0 : 1
-  depends_on                           = [
-                                           azurerm_private_endpoint.storage_tfstate
-                                         ]
-  name                                 = var.storage_account_tfstate.tfvars_blob_container.name
-  storage_account_id                   = length(var.storage_account_tfstate.arm_id) > 0 ? (
-                                           data.azurerm_storage_account.storage_tfstate[0].id) : (
-                                           azurerm_storage_account.storage_tfstate[0].id
-                                         )
-
-
-  container_access_type                = "private"
-}
-
-data "azurerm_storage_container" "storagecontainer_tfvars" {
-  provider                             = azurerm.main
-  count                                = var.storage_account_tfstate.tfvars_blob_container.is_existing ? 1 : 0
-  name                                 = var.storage_account_tfstate.tfvars_blob_container.name
-  storage_account_name                 = length(var.storage_account_tfstate.arm_id) > 0 ? (
-                                           data.azurerm_storage_account.storage_tfstate[0].name) : (
-                                           azurerm_storage_account.storage_tfstate[0].name
-                                         )
-}
