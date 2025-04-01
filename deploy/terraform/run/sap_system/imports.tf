@@ -34,7 +34,9 @@ data "terraform_remote_state" "landscape"            {
                                                      }
 
 data "azurerm_app_configuration_key" "media_path"    {
-                                                        count                  = length(coalesce(var.application_configuration_id,try(data.terraform_remote_state.landscape.outputs.application_configuration_id, " "))) == 1 ? 0 : 1
+                                                        count                  = try(data.terraform_remote_state.landscape.outputs.application_configuration_used, false) ? (
+                                                                                  length(coalesce(var.application_configuration_id,try(data.terraform_remote_state.landscape.outputs.application_configuration_id, " "))) == 1 ? 0 : 1) : (
+                                                                                  0)
                                                         configuration_store_id = coalesce(var.application_configuration_id,try(data.terraform_remote_state.landscape.outputs.application_configuration_id, " "))
                                                         key                    = format("%s_SAPMediaPath", coalesce(var.control_plane_name, try(data.terraform_remote_state.landscape.outputs.control_plane_name, "")))
                                                         label                  = coalesce(var.control_plane_name, try(data.terraform_remote_state.landscape.outputs.control_plane_name, ""))
@@ -42,7 +44,9 @@ data "azurerm_app_configuration_key" "media_path"    {
 
 
 data "azurerm_app_configuration_key" "credentials_vault"    {
-                                                        count                  = length(coalesce(var.application_configuration_id,try(data.terraform_remote_state.landscape.outputs.application_configuration_id, " "))) == 1 ? 0 : 1
+                                                        count                  = try(data.terraform_remote_state.landscape.outputs.application_configuration_used, false) ? (
+                                                                                  length(coalesce(var.application_configuration_id,try(data.terraform_remote_state.landscape.outputs.application_configuration_id, " "))) == 1 ? 0 : 1) : (
+                                                                                  0)
                                                         configuration_store_id = coalesce(var.application_configuration_id,try(data.terraform_remote_state.landscape.outputs.application_configuration_id, " "))
                                                         key                    = format("%s_KeyVaultResourceId", coalesce(var.control_plane_name, try(data.terraform_remote_state.landscape.outputs.control_plane_name, "")))
                                                         label                  = coalesce(var.control_plane_name, try(data.terraform_remote_state.landscape.outputs.control_plane_name, ""))
