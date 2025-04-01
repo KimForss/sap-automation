@@ -59,7 +59,7 @@ data "azuread_client_config" "current" {}
 
 resource "azurerm_role_assignment" "storage_tfstate" {
   provider                             = azurerm.main
-  count                                = local.sa_tfstate_exists ? 0 : 1
+  count                                = length(var.storage_account_tfstate.arm_id) > 0 ? 0 : 1
   # count                                = var.enable_storage_role_assignment && !local.sa_tfstate_exists ? 1 : 0
   scope                                = azurerm_storage_account.storage_tfstate[0].id
   role_definition_name                 = "Storage Blob Data Contributor"
@@ -331,7 +331,7 @@ resource "azurerm_storage_account" "storage_sapbits" {
 
 resource "azurerm_role_assignment" "storage_sapbits" {
   provider                             = azurerm.main
-  count                                = local.sa_tfstate_exists ? 0 : 1
+  count                                = length(var.storage_account_sapbits.arm_id) > 0 ? 0 : 1
   # count                                = var.enable_storage_role_assignment && !local.sa_tfstate_exists ? 1 : 0
   scope                                = azurerm_storage_account.storage_sapbits[0].id
   role_definition_name                 = "Storage Blob Data Contributor"
@@ -566,7 +566,7 @@ resource "azurerm_storage_container" "storagecontainer_tfvars" {
                                            azurerm_private_endpoint.storage_tfstate
                                          ]
   name                                 = var.storage_account_tfstate.tfvars_blob_container.name
-  storage_account_id                   = local.sa_tfstate_exists ? (
+  storage_account_id                   = length(var.storage_account_tfstate.arm_id) > 0 ? (
                                            data.azurerm_storage_account.storage_tfstate[0].id) : (
                                            azurerm_storage_account.storage_tfstate[0].id
                                          )
@@ -579,7 +579,7 @@ data "azurerm_storage_container" "storagecontainer_tfvars" {
   provider                             = azurerm.main
   count                                = var.storage_account_tfstate.tfvars_blob_container.is_existing ? 1 : 0
   name                                 = var.storage_account_tfstate.tfvars_blob_container.name
-  storage_account_name                 = local.sa_tfstate_exists ? (
+  storage_account_name                 = length(var.storage_account_tfstate.arm_id) > 0 ? (
                                            data.azurerm_storage_account.storage_tfstate[0].name) : (
                                            azurerm_storage_account.storage_tfstate[0].name
                                          )

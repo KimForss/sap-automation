@@ -278,7 +278,6 @@ variable "shared_access_key_enabled"            {
 variable "data_plane_available"                 {
                                                   description = "Boolean value indicating if storage account access is via data plane"
                                                   default     = true
-                                                  default     = true
                                                   type        = bool
                                                 }
 
@@ -372,17 +371,11 @@ variable "dns_zone_names"                        {
                                                    description = "Private DNS zone names"
                                                    type        = map(string)
                                                    default = {
-                                                               "file_dns_zone_name"      = "privatelink.file.core.windows.net"
-                                                               "blob_dns_zone_name"      = "privatelink.blob.core.windows.net"
-                                                               "table_dns_zone_name"     = "privatelink.table.core.windows.net"
-                                                               "vault_dns_zone_name"     = "privatelink.vaultcore.azure.net"
-                                                               "appconfig_dns_zone_name" = "privatelink.azconfig.io"
-                                                             }
-                                                               "file_dns_zone_name"      = "privatelink.file.core.windows.net"
-                                                               "blob_dns_zone_name"      = "privatelink.blob.core.windows.net"
-                                                               "table_dns_zone_name"     = "privatelink.table.core.windows.net"
-                                                               "vault_dns_zone_name"     = "privatelink.vaultcore.azure.net"
-                                                               "appconfig_dns_zone_name" = "privatelink.azconfig.io"
+                                                               file_dns_zone_name      = "privatelink.file.core.windows.net"
+                                                               blob_dns_zone_name      = "privatelink.blob.core.windows.net"
+                                                               table_dns_zone_name     = "privatelink.table.core.windows.net"
+                                                               vault_dns_zone_name     = "privatelink.vaultcore.azure.net"
+                                                               appconfig_dns_zone_name = "privatelink.azconfig.io"
                                                              }
 
                                                  }
