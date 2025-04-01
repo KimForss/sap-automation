@@ -36,7 +36,7 @@ locals {
                                          )
 
   // Retrieve the arm_id of deployer's Key Vault from deployer's terraform.tfstate
-  spn_key_vault_arm_id                 = try(data.terraform_remote_state.deployer[0].outputs.deployer_kv_user_arm_id, "")
+  spn_key_vault_arm_id                 = var.use_deployer ?  data.terraform_remote_state.deployer[0].outputs.deployer_kv_user_arm_id : ""
 
 
   custom_names                         = length(var.name_override_file) > 0 ? (
@@ -52,8 +52,8 @@ locals {
 
   account                              = {
                                            subscription_id = local.use_spn ? data.azurerm_key_vault_secret.subscription_id[0].value : null,
-                                           tenant_id       = data.azurerm_key_vault_secret.tenant_id[0].value,
-                                           object_id       = data.azurerm_key_vault_secret.client_id[0].value
+                                           tenant_id       = local.use_spn ? data.azurerm_key_vault_secret.tenant_id[0].value : null,
+                                           object_id       = local.use_spn ? data.azurerm_key_vault_secret.client_id[0].value : null
                                          }
 
 }

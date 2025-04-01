@@ -30,7 +30,7 @@ resource "azurerm_storage_account" "storage_tfstate" {
   min_tls_version                      = "TLS1_2"
   allow_nested_items_to_be_public      = false
 
-  public_network_access_enabled        = true #var.storage_account_sapbits.public_network_access_enabled
+  public_network_access_enabled        = var.storage_account_sapbits.public_network_access_enabled
 
   https_traffic_only_enabled            = true
 
@@ -49,14 +49,21 @@ resource "azurerm_storage_account" "storage_tfstate" {
           }
 
 
-  # lifecycle {
-  #             ignore_changes = [tags]
-  #           }
+  lifecycle {
+              ignore_changes = [tags]
+            }
+  tags                                 = var.infrastructure.tags
+}
 
-  # tags = {
-  #     "enable_firewall_for_keyvaults_and_storage" = local.enable_firewall_for_keyvaults_and_storage
-  #     "public_network_access_enabled" = var.storage_account_sapbits.public_network_access_enabled
-  #   }
+data "azuread_client_config" "current" {}
+
+resource "azurerm_role_assignment" "storage_tfstate" {
+  provider                             = azurerm.main
+  count                                = local.sa_tfstate_exists ? 0 : 1
+  # count                                = var.enable_storage_role_assignment && !local.sa_tfstate_exists ? 1 : 0
+  scope                                = azurerm_storage_account.storage_tfstate[0].id
+  role_definition_name                 = "Storage Blob Data Contributor"
+  principal_id                         = data.azuread_client_config.current.object_id
 
 }
 
@@ -154,7 +161,7 @@ resource "azurerm_private_endpoint" "storage_tfstate" {
                                              var.infrastructure.environment
                                            ),
                                            var.naming.resource_suffixes.storage_private_link_tf,
-                                           var.naming.resource_suffixes.nic
+                                           try(var.naming.resource_suffixes.private_endpoint_nic, var.naming.resource_suffixes.nic)
                                          ) : null
 
   private_service_connection {
@@ -212,7 +219,7 @@ resource "azurerm_private_endpoint" "table_tfstate" {
                                              var.infrastructure.environment
                                            ),
                                            var.naming.resource_suffixes.storage_private_link_tf,
-                                           var.naming.resource_suffixes.nic
+                                           try(var.naming.resource_suffixes.private_endpoint_nic, var.naming.resource_suffixes.nic)
                                          ) : null
 
   private_service_connection {
@@ -322,6 +329,15 @@ resource "azurerm_storage_account" "storage_sapbits" {
   tags                                 = var.infrastructure.tags
 }
 
+resource "azurerm_role_assignment" "storage_sapbits" {
+  provider                             = azurerm.main
+  count                                = local.sa_tfstate_exists ? 0 : 1
+  # count                                = var.enable_storage_role_assignment && !local.sa_tfstate_exists ? 1 : 0
+  scope                                = azurerm_storage_account.storage_sapbits[0].id
+  role_definition_name                 = "Storage Blob Data Contributor"
+  principal_id                         = data.azuread_client_config.current.object_id
+
+}
 
 resource "azurerm_storage_account_network_rules" "storage_sapbits" {
   provider                             = azurerm.main
@@ -415,7 +431,7 @@ resource "azurerm_private_endpoint" "storage_sapbits" {
                                              var.infrastructure.environment
                                            ),
                                            var.naming.resource_suffixes.storage_private_link_sap,
-                                           var.naming.resource_suffixes.nic
+                                           try(var.naming.resource_suffixes.private_endpoint_nic, var.naming.resource_suffixes.nic)
                                          ) : null
 
   private_service_connection {
@@ -463,7 +479,6 @@ resource "azurerm_storage_container" "storagecontainer_sapbits" {
                                            )
 
   container_access_type                = "private"
-
 }
 
 // Imports existing storage blob container for SAP bits
@@ -543,3 +558,29 @@ resource "azurerm_management_lock" "storage_tfstate" {
   }
 }
 
+// Creates the storage container inside the storage account for sapsystem
+resource "azurerm_storage_container" "storagecontainer_tfvars" {
+  provider                             = azurerm.main
+  count                                = var.storage_account_tfstate.tfvars_blob_container.is_existing ? 0 : 1
+  depends_on                           = [
+                                           azurerm_private_endpoint.storage_tfstate
+                                         ]
+  name                                 = var.storage_account_tfstate.tfvars_blob_container.name
+  storage_account_id                   = local.sa_tfstate_exists ? (
+                                           data.azurerm_storage_account.storage_tfstate[0].id) : (
+                                           azurerm_storage_account.storage_tfstate[0].id
+                                         )
+
+
+  container_access_type                = "private"
+}
+
+data "azurerm_storage_container" "storagecontainer_tfvars" {
+  provider                             = azurerm.main
+  count                                = var.storage_account_tfstate.tfvars_blob_container.is_existing ? 1 : 0
+  name                                 = var.storage_account_tfstate.tfvars_blob_container.name
+  storage_account_name                 = local.sa_tfstate_exists ? (
+                                           data.azurerm_storage_account.storage_tfstate[0].name) : (
+                                           azurerm_storage_account.storage_tfstate[0].name
+                                         )
+}

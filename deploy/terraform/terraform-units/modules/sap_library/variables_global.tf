@@ -41,7 +41,7 @@ variable "key_vault"                   {
                                                           true
                                                         )
                                                       )
-                                                      error_message = "If specified, the kv_spn_id needs to be a correctly formed Azure resource ID."
+                                                      error_message = "If specified, the keyvault_id_for_deployment_credentials needs to be a correctly formed Azure resource ID."
                                                     }
 
                                          validation {

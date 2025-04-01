@@ -125,4 +125,3 @@ resource "azurerm_key_vault_secret" "tfstate" {
 #     ignore_changes = [tags]
 #   }
 # }
-

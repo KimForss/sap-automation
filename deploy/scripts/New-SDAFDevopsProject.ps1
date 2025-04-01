@@ -55,7 +55,7 @@ else {
 if ($IsWindows) { $pathSeparator = "\" } else { $pathSeparator = "/" }
 #endregion
 
-$versionLabel = "v3.13.0.0"
+$versionLabel = "v3.14.1.0"
 
 # az logout
 

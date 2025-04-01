@@ -127,7 +127,10 @@ resource "azurerm_private_endpoint" "storage_bootdiag" {
                                      for_each = range(var.dns_settings.register_endpoints_with_dns ? 1 : 0)
                                      content {
                                        name                 = var.dns_settings.dns_zone_names.blob_dns_zone_name
-                                       private_dns_zone_ids = [data.azurerm_private_dns_zone.storage[0].id]
+                                       private_dns_zone_ids = local.privatelink_storage_defined ? (
+                                        [var.dns_settings.privatelink_storage_id]) : (
+                                        [data.azurerm_private_dns_zone.storage[0].id]
+                                        )
                                      }
                                    }
 
@@ -256,7 +259,10 @@ resource "azurerm_private_endpoint" "witness_storage" {
                                      for_each = range(var.dns_settings.register_endpoints_with_dns ? 1 : 0)
                                      content {
                                        name                 = var.dns_settings.dns_zone_names.blob_dns_zone_name
-                                       private_dns_zone_ids = [data.azurerm_private_dns_zone.storage[0].id]
+                                       private_dns_zone_ids = local.privatelink_storage_defined ? (
+                                        [var.dns_settings.privatelink_storage_id]) : (
+                                        [data.azurerm_private_dns_zone.storage[0].id]
+                                        )
                                      }
                                    }
 
@@ -429,7 +435,10 @@ resource "azurerm_private_endpoint" "transport" {
                                      for_each = range(var.dns_settings.register_endpoints_with_dns ? 1 : 0)
                                      content {
                                        name                 = var.dns_settings.dns_zone_names.file_dns_zone_name
-                                       private_dns_zone_ids = [data.azurerm_private_dns_zone.file[0].id]
+                                       private_dns_zone_ids = local.privatelink_file_defined ? (
+                                        [var.dns_settings.privatelink_file_id]) : (
+                                        [data.azurerm_private_dns_zone.file[0].id]
+                                        )
                                      }
                                    }
 
@@ -616,7 +625,9 @@ resource "azurerm_private_endpoint" "install" {
                                      for_each = range(var.dns_settings.register_endpoints_with_dns ? 1 : 0)
                                      content {
                                        name                 = var.dns_settings.dns_zone_names.file_dns_zone_name
-                                       private_dns_zone_ids = [data.azurerm_private_dns_zone.file[0].id]
+                                       private_dns_zone_ids = local.privatelink_file_defined ? (
+                                        [var.dns_settings.privatelink_file_id]) : (
+                                        [data.azurerm_private_dns_zone.file[0].id])
                                      }
                                    }
 
@@ -715,6 +726,3 @@ resource "time_sleep" "wait_for_private_endpoints" {
 #   name                = azurerm_private_endpoint.transport[count.index].network_interface[0].name
 #   resource_group_name = split("/", azurerm_private_endpoint.transport[count.index].network_interface[0].id)[4]
 # }
-
-
-

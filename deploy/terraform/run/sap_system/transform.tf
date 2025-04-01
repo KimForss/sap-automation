@@ -16,6 +16,7 @@ locals {
                                             deploy_defender_extension        = var.deploy_defender_extension
                                             patch_mode                       = var.patch_mode
                                             patch_assessment_mode            = var.patch_assessment_mode
+                                            platform_updates                 = var.platform_updates
                                             shared_access_key_enabled        = var.shared_access_key_enabled
                                             shared_access_key_enabled_nfs    = var.shared_access_key_enabled_nfs
                                             encryption_at_host_enabled       = var.encryption_at_host_enabled
@@ -91,7 +92,7 @@ locals {
                                            database_cluster_type           = var.database_cluster_type
                                            database_server_count           = var.database_high_availability ? 2 * var.database_server_count : var.database_server_count
                                            database_vm_sku                 = var.database_vm_sku
-                                           db_sizing_key                   = coalesce(var.db_sizing_dictionary_key, var.database_size)
+                                           db_sizing_key                   = coalesce(var.db_sizing_dictionary_key, var.database_size, "Optimized")
                                            deploy_v1_monitoring_extension  = var.deploy_v1_monitoring_extension
                                            dual_nics                       = var.database_dual_nics
                                            high_availability               = var.database_high_availability
@@ -195,7 +196,7 @@ locals {
                                         enable_deployment               = local.enable_app_tier_deployment
                                         use_DHCP                        = var.app_tier_use_DHCP
                                         dual_nics                       = var.app_tier_dual_nics
-                                        vm_sizing_dictionary_key        = coalesce(var.app_tier_sizing_dictionary_key, "Optimized")
+                                        vm_sizing_dictionary_key        = coalesce(var.app_tier_sizing_dictionary_key, var.application_size, "Optimized")
                                         app_instance_number             = coalesce(var.app_instance_number, "00")
                                         application_server_count        = local.enable_app_tier_deployment ? (
                                                                             var.application_server_count
@@ -355,6 +356,9 @@ locals {
   web_nic_ips                          = concat(var.webdispatcher_server_app_nic_ips)
   web_admin_nic_ips                    = concat(var.webdispatcher_server_admin_nic_ips)
   webdispatcher_loadbalancer_ips       = concat(var.webdispatcher_server_loadbalancer_ips)
+
+  subnet_admin_arm_id                  = try(coalesce(var.admin_subnet_arm_id, data.terraform_remote_state.landscape.outputs.admin_subnet_id), "")
+  subnet_admin_nsg_arm_id              = try(coalesce(var.admin_subnet_nsg_arm_id, data.terraform_remote_state.landscape.outputs.admin_nsg_id), "")
 
   subnet_admin_arm_id                  = try(coalesce(var.admin_subnet_arm_id, data.terraform_remote_state.landscape.outputs.admin_subnet_id), "")
   subnet_admin_nsg_arm_id              = try(coalesce(var.admin_subnet_nsg_arm_id, data.terraform_remote_state.landscape.outputs.admin_nsg_id), "")
