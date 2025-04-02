@@ -70,7 +70,7 @@ locals {
                                                       ),
                                                       var.naming.separator,
                                                       local.resource_suffixes.app_subnet))): (
-                                           coalesce(split("/", var.infrastructure.virtual_networks.sap.subnet_app.id)[10],
+                                           coalesce(try(split("/", var.infrastructure.virtual_networks.sap.subnet_app.id)[10], ""),
                                                     split("/", var.infrastructure.virtual_networks.sap.subnet_app.id_in_workload)[10])
                                                       )
 
@@ -112,7 +112,7 @@ locals {
                                                       ),
                                                       var.naming.separator,
                                                       local.resource_suffixes.web_subnet))): (
-                                           coalesce(split("/", var.infrastructure.virtual_networks.sap.subnet_web.id)[10],
+                                           coalesce(try(split("/", var.infrastructure.virtual_networks.sap.subnet_web.id)[10], ""),
                                                     split("/", var.infrastructure.virtual_networks.sap.subnet_web.id_in_workload)[10])
                                                       )
 

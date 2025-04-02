@@ -206,7 +206,7 @@ locals {
                                                       ),
                                                       var.naming.separator,
                                                       local.resource_suffixes.admin_subnet))): (
-                                           coalesce(split("/", var.infrastructure.virtual_networks.sap.subnet_admin.id)[10],
+                                           coalesce(try(split("/", var.infrastructure.virtual_networks.sap.subnet_admin.id)[10],""),
                                                     split("/", var.infrastructure.virtual_networks.sap.subnet_admin.id_in_workload)[10])
                                                       )
 
@@ -248,7 +248,7 @@ locals {
                                                       ),
                                                       var.naming.separator,
                                                       local.resource_suffixes.db_subnet))): (
-                                           coalesce(split("/", var.infrastructure.virtual_networks.sap.subnet_db.id)[10],
+                                           coalesce(try(split("/", var.infrastructure.virtual_networks.sap.subnet_db.id)[10],""),
                                                     split("/", var.infrastructure.virtual_networks.sap.subnet_db.id_in_workload)[10])
                                                       )
 
@@ -329,7 +329,7 @@ locals {
                                                       ),
                                                       var.naming.separator,
                                                       local.resource_suffixes.db_subnet))): (
-                                           coalesce(split("/", var.infrastructure.virtual_networks.sap.subnet_storage.id)[10],
+                                           coalesce(try(split("/", var.infrastructure.virtual_networks.sap.subnet_storage.id)[10],""),
                                                     split("/", var.infrastructure.virtual_networks.sap.subnet_storage.id_in_workload)[10])
                                                       )
 
