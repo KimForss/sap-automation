@@ -216,30 +216,19 @@ locals {
   #
   ##############################################################################################
 
-  admin_subnet_nsg_defined             = length(try(var.infrastructure.virtual_networks.sap.subnet_admin.nsg, {})) > 0
-  admin_subnet_nsg_arm_id              = local.admin_subnet_nsg_defined ? (
-                                           try(var.infrastructure.virtual_networks.sap.subnet_admin.nsg.arm_id, "")) : (
-                                           var.landscape_tfstate.admin_nsg_id
-                                         )
-  admin_subnet_nsg_exists              = length(local.admin_subnet_nsg_arm_id) > 0
-
-  admin_subnet_nsg_name                = local.admin_subnet_nsg_defined ? (
-                                          local.admin_subnet_nsg_exists ? (
-                                            split("/", var.infrastructure.virtual_networks.sap.subnet_admin.nsg.arm_id)[8]) : (
-                                            length(var.infrastructure.virtual_networks.sap.subnet_admin.nsg.name) > 0 ? (
-                                              var.infrastructure.virtual_networks.sap.subnet_admin.nsg.name) : (
-                                              format("%s%s%s%s",
-                                                var.naming.resource_prefixes.admin_subnet_nsg,
-                                                length(local.prefix) > 0 ? (
-                                                  local.prefix) : (
-                                                  var.infrastructure.environment
-                                                ),
-                                                var.naming.separator,
-                                                local.resource_suffixes.admin_subnet_nsg
-                                              )
-                                          ))) : (
-                                          ""
-                                        )
+  admin_subnet_nsg_name                           = var.infrastructure.virtual_networks.sap.subnet_admin.nsg.exists || var.infrastructure.virtual_networks.sap.subnet_admin.nsg.exists_in_workload ? (
+                                                    coalesce(var.infrastructure.virtual_networks.sap.subnet_admin.nsg.id, var.infrastructure.virtual_networks.sap.subnet_admin.nsg.id_in_workload)[8]) : (
+                                                    coalesce(var.infrastructure.virtual_networks.sap.subnet_admin.nsg.name,
+                                                             format("%s%s%s%s",
+                                                               var.naming.resource_prefixes.admin_subnet_nsg,
+                                                               length(local.prefix) > 0 ? (
+                                                                 local.prefix) : (
+                                                                 var.infrastructure.environment
+                                                                ),
+                                                               var.naming.separator,
+                                                               local.resource_suffixes.admin_subnet_nsg)
+                                                    )
+                                                  )
 
   ##############################################################################################
   #
@@ -269,30 +258,20 @@ locals {
   #
   ##############################################################################################
 
-  database_subnet_nsg_defined          = length(try(var.infrastructure.virtual_networks.sap.subnet_db.nsg, {})) > 0
-  database_subnet_nsg_arm_id           = local.database_subnet_nsg_defined ? (
-                                           try(var.infrastructure.virtual_networks.sap.subnet_db.nsg.arm_id, "")) : (
-                                           var.landscape_tfstate.db_nsg_id
-                                         )
+  database_subnet_nsg_name                        = var.infrastructure.virtual_networks.sap.subnet_db.nsg.exists || var.infrastructure.virtual_networks.sap.subnet_db.nsg.exists_in_workload ? (
+                                                    coalesce(var.infrastructure.virtual_networks.sap.subnet_db.nsg.id, var.infrastructure.virtual_networks.sap.subnet_db.nsg.id_in_workload)[8]) : (
+                                                    coalesce(var.infrastructure.virtual_networks.sap.subnet_db.nsg.name,
+                                                             format("%s%s%s%s",
+                                                               var.naming.resource_prefixes.db_subnet_nsg,
+                                                               length(local.prefix) > 0 ? (
+                                                                 local.prefix) : (
+                                                                 var.infrastructure.environment
+                                                                ),
+                                                               var.naming.separator,
+                                                               local.resource_suffixes.db_subnet_nsg)
+                                                    )
+                                                  )
 
-  database_subnet_nsg_exists           = length(local.database_subnet_nsg_arm_id) > 0
-  database_subnet_nsg_name             = local.database_subnet_nsg_defined ? (
-                                           local.database_subnet_nsg_exists ? (
-                                             split("/", var.infrastructure.virtual_networks.sap.subnet_db.nsg.arm_id)[8]) : (
-                                             length(var.infrastructure.virtual_networks.sap.subnet_db.nsg.name) > 0 ? (
-                                               var.infrastructure.virtual_networks.sap.subnet_db.nsg.name) : (
-                                               format("%s%s%s%s",
-                                                 var.naming.resource_prefixes.db_subnet_nsg,
-                                                 length(local.prefix) > 0 ? (
-                                                   local.prefix) : (
-                                                   var.infrastructure.environment
-                                                 ),
-                                                 var.naming.separator,
-                                                 local.resource_suffixes.db_subnet_nsg
-                                               )
-                                           ))) : (
-                                           ""
-                                         )
 
   # ##############################################################################################
   # #
@@ -355,24 +334,19 @@ locals {
                                                       )
 
 
-  //Storage NSG
-  sub_storage_nsg_exists               = length(try(var.infrastructure.virtual_networks.sap.subnet_storage.nsg.arm_id, "")) > 0
-  sub_storage_nsg_name                 = local.sub_storage_nsg_exists ? (
-                                          try(split("/", var.infrastructure.virtual_networks.sap.subnet_storage.nsg.arm_id)[8], "")) : (
-                                          length(try(var.infrastructure.virtual_networks.sap.subnet_storage.nsg.name, "")) > 0 ? (
-                                            var.infrastructure.virtual_networks.sap.subnet_storage.nsg.name) : (
-                                            format("%s%s%s%s",
-                                              var.naming.resource_prefixes.storage_subnet_nsg,
-                                              length(local.prefix) > 0 ? (
-                                                local.prefix) : (
-                                                var.infrastructure.environment
-                                              ),
-                                              var.naming.separator,
-                                              local.resource_suffixes.storage_subnet_nsg
+  storage_subnet_nsg_name                = var.infrastructure.virtual_networks.sap.subnet_storage.nsg.exists || var.infrastructure.virtual_networks.sap.subnet_storage.nsg.exists_in_workload ? (
+                                            coalesce(var.infrastructure.virtual_networks.sap.subnet_storage.nsg.id, var.infrastructure.virtual_networks.sap.subnet_storage.nsg.id_in_workload)[8]) : (
+                                            coalesce(var.infrastructure.virtual_networks.sap.subnet_storage.nsg.name,
+                                                     format("%s%s%s%s",
+                                                       var.naming.resource_prefixes.storage_subnet_nsg,
+                                                       length(local.prefix) > 0 ? (
+                                                         local.prefix) : (
+                                                         var.infrastructure.environment
+                                                        ),
+                                                       var.naming.separator,
+                                                       local.resource_suffixes.storage_subnet_nsg)
                                             )
                                           )
-                                        )
-
 
   // If the user specifies arm id of key vaults in input,
   // the key vault will be imported instead of using the landscape key vault

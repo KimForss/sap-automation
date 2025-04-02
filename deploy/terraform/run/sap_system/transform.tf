@@ -370,6 +370,7 @@ locals {
                                                                         id                 = var.admin_subnet_nsg_arm_id
                                                                         exists             = length(var.admin_subnet_nsg_arm_id) > 0
                                                                         exists_in_workload = length(try(data.terraform_remote_state.landscape.outputs.admin_nsg_id), "") > 0
+                                                                        id_in_workload     = data.terraform_remote_state.landscape.outputs.admin_nsg_id
                                                                       }
                                          }
 
@@ -386,6 +387,7 @@ locals {
                                                                         id                 = var.db_subnet_nsg_arm_id
                                                                         exists             = length(var.db_subnet_nsg_arm_id) > 0
                                                                         exists_in_workload = length(try(data.terraform_remote_state.landscape.outputs.db_nsg_id), "") > 0
+                                                                        id_in_workload     = data.terraform_remote_state.landscape.outputs.db_nsg_id
                                                                       }
                                          }
 
@@ -402,6 +404,7 @@ locals {
                                                                         id                 = var.app_subnet_nsg_arm_id
                                                                         exists             = length(var.app_subnet_nsg_arm_id) > 0
                                                                         exists_in_workload = length(try(data.terraform_remote_state.landscape.outputs.app_nsg_id), "") > 0
+                                                                        id_in_workload     = data.terraform_remote_state.landscape.outputs.app_nsg_id
                                                                       }
                                          }
 
@@ -418,6 +421,7 @@ locals {
                                                                         id                 = var.web_subnet_nsg_arm_id
                                                                         exists             = length(var.web_subnet_nsg_arm_id) > 0
                                                                         exists_in_workload = length(try(data.terraform_remote_state.landscape.outputs.web_nsg_id), "") > 0
+                                                                        id_in_workload     = data.terraform_remote_state.landscape.outputs.web_nsg_id
                                                                       }
                                          }
 
@@ -436,6 +440,7 @@ locals {
                                                                        id                 = var.storage_subnet_nsg_arm_id
                                                                        exists             = length(var.storage_subnet_nsg_arm_id) > 0
                                                                        exists_in_workload = length(try(data.terraform_remote_state.landscape.outputs.storage_nsg_id), "") > 0
+                                                                       id_in_workload     = data.terraform_remote_state.landscape.outputs.storage_nsg_id
                                                                      }
                                          }
 
