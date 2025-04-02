@@ -101,15 +101,15 @@ output "network_resource_group" {
 output "admin_subnet" {
                                                    description = "Admin subnet object"
                                                    value       = local.enable_admin_subnet ? (
-                                                                   local.admin_subnet_exists ? data.azurerm_subnet.admin[0] : azurerm_subnet.admin[0]) : (
+                                                                   var.infrastructure.virtual_networks.sap.subnet_admin.exists ? data.azurerm_subnet.admin[0] : azurerm_subnet.admin[0]) : (
                                                                    null
                                                                  )
                                                  }
 
 output "subnet_cidr_client"                    {
-                                                   description = "Storage subnet prefix"
+                                                   description = "Admin Storage subnet prefix"
                                                    value       = local.enable_db_deployment && local.enable_admin_subnet ? (
-                                                                   local.admin_subnet_exists ? (
+                                                                   var.infrastructure.virtual_networks.sap.subnet_admin.exists ? (
                                                                      data.azurerm_subnet.admin[0].address_prefixes[0]) : (
                                                                      azurerm_subnet.admin[0].address_prefixes[0]
                                                                    )) : (
@@ -121,7 +121,7 @@ output "subnet_cidr_client"                    {
 output "subnet_cidr_db"                        {
                                                    description = "DB subnet prefix"
                                                    value       = local.enable_db_deployment ? (
-                                                                   local.database_subnet_exists ? (
+                                                                   var.infrastructure.virtual_networks.sap.subnet_db.exists ? (
                                                                       data.azurerm_subnet.db[0].address_prefixes[0]) : (
                                                                       azurerm_subnet.db[0].address_prefixes[0]
                                                                     )) : (
@@ -133,7 +133,7 @@ output "subnet_cidr_db"                        {
 
 output "db_subnet"                               {
                                                    description = "Admin subnet object"
-                                                   value       = local.database_subnet_exists ? (
+                                                   value       = var.infrastructure.virtual_networks.sap.subnet_db.exists ? (
                                                                    data.azurerm_subnet.db[0]) : (
                                                                    azurerm_subnet.db[0]
                                                                  )
@@ -142,7 +142,7 @@ output "db_subnet"                               {
 output "db_subnet_netmask"                       {
                                                    description = "Database subnet netmask"
                                                    value       = local.enable_db_deployment ? (
-                                                                   local.database_subnet_exists ? (
+                                                                   var.infrastructure.virtual_networks.sap.subnet_db.exists ? (
                                                                      split("/", data.azurerm_subnet.db[0].address_prefixes[0])[1]) : (
                                                                      split("/", azurerm_subnet.db[0].address_prefixes[0])[1]
                                                                    )) : (
@@ -151,8 +151,8 @@ output "db_subnet_netmask"                       {
                                                  }
 output "storage_subnet"                          {
                                                    description = "Storage subnet"
-                                                   value       = local.enable_db_deployment && local.enable_storage_subnet ? (
-                                                                   local.sub_storage_exists ? (
+                                                   value       = local.enable_db_deployment && var.infrastructure.virtual_networks.sap.subnet_storage.defined ? (
+                                                                   var.infrastructure.virtual_networks.sap.subnet_storage.exists ? (
                                                                      data.azurerm_subnet.storage[0]) : (
                                                                      azurerm_subnet.storage[0]
                                                                    )) : (
@@ -162,8 +162,8 @@ output "storage_subnet"                          {
 
 output "subnet_cidr_storage"                   {
                                                    description = "Storage subnet prefix"
-                                                   value       = local.enable_db_deployment && local.enable_storage_subnet ? (
-                                                                   local.sub_storage_exists ? (
+                                                   value       = local.enable_db_deployment && var.infrastructure.virtual_networks.sap.subnet_storage.defined ? (
+                                                                   var.infrastructure.virtual_networks.sap.subnet_storage.exists ? (
                                                                      data.azurerm_subnet.storage[0].address_prefixes[0]) : (
                                                                      azurerm_subnet.storage[0].address_prefixes[0]
                                                                    )) : (
