@@ -25,7 +25,7 @@ resource "azurerm_network_security_group" "nsg_web" {
 # Imports the SAP web subnet nsg data
 data "azurerm_network_security_group" "nsg_web" {
   provider                             = azurerm.main
-  count                                = local.enable_deployment ? (var.infrastructure.virtual_networks.sap.subnet_web.nsg.exists ? 1 : 0) : 0
+  count                                = local.enable_deployment ? (var.infrastructure.virtual_networks.sap.subnet_web.nsg.exists || var.infrastructure.virtual_networks.sap.subnet_web.nsg.exists_in_workload ? 1 : 0) : 0
   name                                 = split("/", coalesce(var.infrastructure.virtual_networks.sap.subnet_web.id, var.infrastructure.virtual_networks.sap.subnet_web.id_in_workload))[8]
   resource_group_name                  = split("/", coalesce(var.infrastructure.virtual_networks.sap.subnet_web.id, var.infrastructure.virtual_networks.sap.subnet_web.id_in_workload))[4]
 }
@@ -34,7 +34,7 @@ data "azurerm_network_security_group" "nsg_web" {
 resource "azurerm_subnet_network_security_group_association" "Associate_nsg_web" {
   provider                             = azurerm.main
   depends_on                           = [azurerm_subnet.subnet_sap_web]
-  count                                = local.enable_deployment ? (var.infrastructure.virtual_networks.sap.subnet_web.nsg.exists ? 0 : 1) : 0
+  count                                = local.enable_deployment ? (var.infrastructure.virtual_networks.sap.subnet_web.nsg.exists || var.infrastructure.virtual_networks.sap.subnet_web.nsg.exists_in_workload ? 0 : 1) : 0
   subnet_id                            = var.infrastructure.virtual_networks.sap.subnet_web.exists ? (
                                            data.azurerm_subnet.subnet_sap_web[0].id) : (
                                            azurerm_subnet.subnet_sap_web[0].id
@@ -45,7 +45,7 @@ resource "azurerm_subnet_network_security_group_association" "Associate_nsg_web"
 # NSG rule to deny internet access
 resource "azurerm_network_security_rule" "webRule_internet" {
   provider                             = azurerm.main
-  count                                = local.enable_deployment ? (var.infrastructure.virtual_networks.sap.subnet_web.nsg.exists ? 0 : 1) : 0
+  count                                = local.enable_deployment ? (var.infrastructure.virtual_networks.sap.subnet_web.nsg.exists || var.infrastructure.virtual_networks.sap.subnet_web.nsg.exists_in_workload ? 0 : 1) : 0
   name                                 = "Internet"
   priority                             = 100
   direction                            = "Inbound"
