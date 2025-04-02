@@ -363,7 +363,7 @@ locals {
                                             exists                 = length(var.admin_subnet_arm_id) > 0
                                             prefix                 = var.admin_subnet_address_prefix
                                             defined                = length(var.admin_subnet_arm_id) == 0 ? length(var.admin_subnet_address_prefix) > 0 : false
-                                            exists_in_workload     = length(try(data.terraform_remote_state.landscape.outputs.admin_subnet_id), "") > 0
+                                            exists_in_workload     = length(try(data.terraform_remote_state.landscape.outputs.admin_subnet_id, "")) > 0
                                             id_in_workload         = data.terraform_remote_state.landscape.outputs.admin_subnet_id
                                             nsg                    = {
                                                                         name               = var.admin_subnet_nsg_name
@@ -380,13 +380,13 @@ locals {
                                             exists                 = length(var.db_subnet_arm_id) > 0
                                             prefix                 = var.db_subnet_address_prefix
                                             defined                = length(var.db_subnet_arm_id) == 0 ? length(var.db_subnet_address_prefix) > 0 : false
-                                            exists_in_workload     = length(try(data.terraform_remote_state.landscape.outputs.db_subnet_id), "") > 0
+                                            exists_in_workload     = length(try(data.terraform_remote_state.landscape.outputs.db_subnet_id, "")) > 0
                                             id_in_workload         = data.terraform_remote_state.landscape.outputs.db_subnet_id
                                             nsg                    = {
                                                                         name               = var.db_subnet_nsg_name
                                                                         id                 = var.db_subnet_nsg_arm_id
                                                                         exists             = length(var.db_subnet_nsg_arm_id) > 0
-                                                                        exists_in_workload = length(try(data.terraform_remote_state.landscape.outputs.db_nsg_id), "") > 0
+                                                                        exists_in_workload = length(try(data.terraform_remote_state.landscape.outputs.db_nsg_id, "")) > 0
                                                                         id_in_workload     = data.terraform_remote_state.landscape.outputs.db_nsg_id
                                                                       }
                                          }
@@ -403,7 +403,7 @@ locals {
                                                                         name               = var.app_subnet_nsg_name
                                                                         id                 = var.app_subnet_nsg_arm_id
                                                                         exists             = length(var.app_subnet_nsg_arm_id) > 0
-                                                                        exists_in_workload = length(try(data.terraform_remote_state.landscape.outputs.app_nsg_id), "") > 0
+                                                                        exists_in_workload = length(try(data.terraform_remote_state.landscape.outputs.app_nsg_id, "")) > 0
                                                                         id_in_workload     = data.terraform_remote_state.landscape.outputs.app_nsg_id
                                                                       }
                                          }
@@ -420,7 +420,7 @@ locals {
                                                                         name               = var.web_subnet_nsg_name
                                                                         id                 = var.web_subnet_nsg_arm_id
                                                                         exists             = length(var.web_subnet_nsg_arm_id) > 0
-                                                                        exists_in_workload = length(try(data.terraform_remote_state.landscape.outputs.web_nsg_id), "") > 0
+                                                                        exists_in_workload = length(try(data.terraform_remote_state.landscape.outputs.web_nsg_id, "")) > 0
                                                                         id_in_workload     = data.terraform_remote_state.landscape.outputs.web_nsg_id
                                                                       }
                                          }
@@ -439,7 +439,7 @@ locals {
                                                                        name               = var.storage_subnet_nsg_name
                                                                        id                 = var.storage_subnet_nsg_arm_id
                                                                        exists             = length(var.storage_subnet_nsg_arm_id) > 0
-                                                                       exists_in_workload = length(try(data.terraform_remote_state.landscape.outputs.storage_nsg_id), "") > 0
+                                                                       exists_in_workload = length(try(data.terraform_remote_state.landscape.outputs.storage_nsg_id, "")) > 0
                                                                        id_in_workload     = data.terraform_remote_state.landscape.outputs.storage_nsg_id
                                                                      }
                                          }
