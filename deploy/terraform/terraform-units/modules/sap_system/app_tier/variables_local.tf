@@ -82,7 +82,7 @@ locals {
   ##############################################################################################
 
   application_subnet_nsg_name          = var.infrastructure.virtual_networks.sap.subnet_app.nsg.exists || var.infrastructure.virtual_networks.sap.subnet_app.nsg.exists_in_workload ? (
-                                                    coalesce(var.infrastructure.virtual_networks.sap.subnet_app.nsg.id, var.infrastructure.virtual_networks.sap.subnet_app.nsg.id_in_workload)[8]) : (
+                                                    split("/",coalesce(var.infrastructure.virtual_networks.sap.subnet_app.nsg.id, var.infrastructure.virtual_networks.sap.subnet_app.nsg.id_in_workload)[8])) : (
                                                     coalesce(var.infrastructure.virtual_networks.sap.subnet_app.nsg.name,
                                                              format("%s%s%s%s",
                                                                var.naming.resource_prefixes.app_subnet_nsg,
@@ -123,7 +123,7 @@ locals {
   ##############################################################################################
 
   web_subnet_nsg_name                  = var.infrastructure.virtual_networks.sap.subnet_web.nsg.exists || var.infrastructure.virtual_networks.sap.subnet_web.nsg.exists_in_workload ? (
-                                                    coalesce(var.infrastructure.virtual_networks.sap.subnet_web.nsg.id, var.infrastructure.virtual_networks.sap.subnet_web.nsg.id_in_workload)[8]) : (
+                                                    split("/",coalesce(var.infrastructure.virtual_networks.sap.subnet_web.nsg.id, var.infrastructure.virtual_networks.sap.subnet_web.nsg.id_in_workload)[8])) : (
                                                     coalesce(var.infrastructure.virtual_networks.sap.subnet_web.nsg.name,
                                                              format("%s%s%s%s",
                                                                var.naming.resource_prefixes.web_subnet_nsg,
