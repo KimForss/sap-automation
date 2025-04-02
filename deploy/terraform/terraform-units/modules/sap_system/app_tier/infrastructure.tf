@@ -25,7 +25,7 @@ resource "azurerm_subnet" "subnet_sap_app" {
 
 data "azurerm_subnet" "subnet_sap_app" {
   provider                             = azurerm.main
-  count                                = local.enable_deployment ? (var.infrastructure.virtual_networks.sap.subnet_app.exists ? 1 : 0) : 0
+  count                                = local.enable_deployment ? (var.infrastructure.virtual_networks.sap.subnet_app.exists || var.infrastructure.virtual_networks.sap.subnet_app.exists_in_workload ? 1 : 0) : 0
   name                                 = split("/", coalesce(var.infrastructure.virtual_networks.sap.subnet_app.id, var.infrastructure.virtual_networks.sap.subnet_app.id_in_workload))[10]
   resource_group_name                  = split("/", coalesce(var.infrastructure.virtual_networks.sap.subnet_app.id, var.infrastructure.virtual_networks.sap.subnet_app.id_in_workload))[4]
   virtual_network_name                 = split("/", coalesce(var.infrastructure.virtual_networks.sap.subnet_app.id, var.infrastructure.virtual_networks.sap.subnet_app.id_in_workload))[8]
@@ -66,7 +66,7 @@ resource "azurerm_subnet" "subnet_sap_web" {
 # Imports data of existing SAP web dispatcher subnet
 data "azurerm_subnet" "subnet_sap_web" {
   provider                             = azurerm.main
-  count                                = local.enable_deployment ? (var.infrastructure.virtual_networks.sap.subnet_web.defined ? 0 : 1) : 0
+  count                                = local.enable_deployment ? (var.infrastructure.virtual_networks.sap.subnet_web.exists || var.infrastructure.virtual_networks.sap.subnet_web.exists_in_workload ? 1 : 0) : 0
   name                                 = split("/", coalesce(var.infrastructure.virtual_networks.sap.subnet_web.id, var.infrastructure.virtual_networks.sap.subnet_web.id_in_workload))[10]
   resource_group_name                  = split("/", coalesce(var.infrastructure.virtual_networks.sap.subnet_web.id, var.infrastructure.virtual_networks.sap.subnet_web.id_in_workload))[4]
   virtual_network_name                 = split("/", coalesce(var.infrastructure.virtual_networks.sap.subnet_web.id, var.infrastructure.virtual_networks.sap.subnet_web.id_in_workload))[8]
