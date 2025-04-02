@@ -31,7 +31,7 @@ resource "azurerm_subnet_route_table_association" "admin" {
 // Imports data of existing SAP admin subnet
 data "azurerm_subnet" "admin" {
   provider                             = azurerm.main
-  count                                = local.enable_admin_subnet ? var.infrastructure.virtual_networks.sap.subnet_db.defined  ? 0 : 1 : 0
+  count                                = local.enable_admin_subnet ? var.infrastructure.virtual_networks.sap.subnet_admin.exists || var.infrastructure.virtual_networks.sap.subnet_admin.exists_in_workload ? 1 : 0 ? 0 : 1 : 0
   name                                 = split("/", coalesce(var.infrastructure.virtual_networks.sap.subnet_admin.id, var.infrastructure.virtual_networks.sap.subnet_admin.id_in_workload))[10]
   resource_group_name                  = split("/", coalesce(var.infrastructure.virtual_networks.sap.subnet_admin.id, var.infrastructure.virtual_networks.sap.subnet_admin.id_in_workload))[4]
   virtual_network_name                 = split("/", coalesce(var.infrastructure.virtual_networks.sap.subnet_admin.id, var.infrastructure.virtual_networks.sap.subnet_admin.id_in_workload))[8]
@@ -56,7 +56,7 @@ resource "azurerm_subnet" "db" {
 // Imports data of existing db subnet
 data "azurerm_subnet" "db" {
   provider                             = azurerm.main
-  count                                = var.infrastructure.virtual_networks.sap.subnet_db.defined ? 0 : 1
+  count                                = var.infrastructure.virtual_networks.sap.subnet_db.exists || var.infrastructure.virtual_networks.sap.subnet_db.exists_in_workload ? 1 : 0
   name                                 = split("/", coalesce(var.infrastructure.virtual_networks.sap.subnet_db.id, var.infrastructure.virtual_networks.sap.subnet_db.id_in_workload))[10]
   resource_group_name                  = split("/", coalesce(var.infrastructure.virtual_networks.sap.subnet_db.id, var.infrastructure.virtual_networks.sap.subnet_db.id_in_workload))[4]
   virtual_network_name                 = split("/", coalesce(var.infrastructure.virtual_networks.sap.subnet_db.id, var.infrastructure.virtual_networks.sap.subnet_db.id_in_workload))[8]
@@ -93,7 +93,7 @@ resource "azurerm_subnet" "storage" {
 // Imports data of existing db subnet
 data "azurerm_subnet" "storage" {
   provider                             = azurerm.main
-  count                                = var.infrastructure.virtual_networks.sap.subnet_storage.defined ? 0 : 1
+  count                                = var.infrastructure.virtual_networks.sap.subnet_storage.exists || var.infrastructure.virtual_networks.sap.subnet_storage.exists_in_workload ? 1 : 0
   name                                 = split("/", coalesce(var.infrastructure.virtual_networks.sap.subnet_storage.id, var.infrastructure.virtual_networks.sap.subnet_storage.id_in_workload))[10]
   resource_group_name                  = split("/", coalesce(var.infrastructure.virtual_networks.sap.subnet_storage.id, var.infrastructure.virtual_networks.sap.subnet_storage.id_in_workload))[4]
   virtual_network_name                 = split("/", coalesce(var.infrastructure.virtual_networks.sap.subnet_storage.id, var.infrastructure.virtual_networks.sap.subnet_storage.id_in_workload))[8]
