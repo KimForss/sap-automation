@@ -217,7 +217,7 @@ locals {
   ##############################################################################################
 
   admin_subnet_nsg_name                           = var.infrastructure.virtual_networks.sap.subnet_admin.nsg.exists || var.infrastructure.virtual_networks.sap.subnet_admin.nsg.exists_in_workload ? (
-                                                    split("/",coalesce(var.infrastructure.virtual_networks.sap.subnet_admin.nsg.id, var.infrastructure.virtual_networks.sap.subnet_admin.nsg.id_in_workload))[8]) : (
+                                                    split("/",coalesce(var.infrastructure.virtual_networks.sap.subnet_admin.nsg.id, var.infrastructure.virtual_networks.sap.subnet_admin.nsg.id_in_workload)))[8] : (
                                                     coalesce(var.infrastructure.virtual_networks.sap.subnet_admin.nsg.name,
                                                              format("%s%s%s%s",
                                                                var.naming.resource_prefixes.admin_subnet_nsg,
@@ -259,7 +259,7 @@ locals {
   ##############################################################################################
 
   database_subnet_nsg_name                        = var.infrastructure.virtual_networks.sap.subnet_db.nsg.exists || var.infrastructure.virtual_networks.sap.subnet_db.nsg.exists_in_workload ? (
-                                                    split("/",coalesce(var.infrastructure.virtual_networks.sap.subnet_db.nsg.id, var.infrastructure.virtual_networks.sap.subnet_db.nsg.id_in_workload))[8]) : (
+                                                    split("/",coalesce(var.infrastructure.virtual_networks.sap.subnet_db.nsg.id, var.infrastructure.virtual_networks.sap.subnet_db.nsg.id_in_workload)))[8] : (
                                                     coalesce(var.infrastructure.virtual_networks.sap.subnet_db.nsg.name,
                                                              format("%s%s%s%s",
                                                                var.naming.resource_prefixes.db_subnet_nsg,
@@ -335,7 +335,7 @@ locals {
 
 
   storage_subnet_nsg_name                = var.infrastructure.virtual_networks.sap.subnet_storage.nsg.exists || var.infrastructure.virtual_networks.sap.subnet_storage.nsg.exists_in_workload ? (
-                                            split("/",coalesce(var.infrastructure.virtual_networks.sap.subnet_storage.nsg.id, var.infrastructure.virtual_networks.sap.subnet_storage.nsg.id_in_workload))[8]) : (
+                                            split("/",coalesce(var.infrastructure.virtual_networks.sap.subnet_storage.nsg.id, var.infrastructure.virtual_networks.sap.subnet_storage.nsg.id_in_workload)))[8] : (
                                             coalesce(var.infrastructure.virtual_networks.sap.subnet_storage.nsg.name,
                                                      format("%s%s%s%s",
                                                        var.naming.resource_prefixes.storage_subnet_nsg,
