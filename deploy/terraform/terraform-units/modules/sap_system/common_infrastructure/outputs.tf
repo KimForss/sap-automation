@@ -121,9 +121,9 @@ output "subnet_cidr_client"                    {
 output "subnet_cidr_db"                        {
                                                    description = "DB subnet prefix"
                                                    value       = local.enable_db_deployment ? (
-                                                                   var.infrastructure.virtual_networks.sap.subnet_db.exists ? (
-                                                                      data.azurerm_subnet.db[0].address_prefixes[0]) : (
-                                                                      azurerm_subnet.db[0].address_prefixes[0]
+                                                                   var.infrastructure.virtual_networks.sap.subnet_db.defined ? (
+                                                                      azurerm_subnet.db[0].address_prefixes[0]) : (
+                                                                      data.azurerm_subnet.db[0].address_prefixes[0]
                                                                     )) : (
                                                                    ""
                                                                  )
@@ -142,9 +142,9 @@ output "db_subnet"                               {
 output "db_subnet_netmask"                       {
                                                    description = "Database subnet netmask"
                                                    value       = local.enable_db_deployment ? (
-                                                                   var.infrastructure.virtual_networks.sap.subnet_db.exists ? (
-                                                                     split("/", data.azurerm_subnet.db[0].address_prefixes[0])[1]) : (
-                                                                     split("/", azurerm_subnet.db[0].address_prefixes[0])[1]
+                                                                   var.infrastructure.virtual_networks.sap.subnet_db.defined ? (
+                                                                     split("/", azurerm_subnet.db[0].address_prefixes[0])[1]) : (
+                                                                     split("/", data.azurerm_subnet.db[0].address_prefixes[0])[1]
                                                                    )) : (
                                                                    null
                                                                  )
