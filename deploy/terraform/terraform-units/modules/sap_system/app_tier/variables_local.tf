@@ -506,11 +506,10 @@ locals {
 
   web_dispatcher_primary_ips           = [
                                            {
-                                             name      = "IPConfig1"
-                                             subnet_id = local.enable_deployment && local.webdispatcher_count > 0 ? (
-                                                           var.infrastructure.virtual_networks.sap.subnet_web.exists || var.infrastructure.virtual_networks.sap.subnet_web.exists_in_workload ? (data.azurerm_subnet.subnet_sap_web[0].id) : (azurerm_subnet.subnet_sap_web[0].id)) : (
-                                                           "")
-
+                                             name                          = "IPConfig1"
+                                             subnet_id                     = local.enable_deployment && local.webdispatcher_count > 0 ? (
+                                                                               var.infrastructure.virtual_networks.sap.subnet_web.exists || var.infrastructure.virtual_networks.sap.subnet_web.exists_in_workload ? (data.azurerm_subnet.subnet_sap_web[0].id) : (azurerm_subnet.subnet_sap_web[0].id)) : (
+                                                                               "")
                                              nic_ips                       = local.web_nic_ips
                                              private_ip_address_allocation = var.application_tier.use_DHCP ? "Dynamic" : "Static"
                                              offset                        = 0
@@ -525,6 +524,10 @@ locals {
                                                                                var.infrastructure.virtual_networks.sap.subnet_web.exists  || var.infrastructure.virtual_networks.sap.subnet_web.exists_in_workload ? (data.azurerm_subnet.subnet_sap_web[0].id) : (azurerm_subnet.subnet_sap_web[0].id)) : (
                                                                                "")
                                              offset                        = local.webdispatcher_count
+                                             nic_ips                       = local.web_nic_secondary_ips
+                                             private_ip_address_allocation = var.application_tier.use_DHCP ? "Dynamic" : "Static"
+                                             offset                        = local.webdispatcher_count
+                                             primary                       = false
                                            }
                                          ]
 
