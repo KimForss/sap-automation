@@ -329,9 +329,9 @@ locals {
                                                       ),
                                                       var.naming.separator,
                                                       local.resource_suffixes.db_subnet))): (
-                                           coalesce(try(split("/", var.infrastructure.virtual_networks.sap.subnet_storage.id)[10],""),
-                                                    split("/", var.infrastructure.virtual_networks.sap.subnet_storage.id_in_workload)[10])
-                                                      )
+                                           trimspace(coalesce(try(split("/", var.infrastructure.virtual_networks.sap.subnet_storage.id)[10],""),
+                                                    try(split("/", var.infrastructure.virtual_networks.sap.subnet_storage.id_in_workload)[10], " "))
+                                                      ))
 
 
   storage_subnet_nsg_name                = var.infrastructure.virtual_networks.sap.subnet_storage.nsg.exists || var.infrastructure.virtual_networks.sap.subnet_storage.nsg.exists_in_workload ? (
