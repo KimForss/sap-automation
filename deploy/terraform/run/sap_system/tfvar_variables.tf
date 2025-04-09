@@ -1523,7 +1523,7 @@ variable "patch_assessment_mode"                {
                                                   default     = "ImageDefault"
                                                 }
 
-variable "platform_updates"                {
+variable "platform_updates"                    {
                                                   description = "Specifies whether VMAgent Platform Updates is enabled"
                                                   default     = "true"
                                                 }

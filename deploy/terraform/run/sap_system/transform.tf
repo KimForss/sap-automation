@@ -16,12 +16,12 @@ locals {
                                             deploy_defender_extension          = var.deploy_defender_extension
                                             patch_mode                         = var.patch_mode
                                             patch_assessment_mode              = var.patch_assessment_mode
-                                            platform_updates                 = var.platform_updates
+                                            platform_updates                   = var.platform_updates
                                             shared_access_key_enabled          = var.shared_access_key_enabled
                                             shared_access_key_enabled_nfs      = var.shared_access_key_enabled_nfs
                                             disk_controller_type_app_tier      = var.disk_controller_type_app_tier
                                             disk_controller_type_database_tier = var.disk_controller_type_database_tier
-                                            encryption_at_host_enabled       = var.encryption_at_host_enabled
+                                            encryption_at_host_enabled         = var.encryption_at_host_enabled
                                          }
 
 
