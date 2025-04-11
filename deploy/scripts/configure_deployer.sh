@@ -87,7 +87,8 @@ distro_name=""
 distro_version=""
 distro_name_version=""
 error() {
-	echo 1>&2 "ERROR: ${@}"
+	# echo 1>&2 "ERROR: ${@}"
+	echo 1>&2 "ERROR: $*"
 }
 
 get_distro_name() {
@@ -794,12 +795,26 @@ chown -R "${USER}" "${asad_home}"
 # echo "export DOTNET_ROOT=/snap/dotnet-sdk/current" | tee -a /tmp/deploy_server.sh
 
 # Ensure that the user's account is logged in to Azure with specified creds
-echo 'az login --identity --output none' | tee -a /tmp/deploy_server.sh
+# if ARM_USE_MSI is true, then use the client_id for the login; otherwise use the
+# user account
+if [ "${ARM_USE_MSI}" == "true" ]; then
+	echo "az login --identity --client-id ${ARM_CLIENT_ID} --output none" | tee -a /tmp/deploy_server.sh
+else
+	# Ensure that the user's account is logged in to Azure with specified creds
+	echo 'az login --identity --output none' | tee -a /tmp/deploy_server.sh
+fi
+
+
 # shellcheck disable=SC2016
 echo 'echo ${USER} account ready for use with Azure SAP Automated Deployment' | tee -a /tmp/deploy_server.sh
 
 sudo cp /tmp/deploy_server.sh /etc/profile.d/deploy_server.sh
 sudo rm /tmp/deploy_server.sh
 
-/usr/bin/az login --identity --output none
+if [ "${ARM_USE_MSI}" == "true" ]; then
+	/usr/bin/az login --identity --client-id "${ARM_CLIENT_ID}" --output none
+else
+	/usr/bin/az login --identity --output none
+fi
+
 echo "${USER} account ready for use with Azure SAP Automated Deployment"
