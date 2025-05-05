@@ -27,7 +27,6 @@ data "azurerm_key_vault_secret" "subscription_id" {
                                                   }
 
 
-
 data "azurerm_key_vault_secret" "client_id"       {
                                                     count        = length(local.key_vault.id) > 0 ? (var.use_deployer && var.use_spn ? 1 : 0) : 0
                                                     name         = format("%s-client-id", var.use_deployer ? upper(coalesce(try(data.terraform_remote_state.deployer[0].outputs.control_plane_name, ""), var.control_plane_name)) : upper(var.control_plane_name))

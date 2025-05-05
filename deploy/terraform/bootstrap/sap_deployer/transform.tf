@@ -148,6 +148,7 @@ locals {
                                            deployer_public_ip_tags             = try(var.deployer_public_ip_tags, {})
                                            license_type                        = var.license_type
 
+
                                          }
 
   authentication                       = {
