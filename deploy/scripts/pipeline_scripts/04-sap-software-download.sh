@@ -46,8 +46,6 @@ echo -e "$green--- az login ---$reset"
 if [ ! -f /etc/profile.d/deploy_server.sh ]; then
   echo -e "$green--- az login ---$reset"
   LogonToAzure false
-else
-  LogonToAzure "$USE_MSI"
 fi
 return_code=$?
 

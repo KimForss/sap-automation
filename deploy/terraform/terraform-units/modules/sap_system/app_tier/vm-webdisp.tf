@@ -34,11 +34,11 @@ resource "azurerm_network_interface" "web" {
                                               null) : (
                                               var.infrastructure.virtual_networks.sap.subnet_web.defined ?
                                               cidrhost(
-                                                local.web_subnet_prefix,
+                                                var.infrastructure.virtual_networks.sap.subnet_web.prefix,
                                                 (tonumber(count.index) + local.ip_offsets.web_vm + pub.value.offset)
                                               ) :
                                               cidrhost(
-                                                local.application_subnet_prefix,
+                                                var.infrastructure.virtual_networks.sap.subnet_app.prefix,
                                                 (tonumber(count.index) * -1 + local.ip_offsets.web_vm + pub.value.offset)
                                               )
                                             )
@@ -552,15 +552,15 @@ resource "azurerm_lb" "web" {
                                 var.naming.separator,
                                 local.resource_suffixes.web_alb_feip
                               )
-                              subnet_id = local.web_subnet_deployed_id
+                              subnet_id = var.infrastructure.virtual_networks.sap.subnet_web.defined ? (azurerm_subnet.subnet_sap_web[0].id) : (data.azurerm_subnet.subnet_sap_web[0].id)
                               private_ip_address = var.application_tier.use_DHCP ? (
                                 null) : (
                                 try(
                                   local.webdispatcher_loadbalancer_ips[0],
                                   cidrhost(
-                                    local.web_subnet_exists ? (
-                                             data.azurerm_subnet.subnet_sap_web[0].address_prefixes[0]) : (
-                                             azurerm_subnet.subnet_sap_web[0].address_prefixes[0]
+                                    var.infrastructure.virtual_networks.sap.subnet_web.defined ? (
+                                             azurerm_subnet.subnet_sap_web[0].address_prefixes[0]) : (
+                                             data.azurerm_subnet.subnet_sap_web[0].address_prefixes[0]
                                          ),
                                     local.ip_offsets.web_lb
                                   )

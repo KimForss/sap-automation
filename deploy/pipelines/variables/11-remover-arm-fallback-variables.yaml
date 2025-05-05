@@ -2,49 +2,46 @@
 # Licensed under the MIT License.
 
 parameters:
-  deployer: ""
-  deployer_environment: ""
-  library: ""
-  sap_system: ""
-  workload_environment: ""
-  workload_zone: ""
-  cleanup_workload_zone: false
-  cleanup_control_plane: false
-  connection_name: ""
+  sap_system:                          ""
+  cleanup_workload_zone:               false
+  workload_zone_name:                  ""
+  cleanup_control_plane:               false
+  control_plane_name:                  ""
+  connection_name:                     ""
 
 variables:
-  - group: "SDAF-General"
+  - group:                             "SDAF-General"
 
-  - group: SDAF-${{ parameters.deployer_environment }}
+  - group:                             SDAF-${{ parameters.control_plane_name }}
 
-  - group: SDAF-${{ parameters.workload_environment }}
+  - group:                             SDAF-${{ parameters.workload_zone_name }}
 
-  - name: parent_variable_group
-    value: SDAF-${{ parameters.deployer_environment }}
+  - name:                              parent_variable_group
+    value:                             SDAF-${{ parameters.control_plane_name }}
 
-  - name: variable_group
-    value: SDAF-${{ parameters.workload_environment }}
+  - name:                              variable_group
+    value:                             SDAF-${{ parameters.workload_zone_name }}
 
-  - name: deployer_foldername
-    value: ${{ parameters.deployer }}
+  - name:                              workload_zone_foldername
+    value:                             ${{ parameters.workload_zone_name }}-INFRASTRUCTURE
 
-  - name: deployer_config
-    value: ${{ parameters.deployer }}.tfvars
+  - name:                              workload_zone_config
+    value:                             ${{ parameters.workload_zone_name }}-INFRASTRUCTURE.tfvars
 
-  - name: library_foldername
-    value: ${{ parameters.library }}
+  - name:                              sap_system_foldername
+    value:                             ${{ parameters.sap_system }}
 
-  - name: library_config
-    value: ${{ parameters.library }}.tfvars
+  - name:                              sap_system_config
+    value:                             ${{ parameters.sap_system }}.tfvars
 
-  - name: workload_zone_foldername
-    value: ${{ parameters.workload_zone }}
+  - name:                              library_foldername
+    value:                             $[format('{0}-{1}-SAP_LIBRARY', split('${{ parameters.control_plane_name }}', '-')[0], split('${{ parameters.control_plane_name }}', '-')[1])]
 
-  - name: workload_zone_config
-    value: ${{ parameters.workload_zone }}.tfvars
+  - name:                              library_config
+    value:                             $[format('{0}-{1}-SAP_LIBRARY.tfvars', split('${{ parameters.control_plane_name }}', '-')[0], split('${{ parameters.control_plane_name }}', '-')[1])]
 
-  - name: sap_system_foldername
-    value: ${{ parameters.sap_system }}
+  - name:                              deployer_foldername
+    value:                             $[format('{0}-INFRASTRUCTURE', '${{ parameters.control_plane_name }}')]
 
-  - name: sap_system_config
-    value: ${{ parameters.sap_system }}.tfvars
+  - name:                              deployer_config
+    value:                             $[format('{0}-INFRASTRUCTURE.tfvars', '${{ parameters.control_plane_name }}')]

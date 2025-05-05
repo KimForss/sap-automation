@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Threading.Tasks;
+using Microsoft.TeamFoundation.Common;
 
 namespace SDAFWebApp.Controllers
 {
@@ -92,6 +93,11 @@ namespace SDAFWebApp.Controllers
         {
             try
             {
+                if(newName.IsNullOrEmpty())
+                {
+                    newName = environment.name;
+
+                }
                 await restHelper.UpdateVariableGroup(environment, newName, description);
                 TempData["success"] = "Successfully edited environment: " + newName;
                 return RedirectToAction("Index");

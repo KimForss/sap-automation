@@ -44,7 +44,6 @@ namespace SDAFWebApp
                     return new ArmClient(new DefaultAzureCredential(
                 new DefaultAzureCredentialOptions
                     {
-                        TenantId = Environment.GetEnvironmentVariable("AZURE_TENANT_ID"),
                         ManagedIdentityClientId = Environment.GetEnvironmentVariable("OVERRIDE_USE_MI_FIC_ASSERTION_CLIENTID")
                     }));
                 });

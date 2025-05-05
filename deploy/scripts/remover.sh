@@ -16,7 +16,7 @@ reset_formatting="\e[0m"
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 
-#call stack has full scriptname when using source
+#call stack has full script name when using source
 source "${script_directory}/deploy_utils.sh"
 
 #helper files
@@ -390,6 +390,10 @@ if [ -f .terraform/terraform.tfstate ]; then
 			exit 1
 		fi
 	else
+		STATE_SUBSCRIPTION=$(grep -m1 "subscription_id" "${param_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
+		REMOTE_STATE_SA=$(grep -m1 "storage_account_name" "${param_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
+		REMOTE_STATE_RG=$(grep -m1 "resource_group_name" "${param_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
+
 		if terraform -chdir="${terraform_module_directory}" init -reconfigure \
 			--backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
 			--backend-config "resource_group_name=${REMOTE_STATE_RG}" \
@@ -452,7 +456,7 @@ if [ "$resource_group_exist" ]; then
 			"$deployer_tfstate_key_parameter"
 
 		echo -e "#$cyan processing $deployment_system removal as defined in $parameterfile_name $reset_formatting"
-		terraform -chdir="${terraform_module_directory}" destroy -var-file="${var_file}" \
+		terraform -chdir="${terraform_module_directory}" destroy -refresh=false -var-file="${var_file}" \
 			"$deployer_tfstate_key_parameter"
 
 	elif [ "$deployment_system" == "sap_library" ]; then
@@ -474,7 +478,7 @@ if [ "$resource_group_exist" ]; then
 		terraform -chdir="${terraform_bootstrap_directory}" refresh -var-file="${var_file}" \
 			"$deployer_tfstate_key_parameter"
 
-		terraform -chdir="${terraform_bootstrap_directory}" destroy -var-file="${var_file}" "${approve}" -var use_deployer=false \
+		terraform -chdir="${terraform_bootstrap_directory}" destroy -refresh=false -var-file="${var_file}" "${approve}" -var use_deployer=false \
 			"$deployer_tfstate_key_parameter"
 	elif [ "$deployment_system" == "sap_landscape" ]; then
 
@@ -546,8 +550,8 @@ if [ "$resource_group_exist" ]; then
 		fi
 		if [ -n "${approve}" ]; then
 			# shellcheck disable=SC2086
-			if terraform -chdir="${terraform_module_directory}" destroy $allParameters "$approve" -no-color -json -parallelism="$parallelism" | tee destroy_output.json; then
-				return_value=${PIPESTATUS[0]}
+			if terraform -chdir="${terraform_module_directory}" destroy -refresh=false $allParameters "$approve" -no-color -json -parallelism="$parallelism" | tee -a destroy_output.json; then
+				return_value=$?
 			else
 				return_value=${PIPESTATUS[0]}
 			fi
@@ -560,7 +564,7 @@ if [ "$resource_group_exist" ]; then
 
 		else
 			# shellcheck disable=SC2086
-			if terraform -chdir="${terraform_module_directory}" destroy $allParameters -parallelism="$parallelism"; then
+			if terraform -chdir="${terraform_module_directory}" destroy -refresh=false $allParameters -parallelism="$parallelism"; then
 				return_value=$?
 			else
 				return_value=$?
@@ -586,12 +590,8 @@ if [ "$resource_group_exist" ]; then
 
 		if [ -n "${approve}" ]; then
 			# shellcheck disable=SC2086
-			if terraform -chdir="${terraform_module_directory}" destroy $allParameters "$approve" -no-color -json -parallelism="$parallelism" | tee destroy_output.json; then
-				return_value=${PIPESTATUS[0]}
-			else
-				return_value=${PIPESTATUS[0]}
-			fi
-			if [ 0 == $return_value ]; then
+			if terraform -chdir="${terraform_module_directory}" destroy -refresh=false $allParameters "$approve" -no-color -json -parallelism="$parallelism" | tee -a destroy_output.json; then
+				return_value=$?
 				echo ""
 				echo -e "${cyan}Terraform destroy:                     succeeded$reset_formatting"
 				echo ""
@@ -604,7 +604,7 @@ if [ "$resource_group_exist" ]; then
 			fi
 		else
 			# shellcheck disable=SC2086
-			if terraform -chdir="${terraform_module_directory}" destroy $allParameters -parallelism="$parallelism"; then
+			if terraform -chdir="${terraform_module_directory}" destroy -refresh=false $allParameters -parallelism="$parallelism"; then
 				return_value=$?
 				echo ""
 				echo -e "${cyan}Terraform destroy:                     succeeded$reset_formatting"

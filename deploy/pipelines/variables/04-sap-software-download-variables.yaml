@@ -1,11 +1,11 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-#--------------------------------------+---------------------------------------8
+# -------------------------------------+---------------------------------------8
 #                                                                              |
 # Defines the parameters and variables for the SAP software download           |
 #                                                                              |
-#--------------------------------------+---------------------------------------8
+# -------------------------------------+---------------------------------------8
 
 parameters:
   bom_base_name:                       ""
@@ -17,19 +17,16 @@ parameters:
 variables:
   - group:                             "SDAF-General"
 
-  - group:                             SDAF-${{ parameters.environment }}
+  - group:                             SDAF-${{ parameters.control_plane_name }}
 
   - name:                              bom
     value:                             $[coalesce(variables['BoM_OverRide'], '${{ parameters.bom_base_name }}','foo')]
 
   - name:                              variable_group
-    value:                             SDAF-${{ parameters.environment }}
+    value:                             SDAF-${{ parameters.control_plane_name }}
 
-  - name:                              environment_code
-    value:                             ${{ parameters.environment }}
-
-  - name:                              location_code
-    value:                             ${{ parameters.region }}
+  - name:                              control_plane_name
+    value:                             ${{ parameters.control_plane_name }}
 
   - name:                              check_storage_account
     value:                             $[not( ${{ parameters.re_download }} )]

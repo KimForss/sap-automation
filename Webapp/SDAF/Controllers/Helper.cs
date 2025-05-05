@@ -52,6 +52,7 @@ namespace SDAFWebApp.Controllers
                 {"jioindiawest", "jinw"},
                 {"koreacentral", "koce"},
                 {"koreasouth", "koso"},
+                {"newzealandnorth", "nzno"},
                 {"northcentralus", "ncus"},
                 {"northeurope", "noeu"},
                 {"norwayeast", "noea"},
@@ -129,7 +130,7 @@ namespace SDAFWebApp.Controllers
                         str.AppendLine($"  \"{t.Key}\" = \"{t.Value}\",");
                     }
                 }
-                str.Append("}");
+                str.Append('}');
             }
             else if (property.PropertyType.IsArray)
             {
@@ -140,7 +141,7 @@ namespace SDAFWebApp.Controllers
                     str.Append($"\"{val}\", ");
                 }
                 str.Remove(str.Length - 2, 2);
-                str.Append("]");
+                str.Append(']');
             }
             else if (property.PropertyType == typeof(Image))
             {
@@ -156,7 +157,7 @@ namespace SDAFWebApp.Controllers
                     str.AppendLine("  sku = " + $"\"{img.sku}\",");
                     str.AppendLine("  version = " + $"\"{img.version}\",");
                     str.AppendLine("  type = " + $"\"{img.type}\"");
-                    str.Append("}");
+                    str.Append('}');
                 }
                 else
                 {
@@ -178,7 +179,19 @@ namespace SDAFWebApp.Controllers
             else
             {
                 if (value == null) return "#" + property.Name + " = \"\"";
-                str.Append(property.Name + " = " + $"\"{value}\"");
+                if (property.Name == "network_address_space")
+                {
+                    str.Append(property.Name + " = [ " + $"\"{value}\" ]");
+                }
+                else if (property.Name == "subscription_id")
+                {
+                    String subscriptionId = (string)value;
+                    str.Append(property.Name + " = \"" + subscriptionId.Replace("/subscriptions/","") + "\"");
+                }
+                else
+                {
+                    str.Append(property.Name + " = " + $"\"{value}\"");
+                }
             }
 
             return str.ToString();
@@ -188,9 +201,9 @@ namespace SDAFWebApp.Controllers
             Commit commit = new()
             {
                 comment = $"{changeType}ed {path}",
-                changes = new Change[]
-                {
-                    new Change()
+                changes =
+                [
+                    new()
                     {
                         changeType = changeType,
                         item = new Item()
@@ -203,9 +216,9 @@ namespace SDAFWebApp.Controllers
                             contentType = "rawtext"
                         }
                     }
-                }
+                ]
             };
-            requestBody.commits = new Commit[] { commit };
+            requestBody.commits = [commit];
             string requestJson = JsonSerializer.Serialize(requestBody);
             return new StringContent(requestJson, Encoding.ASCII, "application/json");
         }
@@ -229,12 +242,12 @@ namespace SDAFWebApp.Controllers
             if (model.GetType() == typeof(LandscapeModel))
             {
                 LandscapeModel landscape = (LandscapeModel)Convert.ChangeType(model, typeof(LandscapeModel));
-                id = (landscape.environment + "-" + MapRegion(landscape.location) + "-" + landscape.network_logical_name + "-infrastructure").ToUpper();
+                id = (landscape.workloadZoneName+ "-infrastructure").ToUpper();
             }
             else if (model.GetType() == typeof(SystemModel))
             {
                 SystemModel system = (SystemModel)Convert.ChangeType(model, typeof(SystemModel));
-                id = (system.environment + "-" + MapRegion(system.location) + "-" + system.network_logical_name + "-" + system.sid).ToUpper();
+                id = (system.workloadZoneName + "-" + system.sid).ToUpper();
             }
             else
             {
@@ -245,9 +258,9 @@ namespace SDAFWebApp.Controllers
         public static string MapRegion(string region)
         {
             if (region == null) return "";
-            if (regionMapping.ContainsKey(region))
+            if (regionMapping.TryGetValue(region, out string value))
             {
-                return regionMapping[region];
+                return value;
             }
             else
             {
@@ -266,7 +279,7 @@ namespace SDAFWebApp.Controllers
             // a display name.
             MemberInfo property =
                 typeof(FileUploadModel).GetProperty(
-                    formFile.Name[(formFile.Name.IndexOf(".", StringComparison.Ordinal) + 1)..]);
+                    formFile.Name[(formFile.Name.IndexOf('.', StringComparison.Ordinal) + 1)..]);
 
             if (property != null)
             {
@@ -287,7 +300,7 @@ namespace SDAFWebApp.Controllers
                 modelState.AddModelError(formFile.Name,
                     $"{fieldDisplayName}({trustedFileNameForDisplay}) is empty.");
 
-                return Array.Empty<byte>();
+                return [];
             }
 
             if (formFile.Length > sizeLimit)
@@ -297,7 +310,7 @@ namespace SDAFWebApp.Controllers
                     $"{fieldDisplayName}({trustedFileNameForDisplay}) exceeds " +
                     $"{megabyteSizeLimit:N1} MB.");
 
-                return Array.Empty<byte>();
+                return [];
             }
             Regex rx = new(@"^\w{0,5}-\w{4}-\w{0,7}-\w{0,15}\.tfvars$");
             if (!rx.IsMatch(formFile.FileName))
@@ -305,7 +318,7 @@ namespace SDAFWebApp.Controllers
                 modelState.AddModelError(formFile.Name,
                     $"{fieldDisplayName}({trustedFileNameForDisplay}) is named incorrectly");
 
-                return Array.Empty<byte>();
+                return [];
             }
 
             try
@@ -339,7 +352,7 @@ namespace SDAFWebApp.Controllers
                     $"Please contact the Help Desk for support. Error: {ex.HResult}");
             }
 
-            return Array.Empty<byte>();
+            return [];
         }
 
         private static bool IsValidFileExtension(string fileName, Stream data, string[] permittedExtensions)
@@ -358,7 +371,6 @@ namespace SDAFWebApp.Controllers
 
             return true;
         }
-
         public static string TfvarToJson(string hclString)
         {
             StringReader stringReader = new(hclString);
@@ -373,22 +385,22 @@ namespace SDAFWebApp.Controllers
                     jsonString.AppendLine("}");
                     break;
                 }
-                else if (currLine.StartsWith("#") || currLine == "")
+                else if (currLine.StartsWith('#') || currLine == "")
                 {
                     continue;
                 }
-                else if (currLine.StartsWith("}"))
+                else if (currLine.TrimStart().StartsWith('}'))
                 {
                     jsonString.Remove(jsonString.Length - 3, 1);
                     jsonString.AppendLine("},");
                 }
                 else
                 {
-                    int equalIndex = currLine.IndexOf("=");
+                    int equalIndex = currLine.IndexOf('=');
                     if (equalIndex >= 0)
                     {
                         string key = currLine[..equalIndex].Trim();
-                        if (!key.StartsWith("\""))
+                        if (!key.StartsWith('\"'))
                         {
                             key = "\"" + key + "\"";
                         }
@@ -397,12 +409,12 @@ namespace SDAFWebApp.Controllers
                         if (key.EndsWith("tags\""))
                         {
                             value += "[";
-                            currLine = stringReader.ReadLine();
-                            while (!currLine.StartsWith("}"))
+                            currLine = stringReader.ReadLine().Trim();
+                            while (!currLine.StartsWith('}'))
                             {
-                                equalIndex = currLine.IndexOf("=");
+                                equalIndex = currLine.IndexOf('=');
                                 var tagKey = currLine[..equalIndex].Trim();
-                                if (!tagKey.StartsWith("\""))
+                                if (!tagKey.StartsWith('\"'))
                                 {
                                     tagKey = "\"" + tagKey + "\"";
                                 }
@@ -415,15 +427,42 @@ namespace SDAFWebApp.Controllers
                             value = value.Trim(',');
                             value += "],";
                         }
+                        else if (key.ToLower() == "\"network_address_space\"")
+                        {
+                            value = currLine[(equalIndex + 1)..].Trim();
+                            if (!value.StartsWith('['))
+                            {
+                                value += ",";
+                            }
+                            else
+                            {
+                                string fixedValue = value.Replace('[', ' ').Replace(']', ' ');
+                                value = fixedValue.Trim() + ",";
+                            }
+
+                        }
+                        else if (key.ToLower() == "\"subscription_id\"")
+                        {
+                            value = currLine[(equalIndex + 1)..].Trim();
+                            if (!value.ToLower().StartsWith("/subscriptions/"))
+                            {
+                                value = "\"/subscriptions/" + value.Trim('\"') + "\",";
+                            }
+                            else
+                            {
+                                value += ",";
+                            }
+
+                        }
                         else if (key.EndsWith("configuration_settings\""))
                         {
                             value += "[";
-                            currLine = stringReader.ReadLine();
-                            while (!currLine.StartsWith("}"))
+                            currLine = stringReader.ReadLine().Trim();
+                            while (!currLine.StartsWith('}'))
                             {
-                                equalIndex = currLine.IndexOf("=");
+                                equalIndex = currLine.IndexOf('=');
                                 var tagKey = currLine[..equalIndex].Trim();
-                                if (!tagKey.StartsWith("\""))
+                                if (!tagKey.StartsWith('\"'))
                                 {
                                     tagKey = "\"" + tagKey + "\"";
                                 }
@@ -431,7 +470,7 @@ namespace SDAFWebApp.Controllers
                                 value += "{";
                                 value += "\"Key\":" + tagKey + "," + "\"Value\":" + tagValue.Trim(',');
                                 value += "},";
-                                currLine = stringReader.ReadLine();
+                                currLine = stringReader.ReadLine().TrimStart();
                             }
                             value = value.Trim(',');
                             value += "],";
@@ -439,7 +478,7 @@ namespace SDAFWebApp.Controllers
                         else
                         {
                             value = currLine[(equalIndex + 1)..].Trim();
-                            if (!value.EndsWith(",") && !value.EndsWith("{"))
+                            if (!value.EndsWith(',') && !value.EndsWith('{'))
                             {
                                 value += ",";
                             }
@@ -490,7 +529,7 @@ namespace SDAFWebApp.Controllers
             }
             catch
             {
-                return Array.Empty<ImageDropdown>();
+                return [];
             }
         }
 

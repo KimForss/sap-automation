@@ -37,7 +37,7 @@ if [[ -f /etc/profile.d/deploy_server.sh ]]; then
 	export PATH=$path
 fi
 
-#call stack has full scriptname when using source
+#call stack has full script name when using source
 source "${script_directory}/deploy_utils.sh"
 
 #helper files
@@ -355,23 +355,27 @@ if [ 0 == "$step" ]; then
 
 	if [ "$ado_flag" == "--ado" ] || [ "$approve" == "--auto-approve" ]; then
 
-		if ! "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer.sh" \
-			--parameterfile "${deployer_file_parametername}" --auto-approve; then
-			echo "Bootstrapping of the deployer failed"
-			step=0
-			save_config_var "step" "${deployer_config_information}"
-			exit 10
+			if ! "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer.sh" \
+				--parameterfile "${deployer_file_parametername}" --auto-approve; then
+				echo "Bootstrapping of the deployer failed"
+				step=0
+				save_config_var "step" "${deployer_config_information}"
+				exit 10
+			else
+				return_code=$?
+			fi
+		else
+			if ! "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer.sh" \
+				--parameterfile "${deployer_file_parametername}"; then
+				echo "Bootstrapping of the deployer failed"
+				step=0
+				save_config_var "step" "${deployer_config_information}"
+				exit 10
+			else
+				return_code=$?
+			fi
 		fi
-	else
-		if ! "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer.sh" \
-			--parameterfile "${deployer_file_parametername}"; then
-			echo "Bootstrapping of the deployer failed"
-			step=0
-			save_config_var "step" "${deployer_config_information}"
-			exit 10
-		fi
-	fi
-	return_code=$?
+		return_code=$?
 
 	echo "Return code from install_deployer:   ${return_code}"
 	if [ 0 != $return_code ]; then
@@ -448,15 +452,15 @@ export TF_DATA_DIR
 cd "${deployer_dirname}" || exit
 if [ 0 != "$step" ]; then
 
-	if [ 1 == "$step" ] || [ 3 = "$step" ]; then
-		# If the keyvault is not set, check the terraform state file
-		if [ -z "$keyvault" ]; then
-			key=$(echo "${deployer_file_parametername}" | cut -d. -f1)
-
-			if [ -f ./.terraform/terraform.tfstate ]; then
-				azure_backend=$(grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate || true)
-				if [ -n "$azure_backend" ]; then
-					echo "Terraform state:                     remote"
+if [ 1 -eq $step ] || [ 3 -eq $step ]; then
+	# If the keyvault is not set, check the terraform state file
+	if [ -z "$keyvault" ]; then
+		key=$(echo "${deployer_file_parametername}" | cut -d. -f1)
+		cd "${deployer_dirname}" || exit
+		if [ -f ./.terraform/terraform.tfstate ]; then
+			azure_backend=$(grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate || true)
+			if [ -n "$azure_backend" ]; then
+				echo "Terraform state:                     remote"
 
 					terraform_module_directory="$SAP_AUTOMATION_REPO_PATH"/deploy/terraform/run/sap_deployer/
 					terraform -chdir="${terraform_module_directory}" init -upgrade=true

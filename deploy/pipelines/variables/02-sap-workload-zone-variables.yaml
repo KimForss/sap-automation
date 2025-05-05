@@ -1,83 +1,22 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-#--------------------------------------+---------------------------------------8
-#                                                                              |
-# Defines the parameters and variables for the SAP Workload Zone               |
-#                                                                              |
-#--------------------------------------+---------------------------------------8
+# --------------------------------------+---------------------------------------8
+#                                                                               |
+# Defines the parameters and variables for the SAP Workload Zone                |
+#                                                                               |
+# --------------------------------------+---------------------------------------8
 
 parameters:
-  - name:                              workload_zone
-    displayName:                       "Workload zone configuration name, use the following syntax: ENV-LOCA-VNET-INFRASTRUCTURE"
+  - name:                              workload_zone_name
+    displayName:                       Workload Zone Name
     type:                              string
-    default:                           DEV-WEEU-SAP01-INFRASTRUCTURE
+    default:                           DEV-WEEU-SAP01
 
-  - name:                              workload_environment
-    displayName:                       Workload Environment (DEV, QUA, PRD, ...)
+  - name:                              control_plane_name
+    displayName:                       Control Plane Name
     type:                              string
-    default:                           DEV
-
-  - name:                              deployer_environment
-    displayName:                       Deployer Environment name (MGMT, DEV, QA, PRD, ...)
-    type:                              string
-    default:                           MGMT
-
-  - name:                              deployer_region
-    displayName:                       Deployer region name code (MGMT, DEV, QA, PRD, ...)
-    type:                              string
-    default:                           WEEU
-    values:
-      - AUCE
-      - AUC2
-      - AUEA
-      - AUSE
-      - BRSO
-      - BRSE
-      - BRUS
-      - CACE
-      - CAEA
-      - CEIN
-      - CEUS
-      - CEUA
-      - EAAS
-      - EAUS
-      - EUSA
-      - EUS2
-      - FRCE
-      - FRSO
-      - GENO
-      - GEWC
-      - JAEA
-      - JAWE
-      - JINC
-      - JINW
-      - KOCE
-      - KOSO
-      - NCUS
-      - NOEU
-      - NOEA
-      - NOWE
-      - NZNO
-      - SANO
-      - SAWE
-      - SCUS
-      - SCUG
-      - SOEA
-      - SOIN
-      - SECE
-      - SWNO
-      - SWWE
-      - UACE
-      - UANO
-      - UKSO
-      - UKWE
-      - WCUS
-      - WEEU
-      - WEIN
-      - WEUS
-      - WUS2
-      - WUS3
+    default:                           MGMT-WEEU-DEP01
 
   - name:                              inherit_settings
     displayName:                       Inherit Terraform state file information from control plane
@@ -92,27 +31,19 @@ parameters:
 variables:
   - group:                             "SDAF-General"
 
-  - group:                             SDAF-${{ parameters.deployer_environment }}
-
-  - group:                             SDAF-${{ parameters.workload_environment }}
+  - group:                             SDAF-${{ parameters.workload_zone_name }}
 
   - name:                              parent_variable_group
-    value:                             SDAF-${{ parameters.deployer_environment }}
+    value:                             SDAF-${{ parameters.control_plane_name }}
 
   - name:                              variable_group
-    value:                             SDAF-${{ parameters.workload_environment }}
+    value:                             SDAF-${{ parameters.workload_zone_name }}
 
   - name:                              workload_zone_foldername
-    value:                             ${{ parameters.workload_zone }}
+    value:                             ${{ parameters.workload_zone_name }}-INFRASTRUCTURE
 
   - name:                              workload_zone_tfvars_filename
-    value:                             ${{ parameters.workload_zone }}.tfvars
-
-  - name:                              deployer_environment
-    value:                             ${{ parameters.deployer_environment }}
-
-  - name:                              deployer_region
-    value:                             ${{ parameters.deployer_region }}
+    value:                             ${{ parameters.workload_zone_name }}-INFRASTRUCTURE.tfvars
 
   - name:                              inherit
     value:                             $[lower(${{ parameters.inherit_settings }})]

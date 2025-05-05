@@ -29,7 +29,7 @@ resource "azurerm_network_interface" "utility_vm" {
 
   ip_configuration {
                     name                          = "ipconfig1"
-                    subnet_id                     = local.application_subnet_existing ? var.infrastructure.virtual_networks.sap.subnet_app.arm_id : azurerm_subnet.app[0].id
+                    subnet_id                     = var.infrastructure.virtual_networks.sap.subnet_app.exists ? var.infrastructure.virtual_networks.sap.subnet_app.arm_id : azurerm_subnet.app[0].id
                     private_ip_address            = var.vm_settings.use_DHCP ? (
                                                        null) : (var.vm_settings.private_ip_address[count.index]
                                                      )
@@ -78,7 +78,7 @@ resource "azurerm_windows_virtual_machine" "utility_vm" {
   vm_agent_platform_updates_enabled                      = var.infrastructure.platform_updates
   enable_automatic_updates                               = !(var.infrastructure.patch_mode == "ImageDefault")
 
-  encryption_at_host_enabled                             = var.infrastructure.encryption_at_host_enabled 
+  encryption_at_host_enabled                             = var.infrastructure.encryption_at_host_enabled
 
   os_disk {
                  name                 = format("%s%s%s%s%s",

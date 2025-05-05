@@ -1,6 +1,21 @@
 #!/bin/bash
+
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
+
+function getVariableFromApplicationConfiguration() {
+	local application_configuration_id="$1"
+	local variable_name="$2"
+	local label="$3"
+	local variable_value
+
+	application_configuration_name=$(echo "$application_configuration_id" | cut -d '/' -f 9)
+	application_configuration_subscription=$(echo "$application_configuration_id" | cut -d '/' -f 3)
+
+	variable_value=$(az appconfig kv list --name "$application_configuration_name" --auth-mode login --subscription "$application_configuration_subscription" --query "[?key=='${variable_name}'].value | [0]" --label "${label}" --output tsv)
+	echo "$variable_value"
+
+}
 
 function getVariableFromVariableGroup() {
 	local variable_group_id="$1"
@@ -52,8 +67,8 @@ function configureNonDeployer() {
 	echo -e "$green --- Install terraform ---$reset"
 
 	wget -q "$tf_url"
-	return_code=$?
-	if [ 0 != $return_code ]; then
+	return_code_conf=$?
+	if [ 0 != $return_code_conf ]; then
 		echo "##vso[task.logissue type=error]Unable to download Terraform version $tf_version."
 		exit 2
 	fi
@@ -76,13 +91,13 @@ function LogonToAzure() {
 		az login --service-principal --username "$ARM_CLIENT_ID" --password="$ARM_CLIENT_SECRET" --tenant "$ARM_TENANT_ID" --output none
 	else
 		echo "Deployment credentials:              Managed Service Identity"
-		source "/etc/profile.d/deploy_server.sh"
-
-		# sourcing deploy_server.sh overwrites ARM_SUBSCRIPTION_ID with control plane subscription id
-		# ensure we are exporting the right ARM_SUBSCRIPTION_ID when authenticating against workload zones.
-		if [[ "$ARM_SUBSCRIPTION_ID" != "$subscriptionId" ]]; then
-			ARM_SUBSCRIPTION_ID=$subscriptionId
-			export ARM_SUBSCRIPTION_ID
+		if [ -f /etc/profile.d/deploy_server.sh ]; then
+			# sourcing deploy_server.sh overwrites ARM_SUBSCRIPTION_ID with control plane subscription id
+			# ensure we are exporting the right ARM_SUBSCRIPTION_ID when authenticating against workload zones.
+			if [[ "$ARM_SUBSCRIPTION_ID" != "$subscriptionId" ]]; then
+				ARM_SUBSCRIPTION_ID=$subscriptionId
+				export ARM_SUBSCRIPTION_ID
+			fi
 		fi
 	fi
 
@@ -147,6 +162,7 @@ function get_region_from_code() {
 	"WEUS") LOCATION_IN_FILENAME="westus" ;;
 	"WUS2") LOCATION_IN_FILENAME="westus2" ;;
 	"WUS3") LOCATION_IN_FILENAME="westus3" ;;
+	"NZNO") LOCATION_IN_FILENAME="newzealandnorth" ;;
 	*) LOCATION_IN_FILENAME="westeurope" ;;
 	esac
 	echo "$LOCATION_IN_FILENAME"

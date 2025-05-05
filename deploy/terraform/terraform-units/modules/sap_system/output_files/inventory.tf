@@ -185,86 +185,89 @@ resource "local_file" "ansible_inventory_new_yml" {
 
 resource "local_file" "sap-parameters_yml" {
   content = templatefile(format("%s/sap-parameters.tmpl", path.module), {
-              app_instance_number         = var.app_instance_number
-              bom                         = length(var.bom_name) > 0 ? var.bom_name : ""
-              database_cluster_type       = var.database_cluster_type
-              database_high_availability  = var.database_high_availability
-              database_cluster_ip         = try(format("%s/%s", var.database_cluster_ip, var.database_subnet_netmask), "")
-              database_active_active      = var.database_active_active
+              app_instance_number                    = var.app_instance_number
+              application_configuration_name         = try(local.parsed_application_configuration_id["resource_name"],"")
+              bom                                    = length(var.bom_name) > 0 ? var.bom_name : ""
+              control_plane_name                     = var.infrastructure.control_plane_name
+              database_cluster_type                  = var.database_cluster_type
+              database_high_availability             = var.database_high_availability
+              database_cluster_ip                    = try(format("%s/%s", var.database_cluster_ip, var.database_subnet_netmask), "")
+              database_active_active                 = var.database_active_active
               database_active_active_loadbalancer_ip = var.database_active_active_loadbalancer_ip
-              db_instance_number          = try(var.database.instance.number, "00")
-              database_loadbalancer_ip    = var.database_loadbalancer_ip
-              db_sid                      = var.db_sid
-              disks                       = var.disks
-              dns                         = local.dns_label
-              dns                         = var.dns
-              ers_instance_number         = var.ers_instance_number
-              ers_server_loadbalancer_ip  = var.ers_server_loadbalancer_ip
-              hana_data                   = length(try(var.hana_data[0], "")) > 1 ? (
-                                              format("hana_data_mountpoint:          %s", jsonencode(var.hana_data))) : (
-                                              ""
-                                            )
-              hana_log                    = length(try(var.hana_log[0], "")) > 1 ? (
-                                              format("hana_log_mountpoint:           %s", jsonencode(var.hana_log))) : (
-                                              ""
-                                            )
-              hana_shared                 = length(try(var.hana_shared[0], "")) > 1 ? (
-                                              format("hana_shared_mountpoint:        %s", jsonencode(var.hana_shared))) : (
-                                              ""
-                                            )
-              install_path                = length(trimspace(var.install_path)) > 0 ? (
-                                              format("usr_sap_install_mountpoint:    %s", var.install_path)) : (
-                                              ""
-                                            )
-              is_use_simple_mount         = var.use_simple_mount
-              is_use_fence_kdump          = var.is_use_fence_kdump
-              is_use_sles_hanasr_angi     = var.database.database_hana_use_saphanasr_angi
-              iscsi_server_list           = concat(local.iscsi_scs_servers, local.iscsi_db_servers)
-              kv_name                     = lower(local.kv_name),
-              NFS_provider                = var.NFS_provider
-              pas_instance_number         = var.pas_instance_number
-              platform                    = var.platform
-              sap_mnt                     = length(var.sap_mnt) > 1 ? (
-                                              format("sap_mnt:                       %s", var.sap_mnt)) : (
-                                              ""
-                                            )
-              sap_transport               = length(trimspace(var.sap_transport)) > 0 ? (
-                                              format("sap_trans:                     %s", var.sap_transport)) : (
-                                              ""
-                                            )
-              asd_disks                   = concat(var.scs_shared_disks, var.database_shared_disks)
-              scale_out                   = var.scale_out
-              scale_out_no_standby_role   = var.scale_out_no_standby_role
-              scs_cluster_loadbalancer_ip = try(format("%s/%s", var.scs_cluster_loadbalancer_ip, var.app_subnet_netmask), "")
-              scs_cluster_type            = var.scs_cluster_type
-              scs_high_availability       = var.scs_high_availability
-              scs_instance_number         = (local.app_server_count + local.scs_server_count) == 0 ? (
-                                              "01") : (
-                                              var.scs_instance_number
-                                            )
-              scs_server_loadbalancer_ip  = var.scs_server_loadbalancer_ip
-              secret_prefix               = local.secret_prefix,
-              settings                    = local.settings
-              sid                         = var.sap_sid,
-              subnet_cidr_anf             = var.subnet_cidr_anf,
-              subnet_cidr_app             = var.subnet_cidr_app,
-              subnet_cidr_client          = var.subnet_cidr_client
-              subnet_cidr_db              = var.subnet_cidr_db
-              subnet_cidr_storage         = var.subnet_cidr_storage,
-              upgrade_packages            = var.upgrade_packages ? "true" : "false"
-              use_msi_for_clusters        = var.use_msi_for_clusters
-              usr_sap                     = length(var.usr_sap) > 1 ? (
-                                              format("usr_sap_mountpoint:            %s", var.usr_sap)) : (
-                                              ""
-                                            )
-              web_instance_number         = var.web_instance_number
-              web_sid                     = var.web_sid
-              ams_resource_id             = var.ams_resource_id
-              enable_os_monitoring        = var.enable_os_monitoring
-              enable_ha_monitoring        = var.enable_ha_monitoring
-              enable_sap_cal              = var.enable_sap_cal
-              calapi_kv                   = var.calapi_kv
-              sap_cal_product_name        = var.sap_cal_product_name
+              db_instance_number                     = try(var.database.instance.number, "00")
+              database_loadbalancer_ip               = var.database_loadbalancer_ip
+              db_sid                                 = var.db_sid
+              disks                                  = var.disks
+              dns                                    = local.dns_label
+              dns                                    = var.dns
+              ers_instance_number                    = var.ers_instance_number
+              ers_server_loadbalancer_ip             = var.ers_server_loadbalancer_ip
+              hana_data                              = length(try(var.hana_data[0], "")) > 1 ? (
+                                                         format("hana_data_mountpoint:          %s", jsonencode(var.hana_data))) : (
+                                                         ""
+                                                       )
+              hana_log                               = length(try(var.hana_log[0], "")) > 1 ? (
+                                                         format("hana_log_mountpoint:           %s", jsonencode(var.hana_log))) : (
+                                                         ""
+                                                       )
+              hana_shared                            = length(try(var.hana_shared[0], "")) > 1 ? (
+                                                         format("hana_shared_mountpoint:        %s", jsonencode(var.hana_shared))) : (
+                                                         ""
+                                                       )
+              install_path                           = length(trimspace(var.install_path)) > 0 ? (
+                                                         format("usr_sap_install_mountpoint:    %s", var.install_path)) : (
+                                                         ""
+                                                       )
+              is_use_simple_mount                    = var.use_simple_mount
+              is_use_fence_kdump                     = var.is_use_fence_kdump
+              is_use_sles_hanasr_angi                = var.database.database_hana_use_saphanasr_angi
+              iscsi_server_list                      = concat(local.iscsi_scs_servers, local.iscsi_db_servers)
+              kv_name                                = lower(local.kv_name),
+              media_path                             = var.media_path
+              NFS_provider                           = var.NFS_provider
+              pas_instance_number                    = var.pas_instance_number
+              platform                               = var.platform
+              sap_mnt                                = length(var.sap_mnt) > 1 ? (
+                                                         format("sap_mnt:                       %s", var.sap_mnt)) : (
+                                                         ""
+                                                       )
+              sap_transport                          = length(trimspace(var.sap_transport)) > 0 ? (
+                                                         format("sap_trans:                     %s", var.sap_transport)) : (
+                                                         ""
+                                                       )
+              asd_disks                              = concat(var.scs_shared_disks, var.database_shared_disks)
+              scale_out                              = var.scale_out
+              scale_out_no_standby_role              = var.scale_out_no_standby_role
+              scs_cluster_loadbalancer_ip            = try(format("%s/%s", var.scs_cluster_loadbalancer_ip, var.app_subnet_netmask), "")
+              scs_cluster_type                       = var.scs_cluster_type
+              scs_high_availability                  = var.scs_high_availability
+              scs_instance_number                    = (local.app_server_count + local.scs_server_count) == 0 ? (
+                                                         "01") : (
+                                                         var.scs_instance_number
+                                                       )
+              scs_server_loadbalancer_ip             = var.scs_server_loadbalancer_ip
+              secret_prefix                          = local.secret_prefix,
+              settings                               = local.settings
+              sid                                    = var.sap_sid,
+              subnet_cidr_anf                        = var.subnet_cidr_anf,
+              subnet_cidr_app                        = var.subnet_cidr_app,
+              subnet_cidr_client                     = var.subnet_cidr_client
+              subnet_cidr_db                         = var.subnet_cidr_db
+              subnet_cidr_storage                    = var.subnet_cidr_storage,
+              upgrade_packages                       = var.upgrade_packages ? "true" : "false"
+              use_msi_for_clusters                   = var.use_msi_for_clusters
+              usr_sap                                = length(var.usr_sap) > 1 ? (
+                                                         format("usr_sap_mountpoint:            %s", var.usr_sap)) : (
+                                                         ""
+                                                       )
+              web_instance_number                    = var.web_instance_number
+              web_sid                                = var.web_sid
+              ams_resource_id                        = var.ams_resource_id
+              enable_os_monitoring                   = var.enable_os_monitoring
+              enable_ha_monitoring                   = var.enable_ha_monitoring
+              enable_sap_cal                         = var.enable_sap_cal
+              calapi_kv                              = var.calapi_kv
+              sap_cal_product_name                   = var.sap_cal_product_name
 
     }
   )

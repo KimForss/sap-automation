@@ -10,13 +10,21 @@ namespace SDAFWebApp.Models
 {
     public class LandscapeEntity : ITableEntity
     {
+        private LandscapeModel landscape;
+
         public LandscapeEntity() { }
+
         public LandscapeEntity(LandscapeModel landscape)
+        {
+            this.landscape = landscape;
+        }
+
+        public LandscapeEntity(LandscapeModel landscape, JsonSerializerOptions options)
         {
             RowKey = landscape.Id;
             PartitionKey = landscape.environment;
             IsDefault = landscape.IsDefault;
-            Landscape = JsonSerializer.Serialize(landscape, new JsonSerializerOptions() { });
+            Landscape = JsonSerializer.Serialize(landscape, options: options);
         }
 
         public string RowKey { get; set; } = default!;

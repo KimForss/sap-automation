@@ -41,10 +41,11 @@
         <div class="ms-TextField">
             <div class="left-input">
                 @Html.Label("newName", "Environment name", new { @class = $"ms-Label required" })
-                <p>Modify the variable group name. "SDAF-" will be prepended. </p>
+                <p>Name of the variable group. "SDAF-" will be prepended.</p>
             </div>
             <div class="right-input">
-                @Html.TextBox("newName", Model.name, new { @class = "ms-TextField-field" })
+                @Html.TextBoxFor(m => m.name, new { @class = "ms-TextField-field" })
+                @Html.ValidationMessageFor(m => m.name)
             </div>
         </div>
         <div class="ms-TextField">
@@ -53,8 +54,14 @@
                 <p>Add a description for the variable group. </p>
             </div>
             <div class="right-input">
-                @Html.TextBox("description", Model.description, new { @class = "ms-TextField-field" })
+                @Html.TextBoxFor(m => m.description, new { @class = "ms-TextField-field" })
+                @Html.ValidationMessageFor(m => m.description)
             </div>
+        </div>
+        <div class="text-center">
+            <br />
+            <h3 style="text-align: center">Agent Pool settings</h3>
+            <br />
         </div>
         <div class="ms-TextField">
             <div class="left-input">
@@ -64,6 +71,93 @@
             <div class="right-input">
                 @Html.TextBoxFor(m => m.variables.Agent.value, new { @class = "ms-TextField-field" })
                 @Html.ValidationMessageFor(m => m.variables.Agent)
+            </div>
+        </div>
+        <div class="ms-TextField">
+            <div class="left-input">
+                @Html.LabelFor(m => m.variables.POOL, new { @class = $"ms-Label" })
+                <p>The Agent pool to use for this environment</p>
+            </div>
+            <div class="right-input">
+                @Html.TextBoxFor(m => m.variables.POOL.value, new { @class = "ms-TextField-field" })
+                @Html.ValidationMessageFor(m => m.variables.POOL)
+            </div>
+        </div>
+        <div class="text-center">
+            <br />
+            <h3 style="text-align: center">Application configuration settings </h3>
+            <br />
+        </div>
+        <div class="ms-TextField">
+            <div class="left-input">
+                @Html.LabelFor(m => m.variables.APPLICATION_CONFIGURATION_NAME, new { @class = $"ms-Label" })
+                <p>Enter the name of the Azure App Configuration instance.</p>
+            </div>
+            <div class="right-input">
+                @Html.TextBoxFor(m => m.variables.APPLICATION_CONFIGURATION_NAME.value, new { @class = "ms-TextField-field" })
+                @Html.ValidationMessageFor(m => m.variables.APPLICATION_CONFIGURATION_NAME)
+            </div>
+        </div>
+        <div class="ms-TextField">
+            <div class="left-input">
+                @Html.LabelFor(m => m.variables.CONTROL_PLANE_NAME, new { @class = $"ms-Label" })
+                <p>Enter the control plane name.</p>
+            </div>
+            <div class="right-input">
+                @Html.TextBoxFor(m => m.variables.CONTROL_PLANE_NAME.value, new { @class = "ms-TextField-field" })
+                @Html.ValidationMessageFor(m => m.variables.CONTROL_PLANE_NAME)
+            </div>
+        </div>
+        <div class="text-center">
+            <br />
+            <h3 style="text-align: center">Application Registration details</h3>
+            <br />
+        </div>
+        <div class="ms-TextField">
+            <div class="left-input">
+                @Html.LabelFor(m => m.variables.APP_REGISTRATION_APP_ID, new { @class = $"ms-Label" })
+                <p>Enter the App registration Client Id.</p>
+            </div>
+            <div class="right-input">
+                @Html.TextBoxFor(m => m.variables.APP_REGISTRATION_APP_ID.value, new { @class = "ms-TextField-field" })
+                @Html.ValidationMessageFor(m => m.variables.APP_REGISTRATION_APP_ID)
+            </div>
+        </div>
+        <div class="ms-TextField">
+            <div class="left-input">
+                @Html.LabelFor(m => m.variables.APP_REGISTRATION_OBJECT_ID, new { @class = $"ms-Label" })
+                <p>Enter the App registration Object Id.</p>
+            </div>
+            <div class="right-input">
+                @Html.TextBoxFor(m => m.variables.APP_REGISTRATION_OBJECT_ID.value, new { @class = "ms-TextField-field" })
+                @Html.ValidationMessageFor(m => m.variables.APP_REGISTRATION_OBJECT_ID)
+            </div>
+        </div>
+        <div class="text-center">
+            <br />
+            <h3 style="text-align: center">Deployment credentials</h3>
+            <br />
+        </div>
+        <div class="ms-TextField">
+            <div class="left-input">
+                @Html.LabelFor(m => m.variables.Use_MSI, new { @class = $"ms-Label" })
+                <p>'True' if using MSI for deployment</p>
+            </div>
+            <div class="right-input">
+                @Html.TextBoxFor(m => m.variables.Use_MSI.value, new { @class = "ms-TextField-field" })
+                @Html.ValidationMessageFor(m => m.variables.Use_MSI)
+            </div>
+        </div>
+
+
+        <div class="ms-TextField">
+            <div class="left-input">
+                @Html.LabelFor(m => m.variables.ARM_SUBSCRIPTION_ID, new { @class = $"ms-Label" })
+                <p>Enter the target subscription ID</p>
+            </div>
+            <div class="right-input">
+                @Html.TextBoxFor(m => m.variables.ARM_SUBSCRIPTION_ID.value, new { @class = "ms-TextField-field" })
+                @Html.ValidationMessageFor(m => m.variables.ARM_SUBSCRIPTION_ID)
             </div>
         </div>
         <div class="ms-TextField">
@@ -98,82 +192,12 @@
         </div>
         <div class="ms-TextField">
             <div class="left-input">
-                @Html.LabelFor(m => m.variables.ARM_SUBSCRIPTION_ID, new { @class = $"ms-Label" })
-                <p>Enter the target subscription ID</p>
-            </div>
-            <div class="right-input">
-                @Html.TextBoxFor(m => m.variables.ARM_SUBSCRIPTION_ID.value, new { @class = "ms-TextField-field" })
-                @Html.ValidationMessageFor(m => m.variables.ARM_SUBSCRIPTION_ID)
-            </div>
-        </div>
-        <div class="ms-TextField">
-            <div class="left-input">
                 @Html.LabelFor(m => m.variables.ARM_TENANT_ID, new { @class = $"ms-Label" })
                 <p>Enter the subscription's Tenant ID</p>
             </div>
             <div class="right-input">
                 @Html.TextBoxFor(m => m.variables.ARM_TENANT_ID.value, new { @class = "ms-TextField-field" })
                 @Html.ValidationMessageFor(m => m.variables.ARM_TENANT_ID)
-            </div>
-        </div>
-        <div class="ms-TextField">
-            <div class="left-input">
-                @Html.LabelFor(m => m.variables.sap_fqdn, new { @class = $"ms-Label" })
-                <p>SAP Fully Qualified Domain Name, for example 'sap.contoso.net'</p>
-            </div>
-            <div class="right-input">
-                @Html.TextBoxFor(m => m.variables.sap_fqdn.value, new { @class = "ms-TextField-field" })
-                @Html.ValidationMessageFor(m => m.variables.sap_fqdn)
-            </div>
-        </div>
-        <div class="ms-TextField">
-            <div class="left-input">
-                @Html.LabelFor(m => m.variables.POOL, new { @class = $"ms-Label" })
-                <p>The Agent pool to use for this environment</p>
-            </div>
-            <div class="right-input">
-                @Html.TextBoxFor(m => m.variables.POOL.value, new { @class = "ms-TextField-field" })
-                @Html.ValidationMessageFor(m => m.variables.POOL)
-            </div>
-        </div>
-        <div class="ms-TextField">
-            <div class="left-input">
-                @Html.LabelFor(m => m.variables.Deployer_Key_Vault, new { @class = $"ms-Label" })
-                <p>Enter the name of the Control Plane keyvault.</p>
-            </div>
-            <div class="right-input">
-                @Html.TextBoxFor(m => m.variables.Deployer_Key_Vault.value, new { @class = "ms-TextField-field" })
-                @Html.ValidationMessageFor(m => m.variables.Deployer_Key_Vault)
-            </div>
-        </div>
-        <div class="ms-TextField">
-            <div class="left-input">
-                @Html.LabelFor(m => m.variables.Deployer_State_FileName, new { @class = $"ms-Label" })
-                <p>Enter the name of the state file for the Deployer.</p>
-            </div>
-            <div class="right-input">
-                @Html.TextBoxFor(m => m.variables.Deployer_State_FileName.value, new { @class = "ms-TextField-field" })
-                @Html.ValidationMessageFor(m => m.variables.Deployer_State_FileName)
-            </div>
-        </div>
-        <div class="ms-TextField">
-            <div class="left-input">
-                @Html.LabelFor(m => m.variables.Terraform_Remote_Storage_Account_Name, new { @class = $"ms-Label" })
-                <p>Enter the name of the storage account containing the Terraform state files.</p>
-            </div>
-            <div class="right-input">
-                @Html.TextBoxFor(m => m.variables.Terraform_Remote_Storage_Account_Name.value, new { @class = "ms-TextField-field" })
-                @Html.ValidationMessageFor(m => m.variables.Terraform_Remote_Storage_Account_Name)
-            </div>
-        </div>
-        <div class="ms-TextField">
-            <div class="left-input">
-                @Html.LabelFor(m => m.variables.Terraform_Remote_Storage_Subscription, new { @class = $"ms-Label" })
-                <p>Enter the Id of the subscription containing the storage account containing the Terraform state files.</p>
-            </div>
-            <div class="right-input">
-                @Html.TextBoxFor(m => m.variables.Terraform_Remote_Storage_Subscription.value, new { @class = "ms-TextField-field" })
-                @Html.ValidationMessageFor(m => m.variables.Terraform_Remote_Storage_Subscription)
             </div>
         </div>
         @Html.HiddenFor(m => m.name)

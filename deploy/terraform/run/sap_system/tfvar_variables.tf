@@ -78,6 +78,11 @@ variable "resourcegroup_name"                   {
 variable "resourcegroup_arm_id"                 {
                                                   description = "If provided, the Azure resource group id"
                                                   default     = ""
+                                                  validation    {
+                                                                  condition     = length(var.resourcegroup_arm_id) == 0 ? true : can(provider::azurerm::parse_resource_id(var.resourcegroup_arm_id))
+                                                                  error_message = "If specified the 'resourcegroup_arm_id' variable must be a correct Azure resource identifier."
+                                                                }
+
                                                 }
 
 variable "resourcegroup_tags"                   {
@@ -157,7 +162,7 @@ variable "encryption_at_host_enabled"           {
                                                 }
 variable "data_plane_available"                 {
                                                   description = "Boolean value indicating if storage account access is via data plane"
-                                                  default     = false
+                                                  default     = true
                                                   type        = bool
                                                 }
 
@@ -202,6 +207,10 @@ variable "admin_subnet_name"                    {
 variable "admin_subnet_arm_id"                  {
                                                   description = "If provided, Azure resource id for the admin subnet"
                                                   default     = ""
+                                                  validation    {
+                                                                  condition     = length(var.admin_subnet_arm_id) == 0 ? true : can(provider::azurerm::parse_resource_id(var.admin_subnet_arm_id))
+                                                                  error_message = "If specified the 'admin_subnet_arm_id' variable must be a correct Azure resource identifier."
+                                                                }
                                                 }
 
 variable "admin_subnet_nsg_name"                {
@@ -212,6 +221,10 @@ variable "admin_subnet_nsg_name"                {
 variable "admin_subnet_nsg_arm_id"              {
                                                   description = "If provided, Azure resource id for the admin subnet NSG"
                                                   default     = ""
+                                                  validation    {
+                                                                  condition     = length(var.admin_subnet_nsg_arm_id) == 0 ? true : can(provider::azurerm::parse_resource_id(var.admin_subnet_nsg_arm_id))
+                                                                  error_message = "If specified the 'admin_subnet_nsg_arm_id' variable must be a correct Azure resource identifier."
+                                                                }
                                                 }
 
 
@@ -229,6 +242,10 @@ variable "db_subnet_name"                       {
 variable "db_subnet_arm_id"                     {
                                                   description = "If provided, Azure resource id for the db subnet"
                                                   default     = ""
+                                                  validation    {
+                                                                  condition     = length(var.db_subnet_arm_id) == 0 ? true : can(provider::azurerm::parse_resource_id(var.db_subnet_arm_id))
+                                                                  error_message = "If specified the 'db_subnet_arm_id' variable must be a correct Azure resource identifier."
+                                                                }
                                                 }
 
 variable "db_subnet_address_prefix"             {
@@ -244,6 +261,10 @@ variable "db_subnet_nsg_name"                   {
 variable "db_subnet_nsg_arm_id"                 {
                                                   description = "If provided, Azure resource id for the db subnet NSG"
                                                   default     = ""
+                                                  validation    {
+                                                                  condition     = length(var.db_subnet_nsg_arm_id) == 0 ? true : can(provider::azurerm::parse_resource_id(var.db_subnet_nsg_arm_id))
+                                                                  error_message = "If specified the 'db_subnet_nsg_arm_id' variable must be a correct Azure resource identifier."
+                                                                }
                                                 }
 
 
@@ -261,6 +282,10 @@ variable "app_subnet_name"                      {
 variable "app_subnet_arm_id"                    {
                                                   description = "If provided, Azure resource id for the app subnet"
                                                   default     = ""
+                                                  validation    {
+                                                                  condition     = length(var.app_subnet_arm_id) == 0 ? true : can(provider::azurerm::parse_resource_id(var.app_subnet_arm_id))
+                                                                  error_message = "If specified the 'app_subnet_arm_id' variable must be a correct Azure resource identifier."
+                                                                }
                                                 }
 
 variable "app_subnet_address_prefix"            {
@@ -276,6 +301,10 @@ variable "app_subnet_nsg_name"                  {
 variable "app_subnet_nsg_arm_id"                {
                                                   description = "If provided, Azure resource id for the app subnet NSG"
                                                   default     = ""
+                                                  validation    {
+                                                                  condition     = length(var.app_subnet_nsg_arm_id) == 0 ? true : can(provider::azurerm::parse_resource_id(var.app_subnet_nsg_arm_id))
+                                                                  error_message = "If specified the 'app_subnet_nsg_arm_id' variable must be a correct Azure resource identifier."
+                                                                }
                                                 }
 
 
@@ -293,6 +322,10 @@ variable "web_subnet_name"                      {
 variable "web_subnet_arm_id"                    {
                                                   description = "If provided, Azure resource id for the web subnet"
                                                   default     = ""
+                                                  validation    {
+                                                                  condition     = length(var.web_subnet_arm_id) == 0 ? true : can(provider::azurerm::parse_resource_id(var.web_subnet_arm_id))
+                                                                  error_message = "If specified the 'web_subnet_arm_id' variable must be a correct Azure resource identifier."
+                                                                }
                                                 }
 
 variable "web_subnet_address_prefix"            {
@@ -308,6 +341,10 @@ variable "web_subnet_nsg_name"                  {
 variable "web_subnet_nsg_arm_id"                {
                                                   description = "If provided, Azure resource id for the web subnet NSG"
                                                   default     = ""
+                                                  validation    {
+                                                                  condition     = length(var.web_subnet_nsg_arm_id) == 0 ? true : can(provider::azurerm::parse_resource_id(var.web_subnet_nsg_arm_id))
+                                                                  error_message = "If specified the 'web_subnet_nsg_arm_id' variable must be a correct Azure resource identifier."
+                                                                }
                                                 }
 
 
@@ -325,6 +362,10 @@ variable "storage_subnet_name"                  {
 variable "storage_subnet_arm_id"                {
                                                   description = "If provided, Azure resource id for the storage subnet"
                                                   default     = ""
+                                                  validation    {
+                                                                  condition     = length(var.storage_subnet_arm_id) == 0 ? true : can(provider::azurerm::parse_resource_id(var.storage_subnet_arm_id))
+                                                                  error_message = "If specified the 'storage_subnet_arm_id' variable must be a correct Azure resource identifier."
+                                                                }
                                                 }
 
 variable "storage_subnet_address_prefix"        {
@@ -340,6 +381,10 @@ variable "storage_subnet_nsg_name"              {
 variable "storage_subnet_nsg_arm_id"            {
                                                   description = "If provided, Azure resource id for the storage subnet NSG"
                                                   default     = ""
+                                                  validation    {
+                                                                  condition     = length(var.storage_subnet_nsg_arm_id) == 0 ? true : can(provider::azurerm::parse_resource_id(var.storage_subnet_nsg_arm_id))
+                                                                  error_message = "If specified the 'storage_subnet_nsg_arm_id' variable must be a correct Azure resource identifier."
+                                                                }
                                                 }
 
 
@@ -352,11 +397,20 @@ variable "storage_subnet_nsg_arm_id"            {
 variable "user_keyvault_id"                     {
                                                   description = "If provided, the Azure resource identifier of the credentials keyvault"
                                                   default     = ""
+                                                  validation    {
+                                                                  condition     = length(var.user_keyvault_id) == 0 ? true : can(provider::azurerm::parse_resource_id(var.user_keyvault_id))
+                                                                  error_message = "If specified the 'user_keyvault_id' variable must be a correct Azure resource identifier."
+                                                                }
+
                                                 }
 
 variable "spn_keyvault_id"                      {
                                                   description = "If provided, the Azure resource identifier of the deployment credential keyvault"
                                                   default     = ""
+                                                  validation    {
+                                                                  condition     = length(var.spn_keyvault_id) == 0 ? true : can(provider::azurerm::parse_resource_id(var.spn_keyvault_id))
+                                                                  error_message = "If specified the 'spn_keyvault_id' variable must be a correct Azure resource identifier."
+                                                                }
                                                 }
 
 variable "enable_purge_control_for_keyvaults"   {
@@ -394,6 +448,7 @@ variable "automation_path_to_private_key"       {
 variable "use_spn"                              {
                                                   description = "Log in using a service principal when performing the deployment"
                                                   default     = false
+
                                                 }
 
 
@@ -566,7 +621,7 @@ variable "database_use_avset"                   {
                                                                condition = (
                                                                  tobool(var.database_use_avset) != null
                                                                )
-                                                               error_message = "database_use_avset is not defined, please define it in your tfvars file."
+                                                               error_message = "The variable 'database_use_avset' is not defined, please define it in your tfvars file."
                                                              }
                                                 }
 
@@ -592,7 +647,7 @@ variable "database_use_ppg"                     {
                                                                condition = (
                                                                  tobool(var.database_use_ppg) != null
                                                                )
-                                                               error_message = "database_use_ppg is not defined, please define it in your tfvars file."
+                                                               error_message = "The variable 'database_use_ppg is not defined, please define it in your tfvars file."
                                                              }
                                                 }
 
@@ -863,7 +918,7 @@ variable "pas_instance_number"                  {
                                                 }
 
 variable "app_instance_number"                  {
-                                                  description = "The Instance number for the Application Server Imnstance"
+                                                  description = "The Instance number for the Application Server Instance"
                                                   default     = "00"
                                                 }
 
@@ -915,7 +970,7 @@ variable "application_server_use_avset"         {
                                                                condition = (
                                                                  tobool(var.application_server_use_avset) != null
                                                                )
-                                                               error_message = "application_server_use_avset is not defined, please define it in your tfvars file."
+                                                               error_message = "The variable 'application_server_use_avset' is not defined, please define it in your tfvars file."
                                                              }
                                                 }
 
@@ -931,7 +986,7 @@ variable "application_server_use_ppg"           {
                                                                condition = (
                                                                  tobool(var.application_server_use_ppg) != null
                                                                )
-                                                               error_message = "application_server_use_ppg is not defined, please define it in your tfvars file."
+                                                               error_message = "The variable 'application_server_use_ppg' is not defined, please define it in your tfvars file."
                                                              }
                                                 }
 
@@ -1037,7 +1092,7 @@ variable "webdispatcher_server_use_ppg"         {
 
 #########################################################################################
 #                                                                                       #
-#  Miscallaneous settings                                                               #
+#  Miscellaneous settings                                                               #
 #                                                                                       #
 #########################################################################################
 
@@ -1120,6 +1175,10 @@ variable "deploy_application_security_groups"   {
 variable "user_assigned_identity_id"            {
                                                   description = "If provided defines the user assigned identity to assign to the virtual machines"
                                                   default     = ""
+                                                  validation    {
+                                                                  condition     = length(var.user_assigned_identity_id) == 0 ? true : can(provider::azurerm::parse_resource_id(var.user_assigned_identity_id))
+                                                                  error_message = "If specified the 'user_assigned_identity_id' variable must be a correct Azure resource identifier."
+                                                                }
                                                 }
 
 variable "disk_controller_type_database_tier"   {
@@ -1461,6 +1520,11 @@ variable "subscription_id"                      {
                                                   default     = ""
                                                 }
 
+variable "management_subscription_id"           {
+                                                  description = "This is the management subscription used by the deployment"
+                                                  type        = string
+                                                  default     = ""
+                                                }
 #########################################################################################
 #                                                                                       #
 #  Azure Monitor for SAP variables                                                      #
@@ -1523,7 +1587,7 @@ variable "patch_assessment_mode"                {
                                                   default     = "ImageDefault"
                                                 }
 
-variable "platform_updates"                    {
+variable "platform_updates"                     {
                                                   description = "Specifies whether VMAgent Platform Updates is enabled"
                                                   default     = "true"
                                                 }
@@ -1586,4 +1650,23 @@ variable "calapi_kv"                            {
 variable "sap_cal_product_name"                 {
                                                   description = "If defined, will use SAP CAL for system installation"
                                                   default     = ""
+                                                }
+
+
+###############################################################################
+#                                                                             #
+#                            Application  configuration                       #
+#                                                                             #
+###############################################################################
+
+variable "application_configuration_id"         {
+                                                    description = "Defines the Azure application configuration Resource id"
+                                                    type        = string
+                                                    default     = ""
+                                                 }
+
+variable "control_plane_name"                   {
+                                                  description = "The name of the control plane"
+                                                  default     = ""
+
                                                 }

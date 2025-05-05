@@ -27,12 +27,9 @@ namespace SDAFWebApp.Models
 
     public class Templateparameters
     {
-        public string workload_zone { get; set; }
-        public string workload_environment_parameter { get; set; }
-        public string deployer_environment_parameter { get; set; }
-        public string deployer_region_parameter { get; set; }
+        public string workload_zone_name { get; set; }
+        public string control_plane_name { get; set; }
         public string sap_system { get; set; }
-        public string environment { get; set; }
         public string sap_system_configuration_name { get; set; }
         public string bom_base_name { get; set; }
         public string extra_params { get; set; }

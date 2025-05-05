@@ -8,7 +8,7 @@
 var model;
 var azureResourceIds = [
     "location",
-    "subscription",
+    "subscription_id",
     "workload_zone",
     "resourcegroup_arm_id",
     "network_arm_id",
@@ -224,7 +224,7 @@ function retainFormValues() {
             input: {}
         },
         {
-            ids: ["subscription"],
+            ids: ["subscription_id"],
             controller: "/Armclient/GetSubscriptionOptions",
             errorMessage: "Error retrieving subscriptions",
             input: {}
@@ -275,7 +275,7 @@ function updateAndSetDropdowns(dropdown) {
 
 // populate environment dropdown with values from ADO if pipeline deployment
 function getEnvironmentsFromAdo(isPipelineDeployment) {
-    var id = "environment";
+  var id = "workloadZoneName";
     if (isPipelineDeployment) {
         $.ajax({
             type: "GET",
@@ -347,7 +347,7 @@ function resetDropdowns(ids) {
 // set the subscription and virtual network to correct value based on one of the existing arm ids
 // required for the case that a user inputs valid arm ids without choosing a subscription or vnet and later wishes to edit
 function setDataFromResource() {
-    if (model["subscription"] == null || model["network_arm_id"] == null) {
+    if (model["subscription_id"] == null || model["network_arm_id"] == null) {
         var alreadySetArmId = null;
         for (i = 3; i < azureResourceIds.length; i++) {
             var currArmId = azureResourceIds[i];
@@ -357,15 +357,17 @@ function setDataFromResource() {
             }
         }
         if (alreadySetArmId != null) {
-            if (model["subscription"] == null) {
+            if (model["subscription_id"] == null) {
                 $.ajax({
                     type: "GET",
                     url: "/Armclient/GetSubscriptionFromResource",
                     data: {
                         resourceId: alreadySetArmId
                     },
-                    success: function (data) {
-                        model["subscription"] = data;
+                  success: function (data) {
+                    let s = data;
+                    let s2 = s.replace("/subscriptions/", "");
+                        model["subscription_id"] = s2;
                     },
                     error: function () {
                         console.log("Couldn't get subscription from any existing resources");

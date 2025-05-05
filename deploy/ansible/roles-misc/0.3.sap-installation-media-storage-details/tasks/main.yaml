@@ -1,17 +1,48 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+---
+
+# - name:                                "0.4 Get the ARM Client ID"
+#   ansible.builtin.set_fact:
+#     msi_client_id:                     "{{ lookup('ansible.builtin.env', 'ARM_CLIENT_ID') | default('') }}"
+
+# - name:                                Look up configuration value when Ansible host is MSI enabled Azure VM
+#   ansible.builtin.debug:
+#     msg:                               "{{ lookup('azure_app_config', app_config_key, config_label=app_config_label,
+#                                            appconfig_url=app_config_url, client_id=msi_client_id) }}"
+#   vars:
+#     app_config_key:                    "{{ control_plane_name }}_TerraformRemoteStateStorageAccountId"
+#     app_config_label:                  "{{ control_plane_name }}"
+#     app_config_url:                    "https://{{ application_configuration_name }}.azconfig.io"
+
+
+# - name:                                Look up configuration value when Ansible host is MSI enabled Azure VM
+#   ansible.builtin.debug:
+#     msg:                               "The configuration value of {{ config_key }} is {{ lookup('azure_app_config', config_key, client_id, config_label, appconfig_url=app_config_url) }}"
+#   vars:
+#     app_config_url:                    "https://{{ application_configuration_name }}.azconfig.io"
+#     config_key:                        "{{ control_plane_name }}_TerraformRemoteStateStorageAccountId"
+#     client_id:                         "{{ msi_client_id }}"
+#     config_label:                      "{{ control_plane_name }}"
+
+- name:                                "0.4 Persist the provided media path"
+  ansible.builtin.set_fact:
+    sapbits_location_base_path:        "{{ media_path }}"
+  when:                                media_path is defined
+
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
 # |     Storage account helpers                                                |
-# |     Read the deployer key vault name fro the workload zone keyvault        |
-# |     Read the storage account details                                       |
+# |     Read the deployer key vault name from the workload zone keyvault       |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
----
-- name:                                "0.4 Installation Media: - Retrieve Deployer Keyvault details"
-  block:
 
+- name:                                "0.4 Installation Media: - Retrieve Storage account details"
+  when:
+   - deployer_kv_name is not defined
+   - media_path is not defined
+  block:
     - name:                            Check required variables are present and not empty
       ansible.builtin.assert:
         that:
@@ -43,15 +74,21 @@
         deployer_kv_name:              "{{ deployer_kv_name_secret_result.stdout }}"
         cacheable:                     true
 
-  when: deployer_kv_name is not defined
+    - name:                            "Parameter review..."
+      ansible.builtin.debug:
+        msg:                           # Best method for formatting output with Azure Devops Logs
+                                       - "kv_name:                         {{ kv_name }}"
+                                       - "deployer_kv_name_secret:         {{ deployer_kv_name_secret }}"
+                                       - "deployer_kv_name:                {{ deployer_kv_name }}"
+        verbosity:                     2
 
-- name:                                   "Parameter review..."
-  ansible.builtin.debug:
-    msg:                                  # Best method for formatting output with Azure Devops Logs
-                                          - "kv_name:                         {{ kv_name }}"
-                                          - "deployer_kv_name_secret:         {{ deployer_kv_name_secret }}"
-                                          - "deployer_kv_name:                {{ deployer_kv_name }}"
-    verbosity:                            2
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |     Storage account helpers                                                |
+# |     Read the storage account details                                       |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
 
 - name:                                "0.4 Installation Media: - Get Control Plane Subscription"
   ansible.builtin.set_fact:
@@ -59,7 +96,8 @@
 
 - name:                                "0.4 Installation Media: - Extract SAP Binaries Storage Account SAS (temp)"
   ansible.builtin.set_fact:
-    subscription_parameter:            "{% if control_plane_subscription_id | length > 0 %}--subscription {{ control_plane_subscription_id }}{% else %}{% endif %}"
+    subscription_parameter:            "{% if control_plane_subscription_id | length > 0 %} --subscription {{ control_plane_subscription_id }}{% else %}{% endif %}"
+
 
 - name:                                "0.4 Installation Media: - Extract SAP Binaries Storage Account secrets"
   block:
@@ -266,7 +304,7 @@
 - name:                                 "0.4 Installation Media: - Debug storage account details"
   ansible.builtin.debug:
     msg:
-      - "KEYVAULT:     {{ deployer_kv_name }}"
+      - "KEYVAULT:     {{ deployer_kv_name | default('') }}"
       - "URL     :     {{ sapbits_location_base_path }}"
 
 - name:                                "0.4 Installation Media: - Debug storage account details (sas)"

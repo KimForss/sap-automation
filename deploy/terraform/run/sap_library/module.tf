@@ -8,9 +8,9 @@
 module "sap_library" {
   source                            = "../../terraform-units/modules/sap_library"
   providers                         = {
-                                       azurerm.main                     = azurerm.main
-                                       azurerm.deployer                 = azurerm.deployer
-                                       azurerm.dnsmanagement            = azurerm.dnsmanagement
+                                       azurerm.main                                = azurerm.main
+                                       azurerm.deployer                            = azurerm.deployer
+                                       azurerm.dnsmanagement                       = azurerm.dnsmanagement
                                        azurerm.privatelinkdnsmanagement = azurerm.privatelinkdnsmanagement
                                      }
   Agent_IP                          = var.add_Agent_IP ? var.Agent_IP : ""
@@ -34,8 +34,8 @@ module "sap_library" {
 module "sap_namegenerator" {
   source                            = "../../terraform-units/modules/sap_namegenerator"
   codename                          = try(local.infrastructure.codename, "")
-  deployer_environment              = try(local.deployer.environment, local.infrastructure.environment)
-  deployer_location                 = try(local.deployer.region, local.infrastructure.region)
+  deployer_environment              = try(split("-", var.control_plane_name)[0], var.environment)
+  deployer_location                 = var.location
   environment                       = local.infrastructure.environment
   location                          = local.infrastructure.region
   management_vnet_name              = ""

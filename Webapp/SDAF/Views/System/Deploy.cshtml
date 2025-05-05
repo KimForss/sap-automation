@@ -1,4 +1,4 @@
-﻿@model SDAFWebApp.Models.FormViewModel<SystemModel>
+@model SDAFWebApp.Models.FormViewModel<SystemModel>
 
 @{
     ViewBag.Title = "Deploy system";
@@ -43,7 +43,7 @@
 
         <div class="ms-TextField">
             <div class="left-input">
-                @Html.Label("environment", "Workload Environment", new { @class = $"ms-Label required" })
+                @Html.Label("environment", "Workload Zone", new { @class = $"ms-Label required" })
                 <p>Please specify the workload environment to deploy to (DEV, QA, PRD, ...)</p>
             </div>
 

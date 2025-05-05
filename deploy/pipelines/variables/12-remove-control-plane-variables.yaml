@@ -1,40 +1,38 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-#--------------------------------------+---------------------------------------8
+# --------------------------------------+--------------------------------------8
 #                                                                              |
 # Defines the parameters and variables for the Control Plane removal           |
 #                                                                              |
-#--------------------------------------+---------------------------------------8
+# --------------------------------------+--------------------------------------8
 
 parameters:
-  deployer: ""
-  deployer_environment: ""
-  library: ""
-  use_deployer: ""
-  connection_name: ""
+  control_plane_name:                  ""
+  use_deployer:                        ""
+  connection_name:                     ""
 
 variables:
   - group:                             "SDAF-General"
-  - group:                             SDAF-${{ parameters.deployer_environment }}
+  - group:                             SDAF-${{ parameters.control_plane_name }}
 
   - name:                              parent_variable_group
-    value:                             SDAF-${{ parameters.deployer_environment }}
+    value:                             SDAF-${{ parameters.control_plane_name }}
 
   - name:                              run_on
     value:                             $[replace(replace('True',eq(${{ parameters.use_deployer }}, 'True'), variables['POOL']),'True',variables['Agent'])]
 
-  - name:                              deployer_foldername
-    value:                             ${{ parameters.deployer }}
-
-  - name:                              deployer_tfvars_filename
-    value:                             ${{ parameters.deployer }}.tfvars
-
   - name:                              library_foldername
-    value:                             ${{ parameters.library }}
+    value:                             $[format('{0}-{1}-SAP_LIBRARY', split('${{ parameters.control_plane_name }}', '-')[0], split('${{ parameters.control_plane_name }}', '-')[1])]
 
   - name:                              library_tfvars_filename
-    value:                             ${{ parameters.library }}.tfvars
+    value:                             $[format('{0}-{1}-SAP_LIBRARY.tfvars', split('${{ parameters.control_plane_name }}', '-')[0], split('${{ parameters.control_plane_name }}', '-')[1])]
+
+  - name:                              deployer_foldername
+    value:                             $[format('{0}-INFRASTRUCTURE', '${{ parameters.control_plane_name }}')]
+
+  - name:                              deployer_tfvars_filename
+    value:                             $[format('{0}-INFRASTRUCTURE.tfvars', '${{ parameters.control_plane_name }}')]
 
   - name:                              tf_url
     value:                             https://releases.hashicorp.com/terraform/$(tf_version)/terraform_$(tf_version)_linux_amd64.zip

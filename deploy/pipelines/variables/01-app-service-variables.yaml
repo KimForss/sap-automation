@@ -1,0 +1,45 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+# -------------------------------------+---------------------------------------8
+#                                                                              |
+# Defines the parameters and variables for the Control Plane                   |
+#                                                                              |
+# -------------------------------------+---------------------------------------8
+
+parameters:
+
+  - name:                              control_plane_name
+    displayName:                       "Environment name, MGMT, DEV, QA, etc"
+    type:                              string
+    default:                           CTL-SECE-DEP02
+
+  - name:                              connection_name
+    displayName:                       Service Connection Name
+    type:                              string
+    default:                           Control_Plane_Service_Connection
+
+  - name:                              use_deployer
+    displayName:                       Run on self hosted agent
+    type:                              boolean
+    default:                           false
+
+variables:
+  - group:                             "SDAF-General"
+
+  - group:                             SDAF-${{ parameters.control_plane_name }}
+
+  - name:                              run_on
+    value:                             $[replace(replace('True',eq(${{ parameters.use_deployer }}, 'True'), variables['POOL']),'True',variables['Agent'])]
+
+  - name:                              variable_group
+    value:                             SDAF-${{ parameters.control_plane_name }}
+
+  - name:                              this_agent
+    value:                             $[upper(coalesce(variables['POOL'], variables['Agent']))]
+
+  - name:                              connection_name
+    value:                             ${{ parameters.connection_name }}
+
+  - name:                              control_plane_name
+    value:                             ${{ parameters.control_plane_name }}

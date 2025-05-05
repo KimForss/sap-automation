@@ -31,7 +31,7 @@ resource "azurerm_network_interface" "scs" {
                                          private_ip_address = try(pub.value.nic_ips[count.index],
                                            var.application_tier.use_DHCP ? (
                                              null) : (
-                                             cidrhost(local.application_subnet_exists ?
+                                             cidrhost(var.infrastructure.virtual_networks.sap.subnet_app.exists ?
                                                data.azurerm_subnet.subnet_sap_app[0].address_prefixes[0] :
                                                azurerm_subnet.subnet_sap_app[0].address_prefixes[0],
                                                tonumber(count.index) + local.ip_offsets.scs_vm + pub.value.offset
@@ -281,7 +281,7 @@ resource "azurerm_role_assignment" "scs" {
   scope                                = azurerm_linux_virtual_machine.scs[count.index].id
 
   role_definition_name                 = var.fencing_role_name
-  principal_id                         =  azurerm_linux_virtual_machine.scs[count.index].identity[0].principal_id
+  principal_id                         = azurerm_linux_virtual_machine.scs[count.index].identity[0].principal_id
 
 }
 
@@ -303,7 +303,7 @@ resource "azurerm_role_assignment" "scs_ha" {
   scope                                = azurerm_linux_virtual_machine.scs[count.index].id
 
   role_definition_name                 = var.fencing_role_name
-  principal_id                         =  azurerm_linux_virtual_machine.scs[(count.index +1) % local.scs_server_count].identity[0].principal_id
+  principal_id                         = azurerm_linux_virtual_machine.scs[(count.index +1) % local.scs_server_count].identity[0].principal_id
 
 }
 

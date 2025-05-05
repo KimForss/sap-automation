@@ -89,16 +89,15 @@ variable "key_vault"                                    {
                                                           validation {
                                                                        condition = (
                                                                          contains(keys(var.key_vault), "keyvault_id_for_deployment_credentials") ? (
-                                                                           length(split("/", var.key_vault.keyvault_id_for_deployment_credentials)) == 9) : (
-                                                                           true
-                                                                         )
-                                                                       )
+                                                                           (length(var.key_vault.keyvault_id_for_deployment_credentials) == 0 ? true : length(split("/", var.key_vault.keyvault_id_for_deployment_credentials)) == 9)) : (
+                                                                            true
+                                                                       ))
                                                                        error_message = "If specified, the spn_keyvault_id needs to be a correctly formed Azure resource ID."
                                                                      }
                                                           validation {
                                                                        condition = (
                                                                          contains(keys(var.key_vault), "keyvault_id_for_system_credentials") ? (
-                                                                           length(split("/", var.key_vault.keyvault_id_for_system_credentials)) == 9) : (
+                                                                           (length(var.key_vault.keyvault_id_for_system_credentials) == 0 ? true : length(split("/", var.key_vault.keyvault_id_for_system_credentials)) == 9)) : (
                                                                            true
                                                                          )
                                                                        )
@@ -189,8 +188,6 @@ variable "terraform_template_version"                   { description = "The ver
 
 variable "deployer_tfstate"                             { description = "Deployer remote tfstate file" }
 
-variable "service_principal"                            { description = "Current service principal used to authenticate to Azure" }
-
 variable "naming"                                       { description = "Defines the names for the resources" }
 
 variable "use_deployer"                                 { description = "Use the deployer" }
@@ -221,10 +218,6 @@ variable "ANF_settings"                                 {
 
 variable "place_delete_lock_on_resources"                { description = "If defined, a delete lock will be placed on the key resources" }
 
-variable "additional_network_id"                         {
-                                                           description = "Agent Network resource ID"
-                                                           default     = ""
-                                                         }
 #########################################################################################
 #                                                                                       #
 #  DNS Settings                                                                         #
@@ -282,6 +275,6 @@ variable "tags"                                          { description = "List o
 
 variable "data_plane_available"                          {
                                                            description = "Boolean value indicating if storage account access is via data plane"
-                                                           default     = false
+                                                           default     = true
                                                            type        = bool
                                                          }

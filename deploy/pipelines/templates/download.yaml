@@ -2,19 +2,19 @@
 # Licensed under the MIT License.
 
 parameters:
-  includeAnsibleData: false
-  getLatestFromBranch: false
+  includeAnsibleData:                  false
+  getLatestFromBranch:                 false
 steps:
-  - checkout: sap-automation
-    path: s/sap-automation
-  - checkout: self
-    path: s/config
+  - checkout:                          sap-automation
+    path:                              s/sap-automation
+  - checkout:                          self
+    path:                              s/config
     persistCredentials: true
     fetchDepth: 0
   - ${{ if eq(parameters.includeAnsibleData, true) }}:
-      - download: current
-        artifact: ansible_data
-        displayName: "Download ansible_data"
+      - download:                      current
+        artifact:                      ansible_data
+        displayName:                   "Download ansible_data"
   - ${{ if eq(parameters.getLatestFromBranch, true) }}:
       - script: |
           #!/bin/bash
@@ -38,4 +38,4 @@ steps:
 
 
           cd $currentFolder
-        displayName: Get latest from branch
+        displayName:                   Get latest from branch

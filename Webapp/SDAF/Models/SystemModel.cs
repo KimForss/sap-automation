@@ -35,7 +35,7 @@ namespace SDAFWebApp.Models
 
 
         [DisplayName("Workload zone")]
-        public string workload_zone { get; set; }
+        public string workloadZoneName { get; set; }
 
         [RequiredIfNotDefault]
         [DisplayName("Environment")]
@@ -62,7 +62,6 @@ namespace SDAFWebApp.Models
         // Common Infrastructure
 
         [SubscriptionIdValidator(ErrorMessage = "Invalid subscription")]
-        public string subscription { get; set; }
 
         public string subscription_id { get; set; }
 

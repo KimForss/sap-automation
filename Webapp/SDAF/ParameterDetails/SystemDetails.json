@@ -14,11 +14,11 @@
     ]
   },
   {
-    "Section": "Subscription *",
+    "Section": "Subscription",
     "Link": "https://learn.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main",
     "Parameters": [
       {
-        "Name": "subscription",
+        "Name": "subscription_id",
         "Required": false,
         "Description": "IMPORTANT: please provide a subscription id to enable dropdown functionality for various Azure resource ID parameters, such as resourcegroup_arm_id, network_arm_id, etc.",
         "Type": "lookup",
@@ -38,7 +38,7 @@
     "Link": "https://learn.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-deploy-workload-zone?branch=main&tabs=linux%2Cdevops",
     "Parameters": [
       {
-        "Name": "workload_zone",
+        "Name": "workloadZoneName",
         "Required": false,
         "Description": "An existing workload zone for which the system will be deployed in. The workload zone provides the Azure Virtual Network and the Azure key vault for the system credentials.See <a href='https://learn.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-deployment-framework#about-the-sap-workload' target='_blank' rel='noopener noreferrer'>workload zone</a>'.",
         "Type": "lookup",
@@ -61,33 +61,8 @@
         "Name": "environment",
         "Required": true,
         "Description": "Identifier for the workload zone, used for partitioning the environments. For example 'DEV', 'QA', 'PROD', 'TEST', etc.",
-        "Type": "lookup",
-        "Options": [
-          {
-            "Text": "Select an environment...",
-            "Value": ""
-          },
-          {
-            "Text": "Development",
-            "Value": "DEV"
-          },
-          {
-            "Text": "Sandbox",
-            "Value": "SND"
-          },
-          {
-            "Text": "Prototype",
-            "Value": "PROTO"
-          },
-          {
-            "Text": "Non Production",
-            "Value": "NP"
-          },
-          {
-            "Text": "Production",
-            "Value": "PROD"
-          }
-        ],
+        "Type": "field",
+        "Options": [],
         "Overrules": "",
         "Display": 1
       },
@@ -327,7 +302,6 @@
       {
         "Name": "shared_access_key_enabled_nfs",
         "Required": false,
-        "Description": "Storage account authorization using Shared Access Key (NFS shares).",
         "Description": "Storage account authorization using Shared Access Key (NFS shares).",
         "Type": "checkbox",
         "Options": [],

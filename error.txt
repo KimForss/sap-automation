@@ -1,0 +1,6 @@
+Error: Resource already managed by Terraform
+
+Terraform is already managing a remote object for
+module.sap_deployer.azurerm_app_configuration_key.deployer_msi_id[0]. To
+import to this address you must first remove the existing object from the
+state.

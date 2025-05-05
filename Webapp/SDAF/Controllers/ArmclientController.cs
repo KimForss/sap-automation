@@ -15,11 +15,8 @@ using System.Collections.Generic;
 
 namespace SDAFWebApp.Controllers
 {
-    public class ArmclientController : Controller
+    public class ArmclientController(ArmClient armClient) : Controller
     {
-        private readonly ArmClient _armClient;
-        public ArmclientController(ArmClient armClient) => _armClient = armClient;
-
         [HttpGet] // #subscription
         public ActionResult GetSubscriptionOptions()
         {
@@ -29,7 +26,7 @@ namespace SDAFWebApp.Controllers
       ];
             try
             {
-                SubscriptionCollection subscriptions = _armClient.GetSubscriptions();
+                SubscriptionCollection subscriptions = armClient.GetSubscriptions();
 
                 foreach (SubscriptionResource s in subscriptions.GetAll())
                 {
@@ -116,7 +113,7 @@ namespace SDAFWebApp.Controllers
             ];
             try
             {
-                SubscriptionResource subscription = _armClient.GetSubscriptionResource(new ResourceIdentifier(subscriptionId));
+                SubscriptionResource subscription = armClient.GetSubscriptionResource(new ResourceIdentifier(subscriptionId));
                 ResourceGroupCollection resourceGroups = subscription.GetResourceGroups();
 
                 foreach (ResourceGroupResource r in resourceGroups.GetAll())
@@ -144,7 +141,7 @@ namespace SDAFWebApp.Controllers
             ];
             try
             {
-                SubscriptionResource subscription = _armClient.GetSubscriptionResource(new ResourceIdentifier(subscriptionId));
+                SubscriptionResource subscription = armClient.GetSubscriptionResource(new ResourceIdentifier(subscriptionId));
                 Pageable<VirtualNetworkResource> virtualNetworks = subscription.GetVirtualNetworks();
 
                 foreach (VirtualNetworkResource n in virtualNetworks)
@@ -173,7 +170,7 @@ namespace SDAFWebApp.Controllers
             try
             {
                 ResourceIdentifier id = new(vnetId);
-                SubscriptionResource subscription = _armClient.GetSubscriptions().Get(id.SubscriptionId);
+                SubscriptionResource subscription = armClient.GetSubscriptions().Get(id.SubscriptionId);
                 ResourceGroupResource resourceGroup = subscription.GetResourceGroups().Get(id.ResourceGroupName);
                 VirtualNetworkResource virtualNetwork = resourceGroup.GetVirtualNetworks().Get(id.Name);
                 SubnetCollection subnets = virtualNetwork.GetSubnets();
@@ -204,7 +201,7 @@ namespace SDAFWebApp.Controllers
             try
             {
                 ResourceIdentifier id = new(vnetId);
-                SubscriptionResource subscription = _armClient.GetSubscriptions().Get(id.SubscriptionId);
+                SubscriptionResource subscription = armClient.GetSubscriptions().Get(id.SubscriptionId);
                 ResourceGroupResource resourceGroup = subscription.GetResourceGroups().Get(id.ResourceGroupName);
                 NetworkSecurityGroupCollection nsgs = resourceGroup.GetNetworkSecurityGroups();
 
@@ -233,7 +230,7 @@ namespace SDAFWebApp.Controllers
             ];
             try
             {
-                SubscriptionResource subscription = _armClient.GetSubscriptionResource(new ResourceIdentifier(subscriptionId));
+                SubscriptionResource subscription = armClient.GetSubscriptionResource(new ResourceIdentifier(subscriptionId));
                 Pageable<StorageAccountResource> storageAccounts = subscription.GetStorageAccounts();
 
                 foreach (StorageAccountResource sa in storageAccounts)
@@ -270,7 +267,7 @@ namespace SDAFWebApp.Controllers
             ];
             try
             {
-                SubscriptionResource subscription = _armClient.GetSubscriptionResource(new ResourceIdentifier(subscriptionId));
+                SubscriptionResource subscription = armClient.GetSubscriptionResource(new ResourceIdentifier(subscriptionId));
                 Pageable<PrivateEndpointResource> privateEndpoints = subscription.GetPrivateEndpoints();
 
                 foreach (PrivateEndpointResource pe in privateEndpoints)
@@ -298,7 +295,7 @@ namespace SDAFWebApp.Controllers
             ];
             try
             {
-                SubscriptionResource subscription = _armClient.GetSubscriptionResource(new ResourceIdentifier(subscriptionId));
+                SubscriptionResource subscription = armClient.GetSubscriptionResource(new ResourceIdentifier(subscriptionId));
                 Pageable<KeyVaultResource> keyVaults = subscription.GetKeyVaults();
 
                 foreach (KeyVaultResource kv in keyVaults)
@@ -326,7 +323,7 @@ namespace SDAFWebApp.Controllers
             ];
             try
             {
-                SubscriptionResource subscription = _armClient.GetSubscriptionResource(new ResourceIdentifier(subscriptionId));
+                SubscriptionResource subscription = armClient.GetSubscriptionResource(new ResourceIdentifier(subscriptionId));
                 Pageable<ProximityPlacementGroupResource> ppgs = subscription.GetProximityPlacementGroups();
 
                 foreach (ProximityPlacementGroupResource ppg in ppgs)
@@ -354,7 +351,7 @@ namespace SDAFWebApp.Controllers
             ];
             try
             {
-                SubscriptionResource subscription = _armClient.GetSubscriptionResource(new ResourceIdentifier(subscriptionId));
+                SubscriptionResource subscription = armClient.GetSubscriptionResource(new ResourceIdentifier(subscriptionId));
                 Pageable<AvailabilitySetResource> avs = subscription.GetAvailabilitySets();
 
                 foreach (AvailabilitySetResource av in avs)
@@ -382,7 +379,7 @@ namespace SDAFWebApp.Controllers
             ];
             try
             {
-                SubscriptionResource subscription = _armClient.GetSubscriptionResource(new ResourceIdentifier(subscriptionId));
+                SubscriptionResource subscription = armClient.GetSubscriptionResource(new ResourceIdentifier(subscriptionId));
                 Pageable<GenericResource> userIDs = subscription.GetGenericResources("resourceType eq 'Microsoft.ManagedIdentity/userAssignedIdentities'");
 
                 foreach (GenericResource userId in userIDs)
@@ -410,7 +407,7 @@ namespace SDAFWebApp.Controllers
             ];
             try
             {
-                SubscriptionResource subscription = _armClient.GetSubscriptionResource(new ResourceIdentifier(subscriptionId));
+                SubscriptionResource subscription = armClient.GetSubscriptionResource(new ResourceIdentifier(subscriptionId));
                 Pageable<GenericResource> userIDs = subscription.GetGenericResources("resourceType eq 'Microsoft.Compute/virtualMachineScaleSets'");
 
                 foreach (GenericResource userId in userIDs)

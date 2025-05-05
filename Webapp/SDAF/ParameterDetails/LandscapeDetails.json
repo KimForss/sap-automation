@@ -18,7 +18,7 @@
     "Link": "https://learn.microsoft.com/en-us/azure/sap/automation/automation-configure-workload-zone",
     "Parameters": [
       {
-        "Name": "subscription",
+        "Name": "subscription_id",
         "Required": false,
         "Description": "IMPORTANT: please provide a subscription id to enable dropdown functionality for various arm id parameters, such as resourcegroup_arm_id, network_arm_id, etc.",
         "Type": "lookup",
@@ -34,11 +34,11 @@
     ]
   },
   {
-    "Section": "Environment",
+    "Section": "Workload Zone",
     "Link": "https://learn.microsoft.com/en-us/azure/sap/automation/automation-configure-workload-zone#environment-parameters",
     "Parameters": [
       {
-        "Name": "environment",
+        "Name": "workloadZoneName",
         "Required": true,
         "Description": "Identifier for the workload zone, used for partitioning the environments. For example 'DEV', 'QA', 'PROD', 'TEST', etc.",
         "Type": "lookup",
@@ -82,6 +82,15 @@
             "Value": ""
           }
         ],
+        "Overrules": "",
+        "Display": 1
+      },
+      {
+        "Name": "environment",
+        "Required": false,
+        "Description": "Workload environment name.",
+        "Type": "textbox",
+        "Options": [],
         "Overrules": "",
         "Display": 1
       },

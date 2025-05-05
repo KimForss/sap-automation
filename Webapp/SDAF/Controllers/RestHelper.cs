@@ -35,8 +35,7 @@ namespace SDAFWebApp.Controllers
         private readonly string PAT;
         private readonly string branch;
         private readonly string sdafGeneralId;
-        private readonly string sdafControlPlaneEnvironment;
-        private readonly string sdafControlPlaneLocation;
+        private readonly string sdafControlPlaneName;
         private readonly string tenantId;
         private readonly string managedIdentityClientId;
 
@@ -44,9 +43,9 @@ namespace SDAFWebApp.Controllers
 
         private readonly string sampleUrl = "https://api.github.com/repos/Azure/SAP-automation-samples";
 
-        private HttpClient client;
+        private readonly HttpClient client;
 
-        private JsonSerializerOptions jsonSerializerOptions;
+        private readonly JsonSerializerOptions jsonSerializerOptions;
 
         public RestHelper(IConfiguration configuration, string type = "ADO")
         {
@@ -57,8 +56,8 @@ namespace SDAFWebApp.Controllers
             string devops_authentication = configuration["AUTHENTICATION_TYPE"];
             branch = configuration["SourceBranch"];
             sdafGeneralId = configuration["SDAF_GENERAL_GROUP_ID"];
-            sdafControlPlaneEnvironment = configuration["CONTROLPLANE_ENV"];
-            sdafControlPlaneLocation = configuration["CONTROLPLANE_LOC"];
+            sdafControlPlaneName = configuration["CONTROL_PLANE_NAME"];
+            
             tenantId = configuration["AZURE_TENANT_ID"];
             managedIdentityClientId = configuration["OVERRIDE_USE_MI_FIC_ASSERTION_CLIENTID"];
 
@@ -76,17 +75,20 @@ namespace SDAFWebApp.Controllers
                 }
                 else
                 {
-                    if (string.IsNullOrEmpty(tenantId) || string.IsNullOrEmpty(managedIdentityClientId))
+                    if (string.IsNullOrEmpty(managedIdentityClientId))
                     {
-                        throw new ArgumentNullException("TenantId and ManagedIdentityClientId must be provided for Managed Identity authentication.");
+                        credential = new DefaultAzureCredential();
+                    }
+                    else
+                    {
+                        credential = new DefaultAzureCredential(
+                          new DefaultAzureCredentialOptions
+                          {
+                              ManagedIdentityClientId = managedIdentityClientId
+                          });
+
                     }
 
-                    credential = new DefaultAzureCredential(
-                        new DefaultAzureCredentialOptions
-                        {
-                            TenantId = tenantId,
-                            ManagedIdentityClientId = managedIdentityClientId
-                        });
 
                     //var tokenRequestContext = new TokenRequestContext(new[] { "https://management.azure.com/.default", "499b84ac-1321-427f-aa17-267ca6975798/.default" });
 
@@ -130,7 +132,7 @@ namespace SDAFWebApp.Controllers
         public async Task UpdateRepo(string path, string content)
         {
             string getUri = $"{collectionUri}{project}/_apis/git/repositories/{repositoryId}/refs/?filter=heads/{branch}";
-            string postUri = $"{collectionUri}{project}/_apis/git/repositories/{repositoryId}/pushes?api-version=5.1";
+            string postUri = $"{collectionUri}{project}/_apis/git/repositories/{repositoryId}/pushes?api-version=7.1";
             string ooId;
 
             using HttpResponseMessage response = client.GetAsync(getUri).Result;
@@ -151,7 +153,7 @@ namespace SDAFWebApp.Controllers
             };
             GitRequestBody requestBody = new()
             {
-                refUpdates = new Refupdate[] { refUpdate },
+                refUpdates = [refUpdate],
             };
             StringContent editContent = Helper.CreateHttpContent("edit", path, content, requestBody);
 
@@ -218,7 +220,7 @@ namespace SDAFWebApp.Controllers
                 }
             }
 
-            return fileNames.ToArray();
+            return [.. fileNames];
         }
 
         // Get a file from azure sap-automation repository
@@ -258,19 +260,29 @@ namespace SDAFWebApp.Controllers
             {
                 EnvironmentModel environment = JsonSerializer.Deserialize<EnvironmentModel>(value.ToString());
 
-                environment.sdafControlPlaneEnvironment = sdafControlPlaneEnvironment;
-                if (!environment.name.EndsWith("-" + sdafControlPlaneEnvironment))
+                environment.sdafControlPlaneEnvironment = sdafControlPlaneName;
+                if (!environment.name.Contains("-" + sdafControlPlaneName))
                 {
                     if (environment.name.StartsWith("SDAF-"))
                     {
                         environment.name = environment.name.Replace("SDAF-", "");
+                        environment.isControlPlane = false;
+                        environment.sdafControlPlaneEnvironment = sdafControlPlaneName;
                         variableGroups.Add(environment);
                     }
+                }
+                else
+                {
+                    environment.name = environment.name.Replace("SDAF-", "");
+                    environment.isControlPlane = true;
+                    environment.sdafControlPlaneEnvironment = sdafControlPlaneName;
+
+                    variableGroups.Add(environment);
                 }
 
             }
 
-            return variableGroups.ToArray();
+            return [.. variableGroups];
         }
 
         // Get a list of all variable group names for use in a dropdown
@@ -353,7 +365,7 @@ namespace SDAFWebApp.Controllers
                 string value = variables.GetProperty(variableName).GetProperty("value").GetString();
                 if (value.EndsWith('/'))
                 {
-                    value = value.Remove(value.Length - 1);
+                    value = value[..^1];
                 }
                 return value;
             }
@@ -372,8 +384,8 @@ namespace SDAFWebApp.Controllers
 
             newName = "SDAF-" + newName.Replace("SDAF-", "");
             environment.name = newName;
-            environment.variableGroupProjectReferences = new VariableGroupProjectReference[]
-                {
+            environment.variableGroupProjectReferences =
+                [
                     new VariableGroupProjectReference
                     {
                         name = newName,
@@ -384,7 +396,7 @@ namespace SDAFWebApp.Controllers
                             name = project
                         }
                     }
-                };
+                ];
 
             string requestJson = JsonSerializer.Serialize(environment, typeof(EnvironmentModel), jsonSerializerOptions);
             StringContent content = new(requestJson, Encoding.ASCII, "application/json");
@@ -431,8 +443,12 @@ namespace SDAFWebApp.Controllers
             dynamicVariables.ARM_CLIENT_SECRET = JToken.FromObject(environment.variables.ARM_CLIENT_SECRET);
             dynamicVariables.ARM_TENANT_ID = JToken.FromObject(environment.variables.ARM_TENANT_ID);
             dynamicVariables.ARM_SUBSCRIPTION_ID = JToken.FromObject(environment.variables.ARM_SUBSCRIPTION_ID);
-            dynamicVariables.sap_fqdn = JToken.FromObject(environment.variables.sap_fqdn);
             dynamicVariables.POOL = JToken.FromObject(environment.variables.POOL);
+            dynamicVariables.APPLICATION_CONFIGURATION_NAME = JToken.FromObject(environment.variables.APPLICATION_CONFIGURATION_NAME);
+            dynamicVariables.CONTROL_PLANE_NAME = JToken.FromObject(environment.variables.CONTROL_PLANE_NAME);
+            dynamicVariables.APP_REGISTRATION_APP_ID = JToken.FromObject(environment.variables.APP_REGISTRATION_APP_ID);
+            dynamicVariables.APP_REGISTRATION_OBJECT_ID = JToken.FromObject(environment.variables.APP_REGISTRATION_OBJECT_ID);
+            dynamicVariables.Use_MSI = JToken.FromObject(environment.variables.Use_MSI);
 
             dynamicEnvironment.variables = dynamicVariables;
 
@@ -454,9 +470,6 @@ namespace SDAFWebApp.Controllers
                 {
                     case System.Net.HttpStatusCode.Unauthorized:
                         errorMessage = "Unauthorized, please ensure that the MSI/Personal Access Token has sufficient permissions and that it has not expired.";
-                        break;
-                    case System.Net.HttpStatusCode.NotFound:
-                        errorMessage = "Could not find the template.";
                         break;
                     default:
                         errorMessage = JsonDocument.Parse(responseBody).RootElement.GetProperty("message").ToString();

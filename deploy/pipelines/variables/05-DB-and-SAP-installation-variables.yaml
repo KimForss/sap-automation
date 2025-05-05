@@ -1,19 +1,20 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-#--------------------------------------+---------------------------------------8
+# -------------------------------------+---------------------------------------8
 #                                                                              |
 # Defines the parameters and variables for the SAP Software Install            |
 #                                                                              |
-#--------------------------------------+---------------------------------------8
+# -------------------------------------+---------------------------------------8
 
 parameters:
-  environment: ""
+  sap_system:                          ""
+  workload_zone_name:                  ""
 
 variables:
   - group:                             "SDAF-General"
 
-  - group:                             SDAF-${{ parameters.environment }}
+  - group:                             SDAF-${{ parameters.workload_zone_name }}
 
   - name:                              agent_name
     value:                             $[coalesce(variables['POOL'], variables['Agent'])]
@@ -22,4 +23,4 @@ variables:
     value:                             $[lower(coalesce(variables['POOL'], variables['Agent']))]
 
   - name:                              variable_group
-    value:                             SDAF-${{ parameters.environment }}
+    value:                             SDAF-${{ parameters.workload_zone_name }}
