@@ -46,6 +46,14 @@
   ansible.builtin.set_fact:
     shareddisk:                        0
 
+# NVMe PRE-FLIGHT CHECK
+# -------------------------------------+---------------------------------------8
+- name:                                "1.5 Disk setup: - NVMe Preflight Check"
+  when:                                use_nvme_disks | default(false) | bool
+  ansible.builtin.include_tasks:       "1.5-nvme-preflight.yml"
+
+# -------------------------------------+---------------------------------------8
+
 - name:                                "1.5 Disk setup - Check if the shared disk exists"
   ansible.builtin.set_fact:
     shareddisk:                        "{{ disks | selectattr('host', 'defined') |
@@ -177,14 +185,6 @@
     verbosity:                         2
   when:
     - tier == "sapos"
-
-# NVMe PRE-FLIGHT CHECK
-# -------------------------------------+---------------------------------------8
-- name:                                "1.5 Disk setup: - NVMe Preflight Check"
-  when:                                prepare_for_nvme | default(false) | bool
-  ansible.builtin.include_tasks:       "1.5-nvme-preflight.yml"
-
-# -------------------------------------+---------------------------------------8
 
 - name:                                "1.5 Disk setup - Show Custom Logical Volumes"
   ansible.builtin.debug:
