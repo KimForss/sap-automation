@@ -80,12 +80,15 @@
     mode:                              '0755'
 
 - name:                                "1.5.4 NVMe Support - Add NVMe drivers to dracut configuration"
-  when:                                not nvme_in_initramfs and (is_redhat or is_suse)
+  when: is_redhat or is_suse  # Only distribution-dependent, not state-dependent
   ansible.builtin.copy:
-    content:                           'add_drivers+=" nvme nvme-core nvme-fabrics nvme-fc nvme-rdma nvme-loop nvmet nvmet-fc nvme-tcp "'
+    src:                               88-nvme-dracut.conf
     dest:                              /etc/dracut.conf.d/nvme.conf
     mode:                              '0644'
-  register:                            dracut_conf_added
+    owner:                             root
+    group:                             root
+    force:                             true
+  register: dracut_conf_added
 
 - name:                                "1.5.4 NVMe Support - Rebuild initramfs with dracut (RHEL/SUSE)"
   when:                                dracut_conf_added.changed and (is_redhat or is_suse)
