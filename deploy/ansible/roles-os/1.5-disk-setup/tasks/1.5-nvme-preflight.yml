@@ -13,6 +13,75 @@
 #
 # -------------------------------------+---------------------------------------8
 
+# Configure Azure NVME Utils repository
+- name:                                "1.5.4 NVMe Support - Configure Azure NVME Utils Repository"
+  block:
+    - name:                            "1.5.4 NVMe Support - Configure Azure NVME Utils repository for RHEL"
+      when:
+                                       - ansible_distribution == 'RedHat'
+                                       - ansible_distribution_major_version | int >= 8
+      become:                          true
+      become_user:                     root
+      block:
+        - name:                        "1.5.4 NVMe Support - Add Azure NVME Utils repository for RHEL"
+          ansible.builtin.yum_repository:
+            name:                      azure_nvme_utils
+            description:               "Copr repo for azure-nvme-utils owned by cjp256"
+            baseurl:                   "https://download.copr.fedorainfracloud.org/results/cjp256/azure-nvme-utils/rhel-{{ ansible_distribution_major_version }}-x86_64/"
+            gpgcheck:                  true
+            gpgkey:                    "https://download.copr.fedorainfracloud.org/results/cjp256/azure-nvme-utils/pubkey.gpg"
+            enabled:                   true
+            state:                     present
+          register:                    repo_added
+
+        - name:                        "1.5.4 NVMe Support - Refresh repository cache for RHEL"
+          when:                        repo_added.changed
+          ansible.builtin.shell:       dnf makecache
+          args:
+            warn:                      false
+
+        - name:                        "1.5.4 NVMe Support - Install Azure NVME Utils package for RHEL"
+          ansible.builtin.package:
+            name:                      azure-nvme-utils
+            state:                     present
+          register:                    nvme_utils_installed
+
+
+    - name:                            "1.5.4 NVMe Support - Configure Azure NVME Utils repository for SLES"
+      when:
+                                       - ansible_distribution == 'SLES'
+                                       - ansible_distribution_major_version | int >= 15
+      become:                          true
+      become_user:                     root
+      block:
+        - name:                        "1.5.4 NVMe Support - Add Azure NVME Utils repository for SLES"
+          community.general.zypper_repository:
+            name:                      azure_nvme_utils
+            description:               "Copr repo for azure-nvme-utils owned by cjp256"
+            repo:                      "https://download.copr.fedorainfracloud.org/results/cjp256/azure-nvme-utils/rhel-9-x86_64/"
+            priority:                  100
+            state:                     present
+          register:                    sles_repo_added
+
+        - name:                        "1.5.4 NVMe Support - Import GPG key"
+          when:                        sles_repo_added.changed
+          ansible.builtin.rpm_key:
+            key:                       "https://download.copr.fedorainfracloud.org/results/cjp256/azure-nvme-utils/pubkey.gpg"
+            state:                     present
+
+        - name:                        "1.5.4 NVMe Support - Refresh repository cache"
+          when:                        sles_repo_added.changed
+          community.general.zypper:
+            name:                      "*"
+            update_cache:              true
+
+        - name:                        "1.5.4 NVMe Support - Install Azure NVME Utils package"
+          ansible.builtin.package:
+            name:                      azure-nvme-utils
+            state:                     present
+          register:                    nvme_utils_installed
+
+
 # Ensure NVMe modules are installed and loaded in initramfs
 - name:                                "1.5.4 NVMe Support - Check if NVMe module is available"
   ansible.builtin.shell: |
@@ -38,7 +107,6 @@
                                        NVMe module is not available.
                                        Please install NVMe module before changing your instance type to NVMe.
 
-
 # Check if NVMe module is loaded in initramfs based on distribution
 - name:                                "1.5.4 NVMe Support - Set distribution facts"
   ansible.builtin.set_fact:
@@ -53,7 +121,6 @@
   register:                            initramfs_nvme_rhel
   failed_when:                         false
   changed_when:                        false
-
 
 - name:                                "1.5.4 NVMe Support - Check if NVMe loaded in initramfs (SUSE)"
   when:                                is_suse
@@ -116,7 +183,7 @@
     nvme_udev_rules_installed:         true
 
 - name:                                "1.5.4 NVMe Support - Reboot the system to apply changes"
-  when:                                dracut_conf_added.changed or nvme_udev_rules_installed | default(false)
+  when:                                dracut_conf_added.changed or nvme_utils_installed.changed or nvme_udev_rules_installed | default(false)
   ansible.builtin.reboot:
     msg:                               "Rebooting to apply NVMe changes"
     test_command:                      uptime
