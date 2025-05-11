@@ -19,7 +19,7 @@
     - name:                            "1.5.4 NVMe Support - Configure Azure NVME Utils repository for RHEL"
       when:
                                        - ansible_distribution == 'RedHat'
-                                       - ansible_distribution_major_version | int >= 8
+                                       - ansible_distribution_version is version('8.6', '>=')
       become:                          true
       become_user:                     root
       block:
@@ -48,9 +48,9 @@
 
 
     - name:                            "1.5.4 NVMe Support - Configure Azure NVME Utils repository for SLES"
-      when:
-                                       - ansible_distribution == 'SLES'
-                                       - ansible_distribution_major_version | int >= 15
+      when: >
+                                       (ansible_distribution | upper == 'SLES' and ansible_distribution_version is version('15.4', '>=')) or
+                                       (ansible_distribution | upper == 'SLES_SAP' and ansible_distribution_version is version('15.3', '>='))
       become:                          true
       become_user:                     root
       block:
