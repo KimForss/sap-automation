@@ -80,7 +80,7 @@
     mode:                              '0755'
 
 - name:                                "1.5.4 NVMe Support - Add NVMe drivers to dracut configuration"
-  when: is_redhat or is_suse  # Only distribution-dependent, not state-dependent
+  when:                                is_redhat or is_suse  # Only distribution-dependent, not state-dependent
   ansible.builtin.copy:
     src:                               88-nvme-dracut.conf
     dest:                              /etc/dracut.conf.d/nvme.conf
@@ -94,16 +94,27 @@
   when:                                dracut_conf_added.changed and (is_redhat or is_suse)
   ansible.builtin.command:             dracut -f -v
 
-# Install udev rules for Azure NVMe disks
+- name:                                "1.5.4 NVMe Support - Reboot the system to apply changes"
+  when:                                dracut_conf_added.changed and (is_redhat or is_suse)
+  ansible.builtin.reboot:
+    msg:                               "Rebooting to apply NVMe changes"
+    test_command:                      uptime
+    connect_timeout:                   5
+    reboot_timeout:                    600
+
+# Install udev rules for Azure NVMe disks - /usr/lib/udev/rules.d/88-azure-data-disk.rules
 - name:                                "1.5.4 NVMe Support - Install udev rules for Azure NVMe disks"
   ansible.builtin.copy:
     src:                               88-azure-nvme-data-disk.rules
-    dest:                              /etc/udev/rules.d/88-azure-nvme-data-disk.rules
+    dest:                              /usr/lib/udev/rules.d/88-azure-data-disk.rules
+    owner:                             root
+    group:                             root
+    force:                             true
     mode:                              '0644'
   register:                            udev_rules_added
 
 - name:                                "1.5.4 NVMe Support - Reload udev rules if added or modified"
-  when: udev_rules_added.changed
+  when:                                udev_rules_added.changed
   ansible.builtin.command:             udevadm control --reload-rules
 
 
