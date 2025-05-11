@@ -94,14 +94,6 @@
   when:                                dracut_conf_added.changed and (is_redhat or is_suse)
   ansible.builtin.command:             dracut -f -v
 
-- name:                                "1.5.4 NVMe Support - Reboot the system to apply changes"
-  when:                                dracut_conf_added.changed and (is_redhat or is_suse)
-  ansible.builtin.reboot:
-    msg:                               "Rebooting to apply NVMe changes"
-    test_command:                      uptime
-    connect_timeout:                   5
-    reboot_timeout:                    600
-
 # Install udev rules for Azure NVMe disks - /usr/lib/udev/rules.d/88-azure-data-disk.rules
 - name:                                "1.5.4 NVMe Support - Install udev rules for Azure NVMe disks"
   ansible.builtin.copy:
@@ -122,6 +114,14 @@
   when:                                udev_rules_added.changed or nvme_udev_rules_installed | default(false)
   ansible.builtin.set_fact:
     nvme_udev_rules_installed:         true
+
+- name:                                "1.5.4 NVMe Support - Reboot the system to apply changes"
+  when:                                dracut_conf_added.changed or nvme_udev_rules_installed | default(false)
+  ansible.builtin.reboot:
+    msg:                               "Rebooting to apply NVMe changes"
+    test_command:                      uptime
+    connect_timeout:                   5
+    reboot_timeout:                    600
 
 - name:                                "1.5.4 NVMe Support - Create backup of fstab"
   ansible.builtin.copy:
