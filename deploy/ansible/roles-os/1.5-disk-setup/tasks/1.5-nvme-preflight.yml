@@ -172,17 +172,17 @@
   register:                            udev_rules_added
 
 - name:                                "1.5.4 NVMe Support - Reload udev rules if added or modified"
-  when:                                udev_rules_added.changed
+  # when:                                udev_rules_added.changed
   ansible.builtin.command:             udevadm control --reload-rules
 
 
 - name:                                "1.5.4 NVMe Support - Set udev rules installed flag"
-  when:                                udev_rules_added.changed or nvme_udev_rules_installed | default(false)
+  # when:                                udev_rules_added.changed or nvme_udev_rules_installed | default(false)
   ansible.builtin.set_fact:
     nvme_udev_rules_installed:         true
 
 - name:                                "1.5.4 NVMe Support - Reboot the system to apply changes"
-  when:                                dracut_conf_added.changed or nvme_utils_installed.changed or nvme_udev_rules_installed | default(false)
+  # when:                                dracut_conf_added.changed or nvme_utils_installed.changed or nvme_udev_rules_installed | default(false)
   ansible.builtin.reboot:
     msg:                               "Rebooting to apply NVMe changes"
     test_command:                      uptime
