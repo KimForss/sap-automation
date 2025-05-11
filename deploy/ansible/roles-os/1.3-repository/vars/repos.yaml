@@ -26,19 +26,19 @@ repos:
   redhat8.2:
   redhat8.4:
   redhat8.6:
-    - { tier:   'os', repo: 'azure_nvme_utils', url: 'https://download.copr.fedorainfracloud.org/results/cjp256/azure-nvme-utils/rhel-{{ ansible_distribution_major_version }}-x86_64/', state: 'present' }
+    - { tier:   'os', repo: 'cjp256-azure-nvme-utils', url: 'https://download.copr.fedorainfracloud.org/results/cjp256/azure-nvme-utils/rhel-{{ ansible_distribution_major_version }}-x86_64', state: 'present' }
   redhat8.8:
-    - { tier:   'os', repo: 'azure_nvme_utils', url: 'https://download.copr.fedorainfracloud.org/results/cjp256/azure-nvme-utils/rhel-{{ ansible_distribution_major_version }}-x86_64/', state: 'present' }
+    - { tier:   'os', repo: 'cjp256-azure-nvme-utils', url: 'https://download.copr.fedorainfracloud.org/results/cjp256/azure-nvme-utils/rhel-{{ ansible_distribution_major_version }}-x86_64', state: 'present' }
   redhat8.9:
-    - { tier:   'os', repo: 'azure_nvme_utils', url: 'https://download.copr.fedorainfracloud.org/results/cjp256/azure-nvme-utils/rhel-{{ ansible_distribution_major_version }}-x86_64/', state: 'present' }
+    - { tier:   'os', repo: 'cjp256-azure-nvme-utils', url: 'https://download.copr.fedorainfracloud.org/results/cjp256/azure-nvme-utils/rhel-{{ ansible_distribution_major_version }}-x86_64', state: 'present' }
   redhat8.10:
-    - { tier:   'os', repo: 'azure_nvme_utils', url: 'https://download.copr.fedorainfracloud.org/results/cjp256/azure-nvme-utils/rhel-{{ ansible_distribution_major_version }}-x86_64/', state: 'present' }
+    - { tier:   'os', repo: 'cjp256-azure-nvme-utils', url: 'https://download.copr.fedorainfracloud.org/results/cjp256/azure-nvme-utils/rhel-{{ ansible_distribution_major_version }}-x86_64', state: 'present' }
   redhat9.0:
-    - { tier:   'os', repo: 'azure_nvme_utils', url: 'https://download.copr.fedorainfracloud.org/results/cjp256/azure-nvme-utils/rhel-{{ ansible_distribution_major_version }}-x86_64/', state: 'present' }
+    - { tier:   'os', repo: 'cjp256-azure-nvme-utils', url: 'https://download.copr.fedorainfracloud.org/results/cjp256/azure-nvme-utils/rhel-{{ ansible_distribution_major_version }}-x86_64', state: 'present' }
   redhat9.2:
-    - { tier:   'os', repo: 'azure_nvme_utils', url: 'https://download.copr.fedorainfracloud.org/results/cjp256/azure-nvme-utils/rhel-{{ ansible_distribution_major_version }}-x86_64/', state: 'present' }
+    - { tier:   'os', repo: 'cjp256-azure-nvme-utils', url: 'https://download.copr.fedorainfracloud.org/results/cjp256/azure-nvme-utils/rhel-{{ ansible_distribution_major_version }}-x86_64', state: 'present' }
   redhat9.4:
-    - { tier:   'os', repo: 'azure_nvme_utils', url: 'https://download.copr.fedorainfracloud.org/results/cjp256/azure-nvme-utils/rhel-{{ ansible_distribution_major_version }}-x86_64/', state: 'present' }
+    - { tier:   'os', repo: 'cjp256-azure-nvme-utils', url: 'https://download.copr.fedorainfracloud.org/results/cjp256/azure-nvme-utils/rhel-{{ ansible_distribution_major_version }}-x86_64', state: 'present' }
   # SLES
   sles12.3:
   sles_sap12.3:
@@ -50,12 +50,12 @@ repos:
   sles_sap15.4:
   # https://download.copr.fedorainfracloud.org/results/cjp256/azure-nvme-utils/opensuse-leap-15.5-x86_64/
   sles_sap15.5:
-    - { tier:   'os', repo: 'azure_nvme_utils', url: 'https://download.copr.fedorainfracloud.org/results/cjp256/azure-nvme-utils/opensuse-leap-15.5-x86_64/', state: 'present' }
+    - { tier:   'os', repo: 'cjp256-azure-nvme-utils', url: 'https://download.copr.fedorainfracloud.org/results/cjp256/azure-nvme-utils/opensuse-leap-15.5-x86_64', state: 'present' }
   sles_sap15.6:
   sles15.3:
   sles15.4:
   sles15.5:
-    - { tier:   'os', repo: 'azure_nvme_utils', url: 'https://download.copr.fedorainfracloud.org/results/cjp256/azure-nvme-utils/opensuse-leap-15.5-x86_64/', state: 'present' }
+    - { tier:   'os', repo: 'cjp256-azure-nvme-utils', url: 'https://download.copr.fedorainfracloud.org/results/cjp256/azure-nvme-utils/opensuse-leap-15.5-x86_64', state: 'present' }
   sles15.6:
 
   # Oracle
