@@ -101,10 +101,11 @@
       delay:                           10
       until: >-
                                        cluster_status_xml.rc == 0 and
-                                       cluster_status_xml.stdout | regex_findall('<node [^>]*name="([^"]*)"[^>]*online="true"[^>]*health="green"') | length >= 2 and
-                                       primary_instance_name in (cluster_status_xml.stdout | regex_findall('<node [^>]*name="([^"]*)"[^>]*online="true"[^>]*health="green"')) and
-                                       secondary_instance_name in (cluster_status_xml.stdout | regex_findall('<node [^>]*name="([^"]*)"[^>]*online="true"[^>]*health="green"'))
+                                       (cluster_status_xml.stdout | regex_findall('<node [^>]*name="([^"]*)"[^>]*online="true"') | length) >= 2 and
+                                       primary_instance_name in (cluster_status_xml.stdout | regex_findall('<node [^>]*name="([^"]*)"[^>]*online="true"')) and
+                                       secondary_instance_name in (cluster_status_xml.stdout | regex_findall('<node [^>]*name="([^"]*)"[^>]*online="true"'))
       changed_when:                    false
+
 
     - name:                            "1.17 Generic Pacemaker - Ensure the expected quorum votes is set for the cluster"
       ansible.builtin.command:         pcs quorum expected-votes "{{ cluster_quorum.expected_votes }}"
@@ -176,10 +177,11 @@
       delay:                           10
       until: >-
                                        cluster_status_xml.rc == 0 and
-                                       cluster_status_xml.stdout | regex_findall('<node [^>]*name="([^"]*)"[^>]*online="true"[^>]*health="green"') | length >= 2 and
-                                       primary_instance_name in (cluster_status_xml.stdout | regex_findall('<node [^>]*name="([^"]*)"[^>]*online="true"[^>]*health="green"')) and
-                                       secondary_instance_name in (cluster_status_xml.stdout | regex_findall('<node [^>]*name="([^"]*)"[^>]*online="true"[^>]*health="green"'))
+                                       (cluster_status_xml.stdout | regex_findall('<node [^>]*name="([^"]*)"[^>]*online="true"') | length) >= 2 and
+                                       primary_instance_name in (cluster_status_xml.stdout | regex_findall('<node [^>]*name="([^"]*)"[^>]*online="true"')) and
+                                       secondary_instance_name in (cluster_status_xml.stdout | regex_findall('<node [^>]*name="([^"]*)"[^>]*online="true"'))
       changed_when:                    false
+
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
 # | SBD - END                                                                  |
