@@ -156,6 +156,68 @@
     force:                             true
   register: dracut_conf_added
 
+# Check and configure NVMe timeouts in GRUB configuration
+- name: "1.5.4 NVMe Support - Check if GRUB configuration has NVMe timeout parameters"
+  ansible.builtin.shell: |
+    grep "GRUB_CMDLINE_LINUX.*nvme_core.io_timeout=240" /etc/default/grub || true
+  register: grub_nvme_timeout
+  changed_when: false
+  failed_when: false
+
+- name: "1.5.4 NVMe Support - Show current GRUB configuration"
+  ansible.builtin.debug:
+    msg: "Current GRUB configuration: {{ lookup('file', '/etc/default/grub') | regex_search('GRUB_CMDLINE_LINUX.*=.*') }}"
+    verbosity: 1
+
+- name: "1.5.4 NVMe Support - Add NVMe timeout parameters to GRUB CMDLINE for SUSE"
+  ansible.builtin.replace:
+    path: /etc/default/grub
+    regexp: '^(GRUB_CMDLINE_LINUX_DEFAULT=")([^"]*)(")$'
+    replace: '\1\2 nvme_core.io_timeout=240 nvme_core.admin_timeout=240\3'
+  when:
+    - is_suse
+    - grub_nvme_timeout.rc != 0
+    - grub_nvme_timeout.stdout == ""
+  register: grub_updated_suse
+
+- name: "1.5.4 NVMe Support - Add NVMe timeout parameters to GRUB CMDLINE for RHEL"
+  ansible.builtin.replace:
+    path: /etc/default/grub
+    regexp: '^(GRUB_CMDLINE_LINUX=")([^"]*)(")$'
+    replace: '\1\2 nvme_core.io_timeout=240 nvme_core.admin_timeout=240\3'
+  when:
+    - is_redhat
+    - grub_nvme_timeout.rc != 0
+    - grub_nvme_timeout.stdout == ""
+  register: grub_updated_rhel
+
+- name: "1.5.4 NVMe Support - Update GRUB configuration for SUSE"
+  ansible.builtin.command: grub2-mkconfig -o /boot/grub2/grub.cfg
+  when:
+    - is_suse
+    - grub_updated_suse is defined
+    - grub_updated_suse.changed
+
+- name: "1.5.4 NVMe Support - Update GRUB configuration for RHEL"
+  ansible.builtin.command: grub2-mkconfig -o /boot/grub2/grub.cfg
+  when:
+    - is_redhat
+    - grub_updated_rhel is defined
+    - grub_updated_rhel.changed
+
+- name: "1.5.4 NVMe Support - Verify GRUB configuration has been updated"
+  ansible.builtin.shell: |
+    grep "nvme_core.io_timeout=240" /etc/default/grub
+  register: grub_verify
+  changed_when: false
+  failed_when: false
+  when: grub_updated_suse.changed or grub_updated_rhel.changed
+
+- name: "1.5.4 NVMe Support - Report GRUB configuration status"
+  ansible.builtin.debug:
+    msg: "{{ 'GRUB NVMe timeout parameters successfully configured' if grub_verify.rc == 0 else 'WARNING: Failed to configure GRUB NVMe timeout parameters' }}"
+  when: grub_updated_suse.changed or grub_updated_rhel.changed
+
 - name:                                "1.5.4 NVMe Support - Rebuild initramfs with dracut (RHEL/SUSE)"
   when:                                dracut_conf_added.changed and (is_redhat or is_suse)
   ansible.builtin.command:             dracut -f -v
@@ -235,3 +297,15 @@
                                        fi
   with_items:                          "{{ azure_scsi_devices.stdout_lines }}"
   register: fstab_azure_updated
+
+- name:                               "1.5.4 NVMe Support - Summary Of NVMe Preparation"
+  ansible.builtin.debug:
+    msg: |
+      NVMe Preparation Complete:
+      - NVMe Module Status: {{ nvme_module_check.stdout }}
+      - NVMe Utils Package: {{ 'Installed' if nvme_utils_installed is defined and nvme_utils_installed.changed else 'Already Installed or Not Required' }}
+      - Initramfs Modules: {{ 'Complete' if nvme_in_initramfs else 'Added - Requires Rebuild' }}
+      - GRUB Configuration: {{ 'Updated' if (grub_updated_suse is defined and grub_updated_suse.changed) or (grub_updated_rhel is defined and grub_updated_rhel.changed) else 'Already Configured or Not Required' }}
+      - Udev Rules: {{ 'Installed' if udev_rules_added.changed else 'Already Installed' }}
+      - FSTAB UUID Conversion: {{ 'Performed' if (fstab_sd_updated is defined and fstab_sd_updated.changed) or (fstab_azure_updated is defined and fstab_azure_updated.changed) else 'Not Required' }}
+      - System Reboot: {{ 'Performed' if dracut_conf_added.changed or (nvme_utils_installed is defined and nvme_utils_installed.changed) or udev_rules_added.changed else 'Not Required' }}
