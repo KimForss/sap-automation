@@ -124,6 +124,8 @@ function parse_arguments() {
 			subscription="$2"
 			TF_VAR_subscription_id="$subscription"
 			export TF_VAR_subscription_id
+			ARM_SUBSCRIPTION_ID="$subscription"
+			export ARM_SUBSCRIPTION_ID
 			shift 2
 			;;
 		-t | --terraform_storage_account_name)
@@ -500,6 +502,9 @@ function migrate_deployer_state() {
 		terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d '/' -f 3)
 		terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 5)
 		ARM_SUBSCRIPTION_ID=$terraform_storage_account_subscription_id
+		export ARM_SUBSCRIPTION_ID
+		TF_VAR_subscription_id=$tfstate_resource_id
+		export TF_VAR_subscription_id
 		TF_VAR_tfstate_resource_id=$tfstate_resource_id
 		export TF_VAR_tfstate_resource_id
 		terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
