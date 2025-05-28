@@ -170,9 +170,18 @@
   register: dracut_conf_added
 
 # Check and configure NVMe timeouts in GRUB configuration
-- name:                                "1.5.4 NVMe Support - Check if GRUB configuration has NVMe timeout parameters"
+- name:                                "1.5.4 NVMe Support - Check if GRUB configuration has NVMe timeout parameters (RHEL)"
+  when:                                is_redhat
   ansible.builtin.shell: |
                                        grep "GRUB_CMDLINE_LINUX.*nvme_core.io_timeout=240" /etc/default/grub || true
+  register:                            grub_nvme_timeout
+  changed_when:                        false
+  failed_when:                         false
+
+- name:                                "1.5.4 NVMe Support - Check if GRUB configuration has NVMe timeout parameters (SUSE)"
+  when:                                is_suse
+  ansible.builtin.shell: |
+                                       grep "GRUB_CMDLINE_LINUX_DEFAULT.*nvme_core.io_timeout=240" /etc/default/grub || true
   register:                            grub_nvme_timeout
   changed_when:                        false
   failed_when:                         false
