@@ -178,7 +178,7 @@
     path:                              /etc/default/grub
     regexp:                            '^(GRUB_CMDLINE_LINUX_DEFAULT=")([^"]*)(")$'
     replace:                           '\1\2 nvme_core.io_timeout=240 nvme_core.admin_timeout=240\3'
-  register: grub_updated_suse
+  register:                            grub_updated_suse
 
 - name:                                "1.5.4 NVMe Support - Add NVMe timeout parameters to GRUB CMDLINE for RHEL"
   when:
@@ -189,7 +189,7 @@
     path:                              /etc/default/grub
     regexp:                            '^(GRUB_CMDLINE_LINUX=")([^"]*)(")$'
     replace:                           '\1\2 nvme_core.io_timeout=240 nvme_core.admin_timeout=240\3'
-  register: grub_updated_rhel
+  register:                            grub_updated_rhel
 
 - name:                                "1.5.4 NVMe Support - Update GRUB configuration for SUSE"
   when:
@@ -198,13 +198,24 @@
                                        - grub_updated_suse.changed
   ansible.builtin.command:             grub2-mkconfig -o /boot/grub2/grub.cfg
 
-
-- name: "1.5.4 NVMe Support - Update GRUB configuration for RHEL"
+# Update GRUB configuration for RHEL based on UEFI or non-UEFI systems
+- name:                                "1.5.4 NVMe Support - Update GRUB config for UEFI systems - RHEL"
   when:
                                        - is_redhat
                                        - grub_updated_rhel is defined
                                        - grub_updated_rhel.changed
-  ansible.builtin.command: grub2-mkconfig -o /boot/grub2/grub.cfg
+                                       - "'/boot/efi' in ansible_mounts | map(attribute='mount') | list"
+  ansible.builtin.command:             grub2-mkconfig -o /boot/efi/EFI/redhat/grub.cfg
+  changed_when:                        false
+
+- name:                                "1.5.4 NVMe Support - Update GRUB config for non UEFI systems - RHEL"
+  when:
+                                       - is_redhat
+                                       - grub_updated_rhel is defined
+                                       - grub_updated_rhel.changed
+                                       - "'/boot/efi' not in ansible_mounts | map(attribute='mount') | list"
+  ansible.builtin.command:             grub2-mkconfig -o /boot/grub2/grub.cfg
+  changed_when:                        false
 
 - name:                                "1.5.4 NVMe Support - Verify GRUB configuration has been updated"
   when:                                grub_updated_suse.changed or grub_updated_rhel.changed
