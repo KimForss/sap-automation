@@ -53,13 +53,27 @@
       become:                          true
       become_user:                     root
       block:
+        # check if the azure-nvme-utils repository is already configured
+        - name:                        "1.5.4 NVMe Support - Check if Azure NVME Utils repository is already configured"
+          community.general.zypper_repository_info: {}
+          register:                    repo_facts
+
+        # if the repository is not configured, add it
+        - name:                        "1.5.4 NVMe Support - Ensure Azure NVME Utils repository is configured"
+          when:                        not repo_facts.repodatalist | selectattr('name', 'equalto', 'azure_nvme_utils') | list
+          ansible.builtin.debug:
+            msg:                       "Azure NVME Utils repository is not configured, proceeding to add it."
+        # add the repository if it is not already configured
+
         - name:                        "1.5.4 NVMe Support - Add Azure NVME Utils repository for SLES"
+          # when:                        not repo_facts.repodatalist | selectattr('name', 'equalto', 'azure_nvme_utils') | list
           community.general.zypper_repository:
             name:                      azure_nvme_utils
             description:               "Copr repo for azure-nvme-utils owned by cjp256"
-            repo:                      "https://download.copr.fedorainfracloud.org/results/cjp256/azure-nvme-utils/rhel-9-x86_64/"
+            repo:                      "https://download.copr.fedorainfracloud.org/results/cjp256/azure-nvme-utils/opensuse-leap-15.5-x86_64/"
             priority:                  100
             state:                     present
+            auto_import_keys:          true
           register:                    sles_repo_added
 
         - name:                        "1.5.4 NVMe Support - Import GPG key"
