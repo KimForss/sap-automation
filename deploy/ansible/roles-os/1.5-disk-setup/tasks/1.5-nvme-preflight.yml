@@ -13,88 +13,30 @@
 #
 # -------------------------------------+---------------------------------------8
 
-# Configure Azure NVME Utils repository
-- name:                                "1.5.4 NVMe Support - Configure Azure NVME Utils Repository"
-  block:
-    - name:                            "1.5.4 NVMe Support - Configure Azure NVME Utils repository for RHEL"
-      when:
-                                       - ansible_distribution == 'RedHat'
-                                       - ansible_distribution_version is version('8.6', '>=')
-      become:                          true
-      become_user:                     root
-      block:
-        - name:                        "1.5.4 NVMe Support - Add Azure NVME Utils repository for RHEL"
-          ansible.builtin.yum_repository:
-            name:                      azure_nvme_utils
-            description:               "Copr repo for azure-nvme-utils owned by cjp256"
-            baseurl:                   "https://download.copr.fedorainfracloud.org/results/cjp256/azure-nvme-utils/rhel-{{ ansible_distribution_major_version }}-x86_64/"
-            gpgcheck:                  true
-            gpgkey:                    "https://download.copr.fedorainfracloud.org/results/cjp256/azure-nvme-utils/pubkey.gpg"
-            enabled:                   true
-            state:                     present
-          register:                    repo_added
+# Set global facts and perform initial validations
+- name:                                "1.5.4 NVMe Support - Set global distribution facts"
+  ansible.builtin.set_fact:
+    is_redhat:                         "{{ ansible_os_family | upper == 'REDHAT' }}"
+    is_suse:                           "{{ ansible_os_family | upper == 'SUSE' }}"
+    is_uefi_system:                    "{{ '/boot/efi' in ansible_mounts | map(attribute='mount') | list }}"
 
-        - name:                        "1.5.4 NVMe Support - Refresh repository cache for RHEL"
-          # when:                        repo_added.changed
-          ansible.builtin.shell:       dnf makecache
+# Pre-flight requirements check
+- name:                                "1.5.4 NVMe Support - Pre-flight architecture check"
+  ansible.builtin.assert:
+    that:
+      - ansible_architecture == 'x86_64'
+    fail_msg:                          "System architecture {{ ansible_architecture }} is not supported for NVMe. Only x86_64 is supported."
+    success_msg:                       "System architecture {{ ansible_architecture }} is supported for NVMe"
 
+# Check OS distribution support
+- name:                                "1.5.4 NVMe Support - Validate supported OS distributions"
+  ansible.builtin.assert:
+    that:
+      - is_redhat or is_suse
+    fail_msg:                          "Operating system {{ ansible_distribution }} is not supported. Only RHEL and SUSE distributions are supported."
+    success_msg:                       "Operating system {{ ansible_distribution }} is supported for NVMe configuration"
 
-        - name:                        "1.5.4 NVMe Support - Install Azure NVME Utils package for RHEL"
-          ansible.builtin.package:
-            name:                      azure-nvme-utils
-            state:                     present
-          register:                    nvme_utils_installed
-
-    # repo only has SLES 15.5 support, so the when condition is based on SLES 15.5 and SLES_SAP 15.5
-    - name:                            "1.5.4 NVMe Support - Configure Azure NVME Utils repository for SLES"
-      when: >
-                                       (ansible_distribution | upper == 'SLES' and ansible_distribution_version is version('15.5', '>=')) or
-                                       (ansible_distribution | upper == 'SLES_SAP' and ansible_distribution_version is version('15.5', '>='))
-      become:                          true
-      become_user:                     root
-      block:
-
-        - name:                        "1.5.4 NVMe Support - Check if Azure NVME Utils repository is already configured"
-          community.general.zypper_repository_info: {}
-          register:                    repo_facts
-
-        - name:                        "1.5.4 NVMe Support - Ensure Azure NVME Utils repository is configured"
-          when:                        not repo_facts.repodatalist | selectattr('alias', 'equalto', 'azure_nvme_utils') | list
-          ansible.builtin.debug:
-            msg:                       "Azure NVME Utils repository is not configured, proceeding to add it."
-
-        - name:                        "1.5.4 NVMe Support - Add Azure NVME Utils repository for SLES"
-          when:                        not repo_facts.repodatalist | selectattr('name', 'equalto', 'azure_nvme_utils') | list
-          community.general.zypper_repository:
-            name:                      azure_nvme_utils
-            description:               "Copr repo for azure-nvme-utils owned by cjp256"
-            repo:                      "https://download.copr.fedorainfracloud.org/results/cjp256/azure-nvme-utils/opensuse-leap-15.5-x86_64/"
-            priority:                  100
-            state:                     present
-            auto_import_keys:          true
-            disable_gpg_check:         true
-          register:                    sles_repo_added
-
-        - name:                        "1.5.4 NVMe Support - Import GPG key"
-          when:                        sles_repo_added.changed
-          ansible.builtin.rpm_key:
-            key:                       "https://download.copr.fedorainfracloud.org/results/cjp256/azure-nvme-utils/pubkey.gpg"
-            state:                     present
-
-        - name:                        "1.5.4 NVMe Support - Refresh repository cache"
-          when:                        sles_repo_added.changed
-          community.general.zypper:
-            name:                      "*"
-            update_cache:              true
-
-        - name:                        "1.5.4 NVMe Support - Install Azure NVME Utils package"
-          ansible.builtin.package:
-            name:                      azure-nvme-utils
-            state:                     present
-          register:                    nvme_utils_installed
-
-
-# Ensure NVMe modules are installed and loaded in initramfs
+# Ensure NVMe modules are available on the system
 - name:                                "1.5.4 NVMe Support - Check if NVMe module is available"
   ansible.builtin.shell: |
                                        if grep -q 'nvme' /boot/System.map-$(uname -r); then
@@ -116,181 +58,28 @@
   when:                                nvme_module_check.stdout == "missing"
   ansible.builtin.fail:
     msg: |
-                                       NVMe module is not available.
-                                       Please install NVMe module before changing your instance type to NVMe.
+                                       NVMe module is not available on this system.
+                                       Please install the NVMe kernel module before proceeding with NVMe configuration.
+                                       This may require a kernel update or installation of additional packages.
 
-# Check if NVMe module is loaded in initramfs based on distribution
-- name:                                "1.5.4 NVMe Support - Set distribution facts"
-  ansible.builtin.set_fact:
-    is_redhat:                         "{{ ansible_os_family | upper == 'REDHAT' }}"
-    is_suse:                           "{{ ansible_os_family | upper == 'SUSE' }}"
-
-- name:                                "1.5.4 NVMe Support - Check if NVMe loaded in initramfs (RHEL)"
+# Include distribution-specific tasks
+- name:                                "1.5.4 NVMe Support - Include RHEL specific tasks"
+  ansible.builtin.include_tasks:       "1.5-nvme-preflight-rhel.yml"
   when:                                is_redhat
-  ansible.builtin.shell: |
-                                       set -o pipefail
-                                       lsinitrd /boot/initramfs-$(uname -r).img | grep nvme
-  register:                            initramfs_nvme_rhel
-  failed_when:                         false
-  changed_when:                        false
 
-- name:                                "1.5.4 NVMe Support - Check if NVMe loaded in initramfs (SUSE)"
+- name:                                "1.5.4 NVMe Support - Include SUSE specific tasks"
+  ansible.builtin.include_tasks:       "1.5-nvme-preflight-suse.yml"
   when:                                is_suse
-  ansible.builtin.shell: |
-                                       set -o pipefail
-                                       lsinitrd /boot/initrd-$(uname -r) | grep nvme
-  register:                            initramfs_nvme_suse
-  failed_when:                         false
-  changed_when:                        false
 
-- name:                                "1.5.4 NVMe Support - Set initramfs status fact"
-  ansible.builtin.set_fact:
-    nvme_in_initramfs:                 "{{
-                                         (is_redhat and initramfs_nvme_rhel.rc == 0) or
-                                         (is_suse and initramfs_nvme_suse.rc == 0)
-                                       }}"
-
-# Add NVMe to initramfs if not present
-- name:                                "1.5.4 NVMe Support - Create dracut.conf.d directory"
-  when:                                not nvme_in_initramfs and (is_redhat or is_suse)
-  ansible.builtin.file:
-    path:                              /etc/dracut.conf.d
-    state:                             directory
-    mode:                              '0755'
-
-- name:                                "1.5.4 NVMe Support - Add NVMe drivers to dracut configuration"
-  when:                                is_redhat or is_suse  # Only distribution-dependent, not state-dependent
-  ansible.builtin.copy:
-    src:                               88-nvme-dracut.conf
-    dest:                              /etc/dracut.conf.d/nvme.conf
-    mode:                              '0644'
-    owner:                             root
-    group:                             root
-    force:                             true
-  register: dracut_conf_added
-
-# Check and configure NVMe timeouts in GRUB configuration
-- name:                                "1.5.4 NVMe Support - Check if GRUB configuration has NVMe timeout parameters (RHEL)"
-  when:                                is_redhat
-  ansible.builtin.shell: |
-                                       grep "GRUB_CMDLINE_LINUX.*nvme_core.io_timeout=240" /etc/default/grub || true
-  register:                            grub_nvme_timeout
-  changed_when:                        false
-  failed_when:                         false
-
-- name:                                "1.5.4 NVMe Support - Check if GRUB configuration has NVMe timeout parameters (SUSE)"
-  when:                                is_suse
-  ansible.builtin.shell: |
-                                       grep "GRUB_CMDLINE_LINUX_DEFAULT.*nvme_core.io_timeout=240" /etc/default/grub || true
-  register:                            grub_nvme_timeout
-  changed_when:                        false
-  failed_when:                         false
-
-- name:                                "1.5.4 NVMe Support - Show current GRUB configuration"
-  ansible.builtin.debug:
-    msg:                               "Current GRUB configuration: {{ lookup('file', '/etc/default/grub') | regex_search('GRUB_CMDLINE_LINUX.*=.*') }}"
-    verbosity:                         1
-
-- name:                                "1.5.4 NVMe Support - Add NVMe timeout parameters to GRUB CMDLINE for SUSE"
-  when:
-                                       - is_suse
-                                       - grub_nvme_timeout.rc != 0
-                                       - grub_nvme_timeout.stdout == ""
-  ansible.builtin.replace:
-    path:                              /etc/default/grub
-    regexp:                            '^(GRUB_CMDLINE_LINUX_DEFAULT=")([^"]*)(")$'
-    replace:                           '\1\2 nvme_core.io_timeout=240 nvme_core.admin_timeout=240\3'
-  register:                            grub_updated_suse
-
-- name:                                "1.5.4 NVMe Support - Add NVMe timeout parameters to GRUB CMDLINE for RHEL"
-  when:
-                                       - is_redhat
-                                       - grub_nvme_timeout.rc != 0
-                                       - grub_nvme_timeout.stdout == ""
-  ansible.builtin.replace:
-    path:                              /etc/default/grub
-    regexp:                            '^(GRUB_CMDLINE_LINUX=")([^"]*)(")$'
-    replace:                           '\1\2 nvme_core.io_timeout=240 nvme_core.admin_timeout=240\3'
-  register:                            grub_updated_rhel
-
-- name:                                "1.5.4 NVMe Support - Update GRUB configuration for SUSE"
-  when:
-                                       - is_suse
-                                       - grub_updated_suse is defined
-                                       - grub_updated_suse.changed
-  ansible.builtin.command:             grub2-mkconfig -o /boot/grub2/grub.cfg
-
-# Update GRUB configuration for RHEL based on UEFI or non-UEFI systems
-- name:                                "1.5.4 NVMe Support - Update GRUB config for UEFI systems - RHEL"
-  when:
-                                       - is_redhat
-                                       - grub_updated_rhel is defined
-                                       - grub_updated_rhel.changed
-                                       - "'/boot/efi' in ansible_mounts | map(attribute='mount') | list"
-  ansible.builtin.command:             grub2-mkconfig -o /boot/efi/EFI/redhat/grub.cfg
-  changed_when:                        false
-
-- name:                                "1.5.4 NVMe Support - Update GRUB config for non UEFI systems - RHEL"
-  when:
-                                       - is_redhat
-                                       - grub_updated_rhel is defined
-                                       - grub_updated_rhel.changed
-                                       - "'/boot/efi' not in ansible_mounts | map(attribute='mount') | list"
-  ansible.builtin.command:             grub2-mkconfig -o /boot/grub2/grub.cfg
-  changed_when:                        false
-
-- name:                                "1.5.4 NVMe Support - Verify GRUB configuration has been updated"
-  when:                                grub_updated_suse.changed or grub_updated_rhel.changed
-  ansible.builtin.shell: |
-                                       grep "nvme_core.io_timeout=240" /etc/default/grub
-  register:                            grub_verify
-  changed_when:                        false
-  failed_when:                         false
-
-- name:                                "1.5.4 NVMe Support - Report GRUB configuration status"
-  when:                                grub_updated_suse.changed or grub_updated_rhel.changed
-  ansible.builtin.debug:
-    msg:                               "{{ 'GRUB NVMe timeout parameters successfully configured' if grub_verify.rc == 0 else 'WARNING: Failed to configure GRUB NVMe timeout parameters' }}"
-
-- name:                                "1.5.4 NVMe Support - Rebuild initramfs with dracut (RHEL/SUSE)"
-  when:                                dracut_conf_added.changed and (is_redhat or is_suse)
-  ansible.builtin.command:             dracut -f -v
-
-# Install udev rules for Azure NVMe disks - /usr/lib/udev/rules.d/88-azure-data-disk.rules
-- name:                                "1.5.4 NVMe Support - Install udev rules for Azure NVMe disks"
-  ansible.builtin.copy:
-    src:                               88-azure-nvme-data-disk.rules
-    dest:                              /usr/lib/udev/rules.d/88-azure-data-disk.rules
-    owner:                             root
-    group:                             root
-    force:                             true
-    mode:                              '0644'
-  register:                            udev_rules_added
-
-- name:                                "1.5.4 NVMe Support - Reload udev rules if added or modified"
-  # when:                                udev_rules_added.changed
-  ansible.builtin.command:             udevadm control --reload-rules
-
-
-- name:                                "1.5.4 NVMe Support - Set udev rules installed flag"
-  # when:                                udev_rules_added.changed or nvme_udev_rules_installed | default(false)
-  ansible.builtin.set_fact:
-    nvme_udev_rules_installed:         true
-
-- name:                                "1.5.4 NVMe Support - Reboot the system to apply changes"
-  # when:                                dracut_conf_added.changed or nvme_utils_installed.changed or nvme_udev_rules_installed | default(false)
-  ansible.builtin.reboot:
-    msg:                               "Rebooting to apply NVMe changes"
-    test_command:                      uptime
-    connect_timeout:                   5
-    reboot_timeout:                    600
-
+# Common tasks for fstab modifications (applicable to all distributions)
 - name:                                "1.5.4 NVMe Support - Create backup of fstab"
   ansible.builtin.copy:
     src:                               /etc/fstab
     dest:                              "/etc/fstab.backup.{{ ansible_date_time.date }}-{{ ansible_date_time.time }}"
     remote_src:                        true
     mode:                              '0644'
+    owner:                             root
+    group:                             root
   register:                            fstab_backup
 
 - name:                                "1.5.4 NVMe Support - Find /dev/sd* entries in fstab"
@@ -315,6 +104,10 @@
                                        uuid=$(ls -l /dev/disk/by-uuid | grep "$device" | sed -n 's/^.* \([^ ]*\) -> .*$/\1/p')
                                        if [ ! -z "$uuid" ]; then
                                          sed -i "s|^/dev/${device}|UUID=${uuid}|" /etc/fstab
+                                         echo "Converted /dev/${device} to UUID=${uuid}"
+                                       else
+                                         echo "UUID not found for /dev/${device}"
+                                         exit 1
                                        fi
   with_items:                          "{{ sd_devices.stdout_lines }}"
   register:                            fstab_sd_updated
@@ -328,18 +121,82 @@
                                        uuid=$(ls -l /dev/disk/by-uuid | grep "$realdevice" | sed -n 's/^.* \([^ ]*\) -> .*$/\1/p')
                                        if [ ! -z "$uuid" ]; then
                                          sed -i "s|^/dev/disk/azure/scsi1/${lun}|UUID=${uuid}|" /etc/fstab
+                                         echo "Converted /dev/disk/azure/scsi1/${lun} to UUID=${uuid}"
+                                       else
+                                         echo "UUID not found for /dev/disk/azure/scsi1/${lun}"
+                                         exit 1
                                        fi
   with_items:                          "{{ azure_scsi_devices.stdout_lines }}"
-  register: fstab_azure_updated
+  register:                            fstab_azure_updated
 
-- name:                               "1.5.4 NVMe Support - Summary Of NVMe Preparation"
+- name:                                "1.5.4 NVMe Support - Log fstab conversion warnings"
+  ansible.builtin.debug:
+    msg:                               "Warning: Failed to convert device {{ item.item }} to UUID. Manual intervention may be required."
+  loop:                                "{{ (fstab_sd_updated.results | default([])) + (fstab_azure_updated.results | default([])) }}"
+  when:
+    - item.failed is defined
+    - item.failed
+  loop_control:
+    label:                             "{{ item.item }}"
+
+- name:                                "1.5.4 NVMe Support - Verify fstab doesn't contain device paths"
+  ansible.builtin.shell: |
+                                       set -o pipefail
+                                       grep -E '^/dev/(sd|disk/azure/scsi)' /etc/fstab || true
+  register:                            fstab_verify
+  changed_when:                        false
+  failed_when:                         false
+
+- name:                                "1.5.4 NVMe Support - Display fstab verification results"
+  ansible.builtin.debug:
+    msg:                               "Warning: fstab still contains device paths that should be converted to UUIDs: {{ fstab_verify.stdout_lines }}"
+  when:                                fstab_verify.stdout != ''
+
+# Conditional reboot based on actual changes made
+- name:                                "1.5.4 NVMe Support - Determine if reboot is required"
+  ansible.builtin.set_fact:
+    nvme_reboot_required:              "{{
+                                         (dracut_conf_added is defined and dracut_conf_added.changed) or
+                                         (nvme_utils_installed is defined and nvme_utils_installed.changed) or
+                                         (udev_rules_added is defined and udev_rules_added.changed) or
+                                         (grub_updated is defined and grub_updated.changed) or
+                                         (initramfs_rebuilt is defined and initramfs_rebuilt.changed)
+                                       }}"
+
+- name:                                "1.5.4 NVMe Support - Reboot the system to apply changes"
+  when:                                nvme_reboot_required | default(false) | bool
+  ansible.builtin.reboot:
+    msg:                               "Rebooting to apply NVMe configuration changes"
+    test_command:                      uptime
+    connect_timeout:                   5
+    reboot_timeout:                    600
+    pre_reboot_delay:                  0
+    post_reboot_delay:                 30
+  register:                            system_rebooted
+
+# Final status report
+- name:                                "1.5.4 NVMe Support - Summary of NVMe Preparation"
   ansible.builtin.debug:
     msg: |
-      NVMe Preparation Complete:
+      ==================== NVMe Preparation Summary ====================
+      System Information:
+      - Distribution: {{ ansible_distribution }} {{ ansible_distribution_version }}
+      - Architecture: {{ ansible_architecture }}
+      - Boot Type: {{ 'UEFI' if is_uefi_system else 'BIOS/Legacy' }}
+
+      NVMe Configuration Status:
       - NVMe Module Status: {{ nvme_module_check.stdout }}
-      - NVMe Utils Package: {{ 'Installed' if nvme_utils_installed is defined and nvme_utils_installed.changed else 'Already Installed or Not Required' }}
-      - Initramfs Modules: {{ 'Complete' if nvme_in_initramfs else 'Added - Requires Rebuild' }}
-      - GRUB Configuration: {{ 'Updated' if (grub_updated_suse is defined and grub_updated_suse.changed) or (grub_updated_rhel is defined and grub_updated_rhel.changed) else 'Already Configured or Not Required' }}
-      - Udev Rules: {{ 'Installed' if udev_rules_added.changed else 'Already Installed' }}
+      - NVMe Modules in Initramfs: {{ 'Complete' if nvme_modules_complete | default(false) else 'Incomplete' + (' - Missing: ' + missing_nvme_modules | default('') if missing_nvme_modules | default('') != '' else '') }}
+      - Azure NVMe Utils Package: {{ 'Installed' if nvme_utils_installed is defined and nvme_utils_installed.changed else 'Already Installed or Not Required' }}
+      - Dracut Configuration: {{ 'Added' if dracut_conf_added is defined and dracut_conf_added.changed else 'Already Configured' }}
+      - Initramfs Rebuild: {{ 'Performed' if initramfs_rebuilt is defined and initramfs_rebuilt.changed else 'Not Required' }}
+      - GRUB Configuration: {{ 'Updated' if grub_updated is defined and grub_updated.changed else 'Already Configured or Not Required' }}
+      - Udev Rules: {{ 'Installed' if udev_rules_added is defined and udev_rules_added.changed else 'Already Installed' }}
       - FSTAB UUID Conversion: {{ 'Performed' if (fstab_sd_updated is defined and fstab_sd_updated.changed) or (fstab_azure_updated is defined and fstab_azure_updated.changed) else 'Not Required' }}
-      - System Reboot: {{ 'Performed' if dracut_conf_added.changed or (nvme_utils_installed is defined and nvme_utils_installed.changed) or udev_rules_added.changed else 'Not Required' }}
+      - System Reboot: {{ 'Performed' if system_rebooted is defined and system_rebooted.changed else 'Not Required' }}
+
+      Next Steps:
+      {{ '- System is ready for NVMe disk controller conversion' if not nvme_reboot_required else '- Apply Azure VM NVMe conversion after reboot' }}
+      {{ '- Verify all disk mounts are working after NVMe conversion' }}
+      ================================================================
+    verbosity:                         0
