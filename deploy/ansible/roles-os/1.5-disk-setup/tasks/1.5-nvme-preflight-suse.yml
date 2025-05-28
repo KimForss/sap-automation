@@ -19,14 +19,17 @@
     that:
       - (ansible_distribution | upper == 'SLES' and ansible_distribution_version is version('15.4', '>=')) or
         (ansible_distribution | upper == 'SLES_SAP' and ansible_distribution_version is version('15.3', '>='))
-    fail_msg:                          "SUSE version must be 15.0 or higher for NVMe support. Current: {{ ansible_distribution }} {{ ansible_distribution_version }}"
+    fail_msg:                          "SUSE version must be SLES 15.4+ or SLES_SAP 15.3+ for NVMe support. Current: {{ ansible_distribution }} {{ ansible_distribution_version }}"
     success_msg:                       "SUSE version {{ ansible_distribution_version }} is supported for NVMe"
 
 # Set SUSE-specific facts
 - name:                                "1.5.4 NVMe Support (SUSE) - Set SUSE-specific facts"
   ansible.builtin.set_fact:
     suse_major_version:                "{{ ansible_distribution_major_version }}"
-    azure_nvme_utils_supported:        "{{ ansible_distribution_version is version('15.5', '>=') }}"
+    azure_nvme_utils_supported:       "{{
+                                         (ansible_distribution | upper == 'SLES' and ansible_distribution_version is version('15.4', '>=')) or
+                                         (ansible_distribution | upper == 'SLES_SAP' and ansible_distribution_version is version('15.3', '>='))
+                                       }}"
     grub_config_file:                  "/boot/grub2/grub.cfg"
     grub_cmdline_param:                "GRUB_CMDLINE_LINUX_DEFAULT"
 
@@ -142,15 +145,23 @@
   changed_when:                        false
   failed_when:                         false
 
+- name:                                "1.5.4 NVMe Support (SUSE) - Get current GRUB configuration"
+  ansible.builtin.shell: |
+                                       set -o pipefail
+                                       grep "{{ grub_cmdline_param }}" /etc/default/grub || echo "No {{ grub_cmdline_param }} found"
+  register:                            current_grub_config
+  changed_when:                        false
+  failed_when:                         false
+
 - name:                                "1.5.4 NVMe Support (SUSE) - Show current GRUB configuration"
   ansible.builtin.debug:
-    msg:                               "Current GRUB configuration: {{ lookup('file', '/etc/default/grub') | regex_search( grub_cmdline_param + '.*=.*' ) }}"
+    msg:                               "Current GRUB configuration: {{ current_grub_config.stdout }}"
     verbosity:                         1
 
 - name:                                "1.5.4 NVMe Support (SUSE) - Add NVMe timeout parameters to GRUB"
   when:
     - grub_nvme_timeout_check.rc != 0
-    - grub_nvme_timeout_check.stdout == ""
+    - '"nvme_core.io_timeout=240" not in current_grub_config.stdout'
   ansible.builtin.replace:
     path:                              /etc/default/grub
     regexp:                            '^({{ grub_cmdline_param }}=")([^"]*)(")$'
@@ -220,7 +231,10 @@
   changed_when:                        false
 
 - name:                                "1.5.4 NVMe Support (SUSE) - Display udev verification results"
-  when:                                udev_verification is defined
+  when:
+    - udev_rules_added.changed
+    - udev_verification is defined
+    - udev_verification.stdout is defined
   ansible.builtin.debug:
     msg:                               "Udev configuration verification on SUSE: {{ 'Successful - Azure disk symlinks detected' if 'disk/azure' in udev_verification.stdout else 'Note: No Azure disk symlinks detected (normal for systems without data disks)' }}"
     verbosity:                         1

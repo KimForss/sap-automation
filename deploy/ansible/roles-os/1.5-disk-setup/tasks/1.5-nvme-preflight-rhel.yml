@@ -128,15 +128,23 @@
   changed_when:                        false
   failed_when:                         false
 
+- name:                                "1.5.4 NVMe Support (RHEL) - Get current GRUB configuration"
+  ansible.builtin.shell: |
+                                       set -o pipefail
+                                       grep "{{ grub_cmdline_param }}" /etc/default/grub || echo "No {{ grub_cmdline_param }} found"
+  register:                            current_grub_config
+  changed_when:                        false
+  failed_when:                         false
+
 - name:                                "1.5.4 NVMe Support (RHEL) - Show current GRUB configuration"
   ansible.builtin.debug:
-    msg:                               "Current GRUB configuration: {{ lookup('file', '/etc/default/grub') | regex_search( grub_cmdline_param + '.*=.*' ) }}"
+    msg:                               "Current GRUB configuration: {{ current_grub_config.stdout }}"
     verbosity:                         1
 
 - name:                                "1.5.4 NVMe Support (RHEL) - Add NVMe timeout parameters to GRUB"
   when:
     - grub_nvme_timeout_check.rc != 0
-    - grub_nvme_timeout_check.stdout == ""
+    - '"nvme_core.io_timeout=240" not in current_grub_config.stdout'
   ansible.builtin.replace:
     path:                              /etc/default/grub
     regexp:                            '^({{ grub_cmdline_param }}=")([^"]*)(")$'
@@ -206,7 +214,10 @@
   changed_when:                        false
 
 - name:                                "1.5.4 NVMe Support (RHEL) - Display udev verification results"
-  when:                                udev_verification is defined
+  when:
+    - udev_rules_added.changed
+    - udev_verification is defined
+    - udev_verification.stdout is defined
   ansible.builtin.debug:
     msg:                               "Udev configuration verification on RHEL: {{ 'Successful - Azure disk symlinks detected' if 'disk/azure' in udev_verification.stdout else 'Note: No Azure disk symlinks detected (normal for systems without data disks)' }}"
     verbosity:                         1
