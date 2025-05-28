@@ -35,7 +35,7 @@
           register:                    repo_added
 
         - name:                        "1.5.4 NVMe Support - Refresh repository cache for RHEL"
-#          when:                        repo_added.changed
+          # when:                        repo_added.changed
           ansible.builtin.shell:       dnf makecache
 
 
@@ -45,28 +45,26 @@
             state:                     present
           register:                    nvme_utils_installed
 
-
+    # repo only has SLES 15.5 support, so the when condition is based on SLES 15.5 and SLES_SAP 15.5
     - name:                            "1.5.4 NVMe Support - Configure Azure NVME Utils repository for SLES"
       when: >
-                                       (ansible_distribution | upper == 'SLES' and ansible_distribution_version is version('15.4', '>=')) or
-                                       (ansible_distribution | upper == 'SLES_SAP' and ansible_distribution_version is version('15.3', '>='))
+                                       (ansible_distribution | upper == 'SLES' and ansible_distribution_version is version('15.5', '>=')) or
+                                       (ansible_distribution | upper == 'SLES_SAP' and ansible_distribution_version is version('15.5', '>='))
       become:                          true
       become_user:                     root
       block:
-        # check if the azure-nvme-utils repository is already configured
+
         - name:                        "1.5.4 NVMe Support - Check if Azure NVME Utils repository is already configured"
           community.general.zypper_repository_info: {}
           register:                    repo_facts
 
-        # if the repository is not configured, add it
         - name:                        "1.5.4 NVMe Support - Ensure Azure NVME Utils repository is configured"
           when:                        not repo_facts.repodatalist | selectattr('alias', 'equalto', 'azure_nvme_utils') | list
           ansible.builtin.debug:
             msg:                       "Azure NVME Utils repository is not configured, proceeding to add it."
-        # add the repository if it is not already configured
 
         - name:                        "1.5.4 NVMe Support - Add Azure NVME Utils repository for SLES"
-          # when:                        not repo_facts.repodatalist | selectattr('name', 'equalto', 'azure_nvme_utils') | list
+          when:                        not repo_facts.repodatalist | selectattr('name', 'equalto', 'azure_nvme_utils') | list
           community.general.zypper_repository:
             name:                      azure_nvme_utils
             description:               "Copr repo for azure-nvme-utils owned by cjp256"
