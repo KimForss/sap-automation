@@ -60,7 +60,7 @@
 
         # if the repository is not configured, add it
         - name:                        "1.5.4 NVMe Support - Ensure Azure NVME Utils repository is configured"
-          when:                        not repo_facts.repodatalist | selectattr('name', 'equalto', 'azure_nvme_utils') | list
+          when:                        not repo_facts.repodatalist | selectattr('alias', 'equalto', 'azure_nvme_utils') | list
           ansible.builtin.debug:
             msg:                       "Azure NVME Utils repository is not configured, proceeding to add it."
         # add the repository if it is not already configured
@@ -74,6 +74,7 @@
             priority:                  100
             state:                     present
             auto_import_keys:          true
+            disable_gpg_check:         true
           register:                    sles_repo_added
 
         - name:                        "1.5.4 NVMe Support - Import GPG key"
