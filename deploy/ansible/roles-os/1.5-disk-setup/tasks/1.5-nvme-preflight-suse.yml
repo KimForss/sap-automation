@@ -27,8 +27,8 @@
   ansible.builtin.set_fact:
     suse_major_version:                "{{ ansible_distribution_major_version }}"
     azure_nvme_utils_supported:       "{{
-                                         (ansible_distribution | upper == 'SLES' and ansible_distribution_version is version('15.4', '>=')) or
-                                         (ansible_distribution | upper == 'SLES_SAP' and ansible_distribution_version is version('15.3', '>='))
+                                         (ansible_distribution | upper == 'SLES' and ansible_distribution_version is version('15.5', '>=')) or
+                                         (ansible_distribution | upper == 'SLES_SAP' and ansible_distribution_version is version('15.5', '>='))
                                        }}"
     grub_config_file:                  "/boot/grub2/grub.cfg"
     grub_cmdline_param:                "GRUB_CMDLINE_LINUX_DEFAULT"

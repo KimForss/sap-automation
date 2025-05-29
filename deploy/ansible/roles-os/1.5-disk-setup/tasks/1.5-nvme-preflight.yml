@@ -16,8 +16,11 @@
 # Set global facts and perform initial validations
 - name:                                "1.5.4 NVMe Support - Set global distribution facts"
   ansible.builtin.set_fact:
-    is_redhat:                         "{{ ansible_os_family | upper == 'REDHAT' }}"
-    is_suse:                           "{{ ansible_os_family | upper == 'SUSE' }}"
+    is_redhat:                         "{{ ansible_os_family | upper == 'REDHAT' and ansible_distribution_version is version('8.6', '>=') }}"
+    is_suse:                           "{{ ansible_os_family | upper == 'SUSE' and
+                                           (ansible_distribution | upper == 'SLES' and ansible_distribution_version is version('15.4', '>=')) or
+                                           (ansible_distribution | upper == 'SLES_SAP' and ansible_distribution_version is version('15.3', '>='))
+                                       }}"
     is_uefi_system:                    "{{ '/boot/efi' in ansible_mounts | map(attribute='mount') | list }}"
 
 # Pre-flight requirements check
