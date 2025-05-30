@@ -709,7 +709,7 @@ function sdaf_remover() {
 				echo ""
 				echo "#########################################################################################"
 				echo "#                                                                                       #"
-				echo -e "#                      $bold_red_underscore!!! Errors during the destroy phase !!!$reset_formatting                          #"
+				echo -e "#                      $bold_red!!! Errors during the destroy phase !!!$reset_formatting                          #"
 				echo "#                                                                                       #"
 				echo "#########################################################################################"
 				echo ""
@@ -726,10 +726,10 @@ function sdaf_remover() {
 
 						report=$(echo $string_to_report | grep -m1 "Message=" "${var_file}" | cut -d'=' -f2- | tr -d ' ' | tr -d '"')
 						if [[ -n ${report} ]]; then
-							echo -e "#                          $bold_red_underscore  $report $reset_formatting"
+							echo -e "#                          $bold_red  $report $reset_formatting"
 							echo "##vso[task.logissue type=error]${report}"
 						else
-							echo -e "#                          $bold_red_underscore  $string_to_report $reset_formatting"
+							echo -e "#                          $bold_red  $string_to_report $reset_formatting"
 							echo "##vso[task.logissue type=error]${string_to_report}"
 						fi
 
