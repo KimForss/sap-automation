@@ -62,18 +62,18 @@
         key:                           "https://download.copr.fedorainfracloud.org/results/cjp256/azure-nvme-utils/pubkey.gpg"
         state:                         present
 
-    - name:                            "1.5.4 NVMe Support (SUSE) - Refresh repository cache"
-      when:                            sles_repo_added.changed
-      community.general.zypper:
-        name:                          "*"
-        update_cache:                  true
+    # - name:                            "1.5.4 NVMe Support (SUSE) - Refresh repository cache"
+    #   when:                            sles_repo_added.changed
+    #   community.general.zypper:
+    #     name:                          "*"
+    #     update_cache:                  true
 
-- name:                                "1.5.4 NVMe Support (SUSE) - Install Azure NVME Utils package"
-  when:                                not azure_nvme_utils_supported
-  ansible.builtin.package:
-    name:                              azure-nvme-utils
-    state:                             present
-  register:                            nvme_utils_installed
+# - name:                                "1.5.4 NVMe Support (SUSE) - Install Azure NVME Utils package"
+#   when:                                not azure_nvme_utils_supported
+#   ansible.builtin.package:
+#     name:                              azure-nvme-utils
+#     state:                             present
+#   register:                            nvme_utils_installed
 
 # Check if all required NVMe modules are loaded in initramfs
 - name:                                "1.5.4 NVMe Support (SUSE) - Check basic NVMe modules in initramfs"
