@@ -69,7 +69,7 @@
         update_cache:                  true
 
 - name:                                "1.5.4 NVMe Support (SUSE) - Install Azure NVME Utils package"
-  when:                                azure_nvme_utils_supported
+  when:                                not azure_nvme_utils_supported
   ansible.builtin.package:
     name:                              azure-nvme-utils
     state:                             present
