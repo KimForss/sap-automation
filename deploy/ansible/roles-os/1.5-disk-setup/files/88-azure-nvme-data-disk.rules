@@ -1,4 +1,5 @@
-# Azure specific rules.
+# Azure specific udev rules - Enhanced for compatibility
+# Handles missing ID_NSID in older distributions (e.g., SLES 15 SP3)
 
 # Section 1: NVMe drives
 # Azure rules for NVMe drives
@@ -9,19 +10,29 @@ KERNEL!="nvme*", GOTO="azure_nvme_end"
 ENV{ID_MODEL}=="MSFT NVMe Accelerator v1.0", GOTO="azure_nvme_remote_start"
 
 LABEL="azure_nvme_remote_start"
-# create os disk symlink
+# create os disk symlink (namespace 1)
 KERNEL=="nvme*[0-9]n1", ENV{DEVTYPE}=="disk", ENV{ID_MODEL}=="MSFT NVMe Accelerator v1.0", SYMLINK+="disk/azure/root", GOTO="azure_udev_end"
 # create os disk symlink partitions
 KERNEL=="nvme*[0-9]n1p[0-9]", ENV{DEVTYPE}=="partition", ENV{ID_MODEL}=="MSFT NVMe Accelerator v1.0", SYMLINK+="disk/azure/root-part%n", GOTO="azure_udev_end"
-# create SYMLINKs for NVMe disks mapping to LUN IDs from Azure portal by subtracting 2 (NVMe Namespace ID starts at 1, first data disk has Namespace ID 2 which matches LUN ID 0)
-KERNEL=="nvme*[0-9]n*[0-9]", ENV{DEVTYPE}=="disk", ENV{ID_MODEL}=="MSFT NVMe Accelerator v1.0", ENV{ID_SERIAL_SHORT}=="?*", ENV{ID_NSID}=="?*", OPTIONS="string_escape=replace", ENV{ID_SERIAL}="$env{ID_MODEL}_$env{ID_SERIAL_SHORT}_$env{ID_NSID}", PROGRAM="/usr/local/bin/azure-nvme-lun-calc $env{ID_NSID}", SYMLINK+="disk/azure/data/by-lun/%c", GOTO="azure_udev_end"
-# create SYMLINKs for NVMe partitions
-KERNEL=="nvme*[0-9]n*[0-9]p[0-9]", ENV{DEVTYPE}=="partition", ENV{ID_MODEL}=="MSFT NVMe Accelerator v1.0", ENV{ID_SERIAL_SHORT}=="?*", ENV{ID_NSID}=="?*", OPTIONS="string_escape=replace", ENV{ID_SERIAL}="$env{ID_MODEL}_$env{ID_SERIAL_SHORT}_$env{ID_NSID}", PROGRAM="/usr/local/bin/azure-nvme-lun-calc $env{ID_NSID}", SYMLINK+="disk/azure/data/by-lun/%c-part%n", GOTO="azure_udev_end"
+
+# create SYMLINKs for NVMe data disks (namespace 2+)
+# Enhanced version that handles missing ID_NSID by passing device name and ID_PATH as fallback
+KERNEL=="nvme*[0-9]n*[0-9]", ENV{DEVTYPE}=="disk", ENV{ID_MODEL}=="MSFT NVMe Accelerator v1.0", ENV{ID_SERIAL_SHORT}=="?*", \
+    OPTIONS="string_escape=replace", ENV{ID_SERIAL}="$env{ID_MODEL}_$env{ID_SERIAL_SHORT}_$env{ID_NSID}", \
+    PROGRAM="/usr/local/bin/azure-nvme-lun-calc %k $env{ID_NSID} $env{ID_PATH}", \
+    SYMLINK+="disk/azure/data/by-lun/%c", GOTO="azure_udev_end"
+
+# create SYMLINKs for NVMe data disk partitions
+KERNEL=="nvme*[0-9]n*[0-9]p[0-9]", ENV{DEVTYPE}=="partition", ENV{ID_MODEL}=="MSFT NVMe Accelerator v1.0", ENV{ID_SERIAL_SHORT}=="?*", \
+    OPTIONS="string_escape=replace", ENV{ID_SERIAL}="$env{ID_MODEL}_$env{ID_SERIAL_SHORT}_$env{ID_NSID}", \
+    PROGRAM="/usr/local/bin/azure-nvme-lun-calc %k $env{ID_NSID} $env{ID_PATH}", \
+    SYMLINK+="disk/azure/data/by-lun/%c-part%n", GOTO="azure_udev_end"
+
 GOTO="azure_udev_end"
 
 LABEL="azure_nvme_end"
 
-# Section 2: SCSI drives
+# Section 2: SCSI drives (unchanged)
 ACTION!="add|change", GOTO="azure_udev_end"
 SUBSYSTEM!="block", GOTO="azure_udev_end"
 ATTRS{ID_VENDOR}!="Msft", GOTO="azure_udev_end"
@@ -39,7 +50,7 @@ ATTRS{device_id}=="{f8b3781c-1e82-4818-a1c3-63d806ec15bb}", ENV{fabric_scsi_cont
 ATTRS{device_id}=="{f8b3781d-1e82-4818-a1c3-63d806ec15bb}", ENV{fabric_scsi_controller}="scsi3", GOTO="azure_datadisk"
 GOTO="azure_udev_end"
 
-# Parse out the fabric n ame based off of scsi indicators.
+# Parse out the fabric name based off of scsi indicators.
 LABEL="azure_datadisk"
 ENV{DEVTYPE}=="partition", PROGRAM="/bin/sh -c 'readlink /sys/class/block/%k/../device|cut -d: -f4'", ENV{fabric_name}="data/by-lun/$result"
 ENV{DEVTYPE}=="disk", PROGRAM="/bin/sh -c 'readlink /sys/class/block/%k/device|cut -d: -f4'", ENV{fabric_name}="data/by-lun/$result"
