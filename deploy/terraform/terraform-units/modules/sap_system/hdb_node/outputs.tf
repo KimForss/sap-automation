@@ -333,3 +333,8 @@ output "hana_shared_afs_path"          {
                                                            ) : ""
                                                          ]) : []
                                         }
+
+output "use_nvme_disks"                {
+                                          description = "Whether NVMe disks are used for application (SCS, ERS, APP, WEB) and database (HANA, DB2, Oracle, SQLSERVER) tiers"
+                                          value =  var.database.disk_controller_type_database_tier == "NVMe"
+                                      }

@@ -499,4 +499,10 @@ module "output_files" {
   sap_cal_product_name                          = var.sap_cal_product_name
 
   site_information                              = module.hdb_node.site_information
+
+  #########################################################################################
+  #  NVMe Disks                                                                           #
+  #########################################################################################
+  db_use_nvme_disks                             = module.hdb_node.use_nvme_disks || module.anydb_node.use_nvme_disks
+  app_use_nvme_disks                            = module.app_tier.use_nvme_disks
 }
