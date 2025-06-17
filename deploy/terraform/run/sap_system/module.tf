@@ -503,7 +503,7 @@ module "output_files" {
   #########################################################################################
   #  NVMe Disks                                                                           #
   #########################################################################################
-  db_use_nvme_disks                             = var.disk_controller_type_database_tier
+  db_use_nvme_disks                             = upper(var.disk_controller_type_database_tier) == "NVME"
 
-  app_use_nvme_disks                            = var.disk_controller_type_app_tier
+  app_use_nvme_disks                            = upper(var.disk_controller_type_app_tier) == "NVME"
 }
