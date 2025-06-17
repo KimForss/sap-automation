@@ -346,5 +346,5 @@ output "web_asg_id"                    {
 
 output "use_nvme_disks"                {
                                           description = "Whether NVMe disks are used for application (SCS, ERS, APP, WEB) and database (HANA, DB2, Oracle, SQLSERVER) tiers"
-                                          value =  var.app_tier.disk_controller_type_app_tier    == "NVMe"
+                                          value =  var.application_tier.disk_controller_type_app_tier    == "NVMe"
                                       }
