@@ -503,10 +503,7 @@ module "output_files" {
   #########################################################################################
   #  NVMe Disks                                                                           #
   #########################################################################################
-  db_use_nvme_disks                             = upper(try(local.database.platform, "HANA")) == "HANA" ? (
-                                                    module.hdb_node.use_nvme_disks) : (
-                                                    module.anydb_node.use_nvme_disks
-                                                  )
+  db_use_nvme_disks                             = var.disk_controller_type_database_tier
 
-  app_use_nvme_disks                            = module.app_tier.use_nvme_disks
+  app_use_nvme_disks                            = var.disk_controller_type_app_tier
 }

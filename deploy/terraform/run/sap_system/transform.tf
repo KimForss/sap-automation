@@ -127,6 +127,8 @@ locals {
                                                                                  ) : (
                                                                                    false
                                                                                  )
+
+                                           disk_controller_type_database_tier   = var.disk_controller_type_database_tier
                                          }
 
   db_os                             = {
@@ -265,6 +267,7 @@ locals {
 
                                         deploy_v1_monitoring_extension  = var.deploy_v1_monitoring_extension
                                         user_assigned_identity_id       = var.user_assigned_identity_id
+                                        disk_controller_type_app_tier   = var.disk_controller_type_app_tier
                                       }
 
   app_tags                          = var.application_server_tags
@@ -512,6 +515,7 @@ locals {
                                            length(local.web_tags) > 0                             ? { web_tags = local.web_tags } : { web_tags = local.web_tags }), (
                                            var.use_fence_kdump && var.scs_high_availability       ? { fence_kdump_disk_size = var.use_fence_kdump_size_gb_scs } : { fence_kdump_disk_size = 0 } ), (
                                            var.use_fence_kdump && var.scs_high_availability       ? { fence_kdump_lun_number = var.use_fence_kdump_lun_scs } : { fence_kdump_lun_number = -1 }
+
                                            )
                                          )
 
