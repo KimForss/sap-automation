@@ -503,6 +503,10 @@ module "output_files" {
   #########################################################################################
   #  NVMe Disks                                                                           #
   #########################################################################################
-  db_use_nvme_disks                             = module.hdb_node.use_nvme_disks || module.anydb_node.use_nvme_disks
+  db_use_nvme_disks                             = upper(try(local.database.platform, "HANA")) == "HANA" ? (
+                                                    module.hdb_node.use_nvme_disks) : (
+                                                    module.anydb_node.use_nvme_disks
+                                                  )
+
   app_use_nvme_disks                            = module.app_tier.use_nvme_disks
 }
