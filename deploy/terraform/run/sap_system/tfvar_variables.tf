@@ -1680,13 +1680,13 @@ variable "control_plane_name"                   {
 ###############################################################################
 
 
-disk_controller_type_database_tier              {
+variable "disk_controller_type_database_tier"    {
                                                     description = "Specifies the Disk Controller Type used for the database tier. Possible values are SCSI and NVMe"
                                                     type        = string
                                                     default     = "SCSI"
                                                  }
 
-disk_controller_type_app_tier                   {
+variable "disk_controller_type_app_tier"         {
                                                     description = "Specifies the Disk Controller Type used for the application tier. Possible values are SCSI and NVMe"
                                                     type        = string
                                                     default     = "SCSI"
