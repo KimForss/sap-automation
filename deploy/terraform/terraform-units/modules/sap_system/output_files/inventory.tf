@@ -269,10 +269,7 @@ resource "local_file" "sap-parameters_yml" {
               calapi_kv                              = var.calapi_kv
               sap_cal_product_name                   = var.sap_cal_product_name
 
-              single_server                          = length(webdispatcher_server_ips) + length(application_server_ips) + length(scs_server_ips) + length(database_server_ips) == 1 ? (
-                                                       true) : (
-                                                       false
-                                                     )
+              single_server                          = local.single_server
 
     }
   )
