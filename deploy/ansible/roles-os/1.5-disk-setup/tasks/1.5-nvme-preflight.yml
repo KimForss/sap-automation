@@ -12,6 +12,70 @@
 # Task: 1.5.4 - NVMe Support - Prepare Linux VM for NVMe disk controller
 #
 # -------------------------------------+---------------------------------------8
+- name:                                "1.5.4 NVMe Support - Comprehensive system validation"
+  block:
+    # Validate system readiness for NVMe conversion
+    - name:                            "1.5.4 NVMe Support - Check for existing NVMe configuration"
+      ansible.builtin.shell: |
+                                       set -o pipefail
+                                       if [ -f /etc/dracut.conf.d/nvme.conf ] && \
+                                          [ -f /usr/lib/udev/rules.d/88-azure-data-disk.rules ] && \
+                                          grep -q "nvme_core.io_timeout=240" /etc/default/grub 2>/dev/null; then
+                                         echo "configured"
+                                       else
+                                         echo "not_configured"
+                                       fi
+      register:                        existing_nvme_config
+      changed_when:                    false
+      failed_when:                     false
+
+    - name:                            "1.5.4 NVMe Support - Validate system not already using NVMe"
+      ansible.builtin.shell: |
+                                       set -o pipefail
+                                       if ls /dev/nvme* >/dev/null 2>&1; then
+                                         echo "nvme_present"
+                                       else
+                                         echo "nvme_absent"
+                                       fi
+      register:                        current_nvme_usage
+      changed_when:                    false
+      failed_when:                     false
+
+    - name:                            "1.5.4 NVMe Support - Check active mount points"
+      ansible.builtin.shell: |
+                                       set -o pipefail
+                                       mount | grep -E '/dev/(sd|nvme)' | wc -l
+      register:                        active_mounts_count
+      changed_when:                    false
+
+    - name:                            "1.5.4 NVMe Support - Validate system state for conversion"
+      ansible.builtin.assert:
+        that:
+          - current_nvme_usage.stdout == "nvme_absent" or nvme_force_preparation | default(false)
+          - active_mounts_count.stdout | int > 0
+        fail_msg: |
+                                       System validation failed:
+                                       - NVMe devices detected: {{ current_nvme_usage.stdout }}
+                                       - Active mounts: {{ active_mounts_count.stdout }}
+                                       Set nvme_force_preparation=true to override NVMe device detection.
+        success_msg:                   "System validation completed successfully for NVMe preparation"
+
+    # should we skip preparation if already configured?
+    - name:                            "1.5.4 NVMe Support - Skip preparation if already configured"
+      when:
+        - existing_nvme_config.stdout == "configured"
+        - not nvme_force_preparation | default(false)
+      ansible.builtin.meta:            end_play
+
+    - name:                            "1.5.4 NVMe Support - Display current system state"
+      ansible.builtin.debug:
+        msg: |
+                                       System State Assessment:
+                                       - Current NVMe configuration: {{ existing_nvme_config.stdout }}
+                                       - NVMe devices present: {{ current_nvme_usage.stdout }}
+                                       - Active mount points: {{ active_mounts_count.stdout }}
+                                       - Force preparation mode: {{ nvme_force_preparation | default(false) }}
+        verbosity:                     1
 
 # Set global facts and perform initial validations
 - name:                                "1.5.4 NVMe Support - Set global distribution facts"

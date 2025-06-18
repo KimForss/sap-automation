@@ -26,9 +26,9 @@
 - name:                                "1.5.4 NVMe Support (SUSE) - Set SUSE-specific facts"
   ansible.builtin.set_fact:
     suse_major_version:                "{{ ansible_distribution_major_version }}"
-    azure_nvme_utils_supported:       "{{
-                                         (ansible_distribution | upper == 'SLES' and ansible_distribution_version is version('15.5', '>=')) or
-                                         (ansible_distribution | upper == 'SLES_SAP' and ansible_distribution_version is version('15.5', '>='))
+    azure_nvme_utils_supported:        "{{
+                                          (ansible_distribution | upper == 'SLES' and ansible_distribution_version is version('15.5', '>=')) or
+                                          (ansible_distribution | upper == 'SLES_SAP' and ansible_distribution_version is version('15.5', '>='))
                                        }}"
     grub_config_file:                  "/boot/grub2/grub.cfg"
     grub_cmdline_param:                "GRUB_CMDLINE_LINUX_DEFAULT"
@@ -38,35 +38,50 @@
   when:                                azure_nvme_utils_supported
   community.general.zypper_repository_info: {}
   register:                            existing_repos
+  failed_when:                         false
 
 # Configure Azure NVME Utils repository and package for SUSE
-- name:                                "1.5.4 NVMe Support (SUSE) - Configure Azure NVME Utils repository"
-  when:
-    - azure_nvme_utils_supported
-    - not (existing_repos.repodatalist | selectattr('alias', 'equalto', 'azure_nvme_utils') | list)
-  block:
-    - name:                            "1.5.4 NVMe Support (SUSE) - Add Azure NVME Utils repository"
-      community.general.zypper_repository:
-        name:                          azure_nvme_utils
-        description:                   "Copr repo for azure-nvme-utils owned by cjp256"
-        repo:                          "https://download.copr.fedorainfracloud.org/results/cjp256/azure-nvme-utils/opensuse-leap-15.5-x86_64/"
-        priority:                      100
-        state:                         present
-        auto_import_keys:              true
-        disable_gpg_check:             true
-      register:                        sles_repo_added
+# - name:                                "1.5.4 NVMe Support (SUSE) - Configure Azure NVME Utils repository"
+#   when:
+#                                        - azure_nvme_utils_supported
+#                                        - existing_repos is succeeded
+#                                        - not (existing_repos.repodatalist | default([]) | selectattr('alias', 'equalto', 'azure_nvme_utils') | list)
+#   block:
+#     - name:                            "1.5.4 NVMe Support (SUSE) - Add Azure NVME Utils repository"
+#       community.general.zypper_repository:
+#         name:                          azure_nvme_utils
+#         description:                   "Copr repo for azure-nvme-utils owned by cjp256"
+#         repo:                          "{{ azure_nvme_utils_repo_urls.suse }}"
+#         priority:                      100
+#         state:                         present
+#         auto_import_keys:              true
+#         disable_gpg_check:             true
+#       register:                        sles_repo_added
+#       retries:                         3
+#       delay:                           10
+#       until:                           sles_repo_added is succeeded
 
-    - name:                            "1.5.4 NVMe Support (SUSE) - Import GPG key"
-      when:                            sles_repo_added.changed
-      ansible.builtin.rpm_key:
-        key:                           "https://download.copr.fedorainfracloud.org/results/cjp256/azure-nvme-utils/pubkey.gpg"
-        state:                         present
+#     - name:                            "1.5.4 NVMe Support (SUSE) - Import GPG key with retry logic"
+#       when:                            sles_repo_added.changed
+#       ansible.builtin.rpm_key:
+#         key:                           "https://download.copr.fedorainfracloud.org/results/cjp256/azure-nvme-utils/pubkey.gpg"
+#         state:                         present
+#       register:                        gpg_key_import
+#       retries:                         3
+#       delay:                           5
+#       until:                           gpg_key_import is succeeded
 
-    # - name:                            "1.5.4 NVMe Support (SUSE) - Refresh repository cache"
-    #   when:                            sles_repo_added.changed
-    #   community.general.zypper:
-    #     name:                          "*"
-    #     update_cache:                  true
+#     - name:                            "1.5.4 NVMe Support (SUSE) - Validate repository configuration"
+#       community.general.zypper_repository_info:
+#         repo:                          azure_nvme_utils
+#       register:                        repo_validation
+#       failed_when:                     false
+
+#     - name:                            "1.5.4 NVMe Support (SUSE) - Refresh repository cache"
+#       when:                            sles_repo_added.changed
+#       community.general.zypper:
+#         name:                          "*"
+#         update_cache:                  true
 
 # - name:                                "1.5.4 NVMe Support (SUSE) - Install Azure NVME Utils package"
 #   when:                                not azure_nvme_utils_supported
