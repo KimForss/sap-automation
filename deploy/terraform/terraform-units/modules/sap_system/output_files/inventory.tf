@@ -168,6 +168,11 @@ resource "local_file" "ansible_inventory_new_yml" {
                     created_resource_group_subscription_id = var.created_resource_group_subscription_id
                     app_use_nvme_disks                     = var.app_use_nvme_disks
                     db_use_nvme_disks                      = var.db_use_nvme_disks
+
+                    single_server       = length(webdispatcher_server_ips) + length(application_server_ips) + length(scs_server_ips) + length(database_server_ips) == 1 ? (
+                                            true) : (
+                                            false
+                                          )
     }
   )
   filename             = format("%s/%s_hosts.yaml", path.cwd, var.sap_sid)
