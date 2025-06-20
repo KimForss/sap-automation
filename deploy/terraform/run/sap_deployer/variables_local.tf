@@ -8,6 +8,7 @@
 #######################################4#######################################8
 locals {
   version_label                        = trimspace(file("${path.module}/../../../configs/version.txt"))
+  ansible_version_label                = trimspace(file("${path.module}/../../../configs/ansible_version.txt"))
 
   // Management vnet
   vnet_mgmt_arm_id                     = try(local.infrastructure.vnets.management.arm_id, "")

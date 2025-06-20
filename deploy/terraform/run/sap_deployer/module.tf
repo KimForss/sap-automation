@@ -23,7 +23,7 @@ module "sap_deployer" {
   agent_pat                                     = var.agent_pat
   agent_pool                                    = var.agent_pool
   additional_network_id                         = var.additional_network_id
-  ansible_core_version                          = var.ansible_core_version
+  ansible_core_version                          = coalesce(var.ansible_core_version, local.ansible_version_label)
   app_registration_app_id                       = var.use_webapp ? var.app_registration_app_id : ""
   app_service                                   = local.app_service
   arm_client_id                                 = var.arm_client_id

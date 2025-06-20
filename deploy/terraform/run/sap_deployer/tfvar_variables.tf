@@ -523,7 +523,7 @@ variable "register_storage_accounts_keyvaults_with_dns" {
 
 #########################################################################################
 #                                                                                       #
-#  ADO definitioms                                                                      #
+#  ADO definitions                                                                      #
 #                                                                                       #
 #########################################################################################
 
@@ -544,7 +544,7 @@ variable "agent_ado_url"                              {
 
 variable "ansible_core_version"                       {
                                                         description = "If provided, the version of ansible core to be installed"
-                                                        default     = "2.16"
+                                                        default     = ""
                                                       }
 
 #########################################################################################
