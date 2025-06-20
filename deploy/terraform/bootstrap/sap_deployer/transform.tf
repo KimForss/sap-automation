@@ -20,7 +20,6 @@ locals {
                                               ""
                                             )
                                             id = try(
-                                            id = try(
                                               coalesce(
                                                 var.resourcegroup_arm_id,
                                                 try(var.infrastructure.resource_group.arm_id, "")
