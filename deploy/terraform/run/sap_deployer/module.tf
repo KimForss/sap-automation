@@ -25,7 +25,6 @@ module "sap_deployer" {
   agent_pat                                     = var.agent_pat
   agent_pool                                    = var.agent_pool
   ansible_core_version                          = coalesce(var.ansible_core_version, local.ansible_version_label)
-  app_config_service                            = local.app_config_service
   app_service                                   = local.app_service
   arm_client_id                                 = var.arm_client_id
   assign_subscription_permissions               = var.deployer_assign_subscription_permissions

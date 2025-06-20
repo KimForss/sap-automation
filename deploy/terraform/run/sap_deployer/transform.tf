@@ -19,7 +19,6 @@ locals {
                                               ""
                                             )
                                             id = try(
-                                            id = try(
                                               coalesce(
                                                 var.resourcegroup_arm_id,
                                                 try(var.infrastructure.resource_group.arm_id, "")
@@ -109,12 +108,6 @@ locals {
                                                                 prefix = var.webapp_subnet_address_prefix
                                                               }
                                             }
-                                          }
-
-    deploy_monitoring_extension          = var.deploy_monitoring_extension
-    deploy_defender_extension            = var.deploy_defender_extension
-    custom_random_id                     = var.custom_random_id
-    bastion_public_ip_tags               = try(var.bastion_public_ip_tags, {})
 
     deploy_monitoring_extension          = var.deploy_monitoring_extension
     deploy_defender_extension            = var.deploy_defender_extension

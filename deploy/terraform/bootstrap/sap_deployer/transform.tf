@@ -108,14 +108,12 @@ locals {
                                             }
                                           }
 
-
     deploy_monitoring_extension        = var.deploy_monitoring_extension
     deploy_defender_extension          = var.deploy_defender_extension
 
     custom_random_id                   = var.custom_random_id
     bastion_public_ip_tags             = try(var.bastion_public_ip_tags, {})
-
-                                        }
+  }
 
   deployer                             = {
                                            size = try(
