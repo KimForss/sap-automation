@@ -19,12 +19,20 @@ locals {
                                               ""
                                             )
                                             id = try(
+                                            id = try(
                                               coalesce(
                                                 var.resourcegroup_arm_id,
                                                 try(var.infrastructure.resource_group.arm_id, "")
                                               ),
                                               ""
                                             )
+                                            exists = length(try(
+                                              coalesce(
+                                                var.resourcegroup_arm_id,
+                                                try(var.infrastructure.resource_group.arm_id, "")
+                                              ),
+                                              ""
+                                            )) > 0 ? true : false
                                             exists = length(try(
                                               coalesce(
                                                 var.resourcegroup_arm_id,
@@ -39,7 +47,13 @@ locals {
                                         )
 
     virtual_network                   = {
+    virtual_network                   = {
                                             management = {
+                                              name                    = var.management_network_name,
+                                              id                      = var.management_network_arm_id,
+                                              exists                  = length(var.management_network_arm_id) > 0
+                                              address_space           = var.management_network_address_space
+                                              flow_timeout_in_minutes = var.management_network_flow_timeout_in_minutes
                                               name                    = var.management_network_name,
                                               id                      = var.management_network_arm_id,
                                               exists                  = length(var.management_network_arm_id) > 0
@@ -51,7 +65,15 @@ locals {
                                                 exists = length(var.management_subnet_arm_id) > 0 ? true : false
                                                 id     = var.management_subnet_arm_id
                                                 prefix = var.management_subnet_address_prefix
+                                                name   = var.management_subnet_name,
+                                                exists = length(var.management_subnet_arm_id) > 0 ? true : false
+                                                id     = var.management_subnet_arm_id
+                                                prefix = var.management_subnet_address_prefix
                                                 nsg = {
+                                                  name        = var.management_subnet_nsg_name
+                                                  exists      = length(var.management_subnet_nsg_arm_id) > 0 ? true : false
+                                                  id          = var.management_subnet_nsg_arm_id
+                                                  allowed_ips = var.management_subnet_nsg_allowed_ips
                                                   name        = var.management_subnet_nsg_name
                                                   exists      = length(var.management_subnet_nsg_arm_id) > 0 ? true : false
                                                   id          = var.management_subnet_nsg_arm_id
@@ -63,7 +85,16 @@ locals {
                                                                   exists = length(var.management_firewall_subnet_arm_id) > 0 ? true : false
                                                                   prefix = var.management_firewall_subnet_address_prefix
                                                                 }
+                                              subnet_firewall = {
+                                                                  id     = var.management_firewall_subnet_arm_id
+                                                                  exists = length(var.management_firewall_subnet_arm_id) > 0 ? true : false
+                                                                  prefix = var.management_firewall_subnet_address_prefix
+                                                                }
                                               subnet_bastion = {
+                                                                  id     = var.management_bastion_subnet_arm_id
+                                                                  exists = length(var.management_bastion_subnet_arm_id) > 0 ? true : false
+                                                                  prefix = var.management_bastion_subnet_address_prefix
+                                                                }
                                                                   id     = var.management_bastion_subnet_arm_id
                                                                   exists = length(var.management_bastion_subnet_arm_id) > 0 ? true : false
                                                                   prefix = var.management_bastion_subnet_address_prefix
@@ -73,8 +104,17 @@ locals {
                                                                 exists = length(var.webapp_subnet_arm_id) > 0 ? true : false
                                                                 prefix = var.webapp_subnet_address_prefix
                                                               }
+                                                                id     = var.webapp_subnet_arm_id
+                                                                exists = length(var.webapp_subnet_arm_id) > 0 ? true : false
+                                                                prefix = var.webapp_subnet_address_prefix
+                                                              }
                                             }
                                           }
+
+    deploy_monitoring_extension          = var.deploy_monitoring_extension
+    deploy_defender_extension            = var.deploy_defender_extension
+    custom_random_id                     = var.custom_random_id
+    bastion_public_ip_tags               = try(var.bastion_public_ip_tags, {})
 
     deploy_monitoring_extension          = var.deploy_monitoring_extension
     deploy_defender_extension            = var.deploy_defender_extension
@@ -142,6 +182,7 @@ locals {
                                            encryption_at_host_enabled          = var.encryption_at_host_enabled
                                            deployer_public_ip_tags             = try(var.deployer_public_ip_tags, {})
                                            license_type                        = var.license_type
+                                           license_type                        = var.license_type
                                          }
 
   authentication                       = {
@@ -163,6 +204,7 @@ locals {
 
   options                              = {
                                             enable_deployer_public_ip = var.deployer_enable_public_ip || try(var.options.enable_deployer_public_ip, false)
+                                            enable_deployer_public_ip = var.deployer_enable_public_ip || try(var.options.enable_deployer_public_ip, false)
                                          }
 
   firewall                             = {
@@ -178,19 +220,29 @@ locals {
                                            use                 = var.app_service_deployment
                                            app_registration_id = var.app_registration_app_id
                                            client_secret       = var.webapp_client_secret
+                                           use                 = var.app_service_deployment
+                                           app_registration_id = var.app_registration_app_id
+                                           client_secret       = var.webapp_client_secret
                                          }
 
   dns_settings                         = {
                                            use_custom_dns_a_registration                = var.use_custom_dns_a_registration
                                            register_storage_accounts_keyvaults_with_dns = var.register_storage_accounts_keyvaults_with_dns
                                            register_endpoints_with_dns                  = var.register_endpoints_with_dns
+                                           register_storage_accounts_keyvaults_with_dns = var.register_storage_accounts_keyvaults_with_dns
+                                           register_endpoints_with_dns                  = var.register_endpoints_with_dns
                                            dns_zone_names                               = var.dns_zone_names
+
+                                           local_dns_resourcegroup_name                 = local.SAPLibrary_resource_group_name
 
                                            local_dns_resourcegroup_name                 = local.SAPLibrary_resource_group_name
 
                                            management_dns_resourcegroup_name            = trimspace(var.management_dns_resourcegroup_name)
                                            management_dns_subscription_id               = var.management_dns_subscription_id
+                                           management_dns_subscription_id               = var.management_dns_subscription_id
 
+                                           privatelink_dns_subscription_id              = var.privatelink_dns_subscription_id != var.management_dns_subscription_id ? var.privatelink_dns_subscription_id : var.management_dns_subscription_id
+                                           privatelink_dns_resourcegroup_name           = var.management_dns_resourcegroup_name != var.privatelink_dns_resourcegroup_name ? var.privatelink_dns_resourcegroup_name : var.management_dns_resourcegroup_name
                                            privatelink_dns_subscription_id              = var.privatelink_dns_subscription_id != var.management_dns_subscription_id ? var.privatelink_dns_subscription_id : var.management_dns_subscription_id
                                            privatelink_dns_resourcegroup_name           = var.management_dns_resourcegroup_name != var.privatelink_dns_resourcegroup_name ? var.privatelink_dns_resourcegroup_name : var.management_dns_resourcegroup_name
                                          }
