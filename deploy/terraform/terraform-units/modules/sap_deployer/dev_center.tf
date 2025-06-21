@@ -1,3 +1,15 @@
+data "azuread_service_principal" "DevOpsInfrastructure" {
+  display_name = "DevOpsInfrastructure"
+}
+
+resource "azurerm_role_assignment" "deployer" {
+  for_each                                      = toset(["Reader", "Network Contributor"])
+
+  scope                                         = var.infrastructure.resource_group.exists ? data.azurerm_resource_group.deployer[0].id : azurerm_resource_group.deployer[0].id
+  role_definition_name                          = each.key
+  principal_id                                  = data.azuread_service_principal.DevOpsInfrastructure.object_id
+}
+
 resource "azurerm_dev_center" "deployer" {
   count                                         = var.infrastructure.dev_center_deployment ? 1 : 0
   name                                          = lower(format("%s%s%s%s",
@@ -42,14 +54,6 @@ resource "azurerm_dev_center_network_connection" "deployer" {
                                                     azurerm_subnet.subnet_mgmt[0].id
                                                   )
 
-}
-
-
-resource "azurerm_dev_center_attached_network" "deployer" {
-  count                                         = var.infrastructure.dev_center_deployment ? 1 : 0
-  name                                          = var.infrastructure.devops.agent_ado_project
-  dev_center_id                                 = azurerm_dev_center.deployer[0].id
-  network_connection_id                         = azurerm_dev_center_network_connection.deployer[0].id
 }
 
 resource "azurerm_dev_center_dev_box_definition" "deployer" {
