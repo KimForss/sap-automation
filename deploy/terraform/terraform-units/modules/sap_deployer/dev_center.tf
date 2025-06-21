@@ -71,3 +71,82 @@ resource "azurerm_dev_center_project_pool" "deployer" {
   dev_center_attached_network_name              = azurerm_dev_center_attached_network.deployer[0].name
   stop_on_disconnect_grace_period_minutes       = 60
 }
+
+resource "azapi_resource" "deployer" {
+  count                                         = var.infrastructure.dev_center_deployment ? 1 : 0
+  name                                          = var.infrastructure.devops.agent_ado_pool
+  location                                      = var.infrastructure.resource_group.exists ? data.azurerm_resource_group.deployer[0].location : azurerm_resource_group.deployer[0].location
+  type                                          = "microsoft.devopsinfrastructure/pools@2025-02-01"
+  parent_id                                     = var.infrastructure.resource_group.exists ? data.azurerm_resource_group.deployer[0].id : azurerm_resource_group.deployer[0].id
+
+  body = jsonencode({
+    properties = {
+      organizationProfile = {
+        organizations = [
+          {
+            projects    = var.infrastructure.devops.agent_ado_project
+            url         = var.infrastructure.devops.agent_ado_url
+            parallelism = 3
+            openAccess  = false
+          }
+        ]
+        kind = "AzureDevOps" # Currently only AzureDevOps is supported
+        permissionProfile = {
+          kind = "Inherit"
+        }
+      }
+
+      devCenterProjectResourceId = azurerm_dev_center_project.deployer[0].id
+
+      maximumConcurrency = 2
+
+      agentProfile = {
+        kind = "Stateful"
+        maxAgentLifetime = "4.00:00:00"
+
+        resourcePredictionsProfile = {
+          predictionPreference = "MostCostEffective"
+          kind                 = "Automatic"
+        }
+
+      }
+
+      fabricProfile = {
+        sku = {
+          name = "Standard_D2ads_v5"
+        }
+
+        images = [
+          {
+            aliases            = ["ubuntu-24.04"]
+            buffer             = "*"
+            wellKnownImageName = "ubuntu-24.04/latest"
+          }
+        ]
+
+        osProfile = {
+          secretsManagementSettings = {
+            observedCertificates = [],
+            keyExportable        = false
+          },
+          logonType = "Service"
+        },
+
+        networkProfile = {
+          subnetId = var.infrastructure.virtual_network.management.subnet_mgmt.exists ? (
+                                                    data.azurerm_subnet.subnet_mgmt[0].id) : (
+                                                    azurerm_subnet.subnet_mgmt[0].id
+                                                  )
+        }
+
+        storageProfile = {
+          osDiskStorageAccountType = "Premium"
+          dataDisks = [
+          ]
+        },
+
+        kind = "Vmss"
+      }
+    }
+  })
+}
