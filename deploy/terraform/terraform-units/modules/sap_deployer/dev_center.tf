@@ -54,6 +54,7 @@ resource "azurerm_dev_center_attached_network" "deployer" {
 
 resource "azurerm_dev_center_dev_box_definition" "deployer" {
   name                                          = "SDAF"
+  count                                         = var.infrastructure.dev_center_deployment ? 1 : 0
   location                                      = var.infrastructure.resource_group.exists ? data.azurerm_resource_group.deployer[0].location : azurerm_resource_group.deployer[0].location
   dev_center_id                                 = azurerm_dev_center.deployer[0].id
   image_reference_id                            = "${azurerm_dev_center.deployer[0].id}/galleries/default/images/microsoftvisualstudio_visualstudioplustools_vs-2022-ent-general-win10-m365-gen2"
