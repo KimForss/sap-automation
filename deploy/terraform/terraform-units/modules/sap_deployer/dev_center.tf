@@ -88,7 +88,7 @@ resource "azapi_resource" "deployer" {
               var.infrastructure.devops.agent_ado_project ]
             url         = var.infrastructure.devops.agent_ado_url
             parallelism = 3
-            openAccess  = "false"
+            openAccess  = false
           }
         ]
         kind = "AzureDevOps" # Currently only AzureDevOps is supported
