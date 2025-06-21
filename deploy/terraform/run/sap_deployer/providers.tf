@@ -92,6 +92,12 @@ provider "azurerm"                     {
                                         #  use_msi                    = false #var.use_spn ? false : true
                                        }
 
+provider "azapi"                       {
+                                          alias                      = "api"
+                                          subscription_id            = var.subscription_id
+                                          use_msi                    = var.use_spn ? false : true
+                                       }
+
 
 terraform                              {
                                          required_version = ">= 1.0"

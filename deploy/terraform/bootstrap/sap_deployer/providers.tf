@@ -79,6 +79,10 @@ provider "azurerm"                     {
 provider "azuread"                     {
                                        }
 
+provider "azapi"                       {
+                                          alias                      = "api"
+                                       }
+
 terraform                              {
                                          required_version = ">= 1.0"
                                          required_providers {
