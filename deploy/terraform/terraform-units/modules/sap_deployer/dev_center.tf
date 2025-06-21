@@ -17,7 +17,7 @@ resource "azurerm_dev_center" "deployer" {
 
 resource "azurerm_dev_center_project" "deployer" {
   count                                         = var.infrastructure.dev_center_deployment ? 1 : 0
-  name                                          = upper(var.infrastructure.environment)
+  name                                          = var.infrastructure.devops.agent_ado_project
   dev_center_id                                 = azurerm_dev_center.deployer[0].id
   resource_group_name                           = var.infrastructure.resource_group.exists ? data.azurerm_resource_group.deployer[0].name : azurerm_resource_group.deployer[0].name
   location                                      = var.infrastructure.resource_group.exists ? data.azurerm_resource_group.deployer[0].location : azurerm_resource_group.deployer[0].location
@@ -47,7 +47,26 @@ resource "azurerm_dev_center_network_connection" "deployer" {
 
 resource "azurerm_dev_center_attached_network" "deployer" {
   count                                         = var.infrastructure.dev_center_deployment ? 1 : 0
-  name                                          = upper(var.infrastructure.environment)
+  name                                          = var.infrastructure.devops.agent_ado_project
   dev_center_id                                 = azurerm_dev_center.deployer[0].id
   network_connection_id                         = azurerm_dev_center_network_connection.deployer[0].id
+}
+
+resource "azurerm_dev_center_dev_box_definition" "deployer" {
+  name                                          = "SDAF"
+  location                                      = var.infrastructure.resource_group.exists ? data.azurerm_resource_group.deployer[0].location : azurerm_resource_group.deployer[0].location
+  dev_center_id                                 = azurerm_dev_center.deployer[0].id
+  image_reference_id                            = "${azurerm_dev_center.example.id}/galleries/default/images/microsoftvisualstudio_visualstudioplustools_vs-2022-ent-general-win10-m365-gen2"
+  sku_name                                      = "general_i_8c32gb256ssd_v2"
+}
+
+resource "azurerm_dev_center_project_pool" "deployer" {
+  count                                         = var.infrastructure.dev_center_deployment ? 1 : 0
+  name                                          = var.infrastructure.devops.agent_ado_pool
+  location                                      = var.infrastructure.resource_group.exists ? data.azurerm_resource_group.deployer[0].location : azurerm_resource_group.deployer[0].location
+  dev_center_project_id                         = azurerm_dev_center_project.azurerm_dev_center_project[0].id
+  dev_box_definition_name                       = azurerm_dev_center_dev_box_definition.deployer[0].name
+  local_administrator_enabled                   = true
+  dev_center_attached_network_name              = azurerm_dev_center_attached_network.deployer[0].name
+  stop_on_disconnect_grace_period_minutes       = 60
 }

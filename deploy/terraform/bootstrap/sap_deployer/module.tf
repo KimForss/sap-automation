@@ -20,10 +20,6 @@ module "sap_deployer" {
   Agent_IP                                     = var.add_Agent_IP ? var.Agent_IP : ""
   additional_network_id                        = var.additional_network_id
   additional_users_to_add_to_keyvault_policies = var.additional_users_to_add_to_keyvault_policies
-  agent_ado_url                                = var.agent_ado_url
-  agent_pat                                    = var.agent_pat
-  agent_pool                                   = var.agent_pool
-  ansible_core_version                         = coalesce(var.ansible_core_version, local.ansible_version_label)
   app_service                                  = local.app_service
   arm_client_id                                = var.arm_client_id
   assign_subscription_permissions              = var.deployer_assign_subscription_permissions
@@ -51,7 +47,6 @@ module "sap_deployer" {
   spn_id                                       = var.spn_id
   ssh-timeout                                  = var.ssh-timeout
   subnets_to_add                               = var.subnets_to_add_to_firewall_for_keyvaults_and_storage
-  tf_version                                   = var.tf_version
   use_private_endpoint                         = var.use_private_endpoint
   use_service_endpoint                         = var.use_service_endpoint
   webapp_client_secret                         = var.webapp_client_secret

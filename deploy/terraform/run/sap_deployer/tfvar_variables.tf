@@ -600,6 +600,11 @@ variable "agent_ado_url"                              {
                                                         default     = ""
                                                       }
 
+variable "agent_ado_project"                         {
+                                                        description = "If provided, contains the project name ADO repository"
+                                                        default     = ""
+                                                      }
+
 variable "ansible_core_version"                       {
                                                         description = "If provided, the version of ansible core to be installed"
                                                         default     = ""
