@@ -46,7 +46,6 @@ locals {
                                         )
 
     virtual_network                   = {
-    virtual_network                   = {
                                             management = {
                                               name                    = var.management_network_name,
                                               id                      = var.management_network_arm_id,
@@ -84,25 +83,12 @@ locals {
                                                                   exists = length(var.management_firewall_subnet_arm_id) > 0 ? true : false
                                                                   prefix = var.management_firewall_subnet_address_prefix
                                                                 }
-                                              subnet_firewall = {
-                                                                  id     = var.management_firewall_subnet_arm_id
-                                                                  exists = length(var.management_firewall_subnet_arm_id) > 0 ? true : false
-                                                                  prefix = var.management_firewall_subnet_address_prefix
-                                                                }
                                               subnet_bastion = {
                                                                   id     = var.management_bastion_subnet_arm_id
                                                                   exists = length(var.management_bastion_subnet_arm_id) > 0 ? true : false
                                                                   prefix = var.management_bastion_subnet_address_prefix
                                                                 }
-                                                                  id     = var.management_bastion_subnet_arm_id
-                                                                  exists = length(var.management_bastion_subnet_arm_id) > 0 ? true : false
-                                                                  prefix = var.management_bastion_subnet_address_prefix
-                                                                }
                                               subnet_webapp = {
-                                                                id     = var.webapp_subnet_arm_id
-                                                                exists = length(var.webapp_subnet_arm_id) > 0 ? true : false
-                                                                prefix = var.webapp_subnet_address_prefix
-                                                              }
                                                                 id     = var.webapp_subnet_arm_id
                                                                 exists = length(var.webapp_subnet_arm_id) > 0 ? true : false
                                                                 prefix = var.webapp_subnet_address_prefix

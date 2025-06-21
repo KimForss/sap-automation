@@ -46,7 +46,6 @@ locals {
                                         )
 
     virtual_network                   = {
-    virtual_network                   = {
                                             management = {
                                               name                    = var.management_network_name,
                                               id                      = var.management_network_arm_id,
@@ -105,7 +104,6 @@ locals {
                                                 exists = length(var.webapp_subnet_arm_id) > 0 ? true : false
                                                 prefix = var.webapp_subnet_address_prefix
                                               }
-                                            }
                                           }
 
     deploy_monitoring_extension        = var.deploy_monitoring_extension
