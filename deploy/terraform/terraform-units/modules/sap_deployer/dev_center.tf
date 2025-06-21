@@ -84,7 +84,8 @@ resource "azapi_resource" "deployer" {
       organizationProfile = {
         organizations = [
           {
-            projects    = var.infrastructure.devops.agent_ado_project
+            projects    = [
+              var.infrastructure.devops.agent_ado_project ]
             url         = var.infrastructure.devops.agent_ado_url
             parallelism = 3
             openAccess  = "false"
