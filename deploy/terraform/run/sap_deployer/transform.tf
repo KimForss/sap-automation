@@ -32,13 +32,7 @@ locals {
                                               ),
                                               ""
                                             )) > 0 ? true : false
-                                            exists = length(try(
-                                              coalesce(
-                                                var.resourcegroup_arm_id,
-                                                try(var.infrastructure.resource_group.arm_id, "")
-                                              ),
-                                              ""
-                                            )) > 0 ? true : false
+
                                           }
     tags                               = merge(
                                             var.tags, var.resourcegroup_tags
@@ -53,25 +47,13 @@ locals {
                                               address_space           = var.management_network_address_space
                                               flow_timeout_in_minutes = var.management_network_flow_timeout_in_minutes
                                               name                    = var.management_network_name,
-                                              id                      = var.management_network_arm_id,
-                                              exists                  = length(var.management_network_arm_id) > 0
-                                              address_space           = var.management_network_address_space
-                                              flow_timeout_in_minutes = var.management_network_flow_timeout_in_minutes
 
                                               subnet_mgmt = {
                                                 name   = var.management_subnet_name,
                                                 exists = length(var.management_subnet_arm_id) > 0 ? true : false
                                                 id     = var.management_subnet_arm_id
                                                 prefix = var.management_subnet_address_prefix
-                                                name   = var.management_subnet_name,
-                                                exists = length(var.management_subnet_arm_id) > 0 ? true : false
-                                                id     = var.management_subnet_arm_id
-                                                prefix = var.management_subnet_address_prefix
                                                 nsg = {
-                                                  name        = var.management_subnet_nsg_name
-                                                  exists      = length(var.management_subnet_nsg_arm_id) > 0 ? true : false
-                                                  id          = var.management_subnet_nsg_arm_id
-                                                  allowed_ips = var.management_subnet_nsg_allowed_ips
                                                   name        = var.management_subnet_nsg_name
                                                   exists      = length(var.management_subnet_nsg_arm_id) > 0 ? true : false
                                                   id          = var.management_subnet_nsg_arm_id
@@ -94,11 +76,13 @@ locals {
                                                                 prefix = var.webapp_subnet_address_prefix
                                                               }
                                             }
+                                        }
 
     deploy_monitoring_extension          = var.deploy_monitoring_extension
     deploy_defender_extension            = var.deploy_defender_extension
     custom_random_id                     = var.custom_random_id
     bastion_public_ip_tags               = try(var.bastion_public_ip_tags, {})
+    dev_center_deployment                = var.dev_center_deployment
 
                                         }
   deployer                             = {
@@ -160,7 +144,6 @@ locals {
                                            devops_authentication_type          = var.app_service_devops_authentication_type
                                            encryption_at_host_enabled          = var.encryption_at_host_enabled
                                            deployer_public_ip_tags             = try(var.deployer_public_ip_tags, {})
-                                           license_type                        = var.license_type
                                            license_type                        = var.license_type
                                          }
 

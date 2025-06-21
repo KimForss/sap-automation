@@ -111,6 +111,8 @@ locals {
 
     custom_random_id                   = var.custom_random_id
     bastion_public_ip_tags             = try(var.bastion_public_ip_tags, {})
+
+    dev_center_deployment                = var.dev_center_deployment
   }
 
   deployer                             = {

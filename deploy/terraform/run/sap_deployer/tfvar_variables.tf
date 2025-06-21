@@ -31,7 +31,6 @@ variable "subscription_id"                       {
                                                    default     = null
                                                  }
 
-
 variable "prevent_deletion_if_contains_resources" {
                                                     description = "Controls if resource groups are deleted even if they contain resources"
                                                     type        = bool
@@ -49,7 +48,7 @@ variable "resourcegroup_name"                   {
                                                 }
 
 variable "resourcegroup_arm_id"                 {
-                                                  description = "If provid, the Azure resource group id"
+                                                  description = "If provided, the Azure resource group id"
                                                   default     = ""
                                                   validation {
                                                     condition     = length(var.resourcegroup_arm_id) == 0 ? true : can(provider::azurerm::parse_resource_id(var.resourcegroup_arm_id))
@@ -97,16 +96,16 @@ variable "management_network_address_space"     {
                                                   default     = ""
                                                 }
 
-variable "management_network_flow_timeout_in_minutes" {
-                                                        description = "The flow timeout in minutes of the VNet into which the deployer will be deployed"
-                                                        type = number
-                                                        nullable = true
-                                                        default = null
-                                                        validation {
-                                                          condition     = var.management_network_flow_timeout_in_minutes == null ? true : (var.management_network_flow_timeout_in_minutes >= 4 && var.management_network_flow_timeout_in_minutes <= 30)
-                                                          error_message = "The flow timeout in minutes must be between 4 and 30 if set."
-                                                        }
-                                                      }
+variable "management_network_flow_timeout_in_minutes"      {
+                                                  description = "The flow timeout in minutes of the virtual network"
+                                                  type = number
+                                                  nullable = true
+                                                  default = null
+                                                  validation {
+                                                    condition     = var.management_network_flow_timeout_in_minutes == null ? true : (var.management_network_flow_timeout_in_minutes >= 4 && var.management_network_flow_timeout_in_minutes <= 30)
+                                                    error_message = "The flow timeout in minutes must be between 4 and 30 if set."
+                                                  }
+                                                }
 
 #######################################4#######################################8
 #                                                                              #
@@ -212,7 +211,6 @@ variable "bastion_public_ip_tags"              {
                                                   type        = map(string)
                                                   default     = null
                                                 }
-
 #######################################4#######################################8
 #                                                                              #
 #                           App Service Subnet variables                       #
@@ -230,7 +228,7 @@ variable "webapp_subnet_arm_id"                 {
                                                 }
 
 variable "webapp_subnet_address_prefix"        {
-                                                  description = "Subnet address range for the Web App subnet"
+                                                  description = "Subnet adress range for the Web App subnet"
                                                   default     = ""
                                                 }
 
@@ -310,14 +308,39 @@ variable "deployer_image"                       {
                                                                   type            = "marketplace"
                                                                 }
                                                 }
+
 variable "license_type"                         {
                                                   description = "The type of the image to be used for the deployer VM"
                                                   default     = ""
                                                 }
 
+
 variable "deployer_private_ip_address"          {
                                                   description = "If provides, the value of the deployer Virtual machine IPs"
                                                   default = [""]
+                                                }
+
+
+variable "shared_access_key_enabled"            {
+                                                  description = "Indicates whether the storage account permits requests to be authorized with the account access key via Shared Key."
+                                                  default     = false
+                                                  type        = bool
+                                                }
+
+variable "encryption_at_host_enabled"           {
+                                                  description = "Enable or disable host encryption for the deployer"
+                                                  default     = false
+                                                  type        = bool
+                                                }
+variable "data_plane_available"                 {
+                                                  description = "Boolean value indicating if storage account access is via data plane"
+                                                  default     = true
+                                                  type        = bool
+                                                }
+
+variable "custom_random_id"                     {
+                                                  description = "If provided, the value of the custom random id"
+                                                  default     = ""
                                                 }
 
 ###############################################################################
@@ -367,20 +390,6 @@ variable "user_keyvault_id"                           {
                                                         }
                                                       }
 
-variable "spn_keyvault_id"                           {
-                                                        description = "Azure resource identifier for the Azure Key Vault containing the deployment credentials"
-                                                        default     = ""
-                                                        validation {
-                                                          condition     = length(var.spn_keyvault_id) == 0 ? true : can(provider::azurerm::parse_resource_id(var.spn_keyvault_id))
-                                                          error_message = "If specified the 'spn_keyvault_id' variable must be a correct Azure resource identifier."
-                                                        }
-                                                      }
-
-variable "deployer_kv_user_arm_id"                    {
-                                                        description = "Azure resource identifier for the deployer user Azure Key Vault"
-                                                        default     = ""
-                                                      }
-
 variable "deployer_private_key_secret_name"           {
                                                         description = "Defines the name of the secret in the Azure Key Vault that contains the private key"
                                                         default     = ""
@@ -406,26 +415,26 @@ variable "enable_purge_control_for_keyvaults"         {
                                                         default     = false
                                                       }
 
-variable "additional_users_to_add_to_keyvault_policies" {
-                                                          description = "List of object IDs to add to key vault policies"
-                                                          default     = [""]
-                                                        }
-
-variable "set_secret_expiry"                          {
-                                                        description = "Set expiry date for secrets"
-                                                        default     = false
-                                                        type        = bool
-                                                      }
-
 variable "soft_delete_retention_days"                 {
                                                         description = "The number of days that items should be retained in the soft delete period"
                                                         default     = 7
                                                       }
 
+variable "additional_users_to_add_to_keyvault_policies" {
+                                                          description = "List of object IDs to add to key vault policies"
+                                                          default     = [""]
+                                                        }
+
+variable "set_secret_expiry"                         {
+                                                       description = "Set expiry date for secrets"
+                                                       default     = false
+                                                       type        = bool
+                                                     }
+
 variable "enable_rbac_authorization"                 {
                                                        description = "Enables RBAC authorization for Azure keyvault"
-                                                       default     = true
-                                                      }
+                                                       default     = false
+                                                     }
 
 #######################################4#######################################8
 #                                                                              #
@@ -479,7 +488,9 @@ variable "auto_configure_deployer"                    {
 
 variable "spn_id"                                     {
                                                         description = "SPN ID to be used for the deployment"
+                                                        nullable    = true
                                                         default     = ""
+
                                                       }
 
 variable "public_network_access_enabled"              {
@@ -494,31 +505,17 @@ variable "subnets_to_add_to_firewall_for_keyvaults_and_storage" {
                                                                   default     = []
                                                                 }
 
-variable "shared_access_key_enabled"                  {
-                                                        description = "Indicates whether the storage account permits requests to be authorized with the account access key via Shared Key."
-                                                        default     = false
-                                                        type        = bool
+variable "tags"                                       {
+                                                        description = "If provided, tags for all resources"
+                                                        default     = {}
                                                       }
 
 variable "additional_network_id"                     {
                                                        description = "Agent Network resource ID"
                                                        default     = ""
-                                                        validation {
-                                                          condition     = length(var.additional_network_id) == 0 ? true : can(provider::azurerm::parse_resource_id(var.additional_network_id))
-                                                          error_message = "If specified the 'additional_network_id' variable must be a correct Azure resource identifier."
-                                                        }
+
                                                      }
 
-variable "tags"                                 {
-                                                  description = "If provided, tags for all resources"
-                                                  default     = {}
-                                                }
-
-variable "encryption_at_host_enabled"           {
-                                                  description = "Enable or disable host encryption for the deployer"
-                                                  default     = false
-                                                  type        = bool
-                                                }
 #########################################################################################
 #                                                                                       #
 #  DNS settings                                                                         #
@@ -542,17 +539,19 @@ variable "management_dns_resourcegroup_name"          {
                                                         default     = ""
                                                         type        = string
                                                       }
+
 variable "dns_zone_names"                             {
                                                         description = "Private DNS zone names"
                                                         type        = map(string)
 
                                                         default = {
-                                                          "file_dns_zone_name"      = "privatelink.file.core.windows.net"
-                                                          "blob_dns_zone_name"      = "privatelink.blob.core.windows.net"
-                                                          "table_dns_zone_name"     = "privatelink.table.core.windows.net"
-                                                          "vault_dns_zone_name"     = "privatelink.vaultcore.azure.net"
-                                                          "appconfig_dns_zone_name" = "privatelink.azconfig.io"
-                                                        }
+                                                                    "file_dns_zone_name"      = "privatelink.file.core.windows.net"
+                                                                    "blob_dns_zone_name"      = "privatelink.blob.core.windows.net"
+                                                                    "table_dns_zone_name"     = "privatelink.table.core.windows.net"
+                                                                    "vault_dns_zone_name"     = "privatelink.vaultcore.azure.net"
+                                                                    "appconfig_dns_zone_name" = "privatelink.azconfig.io"
+
+                                                                  }
                                                       }
 
 variable "privatelink_dns_subscription_id"            {
@@ -592,7 +591,7 @@ variable "agent_pool"                                 {
                                                       }
 
 variable "agent_pat" {
-                                                        description = "If provided, contains the Personal Access Token to be used"
+  description = "If provided, contains the Personal Access Token to be used"
                                                         default     = ""
                                                       }
 
@@ -604,6 +603,11 @@ variable "agent_ado_url"                              {
 variable "ansible_core_version"                       {
                                                         description = "If provided, the version of ansible core to be installed"
                                                         default     = ""
+                                                      }
+
+variable "dev_center_deployment"                      {
+                                                        description = "Boolean flag indicating if a Dev Center should be deployed"
+                                                        default     = false
                                                       }
 
 #########################################################################################
@@ -621,6 +625,7 @@ variable "app_service_deployment"                     {
                                                         description = "Boolean value indicating if a webapp should be deployed"
                                                         default     = false
                                                       }
+
 
 variable "app_registration_app_id"                    {
                                                         description = "The app registration id to be used for the webapp"
@@ -644,7 +649,6 @@ variable "app_service_devops_authentication_type"     {
                                                         default     = "MSI"
                                                       }
 
-
 variable "app_service_SKU_name"                       {
                                                         description = "The SKU of the App Service Plan"
                                                         default     = "S1"
@@ -667,34 +671,6 @@ variable "add_Agent_IP"                              {
                                                         type        = bool
                                                       }
 
-variable "tfstate_resource_id"                       {
-                                                       description = "Resource id of tfstate storage account"
-                                                       validation {
-                                                                    condition = (
-                                                                      length(split("/", var.tfstate_resource_id)) == 9
-                                                                    )
-                                                                    error_message = "The Azure Resource ID for the storage account containing the Terraform state files must be provided and be in correct format."
-                                                                  }
-
-                                                     }
-
-variable "data_plane_available"                      {
-                                                       description = "Boolean value indicating if storage account access is via data plane"
-                                                       default     = true
-                                                       type        = bool
-                                                     }
-
-variable "custom_random_id"                          {
-                                                       description = "If provided, the value of the custom random id"
-                                                       default     = ""
-                                                     }
-
-variable "recover"                                   {
-                                                       description = "Defines if in recovery mode"
-                                                       default     = false
-                                                     }
-
-
 ###############################################################################
 #                                                                             #
 #                                  Identity                                   #
@@ -704,10 +680,6 @@ variable "recover"                                   {
 variable "user_assigned_identity_id"                {
                                                        description = "User assigned Identity resource Id"
                                                        default     = ""
-                                                        validation {
-                                                          condition     = length(var.user_assigned_identity_id) == 0 ? true : can(provider::azurerm::parse_resource_id(var.user_assigned_identity_id))
-                                                          error_message = "If specified the 'user_assigned_identity_id' variable must be a correct Azure resource identifier."
-                                                        }
                                                      }
 
 variable "add_system_assigned_identity"              {
@@ -720,16 +692,6 @@ variable "use_spn"                                   {
                                                        description = "Log in using a service principal when performing the deployment"
 
                                                      }
-variable "MSI_id"                               {
-                                                   description = "The id of the managed identity"
-                                                   default     = ""
-                                                 }
-
-variable "MSI_tenant_id"                        {
-                                                   description = "The tenant id of the managed identity"
-                                                   default     = ""
-                                                 }
-
 
 #########################################################################################
 #                                                                                       #
@@ -738,12 +700,12 @@ variable "MSI_tenant_id"                        {
 #########################################################################################
 
 
-variable "deploy_monitoring_extension"              {
-                                                      description = "If defined, will add the Microsoft.Azure.Monitor.AzureMonitorLinuxAgent extension to the virtual machines"
-                                                      default     = false
-                                                    }
+variable "deploy_monitoring_extension"          {
+                                                  description = "If defined, will add the Microsoft.Azure.Monitor.AzureMonitorLinuxAgent extension to the virtual machines"
+                                                  default     = false
+                                                }
 
-variable "deploy_defender_extension"                {
-                                                      description = "If defined, will add the Microsoft.Azure.Security.Monitoring extension to the virtual machines"
-                                                      default     = false
-                                                    }
+variable "deploy_defender_extension"            {
+                                                  description = "If defined, will add the Microsoft.Azure.Security.Monitoring extension to the virtual machines"
+                                                  default     = false
+                                                }

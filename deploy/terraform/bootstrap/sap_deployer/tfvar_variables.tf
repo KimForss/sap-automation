@@ -602,7 +602,12 @@ variable "agent_ado_url"                              {
 
 variable "ansible_core_version"                       {
                                                         description = "If provided, the version of ansible core to be installed"
-                                                        default     = "2.15"
+                                                        default     = ""
+                                                      }
+
+variable "dev_center_deployment"                      {
+                                                        description = "Boolean flag indicating if a Dev Center should be deployed"
+                                                        default     = false
                                                       }
 
 #########################################################################################
