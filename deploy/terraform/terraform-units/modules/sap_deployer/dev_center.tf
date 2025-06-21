@@ -2,7 +2,7 @@ data "azuread_service_principal" "DevOpsInfrastructure" {
   display_name = "DevOpsInfrastructure"
 }
 
-resource "azurerm_role_assignment" "deployer" {
+resource "azurerm_role_assignment" "dev_center" {
   for_each                                      = toset(["Reader", "Network Contributor"])
 
   scope                                         = var.infrastructure.resource_group.exists ? data.azurerm_resource_group.deployer[0].id : azurerm_resource_group.deployer[0].id
