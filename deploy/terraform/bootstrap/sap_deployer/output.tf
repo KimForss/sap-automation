@@ -254,7 +254,7 @@ output "Agent_IP"                                {
 
 output "foo"                        {
                                                    description = "Number of deployer VMs"
-                                                   value       = jsonencode({
+                                                   value       = {
     properties = {
       organizationProfile = {
         organizations = [
@@ -314,5 +314,5 @@ output "foo"                        {
         kind = "Vmss"
       }
     }
-  })
+  }
 }
