@@ -79,7 +79,7 @@ resource "azapi_resource" "deployer" {
   type                                          = "microsoft.devopsinfrastructure/pools@2025-01-21"
   parent_id                                     = var.infrastructure.resource_group.exists ? data.azurerm_resource_group.deployer[0].id : azurerm_resource_group.deployer[0].id
 
-  body = jsonencode({
+  body = {
     properties = {
       organizationProfile = {
         organizations = [
@@ -103,12 +103,6 @@ resource "azapi_resource" "deployer" {
       agentProfile = {
         kind = "Stateful"
         maxAgentLifetime = "4.00:00:00"
-
-        resourcePredictionsProfile = {
-          predictionPreference = "MostCostEffective"
-          kind                 = "Automatic"
-        }
-
       }
 
       fabricProfile = {
@@ -140,7 +134,7 @@ resource "azapi_resource" "deployer" {
         }
 
         storageProfile = {
-          osDiskStorageAccountType = "Premium"
+          osDiskStorageAccountType = "Premium",
           dataDisks = [
           ]
         },
@@ -148,5 +142,5 @@ resource "azapi_resource" "deployer" {
         kind = "Vmss"
       }
     }
-  })
+  }
 }
