@@ -61,20 +61,20 @@ resource "azurerm_dev_center_dev_box_definition" "deployer" {
   sku_name                                      = "general_i_8c32gb256ssd_v2"
 }
 
-resource "azurerm_dev_center_project_pool" "deployer" {
-  count                                         = var.infrastructure.dev_center_deployment ? 1 : 0
-  name                                          = var.infrastructure.devops.agent_ado_pool
-  location                                      = var.infrastructure.resource_group.exists ? data.azurerm_resource_group.deployer[0].location : azurerm_resource_group.deployer[0].location
-  dev_center_project_id                         = azurerm_dev_center_project.deployer[0].id
-  dev_box_definition_name                       = azurerm_dev_center_dev_box_definition.deployer[0].name
-  local_administrator_enabled                   = true
-  dev_center_attached_network_name              = azurerm_dev_center_attached_network.deployer[0].name
-  stop_on_disconnect_grace_period_minutes       = 60
-}
+# resource "azurerm_dev_center_project_pool" "deployer" {
+#   count                                         = var.infrastructure.dev_center_deployment ? 1 : 0
+#   name                                          = var.infrastructure.devops.agent_pool
+#   location                                      = var.infrastructure.resource_group.exists ? data.azurerm_resource_group.deployer[0].location : azurerm_resource_group.deployer[0].location
+#   dev_center_project_id                         = azurerm_dev_center_project.deployer[0].id
+#   dev_box_definition_name                       = azurerm_dev_center_dev_box_definition.deployer[0].name
+#   local_administrator_enabled                   = true
+#   dev_center_attached_network_name              = azurerm_dev_center_attached_network.deployer[0].name
+#   stop_on_disconnect_grace_period_minutes       = 60
+# }
 
 resource "azapi_resource" "deployer" {
   count                                         = var.infrastructure.dev_center_deployment ? 1 : 0
-  name                                          = var.infrastructure.devops.agent_ado_pool
+  name                                          = var.infrastructure.devops.agent_pool
   location                                      = var.infrastructure.resource_group.exists ? data.azurerm_resource_group.deployer[0].location : azurerm_resource_group.deployer[0].location
   type                                          = "microsoft.devopsinfrastructure/pools@2025-01-21"
   parent_id                                     = var.infrastructure.resource_group.exists ? data.azurerm_resource_group.deployer[0].id : azurerm_resource_group.deployer[0].id
