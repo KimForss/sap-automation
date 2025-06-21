@@ -2,7 +2,7 @@ resource "azurerm_dev_center" "deployer" {
   count                                         = var.infrastructure.dev_center_deployment ? 1 : 0
   name                                          = lower(format("%s%s%s%s",
                                                     var.naming.resource_prefixes.dev_center,
-                                                    var.naming.prefix.DEPLOYER,
+                                                    var.infrastructure.environment,
                                                     var.naming.resource_suffixes.dev_center,
                                                     coalesce(try(var.infrastructure.custom_random_id, ""), substr(random_id.deployer.hex, 0, 3)))
                                                   )
