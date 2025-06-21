@@ -29,6 +29,7 @@ resource "azurerm_dev_center_project" "deployer" {
 }
 
 resource "azurerm_dev_center_network_connection" "deployer" {
+  count                                         = var.infrastructure.dev_center_deployment ? 1 : 0
   name                                          = var.infrastructure.virtual_network.management.subnet_mgmt.exists ? (
                                                     data.azurerm_subnet.subnet_mgmt[0].name) : (
                                                     azurerm_subnet.subnet_mgmt[0].name
