@@ -80,7 +80,7 @@ provider "azuread"                     {
                                        }
 
 provider "azapi"                       {
-                                          alias                      = "api"
+                                          alias                      = "restapi"
                                        }
 
 terraform                              {

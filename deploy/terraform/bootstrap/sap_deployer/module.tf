@@ -12,7 +12,7 @@ module "sap_deployer" {
                                                    azurerm.main                     = azurerm.main
                                                    azurerm.dnsmanagement            = azurerm.dnsmanagement
                                                    azurerm.privatelinkdnsmanagement = azurerm.privatelinkdnsmanagement
-                                                   azapi.restapi                    = azapi.api
+                                                   azapi.restapi                    = azapi.restapi
                                                  }
   naming                                       = length(var.name_override_file) > 0 ? (
                                                    local.custom_names) : (

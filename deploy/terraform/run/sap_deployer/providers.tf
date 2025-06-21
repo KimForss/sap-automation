@@ -93,7 +93,7 @@ provider "azurerm"                     {
                                        }
 
 provider "azapi"                       {
-                                          alias                      = "api"
+                                          alias                      = "restapi"
                                           subscription_id            = var.subscription_id
                                           use_msi                    = var.use_spn ? false : true
                                        }
