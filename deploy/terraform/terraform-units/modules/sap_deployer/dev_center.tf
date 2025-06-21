@@ -76,7 +76,7 @@ resource "azapi_resource" "deployer" {
   count                                         = var.infrastructure.dev_center_deployment ? 1 : 0
   name                                          = var.infrastructure.devops.agent_ado_pool
   location                                      = var.infrastructure.resource_group.exists ? data.azurerm_resource_group.deployer[0].location : azurerm_resource_group.deployer[0].location
-  type                                          = "microsoft.devopsinfrastructure/pools@2025-02-01"
+  type                                          = "microsoft.devopsinfrastructure/pools@2025-01-21"
   parent_id                                     = var.infrastructure.resource_group.exists ? data.azurerm_resource_group.deployer[0].id : azurerm_resource_group.deployer[0].id
 
   body = jsonencode({
