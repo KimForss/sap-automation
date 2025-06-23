@@ -104,7 +104,13 @@ function LogonToAzure() {
 
 	else
 		echo "Deployment credentials:              Managed Service Identity"
-		source "/etc/profile.d/deploy_server.sh"
+		if [ -f "/etc/profile.d/deploy_server.sh" ]; then
+			echo "Sourcing deploy_server.sh to set up environment variables for MSI authentication"
+			source "/etc/profile.d/deploy_server.sh"
+		else
+		  az login --identity --output none --client-id "$ARM_CLIENT_ID" --tenant "$ARM_TENANT_ID" --allow-no-subscriptions --output none
+		fi
+
 		TF_VAR_use_spn=false
 		export TF_VAR_use_spn
 
