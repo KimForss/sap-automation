@@ -1,5 +1,4 @@
 data "azuread_service_principal" "DevOpsInfrastructure" {
-  provider                                      = azurerm.main
   display_name                                  = "DevOpsInfrastructure"
 }
 
