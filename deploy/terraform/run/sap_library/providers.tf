@@ -59,9 +59,6 @@ provider "azurerm"                     {
 
 provider "azurerm"                     {
                                          features {
-                                                    storage        {
-                                                                        data_plane_available = var.data_plane_available
-                                                                   }
                                                   }
                                          alias                      = "deployer"
 
@@ -123,7 +120,7 @@ terraform                              {
                                                                          }
                                                               azurerm =  {
                                                                            source  = "hashicorp/azurerm"
-                                                                           version = "4.32.0"
+                                                                           version = "4.27.0"
                                                                          }
                                                             }
                                        }
