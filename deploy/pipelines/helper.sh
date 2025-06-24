@@ -82,7 +82,7 @@ function LogonToAzure() {
 		az login --service-principal --client-id "$ARM_CLIENT_ID" --password="$ARM_CLIENT_SECRET" --tenant "$ARM_TENANT_ID" --output none
 	else
 		echo "Deployment credentials:              Managed Service Identity"
-		if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
+		if [[ -f /etc/profile.d/deploy_server.sh ]]; then
 			source "/etc/profile.d/deploy_server.sh"
 
 			# sourcing deploy_server.sh overwrites ARM_SUBSCRIPTION_ID with control plane subscription id
