@@ -36,6 +36,13 @@ variable "prevent_deletion_if_contains_resources" {
                                                     type        = bool
                                                     default     = true
                                                   }
+
+variable "recover"                                {
+                                                   description = "Boolean flag indicating if the deployer should be recovered"
+                                                   default     = false
+                                                   type        = bool
+                                                 }
+
 #######################################4#######################################8
 #                                                                              #
 #                          Resource group definitions                          #
@@ -462,7 +469,7 @@ variable "use_service_endpoint"                       {
 
 
 variable "deployer_diagnostics_account_arm_id"        {
-                                                        description = "Azure resource identifier for an existing storage accout that will be used for diagnostic logs"
+                                                        description = "Azure resource identifier for an existing storage account that will be used for diagnostic logs"
                                                         default     = ""
                                                         validation {
                                                           condition     = length(var.deployer_diagnostics_account_arm_id) == 0 ? true : can(provider::azurerm::parse_resource_id(var.deployer_diagnostics_account_arm_id))
@@ -473,8 +480,19 @@ variable "deployer_diagnostics_account_arm_id"        {
 
 variable "tf_version"                                 {
                                                         description = "Terraform version to install on deployer"
-                                                        default     = "1.9.8"
+                                                        default     = ""
                                                       }
+
+variable "tfstate_resource_id"                       {
+                                                       description = "Resource id of tfstate storage account"
+                                                       validation {
+                                                                    condition = can(provider::azurerm::parse_resource_id(var.tfstate_resource_id)
+                                                                    )
+                                                                    error_message = "The Azure Resource ID for the storage account containing the Terraform state files must be provided and be in correct format."
+                                                                  }
+
+                                                     }
+
 
 variable "name_override_file"                         {
                                                         description = "If provided, contains a json formatted file defining the name overrides"

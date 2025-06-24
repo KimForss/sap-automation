@@ -36,6 +36,13 @@ variable "prevent_deletion_if_contains_resources" {
                                                     type        = bool
                                                     default     = true
                                                   }
+
+variable "recover"                                {
+                                                   description = "Boolean flag indicating if the deployer should be recovered"
+                                                   default     = false
+                                                   type        = bool
+                                                 }
+
 #######################################4#######################################8
 #                                                                              #
 #                          Resource group definitions                          #

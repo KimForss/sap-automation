@@ -164,7 +164,7 @@ locals {
 
                                           }
   key_vault                            = {
-                                           id                        = coalesce(var.deployer_kv_user_arm_id, var.spn_keyvault_id, var.user_keyvault_id)
+                                           id                        = var.user_keyvault_id
                                            exists                    = length(var.user_keyvault_id) > 0 ? true : false
                                            private_key_secret_name   = var.deployer_private_key_secret_name
                                            public_key_secret_name    = var.deployer_public_key_secret_name
