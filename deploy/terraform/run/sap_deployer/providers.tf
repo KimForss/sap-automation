@@ -98,6 +98,10 @@ provider "azapi"                       {
                                           use_msi                    = var.use_spn ? false : true
                                        }
 
+provider "azuread"                     {
+                                         use_msi                    = var.use_spn ? false : true
+                                       }
+
 
 terraform                              {
                                          required_version = ">= 1.0"
@@ -116,7 +120,7 @@ terraform                              {
                                                                          }
                                                               azuread =  {
                                                                            source  = "hashicorp/azuread"
-                                                                           version = "3.0.2"
+                                                                           version = "3.40.0"
                                                                          }
                                                               azurerm =  {
                                                                            source  = "hashicorp/azurerm"

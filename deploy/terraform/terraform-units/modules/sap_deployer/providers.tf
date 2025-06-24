@@ -12,5 +12,10 @@ terraform {
       source                = "azure/azapi"
       configuration_aliases = [azapi.restapi]
     }
+
+    azuread = {
+      source                = "hashicorp/azuread"
+      configuration_aliases = [azuread.main]
+    }
   }
 }
