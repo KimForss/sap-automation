@@ -1,13 +1,4 @@
 
-resource "azurerm_role_assignment" "dev_center" {
-  count                                         = var.infrastructure.dev_center_deployment && var.infrastructure.devops.DevOpsInfrastructure_object_id != "" ? 1 : 0
-  for_each                                      = toset(["Reader", "Network Contributor"])
-
-  scope                                         = var.infrastructure.resource_group.exists ? data.azurerm_resource_group.deployer[0].id : azurerm_resource_group.deployer[0].id
-  role_definition_name                          = each.key
-  principal_id                                  = var.infrastructure.devops.DevOpsInfrastructure_object_id
-}
-
 resource "azurerm_dev_center" "deployer" {
   count                                         = var.infrastructure.dev_center_deployment ? 1 : 0
   name                                          = lower(format("%s%s%s%s",
