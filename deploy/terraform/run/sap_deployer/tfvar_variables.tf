@@ -508,7 +508,6 @@ variable "spn_id"                                     {
                                                         description = "SPN ID to be used for the deployment"
                                                         nullable    = true
                                                         default     = ""
-
                                                       }
 
 variable "public_network_access_enabled"              {
@@ -531,7 +530,6 @@ variable "tags"                                       {
 variable "additional_network_id"                     {
                                                        description = "Agent Network resource ID"
                                                        default     = ""
-
                                                      }
 
 #########################################################################################
@@ -609,7 +607,7 @@ variable "agent_pool"                                 {
                                                       }
 
 variable "agent_pat" {
-  description = "If provided, contains the Personal Access Token to be used"
+                                                        description = "If provided, contains the Personal Access Token to be used"
                                                         default     = ""
                                                       }
 
@@ -631,6 +629,10 @@ variable "ansible_core_version"                       {
 variable "dev_center_deployment"                      {
                                                         description = "Boolean flag indicating if a Dev Center should be deployed"
                                                         default     = false
+                                                      }
+
+variable "DevOpsInfrastructure_object_id"             {
+                                                        description = "Service principal object id for the DevOps Infrastructure"
                                                       }
 
 #########################################################################################

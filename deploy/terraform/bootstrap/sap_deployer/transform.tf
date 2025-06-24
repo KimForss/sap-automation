@@ -114,12 +114,13 @@ locals {
 
     dev_center_deployment              = var.dev_center_deployment
     devops                             = {
-                                           agent_ado_url        = var.agent_ado_url
-                                           agent_ado_project    = var.agent_ado_project
-                                           agent_pat            = var.agent_pat
-                                           agent_pool           = var.agent_pool
-                                           ansible_core_version = var.ansible_core_version
-                                           tf_version           = var.tf_version
+                                           agent_ado_url                  = var.agent_ado_url
+                                           agent_ado_project              = var.agent_ado_project
+                                           agent_pat                      = var.agent_pat
+                                           agent_pool                     = var.agent_pool
+                                           ansible_core_version           = var.ansible_core_version
+                                           tf_version                     = var.tf_version
+                                           DevOpsInfrastructure_object_id = var.DevOpsInfrastructure_object_id
                                          }
 
 
@@ -186,9 +187,6 @@ locals {
                                            encryption_at_host_enabled          = var.encryption_at_host_enabled
                                            deployer_public_ip_tags             = try(var.deployer_public_ip_tags, {})
                                            license_type                        = var.license_type
-                                           license_type                        = var.license_type
-
-
                                          }
 
   authentication                       = {

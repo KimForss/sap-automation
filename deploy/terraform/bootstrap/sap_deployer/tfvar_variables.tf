@@ -622,6 +622,10 @@ variable "dev_center_deployment"                      {
                                                         default     = false
                                                       }
 
+variable "DevOpsInfrastructure_object_id"             {
+                                                        description = "Service principal object id for the DevOps Infrastructure"
+                                                      }
+
 #########################################################################################
 #                                                                                       #
 #  Web Application settings                                                             #
