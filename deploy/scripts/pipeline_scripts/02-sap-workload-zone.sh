@@ -129,16 +129,15 @@ else
 		configureNonDeployer "${tf_version:-1.12.2}"
 		echo -e "$green--- az login ---$reset"
 		LogonToAzure $USE_MSI
-		return_code=$?
-		if [ 0 != $return_code ]; then
-			echo -e "$bold_red--- Login failed ---$reset"
-			echo "##vso[task.logissue type=error]az login failed."
-			exit $return_code
-		fi
 	else
 		LogonToAzure $USE_MSI
 	fi
-
+	return_code=$?
+	if [ 0 != $return_code ]; then
+		echo -e "$bold_red--- Login failed ---$reset"
+		echo "##vso[task.logissue type=error]az login failed."
+		exit $return_code
+	fi
 fi
 
 echo -e "$green--- Read deployment details ---$reset"
@@ -201,9 +200,6 @@ fi
 workload_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}${NETWORK}"
 echo "Workload Zone Environment File:      $workload_environment_file_name"
 touch "$workload_environment_file_name"
-
-ARM_SUBSCRIPTION_ID=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "ARM_SUBSCRIPTION_ID" "${workload_environment_file_name}" "ARM_SUBSCRIPTION_ID")
-az account set --subscription "$ARM_SUBSCRIPTION_ID"
 
 echo -e "$green--- Read parameter values ---$reset"
 
