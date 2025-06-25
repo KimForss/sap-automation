@@ -112,7 +112,7 @@ if [ -z "${VARIABLE_GROUP_ID}" ]; then
 	exit 2
 fi
 
-if [ -v ARM_SUBSCRIPTION_ID ]; then
+if [ ! -v ARM_SUBSCRIPTION_ID ]; then
 	echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
 	exit 2
 fi
