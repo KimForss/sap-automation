@@ -31,16 +31,16 @@ resource "azurerm_dev_center_project" "deployer" {
 
 resource "azurerm_dev_center_network_connection" "deployer" {
   count                                         = var.infrastructure.dev_center_deployment ? 1 : 0
-  name                                          = var.infrastructure.virtual_network.management.subnet_mgmt.exists ? (
-                                                    data.azurerm_subnet.subnet_mgmt[0].name) : (
-                                                    azurerm_subnet.subnet_mgmt[0].name
+  name                                          = var.infrastructure.virtual_network.management.subnet_agent.exists ? (
+                                                    data.azurerm_subnet.subnet_agent[0].name) : (
+                                                    azurerm_subnet.subnet_agent[0].name
                                                   )
   resource_group_name                           = var.infrastructure.resource_group.exists ? data.azurerm_resource_group.deployer[0].name : azurerm_resource_group.deployer[0].name
   location                                      = var.infrastructure.resource_group.exists ? data.azurerm_resource_group.deployer[0].location : azurerm_resource_group.deployer[0].location
   domain_join_type                              = "AzureADJoin"
-  subnet_id                                     = var.infrastructure.virtual_network.management.subnet_mgmt.exists ? (
-                                                    data.azurerm_subnet.subnet_mgmt[0].id) : (
-                                                    azurerm_subnet.subnet_mgmt[0].id
+  subnet_id                                     = var.infrastructure.virtual_network.management.subnet_agent.exists ? (
+                                                    data.azurerm_subnet.subnet_agent[0].id) : (
+                                                    azurerm_subnet.subnet_agent[0].id
                                                   )
 
 }
@@ -143,9 +143,52 @@ resource "azapi_resource" "deployer" {
   }
 }
 
+// Create/Import agent subnet
+resource "azurerm_subnet" "subnet_agent" {
+  count                                = var.infrastructure.dev_center_deployment && (!var.infrastructure.virtual_network.management.subnet_agent.exists) ? 1 : 0
+  name                                 = local.agent_subnet_name
+  resource_group_name                  = var.infrastructure.virtual_network.management.exists ? data.azurerm_virtual_network.vnet_agent[0].resource_group_name : azurerm_virtual_network.vnet_agent[0].resource_group_name
+  virtual_network_name                 = var.infrastructure.virtual_network.management.exists ? data.azurerm_virtual_network.vnet_agent[0].name : azurerm_virtual_network.vnet_agent[0].name
+  address_prefixes                     = [var.infrastructure.virtual_network.management.subnet_agent.prefix]
+
+  private_endpoint_network_policies    = !var.use_private_endpoint ? "Enabled" : "Disabled"
+
+  service_endpoints                    = var.use_service_endpoint ? (
+                                           var.app_service.use ? (
+                                             ["Microsoft.Storage", "Microsoft.KeyVault", "Microsoft.Web"]) : (
+                                             ["Microsoft.Storage", "Microsoft.KeyVault"]
+                                           )) : (
+                                         null)
+
+  dynamic "delegation" {
+                        for_each = range(var.infrastructure.dev_center_deployment ? 1 : 0)
+                        content {
+                          name = "delegation"
+                          service_delegation {
+                            actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+                            name    = "Microsoft.DevOpsInfrastructure/pools"
+                          }
+                        }
+                      }
+
+
+
+}
+
+data "azurerm_subnet" "subnet_agent" {
+  count                                = (var.infrastructure.virtual_network.management.subnet_agent.exists) ? 1 : 0
+  name                                 = split("/", var.infrastructure.virtual_network.management.subnet_agent.id)[10]
+  resource_group_name                  = split("/", var.infrastructure.virtual_network.management.subnet_agent.id)[4]
+  virtual_network_name                 = split("/", var.infrastructure.virtual_network.management.subnet_agent.id)[8]
+}
+
+
+
 locals {
-  subnetId = var.infrastructure.virtual_network.management.subnet_mgmt.exists ? (
-                                                    data.azurerm_subnet.subnet_mgmt[0].id) : (
-                                                    azurerm_subnet.subnet_mgmt[0].id
+  subnetId = var.infrastructure.virtual_network.management.subnet_agent.exists ? (
+                                                    data.azurerm_subnet.subnet_agent[0].id) : (
+                                                    azurerm_subnet.subnet_agent[0].id
                                                   )
 }
+
+
