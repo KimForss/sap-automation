@@ -89,7 +89,6 @@ if [ "$USE_MSI" != "true" ]; then
 fi
 
 # Set logon variables
-# Set logon variables
 if [ $USE_MSI == "true" ]; then
 	unset ARM_CLIENT_SECRET
 	ARM_USE_MSI=true
