@@ -5,9 +5,14 @@
 green="\e[1;32m"
 reset="\e[0m"
 bold_red="\e[1;31m"
-#External helper functions
-source "sap-automation/deploy/pipelines/helper.sh"
 
+#External helper functions
+#. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
+full_script_path="$(realpath "${BASH_SOURCE[0]}")"
+script_directory="$(dirname "${full_script_path}")"
+
+#call stack has full scriptname when using source
+source "${script_directory}/helper.sh"
 DEBUG=False
 
 if [ "$SYSTEM_DEBUG" = True ]; then
