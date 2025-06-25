@@ -147,8 +147,8 @@ resource "azapi_resource" "deployer" {
 resource "azurerm_subnet" "subnet_agent" {
   count                                = var.infrastructure.dev_center_deployment && (!var.infrastructure.virtual_network.management.subnet_agent.exists) ? 1 : 0
   name                                 = local.agent_subnet_name
-  resource_group_name                  = var.infrastructure.virtual_network.management.exists ? data.azurerm_virtual_network.vnet_agent[0].resource_group_name : azurerm_virtual_network.vnet_agent[0].resource_group_name
-  virtual_network_name                 = var.infrastructure.virtual_network.management.exists ? data.azurerm_virtual_network.vnet_agent[0].name : azurerm_virtual_network.vnet_agent[0].name
+  resource_group_name                  = var.infrastructure.virtual_network.management.exists ? data.azurerm_virtual_network.vnet_mgmt[0].resource_group_name : azurerm_virtual_network.vnet_mgmt[0].resource_group_name
+  virtual_network_name                 = var.infrastructure.virtual_network.management.exists ? data.azurerm_virtual_network.vnet_mgmt[0].name : azurerm_virtual_network.vnet_mgmt[0].name
   address_prefixes                     = [var.infrastructure.virtual_network.management.subnet_agent.prefix]
 
   private_endpoint_network_policies    = !var.use_private_endpoint ? "Enabled" : "Disabled"
