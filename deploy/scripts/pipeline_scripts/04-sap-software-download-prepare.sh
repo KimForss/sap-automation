@@ -57,20 +57,29 @@ if [ "your S user password" == "$SPASSWORD" ]; then
   exit 2
 fi
 
-echo -e "$green--- az login ---$reset"
-# Check if running on deployer
-if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-  configureNonDeployer "$(tf_version)"
-    echo -e "$green--- az login ---$reset"
-  LogonToAzure false
-else
-  LogonToAzure "$USE_MSI"
+# Set logon variables
+if [ $USE_MSI == "true" ]; then
+	unset ARM_CLIENT_SECRET
+	ARM_USE_MSI=true
+	export ARM_USE_MSI
 fi
-return_code=$?
-if [ 0 != $return_code ]; then
-  echo -e "$bold_red--- Login failed ---$reset"
-  echo "##vso[task.logissue type=error]az login failed."
-  exit $return_code
+if az account show --query name; then
+	echo -e "$green--- Already logged in to Azure ---$reset"
+else
+	# Check if running on deployer
+	if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
+		configureNonDeployer "${tf_version:-1.12.2}"
+		echo -e "$green--- az login ---$reset"
+		LogonToAzure $USE_MSI
+	else
+		LogonToAzure $USE_MSI
+	fi
+	return_code=$?
+	if [ 0 != $return_code ]; then
+		echo -e "$bold_red--- Login failed ---$reset"
+		echo "##vso[task.logissue type=error]az login failed."
+		exit $return_code
+	fi
 fi
 
 az account set --subscription "$ARM_SUBSCRIPTION_ID" --output none
