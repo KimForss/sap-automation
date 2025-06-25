@@ -2,29 +2,30 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+echo "##vso[build.updatebuildnumber]Deploying the SAP Workload zone defined in $WORKLOAD_ZONE_FOLDERNAME"
 green="\e[1;32m"
 reset="\e[0m"
 bold_red="\e[1;31m"
 cyan="\e[1;36m"
 
 #External helper functions
-source "sap-automation/deploy/pipelines/helper.sh"
+#. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
+full_script_path="$(realpath "${BASH_SOURCE[0]}")"
+script_directory="$(dirname "${full_script_path}")"
 
-DEBUG=False
+#call stack has full scriptname when using source
+source "${script_directory}/helper.sh"
 
+DEBUG=false
 if [ "$SYSTEM_DEBUG" = True ]; then
 	set -x
-	set -o errexit
-	DEBUG=True
+	DEBUG=true
 	echo "Environment variables:"
 	printenv | sort
-
 fi
+
 export DEBUG
-
 set -eu
-
-echo "##vso[build.updatebuildnumber]Deploying the SAP Workload zone defined in $WORKLOAD_ZONE_FOLDERNAME"
 
 tfvarsFile="LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME/$WORKLOAD_ZONE_TFVARS_FILENAME"
 
