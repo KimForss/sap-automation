@@ -42,7 +42,6 @@ cd "$CONFIG_REPO_PATH" || exit
 environment_file_name=".sap_deployment_automation/$ENVIRONMENT$LOCATION$NETWORK"
 parameters_filename="$CONFIG_REPO_PATH/SYSTEM/${SAP_SYSTEM_CONFIGURATION_NAME}/sap-parameters.yaml"
 
-az devops configure --defaults organization=$SYSTEM_COLLECTIONURI project='$SYSTEM_TEAMPROJECT' --output none --only-show-errors
 
 echo -e "$green--- Validations ---$reset"
 if [ ! -f "${environment_file_name}" ]; then
@@ -76,6 +75,8 @@ if [ 0 != $return_code ]; then
 	echo "##vso[task.logissue type=error]az login failed."
 	exit $return_code
 fi
+
+az devops configure --defaults organization=$SYSTEM_COLLECTIONURI project='$SYSTEM_TEAMPROJECT' --output none --only-show-errors
 
 az account set --subscription "$AZURE_SUBSCRIPTION_ID" --output none
 

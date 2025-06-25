@@ -29,37 +29,38 @@ cd "$CONFIG_REPO_PATH" || exit
 
 sample_path="$SAMPLE_REPO_PATH/SAP"
 
-if [ "$USE_MSI" != "true" ]; then
-  if [ -z "$ARM_CLIENT_ID" ]; then
-    echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined."
-    exit 2
-  fi
 
-  if [ -z "$ARM_CLIENT_SECRET" ]; then
-    echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined."
-    exit 2
-  fi
+echo -e "$green--- Validations ---$reset"
+if [ ! -f "${environment_file_name}" ]; then
+	echo -e "$bold_red--- ${environment_file_name} was not found ---$reset"
+	echo "##vso[task.logissue type=error]File ${environment_file_name} was not found."
+	exit 2
+fi
 
-  if [ -z "$ARM_TENANT_ID" ]; then
-    echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined."
-    exit 2
-  fi
+if [ -z "$AZURE_SUBSCRIPTION_ID" ]; then
+	echo "##vso[task.logissue type=error]Variable AZURE_SUBSCRIPTION_ID was not defined."
+	exit 2
+fi
+
+if [ "azure pipelines" == "$THIS_AGENT" ]; then
+	echo "##vso[task.logissue type=error]Please use a self hosted agent for this playbook. Define it in the SDAF-$ENVIRONMENT variable group"
+	exit 2
 fi
 
 echo -e "$green--- az login ---$reset"
 # Check if running on deployer
-if [ ! -f /etc/profile.d/deploy_server.sh ]; then
-  echo -e "$green--- az login ---$reset"
-  LogonToAzure false
+if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
+	configureNonDeployer "$(tf_version)"
+	echo -e "$green--- az login ---$reset"
+	LogonToAzure false
 else
-  LogonToAzure "$USE_MSI"
+	LogonToAzure "$USE_MSI"
 fi
 return_code=$?
-
 if [ 0 != $return_code ]; then
-  echo -e "$bold_red--- Login failed ---$reset"
-  echo "##vso[task.logissue type=error]az login failed."
-  exit $return_code
+	echo -e "$bold_red--- Login failed ---$reset"
+	echo "##vso[task.logissue type=error]az login failed."
+	exit $return_code
 fi
 
 az account set --subscription "$ARM_SUBSCRIPTION_ID" --output none
