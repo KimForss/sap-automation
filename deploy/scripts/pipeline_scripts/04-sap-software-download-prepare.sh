@@ -82,8 +82,6 @@ else
 	fi
 fi
 
-az account set --subscription "$ARM_SUBSCRIPTION_ID" --output none
-
 echo -e "$green--- Get key_vault name ---$reset"
 VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$VARIABLE_GROUP'].id | [0]")
 export VARIABLE_GROUP_ID
