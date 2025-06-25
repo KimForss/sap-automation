@@ -52,26 +52,12 @@ locals {
                                               exists                  = length(var.management_network_arm_id) > 0 ? true : false
                                               address_space           = var.management_network_address_space
                                               flow_timeout_in_minutes = var.management_network_flow_timeout_in_minutes
-                                              name                    = var.management_network_name,
-                                              id                      = var.management_network_arm_id,
-                                              exists                  = length(var.management_network_arm_id) > 0 ? true : false
-                                              address_space           = var.management_network_address_space
-                                              flow_timeout_in_minutes = var.management_network_flow_timeout_in_minutes
-
                                               subnet_mgmt = {
                                                 name   = var.management_subnet_name,
                                                 exists = length(var.management_subnet_arm_id) > 0 ? true : false
                                                 id     = var.management_subnet_arm_id
                                                 prefix = var.management_subnet_address_prefix
-                                                name   = var.management_subnet_name,
-                                                exists = length(var.management_subnet_arm_id) > 0 ? true : false
-                                                id     = var.management_subnet_arm_id
-                                                prefix = var.management_subnet_address_prefix
                                                 nsg = {
-                                                  name        = var.management_subnet_nsg_name
-                                                  exists      = length(var.management_subnet_nsg_arm_id) > 0 ? true : false
-                                                  id          = var.management_subnet_nsg_arm_id
-                                                  allowed_ips = var.management_subnet_nsg_allowed_ips
                                                   name        = var.management_subnet_nsg_name
                                                   exists      = length(var.management_subnet_nsg_arm_id) > 0 ? true : false
                                                   id          = var.management_subnet_nsg_arm_id
@@ -104,7 +90,7 @@ locals {
                                                                   exists = length(var.agent_subnet_arm_id) > 0 ? true : false
                                                                   prefix = var.agent_subnet_address_prefix
                                                                 }
-
+                                            }
                                           }
 
     deploy_monitoring_extension        = var.deploy_monitoring_extension
@@ -123,7 +109,6 @@ locals {
                                            tf_version                     = var.tf_version
                                            DevOpsInfrastructure_object_id = var.DevOpsInfrastructure_object_id
                                          }
-
 
   }
 
