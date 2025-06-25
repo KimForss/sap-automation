@@ -29,7 +29,6 @@ set -eu
 tfvarsFile="LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME/$WORKLOAD_ZONE_TFVARS_FILENAME"
 
 echo -e "$green--- Checkout $BUILD_SOURCEBRANCHNAME ---$reset"
-echo -e "$green--- Checkout $BUILD_SOURCEBRANCHNAME ---$reset"
 
 cd "${CONFIG_REPO_PATH}" || exit
 mkdir -p .sap_deployment_automation

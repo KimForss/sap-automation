@@ -28,7 +28,6 @@ set -eu
 tfvarsFile="SYSTEM/$SAP_SYSTEM_FOLDERNAME/$SAP_SYSTEM_TFVARS_FILENAME"
 
 echo -e "$green--- Checkout $BUILD_SOURCEBRANCHNAME ---$reset"
-echo -e "$green--- Checkout $BUILD_SOURCEBRANCHNAME ---$reset"
 
 cd "${CONFIG_REPO_PATH}" || exit
 git checkout -q "$BUILD_SOURCEBRANCHNAME"
