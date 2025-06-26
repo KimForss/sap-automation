@@ -148,7 +148,7 @@ stages:
           - task:                      PostBuildCleanup@4
           - bash: |
               #!/bin/bash
-              ansible-core_version=$(pip show ansible-core | grep Version | awk -F': ' '{print $2}' )
+              ansible_core_version=$(pip show ansible-core | grep Version | awk -F': ' '{print $2}' )
               ansible_version=$(pip show ansible | grep Version | awk -F': ' '{print $2}' )
 
               ansible --version
