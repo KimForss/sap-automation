@@ -148,13 +148,18 @@ stages:
           - task:                      PostBuildCleanup@4
           - bash: |
               #!/bin/bash
-              ansible_core_version=$(pip3 show ansible-core | grep Version | awk -F': ' '{print $2}' )
-              ansible_version=$(pip3 show ansible | grep Version | awk -F': ' '{print $2}' )
 
               ansible --version
 
-              echo "Ansible Version: $ansible_version"
-              echo "Ansible Core Version: $ansible_core_version"
+              sudo apt-get purge --auto-remove ansible-core
+              ansible --version
+
+              pipx install ansible-core==2.16.5
+
+
+              ansible --version
+
+
               exit 10
 
 
