@@ -241,7 +241,6 @@ if [ "${force}" == 1 ]; then
 	rm -Rf .terraform terraform.tfstate*
 fi
 
-<<<<<<< HEAD
 echo ""
 echo "Configuration file:                  $workload_config_information"
 echo "Deployment region:                   $region"
@@ -252,8 +251,6 @@ echo "Deployer Subscription:               $STATE_SUBSCRIPTION"
 echo "Remote state storage account:        $REMOTE_STATE_SA"
 echo "Target Subscription:                 $subscription"
 
-=======
->>>>>>> 591634d45 (Bring in the new scripts)
 if [[ -n $STATE_SUBSCRIPTION ]]; then
 	if is_valid_guid "$STATE_SUBSCRIPTION"; then
 

@@ -6,16 +6,7 @@ green="\e[1;32m"
 reset="\e[0m"
 bold_red="\e[1;31m"
 #External helper functions
-<<<<<<< HEAD
 source "sap-automation/deploy/pipelines/helper.sh"
-=======
-#. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
-full_script_path="$(realpath "${BASH_SOURCE[0]}")"
-script_directory="$(dirname "${full_script_path}")"
-
-#call stack has full scriptname when using source
-source "${script_directory}/helper.sh"
->>>>>>> 591634d45 (Bring in the new scripts)
 
 DEBUG=False
 
@@ -29,17 +20,11 @@ fi
 export DEBUG
 set -eu
 
-<<<<<<< HEAD
-=======
-echo -e "$green--- Configure devops CLI extension ---$reset"
-az config set extension.use_dynamic_install=yes_without_prompt --output none --only-show-errors
->>>>>>> 591634d45 (Bring in the new scripts)
 AZURE_DEVOPS_EXT_PAT=$SYSTEM_ACCESSTOKEN
 export AZURE_DEVOPS_EXT_PAT
 
 cd "$CONFIG_REPO_PATH" || exit
 
-<<<<<<< HEAD
 environment_file_name=".sap_deployment_automation/$CONTROL_PLANE_NAME"
 
 # Print the execution environment details
@@ -56,11 +41,6 @@ then
 fi
 export VARIABLE_GROUP_ID
 
-=======
-environment_file_name=".sap_deployment_automation/$ENVIRONMENT_CODE$LOCATION_CODE"
-
-az devops configure --defaults organization=$SYSTEM_COLLECTIONURI project='$SYSTEM_TEAMPROJECT' --output none --only-show-errors
->>>>>>> 591634d45 (Bring in the new scripts)
 
 echo -e "$green--- Validations ---$reset"
 if [ ! -f "${environment_file_name}" ]; then
@@ -88,7 +68,6 @@ if [ "your S user password" == "$SPASSWORD" ]; then
   exit 2
 fi
 
-<<<<<<< HEAD
 echo -e "$green--- az login ---$reset"
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
@@ -106,42 +85,6 @@ if [ 0 != $return_code ]; then
 fi
 
 az account set --subscription "$ARM_SUBSCRIPTION_ID" --output none
-=======
-# Set logon variables
-if [ $USE_MSI == "true" ]; then
-	unset ARM_CLIENT_SECRET
-	ARM_USE_MSI=true
-	export ARM_USE_MSI
-fi
-if az account show --query name; then
-	echo -e "$green--- Already logged in to Azure ---$reset"
-else
-	# Check if running on deployer
-	if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-		configureNonDeployer "${tf_version:-1.12.2}"
-		echo -e "$green--- az login ---$reset"
-		LogonToAzure $USE_MSI
-	else
-		LogonToAzure $USE_MSI
-	fi
-	return_code=$?
-	if [ 0 != $return_code ]; then
-		echo -e "$bold_red--- Login failed ---$reset"
-		echo "##vso[task.logissue type=error]az login failed."
-		exit $return_code
-	fi
-fi
-
-echo -e "$green--- Get key_vault name ---$reset"
-VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$VARIABLE_GROUP'].id | [0]")
-export VARIABLE_GROUP_ID
-printf -v val '%-15s' "$VARIABLE_GROUP id:"
-echo "$val                      $VARIABLE_GROUP_ID"
-if [ -z "${VARIABLE_GROUP_ID}" ]; then
-  echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP could not be found."
-  exit 2
-fi
->>>>>>> 591634d45 (Bring in the new scripts)
 
 key_vault=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_Key_Vault" "${environment_file_name}" "keyvault")
 

@@ -6,17 +6,8 @@ green="\e[1;32m"
 reset="\e[0m"
 bold_red="\e[1;31m"
 #External helper functions
-<<<<<<< HEAD
 source "sap-automation/deploy/pipelines/helper.sh"
 
-=======
-#. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
-full_script_path="$(realpath "${BASH_SOURCE[0]}")"
-script_directory="$(dirname "${full_script_path}")"
-
-#call stack has full scriptname when using source
-source "${script_directory}/helper.sh"
->>>>>>> 591634d45 (Bring in the new scripts)
 DEBUG=False
 
 if [ "$SYSTEM_DEBUG" = True ]; then
@@ -27,7 +18,6 @@ if [ "$SYSTEM_DEBUG" = True ]; then
 
 fi
 export DEBUG
-<<<<<<< HEAD
 
 AZURE_DEVOPS_EXT_PAT=$SYSTEM_ACCESSTOKEN
 export AZURE_DEVOPS_EXT_PAT
@@ -47,14 +37,6 @@ then
 	exit 2
 fi
 export VARIABLE_GROUP_ID
-=======
-set -eu
-
-echo -e "$green--- Configure devops CLI extension ---$reset"
-az config set extension.use_dynamic_install=yes_without_prompt --output none --only-show-errors
-AZURE_DEVOPS_EXT_PAT=$SYSTEM_ACCESSTOKEN
-export AZURE_DEVOPS_EXT_PAT
->>>>>>> 591634d45 (Bring in the new scripts)
 
 ENVIRONMENT=$(echo "$SAP_SYSTEM_CONFIGURATION_NAME" | awk -F'-' '{print $1}' | xargs)
 
@@ -69,10 +51,7 @@ cd "$CONFIG_REPO_PATH" || exit
 environment_file_name=".sap_deployment_automation/$ENVIRONMENT$LOCATION$NETWORK"
 parameters_filename="$CONFIG_REPO_PATH/SYSTEM/${SAP_SYSTEM_CONFIGURATION_NAME}/sap-parameters.yaml"
 
-<<<<<<< HEAD
 az devops configure --defaults organization=$SYSTEM_COLLECTIONURI project=$SYSTEM_TEAMPROJECTID --output none --only-show-errors
-=======
->>>>>>> 591634d45 (Bring in the new scripts)
 
 echo -e "$green--- Validations ---$reset"
 if [ ! -f "${environment_file_name}" ]; then
@@ -81,13 +60,8 @@ if [ ! -f "${environment_file_name}" ]; then
 	exit 2
 fi
 
-<<<<<<< HEAD
 if [ -z "$AZURE_SUBSCRIPTION_ID" ]; then
 	echo "##vso[task.logissue type=error]Variable AZURE_SUBSCRIPTION_ID was not defined."
-=======
-if [ -z "$ARM_SUBSCRIPTION_ID" ]; then
-	echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
->>>>>>> 591634d45 (Bring in the new scripts)
 	exit 2
 fi
 
@@ -97,7 +71,6 @@ if [ "azure pipelines" == "$THIS_AGENT" ]; then
 fi
 
 echo -e "$green--- az login ---$reset"
-<<<<<<< HEAD
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 	configureNonDeployer "$(tf_version)"
@@ -116,47 +89,6 @@ fi
 az account set --subscription "$AZURE_SUBSCRIPTION_ID" --output none
 
 echo -e "$green--- Get key_vault name ---$reset"
-=======
-
-# Set logon variables
-if [ $USE_MSI == "true" ]; then
-	unset ARM_CLIENT_SECRET
-	ARM_USE_MSI=true
-	export ARM_USE_MSI
-fi
-if az account show --query name; then
-	echo -e "$green--- Already logged in to Azure ---$reset"
-else
-	# Check if running on deployer
-	if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-		configureNonDeployer "${tf_version:-1.12.2}"
-		echo -e "$green--- az login ---$reset"
-		LogonToAzure $USE_MSI
-	else
-		LogonToAzure $USE_MSI
-	fi
-	return_code=$?
-	if [ 0 != $return_code ]; then
-		echo -e "$bold_red--- Login failed ---$reset"
-		echo "##vso[task.logissue type=error]az login failed."
-		exit $return_code
-	fi
-fi
-
-az devops configure --defaults organization=$SYSTEM_COLLECTIONURI project='$SYSTEM_TEAMPROJECT' --output none --only-show-errors
-
-az account set --subscription "$ARM_SUBSCRIPTION_ID" --output none
-
-echo -e "$green--- Get key_vault name ---$reset"
-VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$VARIABLE_GROUP'].id | [0]")
-export VARIABLE_GROUP_ID
-printf -v val '%-15s' "$VARIABLE_GROUP_ID id:"
-echo "$val                      $VARIABLE_GROUP_ID"
-if [ -z "${VARIABLE_GROUP_ID}" ]; then
-	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP could not be found."
-	exit 2
-fi
->>>>>>> 591634d45 (Bring in the new scripts)
 
 key_vault=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_Key_Vault" "${environment_file_name}" "keyvault")
 
@@ -214,14 +146,9 @@ echo "##vso[task.setvariable variable=VAULT_NAME;isOutput=true]$workload_key_vau
 echo "##vso[task.setvariable variable=PASSWORD_KEY_NAME;isOutput=true]${workload_prefix}-sid-password"
 echo "##vso[task.setvariable variable=USERNAME_KEY_NAME;isOutput=true]${workload_prefix}-sid-username"
 echo "##vso[task.setvariable variable=NEW_PARAMETERS;isOutput=true]${new_parameters}"
-<<<<<<< HEAD
 echo "##vso[task.setvariable variable=CP_SUBSCRIPTION;isOutput=true]${control_plane_subscription}"
 
 az keyvault secret show --name "${workload_prefix}-sid-sshkey" --vault-name "$workload_key_vault" --subscription "$control_plane_subscription" --query value -o tsv >"artifacts/${SAP_SYSTEM_CONFIGURATION_NAME}_sshkey"
-=======
-
-az keyvault secret show --name "${workload_prefix}-sid-sshkey" --vault-name "$workload_key_vault" --subscription "$ARM_SUBSCRIPTION_ID" --query value -o tsv >"artifacts/${SAP_SYSTEM_CONFIGURATION_NAME}_sshkey"
->>>>>>> 591634d45 (Bring in the new scripts)
 cp sap-parameters.yaml artifacts/.
 cp "${SID}_hosts.yaml" artifacts/.
 

@@ -379,19 +379,7 @@ if [ -f .terraform/terraform.tfstate ]; then
 
 	azure_backend=$(grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate || true)
 	if [ -n "${azure_backend}" ]; then
-<<<<<<< HEAD
 		if terraform -chdir="${terraform_module_directory}" init -upgrade=true; then
-=======
-		STATE_SUBSCRIPTION=$(grep -m1 "subscription_id" "${param_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
-		REMOTE_STATE_SA=$(grep -m1 "storage_account_name" "${param_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
-		REMOTE_STATE_RG=$(grep -m1 "resource_group_name" "${param_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
-		if terraform -chdir="${terraform_module_directory}" init -input=false -force-copy -upgrade=true \
-			--backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
-			--backend-config "resource_group_name=${REMOTE_STATE_RG}" \
-			--backend-config "storage_account_name=${REMOTE_STATE_SA}" \
-			--backend-config "container_name=tfstate" \
-			--backend-config "key=${key}.terraform.tfstate"; then
->>>>>>> 591634d45 (Bring in the new scripts)
 			echo ""
 			echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
 			echo ""
@@ -562,13 +550,8 @@ if [ "$resource_group_exist" ]; then
 		# fi
 		if [ -n "${approve}" ]; then
 			# shellcheck disable=SC2086
-<<<<<<< HEAD
 			if terraform -chdir="${terraform_module_directory}" destroy -refresh=false $allParameters "$approve" -no-color -json -parallelism="$parallelism" | tee -a destroy_output.json; then
 				return_value=$?
-=======
-			if terraform -chdir="${terraform_module_directory}" destroy -refresh=false $allParameters "$approve" -no-color -json -parallelism="$parallelism" | tee destroy_output.json; then
-				return_value=${PIPESTATUS[0]}
->>>>>>> 591634d45 (Bring in the new scripts)
 			else
 				return_value=${PIPESTATUS[0]}
 			fi

@@ -397,11 +397,7 @@ if [ -n "${deployer_statefile_foldername}" ]; then
 		echo ""
 		echo "#########################################################################################"
 		echo "#                                                                                       #"
-<<<<<<< HEAD
 		echo -e "#                          $bold_red_underscore Errors during the plan phase $reset_formatting                               #"
-=======
-		echo -e "#                             $cyan  Terraform plan succeeded $reset_formatting                               #"
->>>>>>> 591634d45 (Bring in the new scripts)
 		echo "#                                                                                       #"
 		echo "#########################################################################################"
 		echo ""
@@ -413,11 +409,7 @@ if [ -n "${deployer_statefile_foldername}" ]; then
 		echo ""
 		echo "#########################################################################################"
 		echo "#                                                                                       #"
-<<<<<<< HEAD
 		echo -e "#                             $cyan  Terraform plan succeeded $reset_formatting                               #"
-=======
-		echo -e "#                          $bold_red_underscore Errors during the plan phase $reset_formatting                               #"
->>>>>>> 591634d45 (Bring in the new scripts)
 		echo "#                                                                                       #"
 		echo "#########################################################################################"
 		echo ""
@@ -442,12 +434,6 @@ else
 		unset TF_DATA_DIR
 		exit $return_value
 	else
-<<<<<<< HEAD
-=======
-		return_value=${PIPESTATUS[0]}
-	fi
-	if [ 0 -eq $return_value ]; then
->>>>>>> 591634d45 (Bring in the new scripts)
 		echo ""
 		echo "#########################################################################################"
 		echo "#                                                                                       #"
@@ -455,16 +441,6 @@ else
 		echo "#                                                                                       #"
 		echo "#########################################################################################"
 		echo ""
-<<<<<<< HEAD
-=======
-	else
-		echo ""
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo -e "#                          $bold_red_underscore Errors during the plan phase $reset_formatting                               #"
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
->>>>>>> 591634d45 (Bring in the new scripts)
 		echo ""
 
 		unset TF_DATA_DIR
