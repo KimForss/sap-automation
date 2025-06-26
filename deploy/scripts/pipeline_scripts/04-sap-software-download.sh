@@ -31,11 +31,6 @@ sample_path="$SAMPLE_REPO_PATH/SAP"
 
 
 echo -e "$green--- Validations ---$reset"
-if [ ! -f "${environment_file_name}" ]; then
-	echo -e "$bold_red--- ${environment_file_name} was not found ---$reset"
-	echo "##vso[task.logissue type=error]File ${environment_file_name} was not found."
-	exit 2
-fi
 
 if [ -z "$AZURE_SUBSCRIPTION_ID" ]; then
 	echo "##vso[task.logissue type=error]Variable AZURE_SUBSCRIPTION_ID was not defined."
