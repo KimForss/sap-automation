@@ -674,7 +674,11 @@ else
 		echo ""
 
 		check_output=1
+<<<<<<< HEAD
 		if ! terraform -chdir="${terraform_module_directory}" init -upgrade=true \
+=======
+		if terraform -chdir="${terraform_module_directory}" init -migrate-state -upgrade=true \
+>>>>>>> 591634d45 (Bring in the new scripts)
 			--backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
 			--backend-config "resource_group_name=${REMOTE_STATE_RG}" \
 			--backend-config "storage_account_name=${REMOTE_STATE_SA}" \

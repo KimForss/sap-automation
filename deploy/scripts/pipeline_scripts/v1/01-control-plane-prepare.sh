@@ -9,6 +9,7 @@ bold_red="\e[1;31m"
 cyan="\e[1;36m"
 
 #External helper functions
+<<<<<<< HEAD
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 parent_directory="$(dirname "$script_directory")"
@@ -17,6 +18,14 @@ grand_parent_directory="$(dirname "$parent_directory")"
 #call stack has full script name when using source
 source "${parent_directory}/helper.sh"
 source "${grand_parent_directory}/deploy_utils.sh"
+=======
+#. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
+full_script_path="$(realpath "${BASH_SOURCE[0]}")"
+script_directory="$(dirname "${full_script_path}")"
+
+#call stack has full scriptname when using source
+source "${script_directory}/helper.sh"
+>>>>>>> 591634d45 (Bring in the new scripts)
 
 DEBUG=false
 if [ "$SYSTEM_DEBUG" = True ]; then
@@ -28,6 +37,7 @@ fi
 
 export DEBUG
 set -eu
+<<<<<<< HEAD
 
 # Print the execution environment details
 print_header
@@ -51,11 +61,17 @@ if [ -z "${TF_VAR_ansible_core_version}" ]; then
 	export TF_VAR_ansible_core_version
 fi
 
+=======
+file_deployer_tfstate_key=$DEPLOYER_FOLDERNAME.tfstate
+deployer_tfstate_key="$DEPLOYER_FOLDERNAME.terraform.tfstate"
+
+>>>>>>> 591634d45 (Bring in the new scripts)
 cd "$CONFIG_REPO_PATH" || exit
 mkdir -p .sap_deployment_automation
 
 ENVIRONMENT=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $1}' | xargs)
 LOCATION=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $2}' | xargs)
+<<<<<<< HEAD
 CONTROL_PLANE_NAME=$(basename "${DEPLOYER_FOLDERNAME}" | cut -d'-' -f1-3)
 
 deployer_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${CONTROL_PLANE_NAME}"
@@ -84,6 +100,13 @@ echo -e "${green}Parameter information:"
 echo -e "-------------------------------------------------------------------------------$reset"
 
 echo "Control Plane Name:                  $CONTROL_PLANE_NAME"
+=======
+
+deployer_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}"
+deployer_tfvars_file_name="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
+library_tfvars_file_name="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME"
+
+>>>>>>> 591634d45 (Bring in the new scripts)
 echo "Configuration file:                  $deployer_environment_file_name"
 echo "Environment:                         $ENVIRONMENT"
 echo "Location:                            $LOCATION"
@@ -99,7 +122,10 @@ else
 		step=0
 	fi
 fi
+<<<<<<< HEAD
 
+=======
+>>>>>>> 591634d45 (Bring in the new scripts)
 echo "Step:                                $step"
 
 if [ 0 != "${step}" ]; then
@@ -107,11 +133,75 @@ if [ 0 != "${step}" ]; then
 	exit 0
 fi
 
+<<<<<<< HEAD
 git checkout -q "$BUILD_SOURCEBRANCHNAME"
 
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
 echo "Deployer subscription:               $ARM_SUBSCRIPTION_ID"
 
+=======
+echo -e "$green--- Checkout $BUILD_SOURCEBRANCHNAME ---$reset"
+git checkout -q "$BUILD_SOURCEBRANCHNAME"
+
+echo -e "$green--- Configure devops CLI extension ---$reset"
+az config set extension.use_dynamic_install=yes_without_prompt --only-show-errors
+az extension add --name azure-devops --output none --only-show-errors
+az devops configure --defaults organization="$SYSTEM_COLLECTIONURI" project="$SYSTEM_TEAMPROJECT" --output none --only-show-errors
+
+echo -e "$green--- File Validations ---$reset"
+if [ ! -f "$deployer_tfvars_file_name" ]; then
+	echo -e "$bold_red--- File "$deployer_tfvars_file_name" was not found ---$reset"
+	echo "##vso[task.logissue type=error]File DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME was not found."
+	exit 2
+fi
+if [ ! -f $library_tfvars_file_name ]; then
+	echo -e "$bold_red--- File $library_tfvars_file_name  was not found ---$reset"
+	echo "##vso[task.logissue type=error]File LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME was not found."
+	exit 2
+fi
+
+echo ""
+echo "Agent:                               $THIS_AGENT"
+echo "Organization:                        $SYSTEM_COLLECTIONURI"
+echo "Project:                             $SYSTEM_TEAMPROJECT"
+if [ -n "$TF_VAR_agent_pat" ]; then
+	echo "Deployer Agent PAT:                  IsDefined"
+fi
+if [ -n "$POOL" ]; then
+	echo "Deployer Agent Pool:                 $POOL"
+fi
+echo ""
+if [ "$USE_WEBAPP" = "true" ]; then
+	echo "Deploy Web App:                      true"
+else
+	echo "Deploy Web App:                      false"
+fi
+
+TF_VAR_use_webapp=$USE_WEBAPP
+export TF_VAR_use_webapp
+
+VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$VARIABLE_GROUP'].id | [0]")
+if [ -z "${VARIABLE_GROUP_ID}" ]; then
+	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP could not be found."
+	exit 2
+fi
+export VARIABLE_GROUP_ID
+
+printf -v tempval '%s id:' "$VARIABLE_GROUP"
+printf -v val '%-20s' "${tempval}"
+echo "$val                 $VARIABLE_GROUP_ID"
+
+az account set --subscription "$ARM_SUBSCRIPTION_ID"
+echo "Deployer subscription:               $ARM_SUBSCRIPTION_ID"
+
+ARM_SUBSCRIPTION_ID=$(az account show --query id --output tsv)
+export ARM_SUBSCRIPTION_ID
+
+if [ -v SYSTEM_ACCESSTOKEN ]; then
+	export TF_VAR_PAT="$SYSTEM_ACCESSTOKEN"
+fi
+
+>>>>>>> 591634d45 (Bring in the new scripts)
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 	configureNonDeployer "$TF_VERSION"
@@ -121,16 +211,28 @@ if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 	TF_VAR_spn_id=$ARM_CLIENT_ID
 	export TF_VAR_spn_id
 
+<<<<<<< HEAD
 	if printenv servicePrincipalKey; then
 		unset ARM_OIDC_TOKEN
 		ARM_CLIENT_SECRET="$servicePrincipalKey"
 		export ARM_CLIENT_SECRET
 	else
 		ARM_OIDC_TOKEN="$idToken"
+=======
+	ARM_OIDC_TOKEN="$idToken"
+	if [ -n "$ARM_OIDC_TOKEN" ]; then
+>>>>>>> 591634d45 (Bring in the new scripts)
 		export ARM_OIDC_TOKEN
 		ARM_USE_OIDC=true
 		export ARM_USE_OIDC
 		unset ARM_CLIENT_SECRET
+<<<<<<< HEAD
+=======
+	else
+		unset ARM_OIDC_TOKEN
+		ARM_CLIENT_SECRET="$servicePrincipalKey"
+		export ARM_CLIENT_SECRET
+>>>>>>> 591634d45 (Bring in the new scripts)
 	fi
 
 	ARM_TENANT_ID="$tenantId"
@@ -138,6 +240,7 @@ if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 
 	ARM_USE_AZUREAD=true
 	export ARM_USE_AZUREAD
+<<<<<<< HEAD
 else
 	path=$(grep -m 1 "export PATH=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
 	export PATH=$PATH:$path
@@ -171,11 +274,27 @@ if printenv ARM_SUBSCRIPTION_ID; then
 	az account set --subscription "$ARM_SUBSCRIPTION_ID"
 	echo "Deployer subscription:               $ARM_SUBSCRIPTION_ID"
 fi
+=======
+
+else
+	echo -e "$green--- az login ---$reset"
+	LogonToAzure "$USE_MSI"
+fi
+return_code=$?
+if [ 0 != $return_code ]; then
+	echo -e "$bold_red--- Login failed ---$reset"
+	echo "##vso[task.logissue type=error]az login failed."
+	exit $return_code
+fi
+
+echo "Deployer subscription:               $ARM_SUBSCRIPTION_ID"
+>>>>>>> 591634d45 (Bring in the new scripts)
 
 echo -e "$green--- Convert config files to UX format ---$reset"
 dos2unix -q "$deployer_tfvars_file_name"
 dos2unix -q "$library_tfvars_file_name"
 
+<<<<<<< HEAD
 DEPLOYER_KEYVAULT=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "${deployer_environment_file_name}" "DEPLOYER_KEYVAULT")
 if [ -n "$DEPLOYER_KEYVAULT" ]; then
 	echo "Deployer Key Vault:                  ${DEPLOYER_KEYVAULT}"
@@ -192,19 +311,45 @@ if [ -n "$DEPLOYER_KEYVAULT" ]; then
 				export TF_VAR_deployer_kv_user_arm_id=${key_vault_id}
 				this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
 				az keyvault network-rule add --name "${DEPLOYER_KEYVAULT}" --ip-address "${this_ip}" --subscription "$ARM_SUBSCRIPTION_ID" --only-show-errors --output none
+=======
+key_vault=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "${deployer_environment_file_name}" "keyvault")
+if [ -n "$key_vault" ]; then
+	echo "Deployer Key Vault:                  ${key_vault}"
+	key_vault_id=$(az resource list --name "${key_vault}" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" --subscription "$ARM_SUBSCRIPTION_ID" --output tsv)
+
+	if [ -z "${key_vault_id}" ]; then
+		echo "##vso[task.logissue type=error]Key Vault $key_vault could not be found, trying to recover"
+		key_vault=$(az keyvault list-deleted --query "[?name=='${key_vault}'].name | [0]" --subscription "$ARM_SUBSCRIPTION_ID" --output tsv)
+		if [ -n "$key_vault" ]; then
+			echo "Deployer Key Vault:                  ${key_vault} is deleted, recovering"
+			az keyvault recover --name "${key_vault}" --subscription "$ARM_SUBSCRIPTION_ID" --output none
+			key_vault_id=$(az resource list --name "${key_vault}" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" --subscription "$ARM_SUBSCRIPTION_ID" --output tsv)
+			if [ -n "${key_vault_id}" ]; then
+				export TF_VAR_deployer_kv_user_arm_id=${key_vault_id}
+				this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
+				az keyvault network-rule add --name "${key_vault}" --ip-address "${this_ip}" --subscription "$ARM_SUBSCRIPTION_ID" --only-show-errors --output none
+>>>>>>> 591634d45 (Bring in the new scripts)
 			fi
 		fi
 	else
 		export TF_VAR_deployer_kv_user_arm_id=${key_vault_id}
 		this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
+<<<<<<< HEAD
 		az keyvault network-rule add --name "${DEPLOYER_KEYVAULT}" --ip-address "${this_ip}" --subscription "$ARM_SUBSCRIPTION_ID" --only-show-errors --output none
+=======
+		az keyvault network-rule add --name "${key_vault}" --ip-address "${this_ip}" --subscription "$ARM_SUBSCRIPTION_ID" --only-show-errors --output none
+>>>>>>> 591634d45 (Bring in the new scripts)
 
 	fi
 else
 	echo "Deployer Key Vault:                  undefined"
 fi
 
+<<<<<<< HEAD
 if [ "$FORCE_RESET" == True ]; then
+=======
+if [ $FORCE_RESET == True ]; then
+>>>>>>> 591634d45 (Bring in the new scripts)
 	echo "##vso[task.logissue type=warning]Forcing a re-install"
 	echo "Running on:            $THIS_AGENT"
 	sed -i 's/step=1/step=0/' "$deployer_environment_file_name"
@@ -215,11 +360,19 @@ if [ "$FORCE_RESET" == True ]; then
 	TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME" "${deployer_environment_file_name}" "REMOTE_STATE_RG")
 
 	if [ -n "${TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME}" ]; then
+<<<<<<< HEAD
 		echo "Terraform Remote State Account:      ${TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME}"
 	fi
 
 	if [ -n "${TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME}" ]; then
 		echo "Terraform Remote State RG Name:      ${TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME}"
+=======
+		echo "Terraform Remote State Account:       ${TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME}"
+	fi
+
+	if [ -n "${TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME}" ]; then
+		echo "Terraform Remote State RG Name:       ${TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME}"
+>>>>>>> 591634d45 (Bring in the new scripts)
 	fi
 
 	if [ -n "${TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME}" ] && [ -n "${TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME}" ]; then
@@ -240,6 +393,14 @@ fi
 
 echo -e "$green--- Variables ---$reset"
 
+<<<<<<< HEAD
+=======
+if [ -z "${TF_VAR_ansible_core_version}" ]; then
+	TF_VAR_ansible_core_version=2.16
+	export TF_VAR_ansible_core_version
+fi
+
+>>>>>>> 591634d45 (Bring in the new scripts)
 if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" ]; then
 	# shellcheck disable=SC2001
 	# shellcheck disable=SC2005
@@ -250,6 +411,7 @@ fi
 
 export TF_LOG_PATH=$CONFIG_REPO_PATH/.sap_deployment_automation/terraform.log
 set +eu
+<<<<<<< HEAD
 msi_flag=""
 if [ "$USE_MSI" == "true" ]; then
 	msi_flag=" --msi "
@@ -280,10 +442,32 @@ else
 	save_config_var "step" "${deployer_environment_file_name}"
 	exit 10
 fi
+=======
+
+if [ "$USE_MSI" != "true" ]; then
+	"$SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh" \
+		--deployer_parameter_file "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME" \
+		--library_parameter_file "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME" \
+		--subscription "$ARM_SUBSCRIPTION_ID" --spn_id "$ARM_CLIENT_ID" \
+		--spn_secret "$ARM_CLIENT_SECRET" --tenant_id "$ARM_TENANT_ID" \
+		--auto-approve --ado --only_deployer
+
+else
+	"$SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh" \
+		--deployer_parameter_file "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME" \
+		--library_parameter_file "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME" \
+		--subscription "$ARM_SUBSCRIPTION_ID" --auto-approve --ado --only_deployer --msi
+fi
+return_code=$?
+echo ""
+echo -e "${cyan}Deploy_controlplane returned:        $return_code${reset_formatting}"
+echo ""
+>>>>>>> 591634d45 (Bring in the new scripts)
 
 set -eu
 
 if [ -f "${deployer_environment_file_name}" ]; then
+<<<<<<< HEAD
 	DEPLOYER_KEYVAULT=$(grep -m1 "^DEPLOYER_KEYVAULT=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
 	echo "Deployer Key Vault:                  ${DEPLOYER_KEYVAULT}"
 
@@ -305,6 +489,37 @@ if [ -f "${deployer_environment_file_name}" ]; then
 	fi
 
 fi
+=======
+	file_deployer_tfstate_key=$(grep -m1 "^deployer_tfstate_key" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
+	if [ -z "$file_deployer_tfstate_key" ]; then
+		deployer_tfstate_key=$file_deployer_tfstate_key
+		export deployer_tfstate_key
+	fi
+	echo "Deployer State File:                 $deployer_tfstate_key"
+
+	file_key_vault=$(grep -m1 "^keyvault=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
+	echo "Deployer Key Vault:                  ${file_key_vault}"
+
+	file_REMOTE_STATE_SA=$(grep -m1 "^REMOTE_STATE_SA" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
+	if [ -n "${file_REMOTE_STATE_SA}" ]; then
+		echo "Terraform Remote State Account:       ${file_REMOTE_STATE_SA}"
+	fi
+
+	file_REMOTE_STATE_RG=$(grep -m1 "^REMOTE_STATE_RG" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
+	if [ -n "${file_REMOTE_STATE_SA}" ]; then
+		echo "Terraform Remote State RG Name:       ${file_REMOTE_STATE_RG}"
+	fi
+fi
+
+echo -e "$green--- Adding variables to the variable group: $VARIABLE_GROUP ---$reset"
+if [ 0 = $return_code ]; then
+	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "$file_key_vault"
+	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "ControlPlaneEnvironment" "$ENVIRONMENT"
+	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "ControlPlaneLocation" "$LOCATION"
+
+fi
+
+>>>>>>> 591634d45 (Bring in the new scripts)
 echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
 added=0
 cd "$CONFIG_REPO_PATH" || exit
@@ -319,6 +534,7 @@ if [ -f ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}" ]; then
 	added=1
 fi
 
+<<<<<<< HEAD
 if [ ! -f ".sap_deployment_automation/${CONTROL_PLANE_NAME}" ]; then
 	if [ -f ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}" ]; then
 		cp ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}" ".sap_deployment_automation/${CONTROL_PLANE_NAME}"
@@ -330,6 +546,8 @@ if [ -f ".sap_deployment_automation/${CONTROL_PLANE_NAME}" ]; then
 	added=1
 fi
 
+=======
+>>>>>>> 591634d45 (Bring in the new scripts)
 if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/deployer_tfvars_file_name" ]; then
 	git add -f "DEPLOYER/$DEPLOYER_FOLDERNAME/deployer_tfvars_file_name"
 	added=1
@@ -351,10 +569,16 @@ fi
 if [ 1 = $added ]; then
 	git config --global user.email "$BUILD_REQUESTEDFOREMAIL"
 	git config --global user.name "$BUILD_REQUESTEDFOR"
+<<<<<<< HEAD
 	if git commit -m "Added updates from Control Plane Deployment for $DEPLOYER_FOLDERNAME $LIBRARY_FOLDERNAME $BUILD_BUILDNUMBER [skip ci]"; then
 		if ! git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BUILD_SOURCEBRANCHNAME" --force-with-lease; then
 			echo "##vso[task.logissue type=error]Failed to push changes to the repository."
 		fi
+=======
+	git commit -m "Added updates from Control Plane Deployment for $DEPLOYER_FOLDERNAME $LIBRARY_FOLDERNAME $BUILD_BUILDNUMBER [skip ci]"
+	if ! git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BUILD_SOURCEBRANCHNAME" --force-with-lease; then
+		echo "##vso[task.logissue type=error]Failed to push changes to the repository."
+>>>>>>> 591634d45 (Bring in the new scripts)
 	fi
 fi
 
