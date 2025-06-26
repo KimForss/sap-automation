@@ -151,7 +151,8 @@ stages:
 
               ansible --version
 
-              sudo apt-get purge --auto-remove ansible-core
+              sudo pipx uninject ansible-core
+
               ansible --version
 
               pipx install ansible-core==2.16.5
