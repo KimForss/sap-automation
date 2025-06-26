@@ -18,16 +18,11 @@ reset_formatting="\e[0m"
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 
-#call stack has full scriptname when using source
+#call stack has full script name when using source
 source "${script_directory}/deploy_utils.sh"
 
 #helper files
 source "${script_directory}/helpers/script_helpers.sh"
-
-SCRIPT_NAME="$(basename "$0")"
-
-echo "Entering: ${SCRIPT_NAME}"
-
 
 function showhelp {
 	echo ""
@@ -596,7 +591,7 @@ if [ ! -f .terraform/terraform.tfstate ]; then
 	deployment_parameter=" -var deployment=new "
 	check_output=0
 
-	if terraform -chdir="${terraform_module_directory}" init -upgrade=true -input=false \
+	if ! terraform -chdir="${terraform_module_directory}" init -upgrade=true -input=false \
 		--backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
 		--backend-config "resource_group_name=${REMOTE_STATE_RG}" \
 		--backend-config "storage_account_name=${REMOTE_STATE_SA}" \
@@ -604,15 +599,13 @@ if [ ! -f .terraform/terraform.tfstate ]; then
 		--backend-config "key=${key}.terraform.tfstate"; then
 		return_value=$?
 		echo ""
-		echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
+		echo -e "${bold_red}Terraform init:                        failed$reset_formatting"
 		echo ""
 	else
 		return_value=$?
 		echo ""
-		echo -e "${bold_red}Terraform init:                        failed$reset_formatting"
+		echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
 		echo ""
-		terraform -chdir="${terraform_module_directory}" providers
-		exit $return_value
 	fi
 
 else
@@ -631,19 +624,17 @@ else
 
 		terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/bootstrap/${deployment_system}"/
 
-		if terraform -chdir="${terraform_module_directory}" init -force-copy --backend-config "path=${param_dirname}/terraform.tfstate"; then
-			return_value=$?
-			echo ""
-			echo -e "${cyan}Terraform local init:                  succeeded$reset_formatting"
-			echo ""
-		else
+		if ! terraform -chdir="${terraform_module_directory}" init -force-copy --backend-config "path=${param_dirname}/terraform.tfstate"; then
 			return_value=$?
 			echo ""
 			echo -e "${bold_red}Terraform local init:                  failed$reset_formatting"
 			echo ""
-			terraform -chdir="${terraform_module_directory}" providers
 			exit $return_value
-
+		else
+			return_value=$?
+			echo ""
+			echo -e "${cyan}Terraform local init:                  succeeded$reset_formatting"
+			echo ""
 			# terraform -chdir="${terraform_module_directory}" state list
 		fi
 
@@ -668,7 +659,6 @@ else
 			echo ""
 			echo -e "${bold_red}Terraform init:                        failed$reset_formatting"
 			echo ""
-			terraform -chdir="${terraform_module_directory}" providers
 			exit $return_value
 		fi
 
@@ -684,7 +674,7 @@ else
 		echo ""
 
 		check_output=1
-		if  terraform -chdir="${terraform_module_directory}" init -migrate-state -upgrade=true \
+		if ! terraform -chdir="${terraform_module_directory}" init -upgrade=true \
 			--backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
 			--backend-config "resource_group_name=${REMOTE_STATE_RG}" \
 			--backend-config "storage_account_name=${REMOTE_STATE_SA}" \
@@ -692,15 +682,14 @@ else
 			--backend-config "key=${key}.terraform.tfstate"; then
 			return_value=$?
 			echo ""
-			echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
+			echo -e "${bold_red}Terraform init:                        failed$reset_formatting"
 			echo ""
+			exit $return_value
 		else
 			return_value=$?
 			echo ""
-			echo -e "${bold_red}Terraform init:                        failed$reset_formatting"
+			echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
 			echo ""
-			terraform -chdir="${terraform_module_directory}" providers
-			exit $return_value
 		fi
 	fi
 fi
@@ -879,7 +868,7 @@ fi
 allParameters=$(printf " -var-file=%s %s %s %s %s" "${var_file}" "${extra_vars}" "${deployment_parameter}" "${version_parameter}" "${deployer_parameter}")
 
 # shellcheck disable=SC2086
-if terraform -chdir="$terraform_module_directory" plan $allParameters -input=false -detailed-exitcode -compact-warnings -no-color | tee plan_output.log; then
+if ! terraform -chdir="$terraform_module_directory" plan $allParameters -input=false -detailed-exitcode -compact-warnings -no-color | tee plan_output.log; then
 	return_value=${PIPESTATUS[0]}
 else
 	return_value=${PIPESTATUS[0]}
@@ -1336,6 +1325,13 @@ if [ "${deployment_system}" == sap_deployer ]; then
 	fi
 
 	deployer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_public_ip_address | tr -d \")
+
+	application_configuration_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_app_config_id | tr -d \")
+	if [ -n "${application_configuration_id}" ]; then
+		APPLICATION_CONFIGURATION_ID="${application_configuration_id}"
+		export APPLICATION_CONFIGURATION_ID
+		save_config_var "APPLICATION_CONFIGURATION_ID" "${system_config_information}"
+	fi
 	keyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name | tr -d \")
 
 	created_resource_group_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw created_resource_group_name | tr -d \")
@@ -1355,6 +1351,16 @@ if [ "${deployment_system}" == sap_deployer ]; then
 		--template-file "${script_directory}/templates/empty-deployment.json" --output none
 	return_value=0
 	if [ 1 == $called_from_ado ]; then
+
+		if [ -n "${application_configuration_id}" ]; then
+
+			az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "APPLICATION_CONFIGURATION_ID.value")
+			if [ -z "${az_var}" ]; then
+				az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name APPLICATION_CONFIGURATION_ID --value "${application_configuration_id}" --output none --only-show-errors
+			else
+				az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name APPLICATION_CONFIGURATION_ID --value "${application_configuration_id}" --output none --only-show-errors
+			fi
+		fi
 
 		if [ -n "${deployer_random_id}" ]; then
 			az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "DEPLOYER_RANDOM_ID.value")
@@ -1590,6 +1596,4 @@ echo "#                                                                         
 echo "#########################################################################################"
 echo ""
 
-echo "Exiting: ${SCRIPT_NAME}"
-exit $return_value
-
+exit 0

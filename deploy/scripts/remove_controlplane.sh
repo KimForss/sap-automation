@@ -16,7 +16,7 @@ reset_formatting="\e[0m"
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 
-#call stack has full scriptname when using source
+#call stack has full script name when using source
 source "${script_directory}/deploy_utils.sh"
 
 #helper files
@@ -95,7 +95,7 @@ function missing {
 
 force=0
 ado=0
-INPUT_ARGUMENTS=$(getopt -n remove_region -o d:l:s:b:r:ihag --longoptions deployer_parameter_file:,library_parameter_file:,subscription:,resource_group:,storage_account:,auto-approve,ado,help,keep_agent -- "$@")
+INPUT_ARGUMENTS=$(getopt -n remove_control_plane -o d:l:s:b:r:ihag --longoptions deployer_parameter_file:,library_parameter_file:,subscription:,resource_group:,storage_account:,auto-approve,ado,help,keep_agent -- "$@")
 VALID_ARGUMENTS=$?
 
 if [ "$VALID_ARGUMENTS" != "0" ]; then
@@ -194,15 +194,12 @@ generic_config_information="${automation_config_directory}"/config
 deployer_config_information="${automation_config_directory}"/"${environment}""${region_code}"
 
 load_config_vars "${deployer_config_information}" "step"
-if [ 1 -eq $keep_agent ]; then
-	echo "Keeping the Azure DevOps agent"
-	if [ 1 -eq $step ]; then
-		exit 0
-	fi
+if [ 1 -eq $step ]; then
+	exit 0
+fi
 
-	if [ 0 -eq $step ]; then
-		exit 0
-	fi
+if [ 0 -eq $step ]; then
+	exit 0
 fi
 
 if [ -z "$deployer_config_information" ]; then
@@ -318,7 +315,7 @@ fi
 if [ -f .terraform/terraform.tfstate ]; then
 	azure_backend=$(grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate || true)
 	if [ -n "$azure_backend" ]; then
-		echo "Terraform state:                     remote"
+		echo  "Terraform state:                     remote"
 
 		# Initialize the state file and copy to local
 
@@ -386,7 +383,7 @@ if [ 0 != $return_value ]; then
 fi
 
 if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
-	keyvault_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_arm_id | tr -d \")
+  keyvault_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_arm_id | tr -d \")
 	TF_VAR_spn_keyvault_id="${keyvault_id}"
 	export TF_VAR_spn_keyvault_id
 fi
