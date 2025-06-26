@@ -49,8 +49,8 @@ resource "azurerm_key_vault_secret" "sapbits_location_base_path" {
                                          ]
   content_type                         = "configuration"
   name                                 = "sapbits-location-base-path"
-  value                                = format("https://%s.blob.core.windows.net/%s", length(var.storage_account_sapbits.arm_id) > 0 ?
-                                              split("/", var.storage_account_sapbits.arm_id)[8] : local.storage_account_SAPmedia,
+  value                                = format("https://%s.blob.core.windows.net/%s", length(var.storage_account_sapbits.id) > 0 ?
+                                              split("/", var.storage_account_sapbits.id)[8] : local.storage_account_SAPmedia,
                                             var.storage_account_sapbits.sapbits_blob_container.name
                                           )
 
