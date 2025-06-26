@@ -58,6 +58,8 @@ else
 	LogonToAzure $USE_MSI
 fi
 
+print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
+
 if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
 	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
 	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
@@ -87,10 +89,6 @@ if printenv PARENT_VARIABLE_GROUP; then
 	export PARENT_VARIABLE_GROUP_ID
 fi
 
-ENVIRONMENT=$(echo "$CONTROL_PLANE_NAME" | cut -d '-' -f 1)
-REGION_CODE=$(echo "$CONTROL_PLANE_NAME" | cut -d '-' -f 2)
-
-print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
 
 cd "${CONFIG_REPO_PATH}" || exit
 git checkout -q "$BUILD_SOURCEBRANCHNAME"

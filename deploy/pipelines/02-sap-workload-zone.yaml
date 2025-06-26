@@ -144,6 +144,8 @@ stages:
               SYSTEM_ACCESSTOKEN:           $(System.AccessToken)
               USE_MSI:                      $(Use_MSI)
               ZONE:                         ${{ upper(parameters.workload_environment) }}
+              ENVIRONMENT:                  ${{ upper(parameters.workload_environment) }}
+              REGION_CODE:                  ${{ upper(parameters.deployer_region) }}
 
 
   - stage:                             Deploy_SAP_workload_zone
