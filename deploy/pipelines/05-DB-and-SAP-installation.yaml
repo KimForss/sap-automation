@@ -146,6 +146,16 @@ stages:
             parameters:
               getLatestFromBranch: true
           - task:                      PostBuildCleanup@4
+          - bash: |
+              #!/bin/bash
+              ansible-core_version=$(pip show ansible-core | grep Version | awk -F': ' '{print $2}' )
+              ansible_version=$(pip show ansible | grep Version | awk -F': ' '{print $2}' )
+
+              echo "Ansible Version: $ansible_version"
+              echo "Ansible Core Version: $ansible_core_version"
+              exit 10
+
+
           - task:                      Bash@3
             inputs:
               targetType:              'filePath'
