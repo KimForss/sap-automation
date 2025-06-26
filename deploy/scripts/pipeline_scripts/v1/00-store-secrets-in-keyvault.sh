@@ -119,7 +119,7 @@ fi
 
 echo ""
 
-environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${CONTROL_PLANE_NAME}"
+environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${REGION_CODE}"
 
 if [ ! -f "$environment_file_name" ]; then
 	if [ -f "$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${REGION_CODE}" ]; then
