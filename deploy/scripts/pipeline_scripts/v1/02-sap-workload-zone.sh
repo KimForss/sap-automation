@@ -184,7 +184,8 @@ dos2unix -q "${workload_environment_file_name}"
 
 load_config_vars "${deployer_environment_file_name}" "tfstate_resource_id" "subscription"
 
-TF_VAR_spn_keyvault_id=$(az keyvault show --name "${DEPLOYER_KEYVAULT}" --query id --subscription "${ARM_SUBSCRIPTION_ID}" --out tsv)
+TF_VAR_spn_keyvault_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$DEPLOYER_KEYVAULT' | project id, name, subscription" --query data[0].id --output tsv)
+
 export TF_VAR_spn_keyvault_id
 TF_VAR_management_subscription_id=$(echo "$TF_VAR_spn_keyvault_id" | cut -d '/' -f 3)
 export TF_VAR_management_subscription_id
