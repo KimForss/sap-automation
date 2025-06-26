@@ -134,12 +134,10 @@ stages:
               ZONE:                         ${{ upper(parameters.workload_environment) }}
 
 
-  - stage:                             Deploy_SAP_workload_zone
+  - stage: Deploy_SAP_workload_zone
     dependsOn:
                                        - PopulateKeyVault
     condition:                         eq(dependencies.PopulateKeyVault.result, 'Succeeded')
-  - stage: Deploy_SAP_workload_zone
-    condition: and(not(failed()), not(canceled()))
     displayName: Deploy SAP workload zone
     variables:
       - template:                      variables/02-sap-workload-zone-variables.yaml
