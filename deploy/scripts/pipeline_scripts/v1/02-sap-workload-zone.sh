@@ -53,45 +53,11 @@ mkdir -p .sap_deployment_automation
 git checkout -q "$BUILD_SOURCEBRANCHNAME"
 
 if [ ! -f "$CONFIG_REPO_PATH/LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME/$WORKLOAD_ZONE_TFVARS_FILENAME" ]; then
-	echo -e "$bold_red--- $WORKLOAD_ZONE_TFVARS_FILENAME was not found ---$reset"
+	print_banner "$banner_title" "File ${WORKLOAD_ZONE_TFVARS_FILENAME} was not found" "error"
 	echo "##vso[task.logissue type=error]File $WORKLOAD_ZONE_TFVARS_FILENAME was not found."
 	exit 2
 fi
 
-# Check if running on deployer
-if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-	configureNonDeployer "$(tf_version)"
-	echo -e "$green--- az login ---$reset"
-	if ! LogonToAzure false; then
-		print_banner "$banner_title" "Login to Azure failed" "error"
-		echo "##vso[task.logissue type=error]az login failed."
-		exit 2
-	fi
-else
-	if [ "$USE_MSI" == "true" ]; then
-		TF_VAR_use_spn=false
-		export TF_VAR_use_spn
-		ARM_USE_MSI=true
-		export ARM_USE_MSI
-		echo "Deployment using:                    Managed Identity"
-	else
-		TF_VAR_use_spn=true
-		export TF_VAR_use_spn
-		ARM_USE_MSI=false
-		export ARM_USE_MSI
-		echo "Deployment using:                    Service Principal"
-	fi
-	ARM_CLIENT_ID=$(grep -m 1 "export ARM_CLIENT_ID=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
-	export ARM_CLIENT_ID
-
-fi
-
-if printenv OBJECT_ID; then
-	if is_valid_guid "$OBJECT_ID"; then
-		TF_VAR_spn_id="$OBJECT_ID"
-		export TF_VAR_spn_id
-	fi
-fi
 # Print the execution environment details
 print_header
 
@@ -105,12 +71,40 @@ if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
 fi
 export VARIABLE_GROUP_ID
 
-if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_NAME" "$CONTROL_PLANE_NAME"; then
-	echo "Variable CONTROL_PLANE_NAME was added to the $VARIABLE_GROUP variable group."
+# Set logon variables
+if [ "$USE_MSI" != "true" ]; then
+
+	ARM_TENANT_ID=$(az account show --query tenantId --output tsv)
+	export ARM_TENANT_ID
+	ARM_SUBSCRIPTION_ID=$(az account show --query id --output tsv)
+	export ARM_SUBSCRIPTION_ID
 else
-	echo "##vso[task.logissue type=error]Variable CONTROL_PLANE_NAME was not added to the $VARIABLE_GROUP variable group."
-	echo "Variable CONTROL_PLANE_NAME was not added to the $VARIABLE_GROUP variable group."
+	unset ARM_CLIENT_SECRET
+	ARM_USE_MSI=true
+	export ARM_USE_MSI
 fi
+
+if [ -v SYSTEM_ACCESSTOKEN ]; then
+	export TF_VAR_PAT="$SYSTEM_ACCESSTOKEN"
+fi
+
+# Check if running on deployer
+if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
+	configureNonDeployer "${tf_version:-1.12.2}"
+	echo -e "$green--- az login ---$reset"
+	LogonToAzure $USE_MSI
+	return_code=$?
+	if [ 0 != $return_code ]; then
+		echo -e "$bold_red--- Login failed ---$reset"
+		echo "##vso[task.logissue type=error]az login failed."
+		exit $return_code
+	fi
+else
+	LogonToAzure $USE_MSI
+fi
+
+TF_VAR_subscription_id=$ARM_SUBSCRIPTION_ID
+export TF_VAR_subscription_id
 
 if ! get_variable_group_id "$PARENT_VARIABLE_GROUP" "PARENT_VARIABLE_GROUP_ID"; then
 	echo -e "$bold_red--- Variable group $PARENT_VARIABLE_GROUP not found ---$reset"
@@ -118,28 +112,6 @@ if ! get_variable_group_id "$PARENT_VARIABLE_GROUP" "PARENT_VARIABLE_GROUP_ID"; 
 	exit 2
 fi
 export PARENT_VARIABLE_GROUP_ID
-
-deployer_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$CONTROL_PLANE_NAME"
-workload_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$WORKLOAD_ZONE_NAME"
-
-DEPLOYER_KEYVAULT=$(getVariableFromVariableGroup "${PARENT_VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "${deployer_environment_file_name}" "DEPLOYER_KEYVAULT")
-
-if [ -z "$APPLICATION_CONFIGURATION_ID" ]; then
-	APPLICATION_CONFIGURATION_ID=$(getVariableFromVariableGroup "${PARENT_VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_ID" "${deployer_environment_file_name}" "APPLICATION_CONFIGURATION_ID")
-	APPLICATION_CONFIGURATION_NAME=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d '/' -f 9)
-	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_ID" "$APPLICATION_CONFIGURATION_ID"; then
-		echo "Variable APPLICATION_CONFIGURATION_ID was added to the $VARIABLE_GROUP variable group."
-	else
-		echo "##vso[task.logissue type=error]Variable APPLICATION_CONFIGURATION_ID was not added to the $VARIABLE_GROUP variable group."
-		echo "Variable APPLICATION_CONFIGURATION_ID was not added to the $VARIABLE_GROUP variable group."
-	fi
-	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_NAME" "$APPLICATION_CONFIGURATION_NAME"; then
-		echo "Variable APPLICATION_CONFIGURATION_NAME was added to the $VARIABLE_GROUP variable group."
-	else
-		echo "##vso[task.logissue type=error]Variable APPLICATION_CONFIGURATION_NAME was not added to the $VARIABLE_GROUP variable group."
-		echo "Variable APPLICATION_CONFIGURATION_NAME was not added to the $VARIABLE_GROUP variable group."
-	fi
-fi
 
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
 
@@ -154,23 +126,30 @@ LOCATION_CODE_IN_FILENAME=$(echo $WORKLOAD_ZONE_FOLDERNAME | awk -F'-' '{print $
 LOCATION_IN_FILENAME=$(get_region_from_code "$LOCATION_CODE_IN_FILENAME" || true)
 NETWORK_IN_FILENAME=$(echo $WORKLOAD_ZONE_FOLDERNAME | awk -F'-' '{print $3}')
 
-deployer_tfstate_key=$CONTROL_PLANE_NAME.terraform.tfstate
+
+deployer_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$DEPLOYER_ENVIRONMENT$DEPLOYER_REGION"
+echo "Deployer Environment File:           $deployer_environment_file_name"
+if [ ! -f "${deployer_environment_file_name}" ]; then
+	echo -e "$bold_red--- $DEPLOYER_ENVIRONMENT$DEPLOYER_REGION was not found ---$reset"
+	echo "##vso[task.logissue type=error]Control plane configuration file $DEPLOYER_ENVIRONMENT$DEPLOYER_REGION was not found."
+	exit 2
+fi
+workload_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}${NETWORK}"
+echo "Workload Zone Environment File:      $workload_environment_file_name"
+touch "$workload_environment_file_name"
+
+deployer_tfstate_key=$(getVariableFromVariableGroup "${PARENT_VARIABLE_GROUP_ID}" "Deployer_State_FileName" "${workload_environment_file_name}" "deployer_tfstate_key")
 export deployer_tfstate_key
 
-landscape_tfstate_key="${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.terraform.tfstate"
+landscape_tfstate_key=$WORKLOAD_ZONE_FOLDERNAME.terraform.tfstate
 export landscape_tfstate_key
 
 echo -e "${green}Deployment details:"
 echo -e "-------------------------------------------------------------------------${reset}"
 
-echo "CONTROL_PLANE_NAME:                  $CONTROL_PLANE_NAME"
-echo "WORKLOAD_ZONE_NAME:                  $WORKLOAD_ZONE_NAME"
 echo "Control plane environment file:      $deployer_environment_file_name"
 echo "Workload Zone Environment file:      $workload_environment_file_name"
 echo "Workload zone TFvars:                $WORKLOAD_ZONE_TFVARS_FILENAME"
-if [ -n "$APPLICATION_CONFIGURATION_NAME" ]; then
-	echo "APPLICATION_CONFIGURATION_NAME:      $APPLICATION_CONFIGURATION_NAME"
-fi
 echo ""
 
 echo "Environment:                         $ENVIRONMENT"
@@ -247,33 +226,18 @@ fi
 
 print_banner "$banner_title" "Starting the deployment" "info"
 cd "$CONFIG_REPO_PATH/LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME" || exit
-if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
-	if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh" --parameter_file "$WORKLOAD_ZONE_TFVARS_FILENAME" --type sap_landscape \
-		--control_plane_name "${CONTROL_PLANE_NAME}" --application_configuration_name "$APPLICATION_CONFIGURATION_NAME" \
-		--workload_zone_name "${WORKLOAD_ZONE_NAME}" --storage_accountname "$terraform_storage_account_name" \
-		--ado --auto-approve; then
-		return_code=$?
-		print_banner "$banner_title" "Deployment of $WORKLOAD_ZONE_NAME succeeded" "success"
-	else
-		return_code=$?
-		print_banner "$banner_title" "Deployment of $WORKLOAD_ZONE_NAME failed" "error"
-
-		echo "##vso[task.logissue type=error]Terraform apply failed."
-	fi
+if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/install_workloadzone.sh" --parameterfile "$WORKLOAD_ZONE_TFVARS_FILENAME" \
+	--deployer_environment "$DEPLOYER_ENVIRONMENT" --subscription "$ARM_SUBSCRIPTION_ID" \
+	--deployer_tfstate_key "${deployer_tfstate_key}" --keyvault "${key_vault}" --storageaccountname "${REMOTE_STATE_SA}" \
+	--state_subscription "${STATE_SUBSCRIPTION}" --auto-approve --ado --msi; then
+	return_code=$?
+	echo "##vso[task.logissue type=warning]Workload zone deployment completed successfully."
 else
-	if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh" --parameter_file "$WORKLOAD_ZONE_TFVARS_FILENAME" --type sap_landscape \
-		--control_plane_name "${CONTROL_PLANE_NAME}" --workload_zone_name "${WORKLOAD_ZONE_NAME}" --storage_accountname "$terraform_storage_account_name" \
-		--ado --auto-approve; then
-		return_code=$?
-		print_banner "$banner_title" "Deployment of $WORKLOAD_ZONE_NAME succeeded" "success"
-	else
-		return_code=$?
-		print_banner "$banner_title" "Deployment of $WORKLOAD_ZONE_NAME failed" "error"
-
-		echo "##vso[task.logissue type=error]Terraform apply failed."
-	fi
-
+	return_code=$?
+	echo "##vso[task.logissue type=error]Workload zone deployment failed."
+	exit 1
 fi
+
 echo "Return code from deployment:         ${return_code}"
 
 set +o errexit
