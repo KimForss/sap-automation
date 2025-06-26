@@ -151,6 +151,8 @@ stages:
               ansible-core_version=$(pip show ansible-core | grep Version | awk -F': ' '{print $2}' )
               ansible_version=$(pip show ansible | grep Version | awk -F': ' '{print $2}' )
 
+              ansible --version
+
               echo "Ansible Version: $ansible_version"
               echo "Ansible Core Version: $ansible_core_version"
               exit 10
