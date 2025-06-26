@@ -91,6 +91,7 @@ if [ -f "${filename}" ]; then
 
 	command="ansible-playbook -i $INVENTORY --private-key $PARAMETERS_FOLDER/sshkey  -e 'kv_name=$VAULT_NAME' \
             -e @$SAP_PARAMS -e 'download_directory=$AGENT_TEMPDIRECTORY' -e '_workspace_directory=$PARAMETERS_FOLDER' "$EXTRA_PARAMS"  \
+						-e orchestration_ansible_user=$USER \
             -e ansible_ssh_pass='${password_secret}' $EXTRA_PARAM_FILE ${filename}"
 
 	eval $command
