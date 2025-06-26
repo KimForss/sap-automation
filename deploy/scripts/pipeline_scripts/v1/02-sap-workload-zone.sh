@@ -179,31 +179,15 @@ fi
 
 dos2unix -q "${workload_environment_file_name}"
 
-if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
-	application_configuration_name=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d '/' -f 9)
+load_config_vars "${deployer_environment_file_name}" "tfstate_resource_id" "subscription"
 
-	TF_VAR_management_subscription_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_SubscriptionId" "${CONTROL_PLANE_NAME}")
-	export TF_VAR_management_subscription_id
+TF_VAR_spn_keyvault_id=$(az keyvault show --name "${DEPLOYER_KEYVAULT}" --query id --subscription "${ARM_SUBSCRIPTION_ID}" --out tsv)
+export TF_VAR_spn_keyvault_id
+TF_VAR_management_subscription_id=$(echo "$TF_VAR_spn_keyvault_id" | cut -d '/' -f 3)
+export TF_VAR_management_subscription_id
 
-	tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "${CONTROL_PLANE_NAME}")
-	if [ -z "$tfstate_resource_id" ]; then
-		echo "##vso[task.logissue type=warning]Key '${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId' was not found in the application configuration ( '$application_configuration_name' )."
-	fi
-	TF_VAR_tfstate_resource_id="$tfstate_resource_id"
-	export TF_VAR_tfstate_resource_id
-else
-	echo "##vso[task.logissue type=warning]Variable APPLICATION_CONFIGURATION_ID was not defined."
-	load_config_vars "${deployer_environment_file_name}" "tfstate_resource_id" "subscription"
-
-	TF_VAR_spn_keyvault_id=$(az keyvault show --name "${DEPLOYER_KEYVAULT}" --query id --subscription "${ARM_SUBSCRIPTION_ID}" --out tsv)
-	export TF_VAR_spn_keyvault_id
-	TF_VAR_management_subscription_id=$(echo "$TF_VAR_spn_keyvault_id" | cut -d '/' -f 3)
-	export TF_VAR_management_subscription_id
-
-	TF_VAR_tfstate_resource_id="$tfstate_resource_id"
-	export TF_VAR_tfstate_resource_id
-
-fi
+TF_VAR_tfstate_resource_id="$tfstate_resource_id"
+export TF_VAR_tfstate_resource_id
 
 if [ -z "$tfstate_resource_id" ]; then
 	echo "##vso[task.logissue type=error]Terraform state storage account resource id ('${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId') was not found in the application configuration ( '$application_configuration_name' nor was it defined in ${deployer_environment_file_name})."
