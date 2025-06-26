@@ -104,8 +104,8 @@ stages:
     variables:
       - template:                      variables/02-sap-workload-zone-variables.yaml
         parameters:
-          workload_zone_name:          ${{ parameters.workload_zone_name }}
-          control_plane_name:          ${{ parameters.control_plane_name }}
+          workload_zone_name:          ${{ parameters.workload_environment }}
+          control_plane_name:          ${{ parameters.deployer_environment }}
           inherit_settings:            ${{ parameters.inherit_settings }}
     jobs:
       - job:                           SaveDeploymentCredentials
@@ -137,7 +137,7 @@ stages:
               SAP_AUTOMATION_REPO_PATH:     ${{ parameters.sap_automation_repo_path }}
               SYSTEM_ACCESSTOKEN:           $(System.AccessToken)
               USE_MSI:                      $(Use_MSI)
-              ZONE:                         ${{ upper(parameters.workload_zone_name) }}
+              ZONE:                         ${{ upper(parameters.workload_environment) }}
 
 
   - stage:                             Deploy_SAP_workload_zone
