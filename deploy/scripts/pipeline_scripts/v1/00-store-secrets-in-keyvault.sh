@@ -43,6 +43,21 @@ print_header
 # Configure DevOps
 configure_devops
 
+# Check if running on deployer
+if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
+	configureNonDeployer "${tf_version:-1.12.2}"
+	echo -e "$green--- az login ---$reset"
+	LogonToAzure $USE_MSI
+	return_code=$?
+	if [ 0 != $return_code ]; then
+		echo -e "$bold_red--- Login failed ---$reset"
+		echo "##vso[task.logissue type=error]az login failed."
+		exit $return_code
+	fi
+else
+	LogonToAzure $USE_MSI
+fi
+
 if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
 	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
 	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
@@ -65,13 +80,9 @@ if printenv PARENT_VARIABLE_GROUP; then
 			az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name "DEPLOYER_KEYVAULT" --value "$DEPLOYER_KEYVAULT" --output none
 		fi
 
-		key_vault_id=$(az resource list --name "${DEPLOYER_KEYVAULT}" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
+		key_vault_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$DEPLOYER_KEYVAULT' | project id, name, subscription" --query data[0].id --output tsv)
 		keyvault_subscription_id=$(echo "$key_vault_id" | cut -d '/' -f 3)
 
-		key_vault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "${CONTROL_PLANE_NAME}")
-		if [ -z "$key_vault_id" ]; then
-			echo "##vso[task.logissue type=warning]Key '${CONTROL_PLANE_NAME}_KeyVaultResourceId' was not found in the application configuration ( '$application_configuration_name' )."
-		fi
 	fi
 	export PARENT_VARIABLE_GROUP_ID
 fi
@@ -106,21 +117,6 @@ if [ "$USE_MSI" != "true" ]; then
 	fi
 fi
 
-# Check if running on deployer
-if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-	configureNonDeployer "${tf_version:-1.12.2}"
-	echo -e "$green--- az login ---$reset"
-	LogonToAzure $USE_MSI
-	return_code=$?
-	if [ 0 != $return_code ]; then
-		echo -e "$bold_red--- Login failed ---$reset"
-		echo "##vso[task.logissue type=error]az login failed."
-		exit $return_code
-	fi
-else
-	LogonToAzure $USE_MSI
-fi
-
 echo ""
 
 environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${CONTROL_PLANE_NAME}"
@@ -138,7 +134,7 @@ keyvault_subscription_id=$(az graph query -q "Resources | join kind=leftouter (R
 if [ "$USE_MSI" != "true" ]; then
 
 	if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets_v2.sh" --prefix "${ZONE}" --key_vault "${DEPLOYER_KEYVAULT}" --keyvault_subscription "$keyvault_subscription_id" \
-		--subscription "$ARM_SUBSCRIPTION_ID" --client_id "$CLIENT_ID" --client_secret "$CLIENT_SECRET" --client_tenant_id "$TENANT_ID" --ado; then
+		--subscription "$ARM_SUBSCRIPTION_ID" --client_id "$ARM_CLIENT_ID" --client_secret "$ARM_CLIENT_SECRET" --client_tenant_id "$ARM_TENANT_ID" --ado; then
 		return_code=$?
 	else
 		return_code=$?

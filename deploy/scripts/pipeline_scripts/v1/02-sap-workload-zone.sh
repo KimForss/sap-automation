@@ -126,7 +126,6 @@ LOCATION_CODE_IN_FILENAME=$(echo $WORKLOAD_ZONE_FOLDERNAME | awk -F'-' '{print $
 LOCATION_IN_FILENAME=$(get_region_from_code "$LOCATION_CODE_IN_FILENAME" || true)
 NETWORK_IN_FILENAME=$(echo $WORKLOAD_ZONE_FOLDERNAME | awk -F'-' '{print $3}')
 
-
 deployer_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$DEPLOYER_ENVIRONMENT$DEPLOYER_REGION"
 echo "Deployer Environment File:           $deployer_environment_file_name"
 if [ ! -f "${deployer_environment_file_name}" ]; then
