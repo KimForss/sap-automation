@@ -32,8 +32,8 @@ sample_path="$SAMPLE_REPO_PATH/SAP"
 
 echo -e "$green--- Validations ---$reset"
 
-if [ -z "$AZURE_SUBSCRIPTION_ID" ]; then
-	echo "##vso[task.logissue type=error]Variable AZURE_SUBSCRIPTION_ID was not defined."
+if [ -z "$ARM_SUBSCRIPTION_ID" ]; then
+	echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
 	exit 2
 fi
 
