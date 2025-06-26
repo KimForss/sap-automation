@@ -215,8 +215,8 @@ print_banner "$banner_title" "Starting the deployment" "info"
 cd "$CONFIG_REPO_PATH/LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME" || exit
 if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/install_workloadzone.sh" --parameterfile "$WORKLOAD_ZONE_TFVARS_FILENAME" \
 	--deployer_environment "$DEPLOYER_ENVIRONMENT" --subscription "$ARM_SUBSCRIPTION_ID" \
-	--deployer_tfstate_key "${deployer_tfstate_key}" --keyvault "${DEPLOYER_KEYVAULT}" --storageaccountname "${REMOTE_STATE_SA}" \
-	--state_subscription "${STATE_SUBSCRIPTION}" --auto-approve --ado --msi; then
+	--deployer_tfstate_key "${deployer_tfstate_key}" --keyvault "${DEPLOYER_KEYVAULT}" --storageaccountname "${terraform_storage_account_name}" \
+	--state_subscription "${terraform_storage_account_subscription_id}" --auto-approve --ado --msi; then
 	return_code=$?
 	echo "##vso[task.logissue type=warning]Workload zone deployment completed successfully."
 else

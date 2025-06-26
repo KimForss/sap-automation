@@ -323,11 +323,7 @@ function set_all_secrets() {
 	retrieve_parameters
 	return_code=0
 
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo "#                              Setting the secrets                                      #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
+	print_banner "$banner_title " "Setting the secrets" "info"
 	echo ""
 
 	echo "Key vault:                           ${keyvault}"
