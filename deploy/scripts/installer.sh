@@ -1211,71 +1211,80 @@ if [ 1 == $apply_needed ]; then
 			return_value=${PIPESTATUS[0]}
 		fi
 	fi
-
 	if [ $return_value -eq 1 ]; then
-		echo ""
-		echo -e "${bold_red}Terraform apply:                       failed$reset_formatting"
-		echo ""
+		print_banner "$banner_title" "Terraform apply failed" "error" "Terraform apply return code: $return_value"
 	elif [ $return_value -eq 2 ]; then
 		# return code 2 is ok
-		echo ""
-		echo -e "${cyan}Terraform apply:                     succeeded$reset_formatting"
-		echo ""
+		print_banner "$banner_title" "Terraform apply succeeded" "success" "Terraform apply return code: $return_value"
 		return_value=0
 	else
-		echo ""
-		echo -e "${cyan}Terraform apply:                     succeeded$reset_formatting"
-		echo ""
+		print_banner "$banner_title" "Terraform apply succeeded" "success" "Terraform apply return code: $return_value"
 		return_value=0
 	fi
 
 	if [ -f apply_output.json ]; then
+
 		errors_occurred=$(jq 'select(."@level" == "error") | length' apply_output.json)
 
 		if [[ -n $errors_occurred ]]; then
-			return_value=10
 			if [ -n "${approve}" ]; then
-				echo -e "${cyan}Retrying Terraform apply:$reset_formatting"
 
 				# shellcheck disable=SC2086
-				if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
+				if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
 					return_value=$?
+				else
+					return_value=$?
+					print_banner "$banner_title" "First retry failed" "success" "ImportAndReRunApply return code: $return_value"
 				fi
 
 				sleep 10
-				echo -e "${cyan}Retrying Terraform apply:$reset_formatting"
 
 				if [ -f apply_output.json ]; then
 					# shellcheck disable=SC2086
-					if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
+					if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
 						return_value=$?
+					else
+						return_value=$?
+						print_banner "$banner_title" "Second retry failed" "success" "ImportAndReRunApply return code: $return_value"
 					fi
 				fi
 
 				if [ -f apply_output.json ]; then
 					# shellcheck disable=SC2086
-					if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
+					if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
 						return_value=$?
+					else
+						return_value=$?
+						print_banner "$banner_title" "Third retry failed" "success" "ImportAndReRunApply return code: $return_value"
 					fi
 
 				fi
 
 				if [ -f apply_output.json ]; then
 					# shellcheck disable=SC2086
-					if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
+					if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
 						return_value=$?
+					else
+						return_value=$?
+						print_banner "$banner_title" "Fourth retry failed" "success" "ImportAndReRunApply return code: $return_value"
 					fi
 				fi
 				if [ -f apply_output.json ]; then
 					# shellcheck disable=SC2086
-					if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
+					if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
 						return_value=$?
+					else
+						return_value=$?
+						print_banner "$banner_title" "Fifth retry failed" "success" "ImportAndReRunApply return code: $return_value"
 					fi
 				fi
 				if [ -f apply_output.json ]; then
 					# shellcheck disable=SC2086
-					if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
+					if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
 						return_value=$?
+					else
+						return_value=$?
+						print_banner "$banner_title" "Sixth retry failed" "success" "ImportAndReRunApply return code: $return_value"
 					fi
 				fi
 			else
@@ -1290,13 +1299,7 @@ if [ -f apply_output.json ]; then
 fi
 
 if [ 1 == $return_value ]; then
-	echo ""
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo -e "#                       $bold_red_underscore!!! Errors during the apply phase !!!$reset_formatting                           #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
-	echo ""
+	print_banner "$banner_title" "Errors during the apply phase" "error"
 	unset TF_DATA_DIR
 	exit $return_value
 fi
@@ -1334,84 +1337,6 @@ if [ "${deployment_system}" == sap_deployer ]; then
 	fi
 	keyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name | tr -d \")
 
-	created_resource_group_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw created_resource_group_name | tr -d \")
-	echo ""
-	echo ""
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo -e "#                        $cyan  Capturing telemetry  $reset_formatting                                        #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
-	echo ""
-	echo ""
-
-	full_script_path="$(realpath "${BASH_SOURCE[0]}")"
-	script_directory="$(dirname "${full_script_path}")"
-	az deployment group create --resource-group "${created_resource_group_name}" --name "ControlPlane_Deployer_${created_resource_group_name}" \
-		--template-file "${script_directory}/templates/empty-deployment.json" --output none
-	return_value=0
-	if [ 1 == $called_from_ado ]; then
-
-		if [ -n "${application_configuration_id}" ]; then
-
-			az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "APPLICATION_CONFIGURATION_ID.value")
-			if [ -z "${az_var}" ]; then
-				az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name APPLICATION_CONFIGURATION_ID --value "${application_configuration_id}" --output none --only-show-errors
-			else
-				az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name APPLICATION_CONFIGURATION_ID --value "${application_configuration_id}" --output none --only-show-errors
-			fi
-		fi
-
-		if [ -n "${deployer_random_id}" ]; then
-			az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "DEPLOYER_RANDOM_ID.value")
-			if [ -z "${az_var}" ]; then
-				az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name DEPLOYER_RANDOM_ID --value "${deployer_random_id}" --output none --only-show-errors
-			else
-				az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name DEPLOYER_RANDOM_ID --value "${deployer_random_id}" --output none --only-show-errors
-			fi
-		fi
-
-		if [ -n "${created_resource_group_name}" ]; then
-			az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "WEBAPP_RESOURCE_GROUP.value")
-			if [ -z "${az_var}" ]; then
-				az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name WEBAPP_RESOURCE_GROUP --value "$created_resource_group_name" --output none --only-show-errors
-			else
-				az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name WEBAPP_RESOURCE_GROUP --value "$created_resource_group_name" --output none --only-show-errors
-			fi
-		fi
-
-		if [[ "${TF_VAR_use_webapp}" == "true" && $IS_PIPELINE_DEPLOYMENT = "true" ]]; then
-			webapp_url_base=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_url_base | tr -d \")
-			if [ -n "${webapp_url_base}" ]; then
-				az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "WEBAPP_URL_BASE.value")
-				if [ -z "${az_var}" ]; then
-					az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name WEBAPP_URL_BASE --value "$webapp_url_base" --output none --only-show-errors
-				else
-					az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name WEBAPP_URL_BASE --value "$webapp_url_base" --output none --only-show-errors
-				fi
-			fi
-
-			webapp_identity=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_identity | tr -d \")
-			if [ -n "${webapp_identity}" ]; then
-				az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "WEBAPP_IDENTITY.value")
-				if [ -z "${az_var}" ]; then
-					az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name WEBAPP_IDENTITY --value "$webapp_identity" --output none --only-show-errors
-				else
-					az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name WEBAPP_IDENTITY --value "$webapp_identity" --output none --only-show-errors
-				fi
-			fi
-
-			webapp_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_id | tr -d \")
-			if [ -n "${webapp_id}" ]; then
-				az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "WEBAPP_ID.value")
-				if [ -z "${az_var}" ]; then
-					az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name WEBAPP_ID --value "$webapp_id" --output none --only-show-errors
-				else
-					az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name WEBAPP_ID --value "$webapp_id" --output none --only-show-errors
-				fi
-			fi
-		fi
-	fi
 
 fi
 
@@ -1429,46 +1354,6 @@ fi
 
 save_config_var "deployer_public_ip_address" "${system_config_information}"
 
-if [ "${deployment_system}" == sap_system ]; then
-
-	rg_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw created_resource_group_name | tr -d \")
-
-	echo ""
-	echo ""
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo -e "#                        $cyan  Capturing telemetry  $reset_formatting                                        #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
-	echo ""
-	echo ""
-	full_script_path="$(realpath "${BASH_SOURCE[0]}")"
-	script_directory="$(dirname "${full_script_path}")"
-	az deployment group create --resource-group "${rg_name}" --name "SAP_${rg_name}" --subscription "$ARM_SUBSCRIPTION_ID" \
-		--template-file "${script_directory}/templates/empty-deployment.json" --output none
-
-fi
-
-if [ "${deployment_system}" == sap_landscape ]; then
-	save_config_vars "${system_config_information}" \
-		landscape_tfstate_key
-
-	rg_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw created_resource_group_name | tr -d \")
-	echo ""
-	echo ""
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo -e "#                        $cyan  Capturing telemetry  $reset_formatting                                        #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
-	echo ""
-	echo ""
-	full_script_path="$(realpath "${BASH_SOURCE[0]}")"
-	script_directory="$(dirname "${full_script_path}")"
-	az deployment group create --resource-group "${rg_name}" --name "SAP-WORKLOAD-ZONE_${rg_name}" --subscription "$ARM_SUBSCRIPTION_ID" \
-		--template-file "${script_directory}/templates/empty-deployment.json" --output none
-fi
-
 if [ "${deployment_system}" == sap_library ]; then
 	REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw remote_state_storage_account_name | tr -d \")
 	sapbits_storage_account_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw sapbits_storage_account_name | tr -d \")
@@ -1481,43 +1366,8 @@ if [ "${deployment_system}" == sap_library ]; then
 		printf "# The parameter 'custom_random_id' can be used to control the random 3 digits at the end of the storage accounts and key vaults\ncustom_random_id=\"%s\"\n" "${custom_random_id}" >>"${var_file}"
 
 	fi
-	if [ 1 == $called_from_ado ]; then
-
-		if [ -n "${sapbits_storage_account_name}" ]; then
-			az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "INSTALLATION_MEDIA_ACCOUNT.value")
-			if [ -z "${az_var}" ]; then
-				az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name INSTALLATION_MEDIA_ACCOUNT --value "${sapbits_storage_account_name}" --output none --only-show-errors
-			else
-				az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name INSTALLATION_MEDIA_ACCOUNT --value "${sapbits_storage_account_name}" --output none --only-show-errors
-			fi
-		fi
-		if [ -n "${library_random_id}" ]; then
-			az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "LIBRARY_RANDOM_ID.value")
-			if [ -z "${az_var}" ]; then
-				az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name LIBRARY_RANDOM_ID --value "${library_random_id}" --output none --only-show-errors
-			else
-				az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name LIBRARY_RANDOM_ID --value "${library_random_id}" --output none --only-show-errors
-			fi
-		fi
-
-	fi
 
 	getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${system_config_information}"
-	rg_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw created_resource_group_name | tr -d \")
-
-	echo ""
-	echo ""
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo -e "#                        $cyan  Capturing telemetry  $reset_formatting                                        #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
-	echo ""
-	echo ""
-
-	full_script_path="$(realpath "${BASH_SOURCE[0]}")"
-	script_directory="$(dirname "${full_script_path}")"
-	az deployment group create --resource-group "${rg_name}" --name "SAP-LIBRARY_${rg_name}" --template-file "${script_directory}/templates/empty-deployment.json" --output none
 
 fi
 
