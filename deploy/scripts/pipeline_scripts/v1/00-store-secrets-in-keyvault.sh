@@ -56,22 +56,7 @@ if printenv PARENT_VARIABLE_GROUP; then
 		echo "##vso[task.logissue type=error]Variable group $PARENT_VARIABLE_GROUP not found."
 		exit 2
 	else
-	  APPLICATION_CONFIGURATION_NAME=$(az pipelines variable-group variable list --group-id "${PARENT_VARIABLE_GROUP_ID}" --query "APPLICATION_CONFIGURATION_NAME.value" --output tsv)
-		APPLICATION_CONFIGURATION_ID=$(az pipelines variable-group variable list --group-id "${PARENT_VARIABLE_GROUP_ID}" --query "APPLICATION_CONFIGURATION_ID.value" --output tsv)
 		DEPLOYER_KEYVAULT=$(az pipelines variable-group variable list --group-id "${PARENT_VARIABLE_GROUP_ID}" --query "DEPLOYER_KEYVAULT.value" --output tsv)
-		WZ_APPLICATION_CONFIGURATION_NAME=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "APPLICATION_CONFIGURATION_NAME.value" --output tsv)
-		if [ -z "$WZ_APPLICATION_CONFIGURATION_NAME" ]; then
-			az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name "APPLICATION_CONFIGURATION_NAME" --value "$APPLICATION_CONFIGURATION_NAME" --output none
-		else
-			az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name "APPLICATION_CONFIGURATION_NAME" --value "$APPLICATION_CONFIGURATION_NAME" --output none
-		fi
-
-		WZ_APPLICATION_CONFIGURATION_ID=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "APPLICATION_CONFIGURATION_ID.value" --output tsv)
-		if [ -z "$WZ_APPLICATION_CONFIGURATION_ID" ]; then
-			az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name "APPLICATION_CONFIGURATION_ID" --value "$APPLICATION_CONFIGURATION_ID" --output none
-		else
-			az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name "APPLICATION_CONFIGURATION_ID" --value "$APPLICATION_CONFIGURATION_ID" --output none
-		fi
 
 		WZ_DEPLOYER_KEYVAULT=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "DEPLOYER_KEYVAULT.value" --output tsv)
 		if [ -z "$WZ_DEPLOYER_KEYVAULT" ]; then
@@ -108,19 +93,13 @@ if [ "$USE_MSI" != "true" ]; then
 		exit 2
 	fi
 
-	if ! printenv CLIENT_ID; then
+	if ! printenv ARM_CLIENT_ID; then
 		echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined in the $VARIABLE_GROUP variable group."
 		print_banner "$banner_title" "Variable ARM_CLIENT_ID was not defined in the $VARIABLE_GROUP variable group" "error"
 		exit 2
 	fi
 
-	if ! printenv CLIENT_SECRET; then
-		echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined in the $VARIABLE_GROUP variable group."
-		print_banner "$banner_title" "Variable ARM_CLIENT_SECRET was not defined in the $VARIABLE_GROUP variable group" "error"
-		exit 2
-	fi
-
-	if ! printenv TENANT_ID; then
+	if ! printenv ARM_TENANT_ID; then
 		echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined in the $VARIABLE_GROUP variable group."
 		print_banner "$banner_title" "Variable ARM_SUBSCRIPTION_ID was not defined in the $VARIABLE_GROUP variable group" "error"
 		exit 2
@@ -129,26 +108,20 @@ fi
 
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-	configureNonDeployer "$(tf_version)"
+	configureNonDeployer "${tf_version:-1.12.2}"
 	echo -e "$green--- az login ---$reset"
-	if ! LogonToAzure false; then
-		print_banner "$banner_title" "Login to Azure failed" "error"
+	LogonToAzure $USE_MSI
+	return_code=$?
+	if [ 0 != $return_code ]; then
+		echo -e "$bold_red--- Login failed ---$reset"
 		echo "##vso[task.logissue type=error]az login failed."
-		exit 2
+		exit $return_code
 	fi
 else
-	ARM_USE_MSI=true
-	export ARM_USE_MSI
-	ARM_CLIENT_ID=$(grep -m 1 "export ARM_CLIENT_ID=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
-	export ARM_CLIENT_ID
-
+	LogonToAzure $USE_MSI
 fi
 
-az account set --subscription "$ARM_SUBSCRIPTION_ID"
-
 echo ""
-
-az devops configure --defaults organization=$SYSTEM_COLLECTIONURI project=$SYSTEM_TEAMPROJECTID --output none
 
 environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${CONTROL_PLANE_NAME}"
 
@@ -159,19 +132,6 @@ if [ ! -f "$environment_file_name" ]; then
 fi
 
 echo -e "$green--- Read parameter values ---$reset"
-
-deployer_tfstate_key=$CONTROL_PLANE_NAME.terraform.tfstate
-export deployer_tfstate_key
-
-if [ -z "$DEPLOYER_KEYVAULT" ]; then
-	echo "##vso[task.logissue type=error]Key vault name (${CONTROL_PLANE_NAME}_KeyVaultName) was not found in the application configuration or in configuration file ( ${environment_file_name} )."
-	print_banner "$banner_title" "Key vault name (${CONTROL_PLANE_NAME}_KeyVaultName) was not found in the application configuration  or in configuration file ( ${environment_file_name}" "error"
-	exit 2
-else
-  if [ "${DEPLOYER_KEYVAULT:0:2}" == '$(' ] ; then
-	  load_config_vars "$environment_file_name" DEPLOYER_KEYVAULT
-	fi
-fi
 
 keyvault_subscription_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$DEPLOYER_KEYVAULT' | project id, name, subscription,subscriptionId" --query data[0].subscriptionId --output tsv)
 
