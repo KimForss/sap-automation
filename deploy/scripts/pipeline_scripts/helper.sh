@@ -354,6 +354,7 @@ function configure_devops() {
 	echo ""
 	echo -e "$green--- Configure devops CLI extension ---$reset"
 	az config set extension.use_dynamic_install=yes_without_prompt --output none --only-show-errors
+	az config set extension.dynamic_install_allow_preview=true --output none --only-show-errors
 
 	if ! az extension list --query "[?contains(name, 'azure-devops')]" --output table; then
 		az extension add --name azure-devops --output none --only-show-errors
