@@ -101,6 +101,14 @@ stages:
   - stage:                             PopulateKeyVault
     pool:                              $(this_agent)
     displayName:                       Save the Deployment Credentials in Azure Keyvault
+    variables:
+      - template:                      variables/02-sap-workload-zone-variables.yaml
+        parameters:
+          workload_zone:               ${{ parameters.workload_zone }}
+          workload_environment:        ${{ parameters.workload_environment }}
+          deployer_environment:        ${{ parameters.deployer_environment }}
+          deployer_region:             ${{ parameters.deployer_region }}
+          inherit_settings:            ${{ parameters.inherit_settings }}
     jobs:
       - job:                           SaveDeploymentCredentials
         displayName:                   Save the Deployment Credentials
@@ -134,7 +142,7 @@ stages:
               ZONE:                         ${{ upper(parameters.workload_environment) }}
 
 
-  - stage: Deploy_SAP_workload_zone
+  - stage:                             Deploy_SAP_workload_zone
     dependsOn:
                                        - PopulateKeyVault
     condition:                         eq(dependencies.PopulateKeyVault.result, 'Succeeded')
