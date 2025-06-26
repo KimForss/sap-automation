@@ -101,12 +101,6 @@ stages:
   - stage:                             PopulateKeyVault
     pool:                              $(this_agent)
     displayName:                       Save the Deployment Credentials in Azure Keyvault
-    variables:
-      - template:                      variables/02-sap-workload-zone-variables.yaml
-        parameters:
-          workload_zone_name:          ${{ parameters.workload_environment }}
-          control_plane_name:          ${{ parameters.deployer_environment }}
-          inherit_settings:            ${{ parameters.inherit_settings }}
     jobs:
       - job:                           SaveDeploymentCredentials
         displayName:                   Save the Deployment Credentials
