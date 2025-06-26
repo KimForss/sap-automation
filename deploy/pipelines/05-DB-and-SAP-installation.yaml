@@ -155,11 +155,7 @@ stages:
 
                                       pipx install ansible-core=="${ansible_core_version:-2.16.5}" --force
 
-                                      ansible-galaxy collection install ansible.windows --force
-                                      ansible-galaxy collection install ansible.posix --force
-                                      ansible-galaxy collection install ansible.utils --force
-                                      ansible-galaxy collection install community.windows --force
-                                      ansible-galaxy collection install microsoft.ad --force
+                                      ansible-galaxy collection install --force ansible.windows ansible.posix ansible.utils community.windows microsoft.ad
 
                                       ansible --version
 
