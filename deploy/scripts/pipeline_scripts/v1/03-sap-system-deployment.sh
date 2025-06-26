@@ -119,7 +119,7 @@ workload_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$WO
 deployer_tfstate_key=$(getVariableFromVariableGroup "${VARIABLE_GROUP}" "Deployer_State_FileName" "${workload_environment_file_name}" "deployer_tfstate_key")
 export deployer_tfstate_key
 
-DEPLOYER_KEYVAULT=$(getVariableFromVariableGroup "${VARIABLE_GROUP}" "DEPLOYER_KEYVAULT" "${deployer_environment_file_name}" "deployer_keyvault")
+DEPLOYER_KEYVAULT=$(getVariableFromVariableGroup "${VARIABLE_GROUP}" "DEPLOYER_KEYVAULT" "${workload_environment_file_name}" "deployer_keyvault")
 export DEPLOYER_KEYVAULT
 
 
