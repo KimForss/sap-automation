@@ -95,8 +95,6 @@ parameters:
     type:                              boolean
     default:                           false
 
-
-
 # 20220929 MKD - ACSS Registration <BEGIN>
   - name:                              acss_registration
     displayName:                       Register System in ACSS
