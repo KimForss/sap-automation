@@ -109,11 +109,11 @@ LOCATION_CODE_IN_FILENAME=$(echo $WORKLOAD_ZONE_FOLDERNAME | awk -F'-' '{print $
 LOCATION_IN_FILENAME=$(get_region_from_code "$LOCATION_CODE_IN_FILENAME" || true)
 NETWORK_IN_FILENAME=$(echo $WORKLOAD_ZONE_FOLDERNAME | awk -F'-' '{print $3}')
 
-deployer_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$DEPLOYER_ENVIRONMENT$ENVIRONMENT"
+deployer_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$DEPLOYER_ENVIRONMENT$LOCATION"
 echo "Deployer Environment File:           $deployer_environment_file_name"
 if [ ! -f "${deployer_environment_file_name}" ]; then
 	echo -e "$bold_red--- $DEPLOYER_ENVIRONMENT$ENVIRONMENT was not found ---$reset"
-	echo "##vso[task.logissue type=error]Control plane configuration file $DEPLOYER_ENVIRONMENT$ENVIRONMENT was not found."
+	echo "##vso[task.logissue type=error]Control plane configuration file $DEPLOYER_ENVIRONMENT$LOCATION was not found."
 	exit 2
 fi
 workload_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}${NETWORK}"
