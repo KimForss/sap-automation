@@ -12,10 +12,18 @@ cyan="\e[1;36m"
 #. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
+parent_directory="$(dirname "$script_directory")"
+grand_parent_directory="$(dirname "$parent_directory")"
 
-#call stack has full scriptname when using source
-source "${script_directory}/helper.sh"
+SCRIPT_NAME="$(basename "$0")"
 
+banner_title="Deploy Control Plane"
+#call stack has full script name when using source
+# shellcheck disable=SC1091
+source "${grand_parent_directory}/deploy_utils.sh"
+
+#call stack has full script name when using source
+source "${parent_directory}/helper.sh"
 DEBUG=False
 
 if [ "$SYSTEM_DEBUG" = True ]; then
@@ -27,6 +35,8 @@ if [ "$SYSTEM_DEBUG" = True ]; then
 fi
 export DEBUG
 set -eu
+
+print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
 
 ENVIRONMENT=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $1}' | xargs)
 LOCATION=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $2}' | xargs)
@@ -56,81 +66,28 @@ fi
 echo -e "$green--- File Validations ---$reset"
 
 if [ ! -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME" ]; then
-	echo -e "$bold_red--- File ${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME was not found ---$reset"
+	print_banner "$banner_title" "File ${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME was not found" "error"
 	echo "##vso[task.logissue type=error]File ${CONFIG_REPO_PATH}/${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME was not found."
 	exit 2
 fi
 
 if [ ! -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME" ]; then
-	echo -e "$bold_red--- File ${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME  was not found ---$reset"
+	print_banner "$banner_title" "File ${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME was not found" "error"
 	echo "##vso[task.logissue type=error]File ${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME was not found."
 	exit 2
 fi
+# Print the execution environment details
+print_header
 
-echo -e "$green--- Information ---$reset"
-echo "Environment:                         ${ENVIRONMENT}"
-echo "Location:                            ${LOCATION}"
-echo "Agent:                               $THIS_AGENT"
-echo "Organization:                        $SYSTEM_COLLECTIONURI"
-echo "Project:                             $SYSTEM_TEAMPROJECT"
-if [ -n "$TF_VAR_agent_pat" ]; then
-	echo "Deployer Agent PAT:                  IsDefined"
-fi
-if [ -n "$POOL" ]; then
-	echo "Deployer Agent Pool:                 $POOL"
-fi
-echo ""
-if [ "$USE_WEBAPP" = "true" ]; then
-	echo "Deploy Web App:                      true"
-else
-	echo "Deploy Web App:                      false"
-fi
+# Configure DevOps
+configure_devops
 
-TF_VAR_use_webapp=$USE_WEBAPP
-export TF_VAR_use_webapp
-
-echo ""
-echo "Deployer Folder:                     $DEPLOYER_FOLDERNAME"
-echo "Deployer TFvars:                     $DEPLOYER_TFVARS_FILENAME"
-echo "Library Folder:                      $LIBRARY_FOLDERNAME"
-echo "Library TFvars:                      $LIBRARY_TFVARS_FILENAME"
-
-echo ""
-echo "Azure CLI version:"
-echo "-------------------------------------------------"
-az --version
-echo ""
-echo "Terraform version:"
-echo "-------------------------------------------------"
-if [ -f /opt/terraform/bin/terraform ]; then
-	tfPath="/opt/terraform/bin/terraform"
-else
-	tfPath=$(which terraform)
-fi
-
-"${tfPath}" --version
-
-cd "$CONFIG_REPO_PATH" || exit
-
-echo -e "$green--- Checkout $BUILD_SOURCEBRANCHNAME ---$reset"
-git checkout -q "$BUILD_SOURCEBRANCHNAME"
-
-echo -e "$green--- Configure devops CLI extension ---$reset"
-az config set extension.use_dynamic_install=yes_without_prompt --only-show-errors
-az extension add --name azure-devops --output none --only-show-errors
-
-az devops configure --defaults organization="$SYSTEM_COLLECTIONURI" project='$SYSTEM_TEAMPROJECTID'
-
-VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$VARIABLE_GROUP'].id | [0]")
-export VARIABLE_GROUP_ID
-if [ -z "${VARIABLE_GROUP_ID}" ]; then
-	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP could not be found."
+if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
+	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
+	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
 	exit 2
 fi
-
-printf -v tempval '%s id:' "$VARIABLE_GROUP"
-printf -v val '%-20s' "${tempval}"
-echo "$val                 $VARIABLE_GROUP_ID"
+export VARIABLE_GROUP_ID
 
 # Set logon variables
 if [ "$USE_MSI" != "true" ]; then
