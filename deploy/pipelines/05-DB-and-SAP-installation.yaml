@@ -151,7 +151,7 @@ stages:
 
               ansible --version
 
-              sudo pipx uninject ansible-core --leave-deps
+              sudo pipx uninstall ansible-core
 
               ansible --version
 
