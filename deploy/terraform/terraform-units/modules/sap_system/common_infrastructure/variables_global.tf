@@ -77,39 +77,39 @@ variable "infrastructure"                        {
                                          condition = (
                                            contains(keys(var.infrastructure.virtual_networks.sap), "subnet_admin") ? (
                                              var.infrastructure.virtual_networks.sap.subnet_admin != null ? (
-                                               length(trimspace(try(var.infrastructure.virtual_networks.sap.subnet_admin.arm_id, ""))) != 0 || length(trimspace(try(var.infrastructure.virtual_networks.sap.subnet_admin.prefix, ""))) != 0) : (
+                                               length(trimspace(try(var.infrastructure.virtual_networks.sap.subnet_admin.id, ""))) != 0 || length(trimspace(try(var.infrastructure.virtual_networks.sap.subnet_admin.prefix, ""))) != 0) : (
                                                true
                                              )) : (
                                              true
                                            )
                                          )
-                                         error_message = "Either the arm_id or prefix of the Admin subnet must be specified in the infrastructure.virtual_networks.sap.subnet_admin block."
+                                         error_message = "Either the id or prefix of the Admin subnet must be specified in the infrastructure.virtual_networks.sap.subnet_admin block."
                                        }
 
                                        validation {
                                                     condition = (
                                                       contains(keys(var.infrastructure.virtual_networks.sap), "subnet_app") ? (
                                                         var.infrastructure.virtual_networks.sap.subnet_app != null ? (
-                                                          length(trimspace(try(var.infrastructure.virtual_networks.sap.subnet_app.arm_id, ""))) != 0 || length(trimspace(try(var.infrastructure.virtual_networks.sap.subnet_app.prefix, ""))) != 0) : (
+                                                          length(trimspace(try(var.infrastructure.virtual_networks.sap.subnet_app.id, ""))) != 0 || length(trimspace(try(var.infrastructure.virtual_networks.sap.subnet_app.prefix, ""))) != 0) : (
                                                           true
                                                         )) : (
                                                         true
                                                       )
                                                     )
-                                                    error_message = "Either the arm_id or prefix of the Application subnet must be specified in the infrastructure.virtual_networks.sap.subnet_app block."
+                                                    error_message = "Either the id or prefix of the Application subnet must be specified in the infrastructure.virtual_networks.sap.subnet_app block."
                                                   }
 
                                        validation {
                                                     condition = (
                                                       contains(keys(var.infrastructure.virtual_networks.sap), "subnet_db") ? (
                                                         var.infrastructure.virtual_networks.sap.subnet_db != null ? (
-                                                          length(trimspace(try(var.infrastructure.virtual_networks.sap.subnet_db.arm_id, ""))) != 0 || length(trimspace(try(var.infrastructure.virtual_networks.sap.subnet_db.prefix, ""))) != 0) : (
+                                                          length(trimspace(try(var.infrastructure.virtual_networks.sap.subnet_db.id, ""))) != 0 || length(trimspace(try(var.infrastructure.virtual_networks.sap.subnet_db.prefix, ""))) != 0) : (
                                                           true
                                                         )) : (
                                                         true
                                                       )
                                                     )
-                                                    error_message = "Either the arm_id or prefix of the Database subnet must be specified in the infrastructure.virtual_networks.sap.subnet_db block."
+                                                    error_message = "Either the id or prefix of the Database subnet must be specified in the infrastructure.virtual_networks.sap.subnet_db block."
                                                   }
                                                  }
 
@@ -252,7 +252,7 @@ variable "landscape_tfstate"                     {
                                                     description = "Landscape remote tfstate file"
                                                     validation {
                                                                  condition = (
-                                                                     length(trimspace(try(var.landscape_tfstate.vnet_sap_arm_id, ""))) != 0
+                                                                     length(trimspace(try(var.landscape_tfstate.vnet_sap_id, ""))) != 0
                                                                    )
                                                                    error_message = "Network is undefined, please redeploy the workload zone."
                                                                 }
