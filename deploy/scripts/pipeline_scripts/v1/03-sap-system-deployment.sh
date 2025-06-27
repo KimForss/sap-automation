@@ -114,7 +114,7 @@ SID_IN_FILENAME=$(echo $SAP_SYSTEM_FOLDERNAME | awk -F'-' '{print $4}')
 WORKLOAD_ZONE_NAME=$(echo "$SAP_SYSTEM_FOLDERNAME" | cut -d'-' -f1-3)
 landscape_tfstate_key="${SAP_SYSTEM_FOLDERNAME}.terraform.tfstate"
 export landscape_tfstate_key
-workload_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT_IN_FILENAME}${LOCATION_CODE_IN_FILENAME}"
+workload_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT_IN_FILENAME}${LOCATION_CODE_IN_FILENAME}${NETWORK_IN_FILENAME}"
 
 deployer_tfstate_key=$(getVariableFromVariableGroup "${VARIABLE_GROUP}" "Deployer_State_FileName" "${workload_environment_file_name}" "deployer_tfstate_key")
 export deployer_tfstate_key

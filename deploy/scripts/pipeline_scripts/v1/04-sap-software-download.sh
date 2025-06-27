@@ -15,7 +15,7 @@ grand_parent_directory="$(dirname "$parent_directory")"
 
 SCRIPT_NAME="$(basename "$0")"
 
-banner_title="Deploy SAP System"
+banner_title="Software download"
 
 #call stack has full script name when using source
 # shellcheck disable=SC1091
