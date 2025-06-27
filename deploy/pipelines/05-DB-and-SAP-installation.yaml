@@ -161,7 +161,10 @@ stages:
               ansible_core_version:    $(ansible_core_version)
             name:                      AnsibleInstallation
             displayName:               Ansible installation
-
+          - task:                      TerraformInstaller@1
+            displayName:               Install Terraform
+            inputs:
+              terraformVersion:        latest
 
           - task:                      Bash@3
             inputs:
