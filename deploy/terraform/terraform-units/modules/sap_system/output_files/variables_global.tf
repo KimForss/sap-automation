@@ -127,7 +127,7 @@ variable "management_dns_subscription_id"       {
                                                   default     = null
                                                   type        = string
                                                 }
-variable "media_path"                           { description = "Media path" }
+
 variable "naming"                               { description = "Defines the names for the resources" }
 variable "NFS_provider"                         {
                                                   description = "Defines the NFS provider"
