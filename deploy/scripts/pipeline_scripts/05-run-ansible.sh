@@ -2,7 +2,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-echo "##vso[build.updatebuildnumber]Deploying the control plane defined in $DEPLOYER_FOLDERNAME $LIBRARY_FOLDERNAME"
+echo "##vso[build.updatebuildnumber]Running Ansible playbooks"
 green="\e[1;32m"
 reset="\e[0m"
 bold_red="\e[1;31m"
@@ -41,13 +41,30 @@ print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
 #Stage could be executed on a different machine by default, need to login again for ansible
 #If the deployer_file exists we run on a deployer configured by the framework instead of a azdo hosted one
 
-if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
-
-	control_plane_subscription=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_SubscriptionId" "${CONTROL_PLANE_NAME}")
-
+# Set logon variables
+if [ $USE_MSI == "true" ]; then
+	unset ARM_CLIENT_SECRET
+	ARM_USE_MSI=true
+	export ARM_USE_MSI
 fi
-export control_plane_subscription
-
+if az account show --query name; then
+	echo -e "$green--- Already logged in to Azure ---$reset"
+else
+	# Check if running on deployer
+	if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
+		configureNonDeployer "${tf_version:-1.12.2}"
+		echo -e "$green--- az login ---$reset"
+		LogonToAzure $USE_MSI
+	else
+		LogonToAzure $USE_MSI
+	fi
+	return_code=$?
+	if [ 0 != $return_code ]; then
+		echo -e "$bold_red--- Login failed ---$reset"
+		echo "##vso[task.logissue type=error]az login failed."
+		exit $return_code
+	fi
+fi
 
 vault_name=$(echo "${VAULT_NAME}" | tr [:upper:] [:lower:] | xargs)
 
@@ -62,6 +79,8 @@ if [ ! -f "$PARAMETERS_FOLDER"/sshkey ]; then
 fi
 
 password_secret=$(az keyvault secret show --name "$PASSWORD_KEY_NAME" --vault-name "$vault_name" --query value --output tsv)
+user_name=$(az keyvault secret show --name "$USERNAME_KEY_NAME" --vault-name "$VAULT_NAME" --query value -o tsv)
+
 ANSIBLE_PASSWORD="${password_secret}"
 export ANSIBLE_PASSWORD
 
@@ -104,8 +123,9 @@ if [ -f "${filename}" ]; then
 						-e 'kv_name=$vault_name' -e @$SAP_PARAMS                                 \
 						-e 'download_directory=$AGENT_TEMPDIRECTORY'                             \
 						-e '_workspace_directory=$PARAMETERS_FOLDER' $EXTRA_PARAMS               \
-						-e orchestration_ansible_user=$USER \
-            -e ansible_ssh_pass='${ANSIBLE_PASSWORD}' $EXTRA_PARAM_FILE ${filename}"
+						-e orchestration_ansible_user=$USER                                      \
+						-e ansible_user=$user_name                                               \
+						-e ansible_ssh_pass='${ANSIBLE_PASSWORD}' $EXTRA_PARAM_FILE ${filename}"
 
 	eval "${command}"
 	return_code=$?
@@ -118,7 +138,8 @@ command="ansible-playbook -i $INVENTORY --private-key $PARAMETERS_FOLDER/sshkey 
 					-e 'kv_name=$vault_name' -e @$SAP_PARAMS                                    \
 					-e 'download_directory=$AGENT_TEMPDIRECTORY'                                \
 					-e '_workspace_directory=$PARAMETERS_FOLDER'                                \
-					-e orchestration_ansible_user=$USER \
+					-e orchestration_ansible_user=$USER                                         \
+  				-e ansible_user=$user_name                                                  \
 					-e ansible_ssh_pass='${ANSIBLE_PASSWORD}' $EXTRA_PARAMS $EXTRA_PARAM_FILE   \
           $ANSIBLE_FILE_PATH"
 
@@ -151,7 +172,9 @@ if [ -f "${filename}" ]; then
 	command="ansible-playbook -i '$INVENTORY' --private-key '$PARAMETERS_FOLDER/sshkey'   \
 						-e 'kv_name=$vault_name' -e @$SAP_PARAMS                                    \
 						-e 'download_directory=$AGENT_TEMPDIRECTORY'                                \
-						-e orchestration_ansible_user=$USER \
+						-e orchestration_ansible_user=$USER                                         \
+  					-e ansible_user=$user_name                                                  \
+
 						-e '_workspace_directory=$PARAMETERS_FOLDER'                                \
 						-e ansible_ssh_pass='${ANSIBLE_PASSWORD}' '${filename}' $EXTRA_PARAMS       \
 						$EXTRA_PARAM_FILE"
