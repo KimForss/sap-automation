@@ -7,9 +7,7 @@
 #############################################################################
 
 # sap_fqdn defines the fully qualified domain name for the systems
-sap_fqdn:                      ${dns}
-
-single_server:                 ${single_server}
+sap_fqdn:                                ${dns}
 
 single_server:                           ${single_server}
 
@@ -20,50 +18,48 @@ single_server:                           ${single_server}
 #############################################################################
 
 # bom_base_name is the name of the SAP Application Bill of Materials file
-bom_base_name:                 ${bom}
+bom_base_name:                           ${bom}
 
 # sap_sid is the application SID
-sap_sid:                       ${sid}
+sap_sid:                                 ${sid}
 
 # web_sid is the Web Dispatcher SID (if applicable)
-web_sid:                       ${web_sid}
+web_sid:                                 ${web_sid}
 
-wd_instance_number:            "${web_instance_number}"
+wd_instance_number:                      "${web_instance_number}"
 
 # scs_high_availability is a boolean flag indicating
 # if the SAP Central Services are deployed using high availability
-scs_high_availability:         ${scs_high_availability}                      # {scs_high_availability}
-scs_cluster_type:              ${scs_cluster_type}
+scs_high_availability:                   ${scs_high_availability}                      # {scs_high_availability}
+scs_cluster_type:                        ${scs_cluster_type}
 
 # SCS Instance Number
-scs_instance_number:           "${scs_instance_number}"
+scs_instance_number:                     "${scs_instance_number}"
 
 # scs_lb_ip is the Virtual IP address of the load balancer for
 # the SAP Central Services virtual machines
-scs_lb_ip:                     ${scs_server_loadbalancer_ip}
+scs_lb_ip:                               ${scs_server_loadbalancer_ip}
 
 # ERS Instance Number
-ers_instance_number:           "${ers_instance_number}"
+ers_instance_number:                     "${ers_instance_number}"
 
 # ecs_lb_ip is the ERS IP address of the load balancer for
 # the SAP Central Services virtual machines
-ers_lb_ip:                     ${ers_server_loadbalancer_ip}
+ers_lb_ip:                               ${ers_server_loadbalancer_ip}
 
 %{~ if platform == "SQLSERVER" }
 # IP address of CNO in Windows and takes the form IPAddress/CIDR
-scs_clst_lb_ip:                ${scs_cluster_loadbalancer_ip}
+scs_clst_lb_ip:                          ${scs_cluster_loadbalancer_ip}
 %{~ endif }
 
 # PAS Instance Number
-pas_instance_number:           "${pas_instance_number}"
+pas_instance_number:                     "${pas_instance_number}"
 
 # APP Instance Number
-app_instance_number:           "${app_instance_number}"
+app_instance_number:                     "${app_instance_number}"
 
 # Set to true to instruct Ansible to configure Pacemaker clusters using an managed identity
-use_msi_for_clusters:          ${use_msi_for_clusters}
-
-
+use_msi_for_clusters:                    ${use_msi_for_clusters}
 
 #############################################################################
 #                                                                           #
@@ -72,8 +68,8 @@ use_msi_for_clusters:          ${use_msi_for_clusters}
 #############################################################################
 
 # sap_sid is the database SID
-db_sid:                        ${db_sid}
-db_instance_number:            "${db_instance_number}"
+db_sid:                                  ${db_sid}
+db_instance_number:                      "${db_instance_number}"
 
 # platform defines the database platform
 # valid values are:
@@ -83,7 +79,7 @@ db_instance_number:            "${db_instance_number}"
 # ORACLE
 # SQLSERVER
 
-platform:                       ${platform}
+platform:                                 ${platform}
 
 # Database User (SYSTEM) Password
 # hana_system_user_password:
@@ -103,49 +99,49 @@ platform:                       ${platform}
 #############################################################################
 
 # Scale out defines if the database is to be deployed in a scale out configuration
-database_scale_out:            ${scale_out}
-database_no_standby:           ${scale_out_no_standby_role}
+database_scale_out:                      ${scale_out}
+database_no_standby:                     ${scale_out_no_standby_role}
 
-subnet_cidr_storage:           ${subnet_cidr_storage}
+subnet_cidr_storage:                     ${subnet_cidr_storage}
 %{~ endif }
-subnet_cidr_anf:               ${subnet_cidr_anf}
-subnet_cidr_app:               ${subnet_cidr_app}
-subnet_cidr_db:                ${subnet_cidr_db}
+subnet_cidr_anf:                         ${subnet_cidr_anf}
+subnet_cidr_app:                         ${subnet_cidr_app}
+subnet_cidr_db:                          ${subnet_cidr_db}
 
 %{~ if length(subnet_cidr_client) != 0 }
-subnet_cidr_client:            ${subnet_cidr_client}
+subnet_cidr_client:                      ${subnet_cidr_client}
 %{~ endif }
 
 # db_high_availability is a boolean flag indicating if the
 # SAP database servers are deployed using high availability
-db_high_availability:          ${database_high_availability}
-database_high_availability:    ${database_high_availability}
-database_cluster_type:         ${database_cluster_type}
+db_high_availability:                    ${database_high_availability}
+database_high_availability:              ${database_high_availability}
+database_cluster_type:                   ${database_cluster_type}
 # database_loadbalancer_ip is the IP address of the load balancer for the database virtual machines
-database_loadbalancer_ip:      ${database_loadbalancer_ip}
+database_loadbalancer_ip:                ${database_loadbalancer_ip}
 
 # Backwards compatibility
-db_lb_ip:                      ${database_loadbalancer_ip}
+db_lb_ip:                                ${database_loadbalancer_ip}
 
 %{~ if platform == "SQLSERVER" }
 # database_cluster_ip is the IP address of the load balancer for the database cluster in Windows
-database_cluster_ip:            ${database_cluster_ip}
+database_cluster_ip:                     ${database_cluster_ip}
 %{~ endif }
 
 %{~ if database_active_active }
 # If the database will deployed with Active/Active (read enabled) configuration (HANA only)
-database_active_active:         ${database_active_active}
-database_active_active_loadbalancer_ip: ${database_active_active_loadbalancer_ip}
+database_active_active:                  ${database_active_active}
+database_active_active_loadbalancer_ip:  ${database_active_active_loadbalancer_ip}
 %{~ endif }
 
 # use_simple_mount defines if simple mount is to be used
-use_simple_mount:              ${is_use_simple_mount}
+use_simple_mount:                        ${is_use_simple_mount}
 
 # use_hanasr_angi defines if the SAP HANA SR next generation interface is to be used
-use_hanasr_angi:               ${is_use_sles_hanasr_angi}
+use_hanasr_angi:                         ${is_use_sles_hanasr_angi}
 
 # use_fence_kdump defines if optional kdump stonith device needs to be added for RHEL clusters.
-use_fence_kdump:               ${is_use_fence_kdump}
+use_fence_kdump:                         ${is_use_fence_kdump}
 
 
 #############################################################################
@@ -154,7 +150,7 @@ use_fence_kdump:               ${is_use_fence_kdump}
 #                                                                           #
 #############################################################################
 
-NFS_provider:                  ${NFS_provider}
+NFS_provider:                            ${NFS_provider}
 ${sap_mnt}
 ${sap_transport}
 ${install_path}
@@ -170,15 +166,22 @@ ${usr_sap}
 #############################################################################
 
 # kv_name is the name of the key vault containing the system credentials
-kv_name:                       ${kv_name}
+kv_name:                                 ${kv_name}
 
 # secret_prefix is the prefix for the name of the secret stored in key vault
-secret_prefix:                 ${secret_prefix}
+secret_prefix:                           ${secret_prefix}
 
 # Set to true to instruct Ansible to update all the packages on the virtual machines
-upgrade_packages:              ${upgrade_packages}
+upgrade_packages:                        ${upgrade_packages}
 
-${settings}
+# This is the name of the application configuration
+application_configuration_name:          ${application_configuration_name}
+
+# This is the name of the control plane
+control_plane_name:                      ${control_plane_name}
+
+# This is the path to the container in the storage account where the installation is stored
+media_path:                              ${media_path}
 
 #############################################################################
 #                                                                           #
@@ -232,9 +235,9 @@ iscsi_servers:
 #                                                                           #
 #############################################################################
 # ams_resource_id is the AMS resource ID
-ams_resource_id:                      ${ams_resource_id}
-enable_os_monitoring:                 ${enable_os_monitoring}
-enable_ha_monitoring:                 ${enable_ha_monitoring}
+ams_resource_id:                         ${ams_resource_id}
+enable_os_monitoring:                    ${enable_os_monitoring}
+enable_ha_monitoring:                    ${enable_ha_monitoring}
 
 %{~ if enable_sap_cal }
 
@@ -245,9 +248,9 @@ enable_ha_monitoring:                 ${enable_ha_monitoring}
 #############################################################################
 
 # Defines if the installation is to be deployed using SAP CAL
-enable_sap_cal:                       ${enable_sap_cal}
-calapi_kv:                            ${calapi_kv}
-sap_cal_product_name:                 ${sap_cal_product_name}
+enable_sap_cal:                          ${enable_sap_cal}
+calapi_kv:                               ${calapi_kv}
+sap_cal_product_name:                    ${sap_cal_product_name}
 
 %{~ endif }
 ...
