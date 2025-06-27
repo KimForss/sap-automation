@@ -516,6 +516,10 @@ echo "Terraform state resource ID:         ${tfstate_resource_id}"
 echo "Current directory:                   $(pwd)"
 echo ""
 
+terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
+terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d '/' -f 3)
+terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 5)
+
 TF_VAR_subscription_id="$ARM_SUBSCRIPTION_ID"
 export TF_VAR_subscription_id
 
@@ -570,7 +574,7 @@ else
 
 		terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/run/${deployment_system}"/
 
-		if terraform -chdir="${terraform_module_directory}" init -force-copy  -migrate-state \
+		if terraform -chdir="${terraform_module_directory}" init -force-copy -migrate-state \
 			--backend-config "subscription_id=${terraform_storage_account_subscription_id}" \
 			--backend-config "resource_group_name=${terraform_storage_account_resource_group_name}" \
 			--backend-config "storage_account_name=${terraform_storage_account_name}" \
