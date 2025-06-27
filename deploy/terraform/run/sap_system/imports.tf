@@ -9,11 +9,6 @@
 
 data "azurerm_client_config" "current" {}
 
-data "azurerm_client_config" "current_main" {
-  provider                            = azurerm.workload
-
-}
-
 data "terraform_remote_state" "deployer" {
   backend                              = "azurerm"
 
