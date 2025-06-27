@@ -67,6 +67,8 @@ else
 fi
 
 vault_name=$(echo "${VAULT_NAME}" | tr [:upper:] [:lower:] | xargs)
+key_vault_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$vault_name' | project id, name, subscription" --query data[0].id --output tsv)
+key_vault_subscription=$(echo "$key_vault_id" | cut -d '/' -f 3)
 
 az account set --subscription "$AZURE_SUBSCRIPTION_ID" --output none
 
@@ -74,12 +76,12 @@ set -eu
 
 if [ ! -f "$PARAMETERS_FOLDER"/sshkey ]; then
 	echo "##[section]Retrieving sshkey..."
-	az keyvault secret show --name "$SSH_KEY_NAME" --vault-name "$vault_name" --subscription "$control_plane_subscription" --query value --output tsv >"$PARAMETERS_FOLDER/sshkey"
+	az keyvault secret show --name "$SSH_KEY_NAME" --vault-name "$vault_name" --subscription "$key_vault_subscription" --query value --output tsv >"$PARAMETERS_FOLDER/sshkey"
 	sudo chmod 600 "$PARAMETERS_FOLDER"/sshkey
 fi
 
-password_secret=$(az keyvault secret show --name "$PASSWORD_KEY_NAME" --vault-name "$vault_name" --query value --output tsv)
-user_name=$(az keyvault secret show --name "$USERNAME_KEY_NAME" --vault-name "$VAULT_NAME" --query value -o tsv)
+password_secret=$(az keyvault secret show --name "$PASSWORD_KEY_NAME" --vault-name "$vault_name" --subscription "$key_vault_subscription" --query value --output tsv)
+user_name=$(az keyvault secret show --name "$USERNAME_KEY_NAME" --vault-name "$VAULT_NAME" --subscription "$key_vault_subscription" --query value -o tsv)
 
 ANSIBLE_PASSWORD="${password_secret}"
 export ANSIBLE_PASSWORD
