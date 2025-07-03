@@ -37,6 +37,12 @@ fi
 export DEBUG
 set -eu
 
+# Print the execution environment details
+print_header
+
+# Configure DevOps
+configure_devops
+
 print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
 #Stage could be executed on a different machine by default, need to login again for ansible
 #If the deployer_file exists we run on a deployer configured by the framework instead of a azdo hosted one

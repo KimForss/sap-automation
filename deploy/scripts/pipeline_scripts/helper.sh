@@ -284,7 +284,6 @@ function get_region_from_code() {
 	"WEUS") LOCATION_IN_FILENAME="westus" ;;
 	"WUS2") LOCATION_IN_FILENAME="westus2" ;;
 	"WUS3") LOCATION_IN_FILENAME="westus3" ;;
-	"NZNO") LOCATION_IN_FILENAME="newzealandnorth" ;;
 	*) LOCATION_IN_FILENAME="westeurope" ;;
 	esac
 	echo "$LOCATION_IN_FILENAME"
@@ -356,14 +355,28 @@ function configure_devops() {
 	az config set extension.use_dynamic_install=yes_without_prompt --output none --only-show-errors
 	az config set extension.dynamic_install_allow_preview=true --output none --only-show-errors
 
-	if ! az extension list --query "[?contains(name, 'azure-devops')]" --output table; then
+	# Check if Azure DevOps extension is installed, if not, install it
+
+	extension_installed=$(az extension list --query "[?contains(name, 'azure-devops')].name | [0]" --output tsv)
+
+	if [  -n  "$extension_installed" ]; then
+		echo "Azure DevOps extension already installed."
+		az extension update --name azure-devops --output none --only-show-errors
+	else
 		az extension add --name azure-devops --output none --only-show-errors
+		echo "Azure DevOps extension installed."
 	fi
 
 	az devops configure --defaults organization=$SYSTEM_COLLECTIONURI project=$SYSTEM_TEAMPROJECTID --output none
 
-	if ! az extension list --query "[?contains(name, 'resource-graph')]" --output table; then
-		az extension add --name resource-graph
+	extension_installed=$(az extension list --query "[?contains(name, 'resource-graph')].name | [0]" --output tsv)
+
+	if [  -n  "$extension_installed" ]; then
+		echo "Azure Resource Graph extension already installed."
+		az extension update --name resource-graph --output none --only-show-errors
+	else
+		az extension add --name resource-graph --output none --only-show-errors
+		echo "Azure Resource Graph extension installed."
 	fi
 }
 
