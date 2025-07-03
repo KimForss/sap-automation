@@ -181,8 +181,6 @@ if [ -z "$tfstate_resource_id" ]; then
 	exit 2
 fi
 
-export TF_VAR_spn_keyvault_id="${key_vault_id}"
-
 
 terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 5)
 terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d '/' -f 3)
@@ -192,8 +190,6 @@ export terraform_storage_account_resource_group_name
 export terraform_storage_account_subscription_id
 TF_VAR_tfstate_resource_id=${tfstate_resource_id}
 export TF_VAR_tfstate_resource_id
-
-export workload_key_vault
 
 echo ""
 echo -e "${green}Terraform parameter information:"
