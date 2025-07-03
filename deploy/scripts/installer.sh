@@ -1079,21 +1079,20 @@ if [ "${deployment_system}" == sap_deployer ]; then
 	fi
 	keyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name | tr -d \")
 
-fi
+	if valid_kv_name "$keyvault"; then
+		save_config_var "keyvault" "${system_config_information}"
+	else
+		printf -v val %-40.40s "$keyvault"
+		echo "#########################################################################################"
+		echo "#                                                                                       #"
+		echo -e "#       The provided keyvault is not valid:$bold_red ${val} $reset_formatting  #"
+		echo "#                                                                                       #"
+		echo "#########################################################################################"
+		echo "The provided keyvault is not valid " "${val}" >secret.err
+	fi
 
-if valid_kv_name "$keyvault"; then
-	save_config_var "keyvault" "${system_config_information}"
-else
-	printf -v val %-40.40s "$keyvault"
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo -e "#       The provided keyvault is not valid:$bold_red ${val} $reset_formatting  #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
-	echo "The provided keyvault is not valid " "${val}" >secret.err
+	save_config_var "deployer_public_ip_address" "${system_config_information}"
 fi
-
-save_config_var "deployer_public_ip_address" "${system_config_information}"
 
 if [ "${deployment_system}" == sap_library ]; then
 	REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw remote_state_storage_account_name | tr -d \")
@@ -1109,6 +1108,25 @@ if [ "${deployment_system}" == sap_library ]; then
 	fi
 
 	getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${system_config_information}"
+
+fi
+
+if [ "${deployment_system}" == sap_landscape ]; then
+
+	if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
+		workload_zone_key_vault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw workloadzone_kv_name | tr -d \")
+		if [ -n "${workload_zone_key_vault}" ]; then
+			save_config_var "workload_zone_key_vault" "${system_config_information}"
+		fi
+		workload_zone_random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id | tr -d \")
+		if [ -n "${workload_zone_random_id}" ]; then
+			save_config_var "workload_zone_random_id" "${system_config_information}"
+			custom_random_id="${workload_zone_random_id:0:3}"
+			sed -i -e /"custom_random_id"/d "${parameterfile}"
+			printf "# The parameter 'custom_random_id' can be used to control the random 3 digits at the end of the storage accounts and key vaults\ncustom_random_id=\"%s\"\n" "${custom_random_id}" >>"${var_file}"
+
+		fi
+	fi
 
 fi
 
