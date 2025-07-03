@@ -131,6 +131,9 @@ deployer_tfstate_key=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Depl
 export deployer_tfstate_key
 CONTROL_PLANE_NAME=$(echo "$deployer_tfstate_key" | cut -d'-' -f1-3)
 
+terraform_storage_account_name=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Terraform_Remote_Storage_Account_Name" "${workload_environment_file_name}" "REMOTE_STATE_SA")
+tfstate_resource_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$terraform_storage_account_name' | project id, name, subscription" --query data[0].id --output tsv)
+
 echo ""
 echo -e "${green}Deployment details:"
 echo -e "-------------------------------------------------------------------------------$reset"
@@ -180,7 +183,7 @@ fi
 
 export TF_VAR_spn_keyvault_id="${key_vault_id}"
 
-terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
+
 terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 5)
 terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d '/' -f 3)
 

@@ -129,6 +129,14 @@ export DEPLOYER_KEYVAULT
 landscape_tfstate_key=$WORKLOAD_ZONE_FOLDERNAME.terraform.tfstate
 export landscape_tfstate_key
 
+deployer_tfstate_key=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_State_FileName" "${workload_environment_file_name}" "deployer_tfstate_key")
+export deployer_tfstate_key
+CONTROL_PLANE_NAME=$(echo "$deployer_tfstate_key" | cut -d'-' -f1-3)
+
+terraform_storage_account_name=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Terraform_Remote_Storage_Account_Name" "${workload_environment_file_name}" "REMOTE_STATE_SA")
+tfstate_resource_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$terraform_storage_account_name' | project id, name, subscription" --query data[0].id --output tsv)
+
+
 echo -e "${green}Deployment details:"
 echo -e "-------------------------------------------------------------------------${reset}"
 
