@@ -37,6 +37,12 @@ fi
 export DEBUG
 set -eu
 
+# Print the execution environment details
+print_header
+
+# Configure DevOps
+configure_devops
+
 print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
 
 WORKLOAD_ZONE_NAME=$(echo "$WORKLOAD_ZONE_FOLDERNAME" | cut -d'-' -f1-3)
