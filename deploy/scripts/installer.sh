@@ -669,7 +669,7 @@ else
 	return_value=${PIPESTATUS[0]}
 	if [ 1 -eq $return_value ]; then
 		print_banner "$banner_title" "Error when running plan" "error" "Terraform plan return code: $return_value"
-		return $return_value
+		exit $return_value
 	fi
 	apply_needed=1
 
