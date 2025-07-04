@@ -236,8 +236,8 @@ echo "Return code from deployment:         ${return_code}"
 set +o errexit
 
 
-if [ -f ".sap_deployment_automation/${WORKLOAD_ZONE_NAME}" ]; then
-	KEYVAULT=$(grep -m1 "^workload_zone_key_vault=" ".sap_deployment_automation/${WORKLOAD_ZONE_NAME}" | awk -F'=' '{print $2}' | xargs || true)
+if [ -f "${workload_environment_file_name}" ]; then
+	KEYVAULT=$(grep -m1 "^workloadkeyvault=" "${workload_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
 	echo "Key Vault:                  ${KEYVAULT}"
 
 	echo -e "$green--- Adding variables to the variable group: $VARIABLE_GROUP ---$reset"
