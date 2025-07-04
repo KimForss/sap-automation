@@ -247,6 +247,11 @@ if [ -f "${workload_environment_file_name}" ]; then
 
 fi
 
+if [ -n "$terraform_storage_account_name" ]; then
+	echo -e "$green--- Adding variables to the variable group: $VARIABLE_GROUP ---$reset"
+	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "TERRAFORM_STATE_STORAGE_ACCOUNT" "$terraform_storage_account_name"
+fi
+
 echo -e "$green--- Pushing the changes to the repository ---$reset"
 # Pull changes if there are other deployment jobs
 git pull -q origin "$BUILD_SOURCEBRANCHNAME"
