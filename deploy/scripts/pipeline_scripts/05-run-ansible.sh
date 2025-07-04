@@ -6,7 +6,6 @@ echo "##vso[build.updatebuildnumber]Running Ansible playbooks"
 green="\e[1;32m"
 reset="\e[0m"
 bold_red="\e[1;31m"
-cyan="\e[1;36m"
 
 # External helper functions
 #. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
@@ -53,17 +52,17 @@ if [ $USE_MSI == "true" ]; then
 	ARM_USE_MSI=true
 	export ARM_USE_MSI
 fi
+
+if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
+	configureNonDeployer "${tf_version:-1.12.2}"
+fi
+
 if az account show --query name; then
 	echo -e "$green--- Already logged in to Azure ---$reset"
 else
 	# Check if running on deployer
-	if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-		configureNonDeployer "${tf_version:-1.12.2}"
-		echo -e "$green--- az login ---$reset"
-		LogonToAzure $USE_MSI
-	else
-		LogonToAzure $USE_MSI
-	fi
+	echo -e "$green--- az login ---$reset"
+	LogonToAzure $USE_MSI
 	return_code=$?
 	if [ 0 != $return_code ]; then
 		echo -e "$bold_red--- Login failed ---$reset"
