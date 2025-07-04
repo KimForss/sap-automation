@@ -112,7 +112,7 @@ az account set --subscription "$ARM_SUBSCRIPTION_ID" --output none
 
 echo -e "$green--- Get key_vault name ---$reset"
 
-key_vault=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_Key_Vault" "${environment_file_name}" "keyvault")
+key_vault=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "KEYVAULT" "${environment_file_name}" "workloadkeyvault")
 
 echo "##vso[build.updatebuildnumber]Deploying ${SAP_SYSTEM_CONFIGURATION_NAME} using BoM ${BOM_BASE_NAME}"
 
