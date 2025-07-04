@@ -142,8 +142,8 @@ mkdir -p artifacts
 
 prefix="${ENVIRONMENT}${LOCATION}${NETWORK}"
 
-workload_key_vault=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "${prefix}Workload_Key_Vault" "${environment_file_name}" "workloadkeyvault" || true)
-workload_prefix=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "${prefix}Workload_Secret_Prefix" "${environment_file_name}" "workload_zone_prefix" || true)
+workload_key_vault=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "KEYVAULT" "${environment_file_name}" "workloadkeyvault" || true)
+workload_prefix=$(echo "$SAP_SYSTEM_FOLDERNAME" | cut -d'-' -f1-3)
 control_plane_subscription=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Terraform_Remote_Storage_Subscription" "${environment_file_name}" "STATE_SUBSCRIPTION" || true)
 
 echo "SID:                                 ${SID}"
