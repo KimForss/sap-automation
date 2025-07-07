@@ -264,16 +264,16 @@ else
 	if [ -n "$VARIABLE_GROUP_ID" ]; then
 		print_banner "Remove workload zone" "Deleting variables" "info"
 
-		remove_variable "$VARIABLE_GROUP_ID" "DEPLOYER_KEYVAULT"
-
 		remove_variable "$VARIABLE_GROUP_ID" "APPSERVICE_NAME"
+		remove_variable "$VARIABLE_GROUP_ID" "DEPLOYER_KEYVAULT"
+		remove_variable "$VARIABLE_GROUP_ID" "DEPLOYER_STATE_FILENAME"
+		remove_variable "$VARIABLE_GROUP_ID" "DEPLOYER_STATE_FILENAME"
+		remove_variable "$VARIABLE_GROUP_ID" "Deployer_Key_Vault"
+		remove_variable "$VARIABLE_GROUP_ID" "KEYVAULT"
+		remove_variable "$VARIABLE_GROUP_ID" "TERRAFORM_STATE_STORAGE_ACCOUNT"
 		remove_variable "$VARIABLE_GROUP_ID" "Terraform_Remote_Storage_Account_Name"
 		remove_variable "$VARIABLE_GROUP_ID" "Terraform_Remote_Storage_Resource_Group_Name"
 		remove_variable "$VARIABLE_GROUP_ID" "Terraform_Remote_Storage_Subscription"
-		remove_variable "$VARIABLE_GROUP_ID" "DEPLOYER_STATE_FILENAME"
-		remove_variable "$VARIABLE_GROUP_ID" "Deployer_Key_Vault"
-		remove_variable "$VARIABLE_GROUP_ID" "TERRAFORM_STATE_STORAGE_ACCOUNT"
-		remove_variable "$VARIABLE_GROUP_ID" "KEYVAULT"
 	fi
 fi
 exit $return_code
