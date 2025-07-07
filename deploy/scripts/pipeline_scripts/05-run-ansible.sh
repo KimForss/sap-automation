@@ -78,7 +78,7 @@ if [ -n "$key_vault_subscription" ]; then
 	echo "##[section]Using Key Vault subscription: $key_vault_subscription"
 	az account set --subscription "$key_vault_subscription" --output none
 else
-	echo "##[error]Key Vault subscription not found for vault: $vault_name"
+	echo "##[error]Key Vault subscription not found for vault: $VAULT_NAME"
 	exit 1
 fi
 
