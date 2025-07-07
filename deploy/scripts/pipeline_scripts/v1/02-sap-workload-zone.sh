@@ -139,7 +139,14 @@ if [ ! -f "${deployer_environment_file_name}" ]; then
 	echo "##vso[task.logissue type=error]Control plane configuration file $DEPLOYER_ENVIRONMENT$DEPLOYER_REGION was not found."
 	exit 2
 fi
-workload_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}${NETWORK}"
+
+automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
+if [ "v1" == "${SDAFWZ_CALLER_VERSION:-v2}" ]; then
+	workload_environment_file_name="${automation_config_directory}${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}"
+elif [ "v2" == "${SDAFWZ_CALLER_VERSION:-v2}" ]; then
+	workload_environment_file_name="${automation_config_directory}${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}${NETWORK}"
+fi
+
 echo "Workload Zone Environment File:      $workload_environment_file_name"
 touch "$workload_environment_file_name"
 
@@ -233,9 +240,6 @@ fi
 
 echo "Return code from deployment:         ${return_code}"
 
-set +o errexit
-
-
 if [ -f "${workload_environment_file_name}" ]; then
 	KEYVAULT=$(grep -m1 "^workloadkeyvault=" "${workload_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
 	echo "Key Vault:                  ${KEYVAULT}"
@@ -252,6 +256,8 @@ if [ -n "$terraform_storage_account_name" ]; then
 	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "TERRAFORM_STATE_STORAGE_ACCOUNT" "$terraform_storage_account_name"
 fi
 
+set +o errexit
+
 echo -e "$green--- Pushing the changes to the repository ---$reset"
 # Pull changes if there are other deployment jobs
 git pull -q origin "$BUILD_SOURCEBRANCHNAME"
@@ -263,8 +269,8 @@ if [ -f .terraform/terraform.tfstate ]; then
 	added=1
 fi
 
-if [ -f ".sap_deployment_automation/${WORKLOAD_ZONE_NAME}" ]; then
-	git add ".sap_deployment_automation/${WORKLOAD_ZONE_NAME}"
+if [ -f "${workload_environment_file_name}" ]; then
+	git add "${workload_environment_file_name}"
 	added=1
 fi
 

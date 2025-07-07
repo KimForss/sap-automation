@@ -43,8 +43,8 @@ if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
 fi
 export VARIABLE_GROUP_ID
 
-file_deployer_tfstate_key=$DEPLOYER_FOLDERNAME.tfstate
-deployer_tfstate_key="$DEPLOYER_FOLDERNAME.terraform.tfstate"
+# file_deployer_tfstate_key=$DEPLOYER_FOLDERNAME.tfstate
+# deployer_tfstate_key="$DEPLOYER_FOLDERNAME.terraform.tfstate"
 
 if [ -z "${TF_VAR_ansible_core_version}" ]; then
 	TF_VAR_ansible_core_version=2.16
@@ -56,9 +56,16 @@ mkdir -p .sap_deployment_automation
 
 ENVIRONMENT=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $1}' | xargs)
 LOCATION=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $2}' | xargs)
+NETWORK=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $3}' | xargs)
 CONTROL_PLANE_NAME=$(basename "${DEPLOYER_FOLDERNAME}" | cut -d'-' -f1-3)
 
-deployer_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${CONTROL_PLANE_NAME}"
+automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
+if [ "v1" == "${SDAFWZ_CALLER_VERSION:-v2}" ]; then
+	deployer_environment_file_name="${automation_config_directory}${ENVIRONMENT}${LOCATION}"
+elif [ "v2" == "${SDAFWZ_CALLER_VERSION:-v2}" ]; then
+	deployer_environment_file_name="${automation_config_directory}${ENVIRONMENT}${LOCATION}${NETWORK}"
+fi
+
 deployer_tfvars_file_name="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
 library_tfvars_file_name="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME"
 
@@ -159,7 +166,7 @@ fi
 
 TF_VAR_spn_id=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "ARM_OBJECT_ID" "${deployer_environment_file_name}" "ARM_OBJECT_ID")
 if [ -n "$TF_VAR_spn_id" ]; then
-	if is_valid_guid $TF_VAR_spn_id; then
+	if is_valid_guid "$TF_VAR_spn_id"; then
 		export TF_VAR_spn_id
 		echo "Service Principal Object id:         $TF_VAR_spn_id"
 	fi
@@ -265,8 +272,7 @@ fi
 cd "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME" || exit
 echo "Current directory:                $(pwd)"
 
-if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer.sh" --parameterfile "${DEPLOYER_FOLDERNAME}.tfvars" \
-	--auto-approve ; then
+if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer.sh" --parameterfile "${DEPLOYER_FOLDERNAME}.tfvars" --auto-approve; then
 	return_code=$?
 	echo "##vso[task.logissue type=warning]Return code from install_deployer.sh $return_code."
 	step=1
@@ -283,11 +289,28 @@ fi
 set -eu
 
 if [ -f "${deployer_environment_file_name}" ]; then
-	DEPLOYER_KEYVAULT=$(grep -m1 "^DEPLOYER_KEYVAULT=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
-	echo "Deployer Key Vault:                  ${DEPLOYER_KEYVAULT}"
+
+	# check if DEPLOYER_KEYVAULT is already available as an export
+	if checkforEnvVar "DEPLOYER_KEYVAULT"; then
+		echo "Deployer Key Vault:                  ${DEPLOYER_KEYVAULT}"
+	else
+		# if not, try to read it from the environment file
+		DEPLOYER_KEYVAULT=$(grep -m1 "^DEPLOYER_KEYVAULT=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
+		# if the variable is not set, fallback to old variable name
+		if [ -z "${DEPLOYER_KEYVAULT}" ]; then
+			DEPLOYER_KEYVAULT=$(grep -m1 "^keyvault=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
+		fi
+		echo "Deployer Key Vault:                  ${DEPLOYER_KEYVAULT}"
+	fi
+
+	# if DEPLOYER_KEYVAULT is still not set, exit with an error
+	if [ -z "${DEPLOYER_KEYVAULT}" ]; then
+		echo "##vso[task.logissue type=error]Deployer Key Vault is not defined in the environment file."
+		exit 1
+	fi
 
 	echo -e "$green--- Adding variables to the variable group: $VARIABLE_GROUP ---$reset"
-	if [ 0 -eq $return_code ]; then
+	if [ -n "$DEPLOYER_KEYVAULT" ]; then
 		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "$DEPLOYER_KEYVAULT"
 	fi
 

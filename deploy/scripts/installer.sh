@@ -18,6 +18,17 @@ reset_formatting="\e[0m"
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 
+# Detect version from environment variable
+caller_version="${SDAFWZ_CALLER_VERSION:-v2}"
+
+if [[ "$caller_version" == "v1" ]]; then
+    isCallerV1=0
+    echo "INFO: Detected v1 caller via environment variable"
+else
+    isCallerV1=1
+    echo "INFO: Detected v2 caller via environment variable"
+fi
+
 #call stack has full script name when using source
 source "${script_directory}/deploy_utils.sh"
 
@@ -239,7 +250,12 @@ fi
 
 automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
 generic_config_information="${automation_config_directory}"config
-system_config_information="${automation_config_directory}${environment}${region_code}${network_logical_name}"
+
+if [ "v1" == "${SDAFWZ_CALLER_VERSION:-v2}" ]; then
+	system_config_information="${automation_config_directory}${environment}${region_code}"
+elif [ "v2" == "${SDAFWZ_CALLER_VERSION:-v2}" ]; then
+	system_config_information="${automation_config_directory}${environment}${region_code}${network_logical_name}"
+fi
 
 echo "Configuration file:                  $system_config_information"
 echo "Deployment region:                   $region"
@@ -512,16 +528,16 @@ echo "State file:                          ${key}.terraform.tfstate"
 echo "Target subscription:                 ${ARM_SUBSCRIPTION_ID}"
 echo "Deployer state file:                 ${deployer_tfstate_key}"
 echo "Workload zone state file:            ${landscape_tfstate_key}"
-echo "Terraform state resource ID:         ${tfstate_resource_id}"
+echo "Terraform state resource id:         ${tfstate_resource_id}"
 echo "Current directory:                   $(pwd)"
 echo ""
+
+TF_VAR_subscription_id="$ARM_SUBSCRIPTION_ID"
+export TF_VAR_subscription_id
 
 terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
 terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d '/' -f 3)
 terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 5)
-
-TF_VAR_subscription_id="$ARM_SUBSCRIPTION_ID"
-export TF_VAR_subscription_id
 
 check_output=0
 
@@ -548,7 +564,7 @@ if [ ! -f .terraform/terraform.tfstate ]; then
 		--backend-config "key=${key}.terraform.tfstate"; then
 		return_value=$?
 		print_banner "$banner_title" "Terraform init failed." "error"
-		return $return_value
+		exit $return_value
 	else
 		return_value=$?
 	fi
@@ -587,7 +603,7 @@ else
 		else
 			return_value=10
 			print_banner "$banner_title" "Terraform init failed" "error" "Terraform init return code: $return_value"
-			return $return_value
+			exit $return_value
 		fi
 	else
 		echo "Terraform state:                     remote"
@@ -604,7 +620,7 @@ else
 		else
 			return_value=10
 			print_banner "$banner_title" "Terraform init failed." "error" "Terraform init return code: $return_value"
-			return $return_value
+			exit $return_value
 		fi
 	fi
 fi
@@ -741,6 +757,11 @@ if [ 1 != $return_value ]; then
 	fi
 
 	if [ "${deployment_system}" == sap_library ]; then
+		if [ -z "${REMOTE_STATE_SA}" ]; then
+			print_banner "$banner_title" "The SAP Library storage account is not defined" "error"
+			echo "##vso[task.logissue type=error]The SAP Library storage account is not defined"
+			exit 1
+		fi
 		state_path="LIBRARY"
 		if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
 			tfstate_resource_id=$(terraform -chdir="${terraform_module_directory}" output tfstate_resource_id | tr -d \")
@@ -899,7 +920,8 @@ if [ "${TEST_ONLY}" == "True" ]; then
 fi
 
 if [ $fatal_errors == 1 ]; then
-	apply_needed=0print_banner "$banner_title" "!!! Risk for Data loss !!!" "error" "Please inspect the output of Terraform plan carefully"
+	apply_needed=0
+	print_banner "$banner_title" "!!! Risk for Data loss !!!" "error" "Please inspect the output of Terraform plan carefully"
 	if [ 1 == "$called_from_ado" ]; then
 		unset TF_DATA_DIR
 		echo "Risk for data loss, Please inspect the output of Terraform plan carefully. Run manually from deployer" >"${system_config_information}".err
@@ -1069,46 +1091,33 @@ if [ "${deployment_system}" == sap_deployer ]; then
 
 	fi
 
+	# shellcheck disable=SC2034
 	deployer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_public_ip_address | tr -d \")
-
-	application_configuration_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_app_config_id | tr -d \")
-	if [ -n "${application_configuration_id}" ]; then
-		APPLICATION_CONFIGURATION_ID="${application_configuration_id}"
-		export APPLICATION_CONFIGURATION_ID
-		save_config_var "APPLICATION_CONFIGURATION_ID" "${system_config_information}"
-	fi
-	keyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name | tr -d \")
-
-	if valid_kv_name "$keyvault"; then
-		save_config_var "keyvault" "${system_config_information}"
-	else
-		printf -v val %-40.40s "$keyvault"
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo -e "#       The provided keyvault is not valid:$bold_red ${val} $reset_formatting  #"
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
-		echo "The provided keyvault is not valid " "${val}" >secret.err
-	fi
-
 	save_config_var "deployer_public_ip_address" "${system_config_information}"
-fi
 
-if [ "${deployment_system}" == sap_library ]; then
-	REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw remote_state_storage_account_name | tr -d \")
-	sapbits_storage_account_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw sapbits_storage_account_name | tr -d \")
-
-	library_random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id | tr -d \")
-	if [ -n "${library_random_id}" ]; then
-		save_config_var "library_random_id" "${system_config_information}"
-		custom_random_id="${library_random_id:0:3}"
-		sed -i -e /"custom_random_id"/d "${parameterfile}"
-		printf "# The parameter 'custom_random_id' can be used to control the random 3 digits at the end of the storage accounts and key vaults\ncustom_random_id=\"%s\"\n" "${custom_random_id}" >>"${var_file}"
-
+	if (terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_app_config_id | tr -d \"); then
+		application_configuration_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_app_config_id | tr -d \")
+		if [ -n "${application_configuration_id}" ]; then
+			APPLICATION_CONFIGURATION_ID="${application_configuration_id}"
+			export APPLICATION_CONFIGURATION_ID
+			save_config_var "APPLICATION_CONFIGURATION_ID" "${system_config_information}"
+		fi
 	fi
 
-	getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${system_config_information}"
-
+	if (terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name | tr -d \"); then
+		keyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name | tr -d \")
+		if valid_kv_name "$keyvault"; then
+			save_config_var "keyvault" "${system_config_information}"
+		else
+			printf -v val %-40.40s "$keyvault"
+			echo "#########################################################################################"
+			echo "#                                                                                       #"
+			echo -e "#       The provided keyvault is not valid:$bold_red ${val} $reset_formatting  #"
+			echo "#                                                                                       #"
+			echo "#########################################################################################"
+			echo "The provided keyvault is not valid " "${val}" >secret.err
+		fi
+	fi
 fi
 
 if [ "${deployment_system}" == sap_landscape ]; then
@@ -1127,6 +1136,23 @@ if [ "${deployment_system}" == sap_landscape ]; then
 
 		fi
 	fi
+
+fi
+
+if [ "${deployment_system}" == sap_library ]; then
+	REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw remote_state_storage_account_name | tr -d \")
+	sapbits_storage_account_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw sapbits_storage_account_name | tr -d \")
+
+	library_random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id | tr -d \")
+	if [ -n "${library_random_id}" ]; then
+		save_config_var "library_random_id" "${system_config_information}"
+		custom_random_id="${library_random_id:0:3}"
+		sed -i -e /"custom_random_id"/d "${parameterfile}"
+		printf "# The parameter 'custom_random_id' can be used to control the random 3 digits at the end of the storage accounts and key vaults\ncustom_random_id=\"%s\"\n" "${custom_random_id}" >>"${var_file}"
+
+	fi
+
+	getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${system_config_information}"
 
 fi
 

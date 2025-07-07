@@ -44,6 +44,31 @@ print_header
 # Configure DevOps
 configure_devops
 
+# Set logon variables
+if [ $USE_MSI == "true" ]; then
+	unset ARM_CLIENT_SECRET
+	ARM_USE_MSI=true
+	export ARM_USE_MSI
+fi
+
+if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
+	configureNonDeployer "${tf_version:-1.12.2}"
+fi
+
+if az account show --query name; then
+	echo -e "$green--- Already logged in to Azure ---$reset"
+else
+	# Check if running on deployer
+	echo -e "$green--- az login ---$reset"
+	LogonToAzure $USE_MSI
+	return_code=$?
+	if [ 0 != $return_code ]; then
+		echo -e "$bold_red--- Login failed ---$reset"
+		echo "##vso[task.logissue type=error]az login failed."
+		exit $return_code
+	fi
+fi
+
 if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID" ;
 then
 	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
@@ -66,40 +91,6 @@ if [ ! -f "$CONFIG_REPO_PATH/$tfvarsFile" ]; then
 	exit 2
 fi
 
-# Set logon variables
-if [ "$USE_MSI" != "true" ]; then
-
-	ARM_TENANT_ID=$(az account show --query tenantId --output tsv)
-	export ARM_TENANT_ID
-	ARM_SUBSCRIPTION_ID=$(az account show --query id --output tsv)
-	export ARM_SUBSCRIPTION_ID
-else
-	unset ARM_CLIENT_SECRET
-	ARM_USE_MSI=true
-	export ARM_USE_MSI
-fi
-
-if [ -v SYSTEM_ACCESSTOKEN ]; then
-	export TF_VAR_PAT="$SYSTEM_ACCESSTOKEN"
-fi
-
-# Check if running on deployer
-if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-	configureNonDeployer "${tf_version:-1.12.2}"
-	echo -e "$green--- az login ---$reset"
-	LogonToAzure $USE_MSI
-	return_code=$?
-	if [ 0 != $return_code ]; then
-		echo -e "$bold_red--- Login failed ---$reset"
-		echo "##vso[task.logissue type=error]az login failed."
-		exit $return_code
-	fi
-else
-	LogonToAzure $USE_MSI
-fi
-
-az account set --subscription "$ARM_SUBSCRIPTION_ID"
-
 ENVIRONMENT=$(grep -m1 "^environment" "$tfvarsFile" | awk -F'=' '{print $2}' | tr -d ' \t\n\r\f"')
 LOCATION=$(grep -m1 "^location" "$tfvarsFile" | awk -F'=' '{print $2}' | tr '[:upper:]' '[:lower:]' | tr -d ' \t\n\r\f"')
 NETWORK=$(grep -m1 "^network_logical_name" "$tfvarsFile" | awk -F'=' '{print $2}' | tr -d ' \t\n\r\f"')
@@ -110,13 +101,18 @@ LOCATION_CODE_IN_FILENAME=$(echo $SAP_SYSTEM_FOLDERNAME | awk -F'-' '{print $2}'
 LOCATION_IN_FILENAME=$(get_region_from_code "$LOCATION_CODE_IN_FILENAME" || true)
 NETWORK_IN_FILENAME=$(echo $SAP_SYSTEM_FOLDERNAME | awk -F'-' '{print $3}')
 SID_IN_FILENAME=$(echo $SAP_SYSTEM_FOLDERNAME | awk -F'-' '{print $4}')
-
 WORKLOAD_ZONE_NAME=$(echo "$SAP_SYSTEM_FOLDERNAME" | cut -d'-' -f1-3)
 landscape_tfstate_key="${ENVIRONMENT_IN_FILENAME}-${LOCATION_CODE_IN_FILENAME}-${NETWORK_IN_FILENAME}-INFRASTRUCTURE.terraform.tfstate"
 export landscape_tfstate_key
-workload_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT_IN_FILENAME}${LOCATION_CODE_IN_FILENAME}${NETWORK_IN_FILENAME}"
 
-deployer_tfstate_key=$(getVariableFromVariableGroup "${VARIABLE_GROUP}" "Deployer_State_FileName" "${workload_environment_file_name}" "deployer_tfstate_key")
+automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
+if [ "v1" == "${SDAFWZ_CALLER_VERSION:-v2}" ]; then
+	workload_environment_file_name="${automation_config_directory}${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}"
+elif [ "v2" == "${SDAFWZ_CALLER_VERSION:-v2}" ]; then
+	workload_environment_file_name="${automation_config_directory}${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}${NETWORK}"
+fi
+
+deployer_tfstate_key=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_State_FileName" "${workload_environment_file_name}" "deployer_tfstate_key")
 export deployer_tfstate_key
 
 Terraform_Remote_Storage_Account_Name=$(getVariableFromVariableGroup "${VARIABLE_GROUP}" "TERRAFORM_STATE_STORAGE_ACCOUNT" "${workload_environment_file_name}" "REMOTE_STATE_SA")
@@ -207,7 +203,7 @@ echo "Target subscription:                 $ARM_SUBSCRIPTION_ID"
 cd "$CONFIG_REPO_PATH/SYSTEM/$SAP_SYSTEM_FOLDERNAME" || exit
 if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer.sh" --parameterfile "$SAP_SYSTEM_TFVARS_FILENAME" --type sap_system \
 	--deployer_tfstate_key "${deployer_tfstate_key}" --storageaccountname "$terraform_storage_account_name"  \
-	--landscape_tfstate_key "${landscape_tfstate_key}" \
+	--landscape_tfstate_key "${landscape_tfstate_key}" --state_subscription "${terraform_storage_account_subscription_id}" \
 	--ado --auto-approve ; then
 	return_code=$?
 	print_banner "$banner_title" "Deployment of $SAP_SYSTEM_FOLDERNAME completed successfully" "success"

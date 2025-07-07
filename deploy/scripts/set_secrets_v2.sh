@@ -23,6 +23,74 @@ set -eu
 
 deploy_using_msi_only=0
 keyvault=""
+
+function addKeyVaultNetworkRule {
+		local keyvault=$1
+		local subscription=$2
+		local ip_address=$3
+
+		if [[ -z "$keyvault" || -z "$subscription" || -z "$ip_address" ]]; then
+				echo "ERROR: Missing parameters for addKeyVaultNetworkRule" >&2
+				return 1
+		fi
+
+		az keyvault network-rule add --name "${keyvault}" \
+			--subscription "${subscription}" \
+			--ip-address "${ip_address}" --output none 2>/dev/null || true
+}
+
+function ensureKeyVaultAccess {
+    local keyvault=$1
+    local subscription=$2
+    local max_retries=3
+    local retry_count=0
+
+    # Validate inputs
+    if [[ ! "$keyvault" =~ ^[a-zA-Z0-9-]{3,24}$ ]] || ! is_valid_guid "$subscription"; then
+        echo "ERROR: Invalid parameters" >&2
+        return 1
+    fi
+
+    # First, try to access without modifying firewall
+    while [ $retry_count -lt $max_retries ]; do
+        if az keyvault secret list --vault-name "${keyvault}" --subscription "${subscription}" --query "[0].name" --output tsv --only-show-errors; then
+            echo "Key Vault access confirmed (attempt $((retry_count + 1)))" >&2
+            return 0
+        fi
+
+        if [ $retry_count -eq 0 ]; then
+            # Only add IP rule on first failure
+            echo "Access denied, attempting to add current IP to firewall..." >&2
+            local current_ip
+						local current_local_ip
+            current_ip=$(curl -s ipinfo.io/ip 2>/dev/null)
+						# get current local ip from the machine
+						current_local_ip=$(hostname -I | awk '{print $1}')
+
+						if [[ "$current_ip" =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
+								if ! addKeyVaultNetworkRule "$keyvault" "$subscription" "$current_ip"; then
+										echo "Failed to add IP rule for ${current_ip}, trying local IP ${current_local_ip}" >&2
+										addKeyVaultNetworkRule "${keyvault}" "${subscription}" "${current_local_ip}"
+								else
+										echo "Added IP rule for ${current_ip}, waiting for propagation..." >&2
+								fi
+						else
+								echo "ERROR: Invalid IP address format: ${current_ip}" >&2
+								return 1
+						fi
+
+						# Wait for the rule to propagate
+						sleep 30  # Increased wait time for propagation
+        fi
+
+        retry_count=$((retry_count + 1))
+        sleep 5
+    done
+
+    echo "ERROR: Unable to establish Key Vault access after $max_retries attempts" >&2
+    return 1
+}
+
 ###############################################################################
 # Function to safely get a secret value from Azure Key Vault                  #
 # Arguments:                                                                  #
@@ -48,27 +116,32 @@ function getSecretValue {
         return 2
     fi
 
-    # Attempt to get the secret value, suppressing error output
-    secret_value=$(az keyvault secret show --name "${secret_name}" --vault-name "${keyvault}" --subscription "${subscription}" --query value --output tsv 2>/dev/null)
-    local az_exit_code=$?
+    # Ensure network access first
+    # ensureKeyVaultAccess "${keyvault}" "${subscription}"
 
-    case $az_exit_code in
-        0)
-            # Secret found successfully
-            echo "$secret_value"
-            return_code=0
-            ;;
-        3)
-            # Secret not found (SecretNotFound error)
-            echo ""
-            return_code=1
-            ;;
-        *)
-            # Other error (permissions, vault not found, etc.)
-            echo ""
-            return_code=2
-            ;;
-    esac
+    if secretExists "${keyvault}" "${subscription}" "${secret_name}" ; then
+        set +e
+        secret_value=$(az keyvault secret show --name "${secret_name}" --vault-name "${keyvault}" --subscription "${subscription}" --query value --output tsv 2>/dev/null)
+        local az_exit_code=$?
+        set -e
+
+        case $az_exit_code in
+            0)
+                echo "$secret_value"
+                return_code=0
+                ;;
+            3)
+                echo "Network Error"
+                return_code=1
+                ;;
+            *)
+                echo ""
+                return_code=2
+                ;;
+        esac
+    else
+        return_code=1
+    fi
 
     return $return_code
 }
@@ -88,10 +161,30 @@ function secretExists {
     local keyvault=$1
     local subscription=$2
     local secret_name=$3
+		local kvSecretExitsCode
 
-    # Use az keyvault secret list to check existence (more efficient)
-    az keyvault secret list --vault-name "${keyvault}" --subscription "${subscription}" --query "[?name=='${secret_name}'].name" --output tsv 2>/dev/null | grep -q "^${secret_name}$"
-    return $?
+		set +e
+
+		echo "DEBUG: Current az account: $(az account show --query user --output yaml)" >&2
+		echo "DEBUG: About to run az command with params: keyvault='$keyvault', subscription='$subscription', secret_name='$secret_name'" >&2
+
+		az keyvault secret list --vault-name "${keyvault}" \
+			--subscription "${subscription}" \
+			--query "[?name=='${secret_name}'].name | [0]" \
+			--output tsv >&2
+		kvSecretExitsCode=$?
+		echo "DEBUG: Command completed. exit_code=$kvSecretExitsCode" >&2
+
+		set -e
+
+		if [ $kvSecretExitsCode -eq 0 ]; then
+			echo "DEBUG: Secret ${secret_name} exists in Key Vault ${keyvault}" >&2
+		else
+			echo "DEBUG: Secret ${secret_name} does not exist in Key Vault ${keyvault} - Return code: ${kvSecretExitsCode}" >&2
+		fi
+
+		# shellcheck disable=SC2086
+    return $kvSecretExitsCode
 }
 
 ###############################################################################
@@ -140,31 +233,39 @@ function setSecretValue {
             ;;
     esac
 
-    # Set the secret
-    if az keyvault secret set --name "${secret_name}" --vault-name "${keyvault}" --subscription "${subscription}" --value "${value}" --expires "$(date -d '+1 year' -u +%Y-%m-%dT%H:%M:%SZ)" --output none --content-type "${type}" 2>/dev/null; then
-        local_return_code=0
-        echo "Successfully set secret ${secret_name}"
-    else
-        local_return_code=$?
-        echo "Failed to set secret ${secret_name}, attempting recovery..."
+		set +e
+		az keyvault secret set --name "${secret_name}" --vault-name "${keyvault}" --subscription "${subscription}" --value "${value}" --expires "$(date -d '+1 year' -u +%Y-%m-%dT%H:%M:%SZ)" --output none --content-type "${type}" 2>/dev/null
+		local_return_code=$?
+		set -e
 
-        # Try to recover the secret if it was recently deleted
-        if az keyvault secret recover --name "${secret_name}" --vault-name "${keyvault}" --subscription "${subscription}" --output none 2>/dev/null; then
-            echo "Secret ${secret_name} recovered, waiting 10 seconds..."
-            sleep 10
+		if [ $local_return_code -eq 0 ]; then
+		    echo "Successfully set secret ${secret_name}"
+		else
+		    echo "Failed to set secret ${secret_name}, attempting recovery..."
 
-            # Try setting again after recovery
-            if az keyvault secret set --name "${secret_name}" --vault-name "${keyvault}" --subscription "${subscription}" --value "${value}" --expires "$(date -d '+1 year' -u +%Y-%m-%dT%H:%M:%SZ)" --output none --content-type "${type}" 2>/dev/null; then
-                local_return_code=0
-                echo "Successfully set secret ${secret_name} after recovery"
-            else
-                local_return_code=$?
-                echo "Failed to set secret ${secret_name} even after recovery"
-            fi
-        else
-            echo "Could not recover secret ${secret_name} or it was never deleted"
-        fi
-    fi
+		    set +e
+		    az keyvault secret recover --name "${secret_name}" --vault-name "${keyvault}" --subscription "${subscription}" --output none 2>/dev/null
+		    local recovery_code=$?
+		    set -e
+
+		    if [ $recovery_code -eq 0 ]; then
+		        echo "Secret ${secret_name} recovered, waiting 10 seconds..."
+		        sleep 10
+
+		        set +e
+		        az keyvault secret set --name "${secret_name}" --vault-name "${keyvault}" --subscription "${subscription}" --value "${value}" --expires "$(date -d '+1 year' -u +%Y-%m-%dT%H:%M:%SZ)" --output none --content-type "${type}" 2>/dev/null
+		        local_return_code=$?
+		        set -e
+
+		        if [ $local_return_code -eq 0 ]; then
+		            echo "Successfully set secret ${secret_name} after recovery"
+		        else
+		            echo "Failed to set secret ${secret_name} even after recovery"
+		        fi
+		    else
+		        echo "Could not recover secret ${secret_name} or it was never deleted"
+		    fi
+		fi
 
     return $local_return_code
 }

@@ -231,6 +231,8 @@ deployer_file_parametername=$(basename "${deployer_parameter_file}")
 library_dirname=$(dirname "${library_parameter_file}")
 library_file_parametername=$(basename "${library_parameter_file}")
 
+# relative_deployer_path=$(dirname $(realpath ${deployer_parameter_file}))
+
 relative_path="${deployer_dirname}"
 TF_DATA_DIR="${relative_path}"/.terraform
 export TF_DATA_DIR
@@ -467,6 +469,8 @@ if [ 1 -eq $step ] || [ 3 -eq $step ]; then
 
 					keyvault=$(terraform -chdir="${terraform_module_directory}" output deployer_kv_user_name | tr -d \")
 					save_config_var "keyvault" "${deployer_config_information}"
+					DEPLOYER_KEYVAULT="${keyvault}"
+					save_config_var "DEPLOYER_KEYVAULT" "${deployer_config_information}"
 				else
 					echo "Terraform state:                     local"
 				fi
@@ -576,7 +580,7 @@ if [ 2 -eq $step ]; then
 
 	relative_path="${library_dirname}"
 	export TF_DATA_DIR="${relative_path}/.terraform"
-	relative_path="$CONFIG_REPO_PATH/${deployer_dirname}"
+	relative_path="${deployer_dirname}"
 
 	cd "${library_dirname}" || exit
 	terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/sap_library/
@@ -585,13 +589,13 @@ if [ 2 -eq $step ]; then
 		rm -Rf .terraform terraform.tfstate*
 	fi
 
-	echo "Calling install_library.sh with: --parameterfile ${library_file_parametername} --deployer_statefile_foldername ${relative_path} --keyvault ${keyvault} ${autoApproveParameter}"
+	echo "Calling install_library.sh with: --parameterfile ${library_file_parametername} --deployer_statefile_foldername ${deployer_dirname} --keyvault ${keyvault} ${autoApproveParameter}"
 
 	if [ "$ado_flag" == "--ado" ] || [ "$approve" == "--auto-approve" ]; then
 
 		if ! "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_library.sh" \
 			--parameterfile "${library_file_parametername}" \
-			--deployer_statefile_foldername "${relative_path}" \
+			--deployer_statefile_foldername "${deployer_dirname}" \
 			--keyvault "${keyvault}" --auto-approve; then
 			echo "Bootstrapping of the SAP Library failed"
 			step=2
@@ -789,11 +793,37 @@ if [ 4 -eq $step ]; then
 	echo ""
 
 	terraform_module_directory="$SAP_AUTOMATION_REPO_PATH"/deploy/terraform/run/sap_library/
+
+	echo "DEBUG: terraform_module_directory: ${terraform_module_directory}"
+	echo "DEBUG: library_dirname: ${library_dirname}"
+
 	cd "${library_dirname}" || exit
 	if [ -f .terraform/terraform.tfstate ]; then
-		STATE_SUBSCRIPTION=$(grep -m1 "subscription_id" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
-		REMOTE_STATE_SA=$(grep -m1 "storage_account_name" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
-		REMOTE_STATE_RG=$(grep -m1 "resource_group_name" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
+		# If the library state file exists, we will use it to get the remote state storage account and
+		# resource group name
+		if [ -z "$REMOTE_STATE_SA" ]; then
+			echo "DEBUG: Using the remote state storage account from the library state file"
+			REMOTE_STATE_SA=$(grep -m1 "storage_account_name" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
+		else
+			echo "DEBUG: Using the remote state storage account from the deployer state file"
+			load_config_vars "${deployer_config_information}" "REMOTE_STATE_SA"
+			echo "DEBUG: Remote state storage account: ${REMOTE_STATE_SA}"
+		fi
+		if [ -z "$REMOTE_STATE_RG" ]; then
+			echo "DEBUG: Using the remote state resource group name from the library state file"
+			REMOTE_STATE_RG=$(grep -m1 "resource_group_name" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
+		else
+			echo "DEBUG: Using the remote state resource group name from the deployer state file"
+			load_config_vars "${deployer_config_information}" "REMOTE_STATE_RG"
+		fi
+		if [ -z "$STATE_SUBSCRIPTION" ]; then
+			# If the state subscription is not set, we will use the one from the deployer state file
+			# This is needed to support running deploy_controlplane on new host when the resources are already deployed
+			echo "DEBUG: Using the state subscription from the library state file"
+			STATE_SUBSCRIPTION=$(grep -m1 "subscription_id" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
+		else
+			load_config_vars "${deployer_config_information}" "STATE_SUBSCRIPTION"
+		fi
 	fi
 	echo "Calling installer.sh with:          \
         --type sap_library \
