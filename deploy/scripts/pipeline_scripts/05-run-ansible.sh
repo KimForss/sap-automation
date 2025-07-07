@@ -71,11 +71,19 @@ else
 	fi
 fi
 
-vault_name=$(echo "${VAULT_NAME}" | tr [:upper:] [:lower:] | xargs)
+vault_name=$(echo "${KEYVAULT}" | tr [:upper:] [:lower:] | xargs)
 key_vault_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$vault_name' | project id, name, subscription" --query data[0].id --output tsv)
 key_vault_subscription=$(echo "$key_vault_id" | cut -d '/' -f 3)
 
-az account set --subscription "$key_vault_subscription" --output none
+if [ -n "$key_vault_subscription" ]; then
+	echo "##[section]Using Key Vault subscription: $key_vault_subscription"
+	az account set --subscription "$key_vault_subscription" --output none
+else
+	echo "##[error]Key Vault subscription not found for vault: $vault_name"
+	exit 1
+fi
+
+
 
 set -eu
 
