@@ -227,7 +227,7 @@ stages:
                   azureClientId:             $(ARM_CLIENT_ID)
                   azureClientSecret:         $(ARM_CLIENT_SECRET)
                   azureTenantId:             $(ARM_TENANT_ID)
-                  azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
+                  azureSubscriptionId:       $(Preparation.ARM_SUBSCRIPTION_ID)
                   USE_MSI:                   $(USE_MSI)
                   CONTROL_PLANE_SUBSCRIPTION_ID: $(Terraform_Remote_Storage_Subscription)
           - ${{ if eq(parameters.sap_os_configuration, true) }}:
@@ -247,7 +247,7 @@ stages:
                   azureClientId:             $(ARM_CLIENT_ID)
                   azureClientSecret:         $(ARM_CLIENT_SECRET)
                   azureTenantId:             $(ARM_TENANT_ID)
-                  azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
+                  azureSubscriptionId:       $(Preparation.ARM_SUBSCRIPTION_ID)
                   USE_MSI:                   $(USE_MSI)
                   CONTROL_PLANE_SUBSCRIPTION_ID: $(Terraform_Remote_Storage_Subscription)
           - ${{ if eq(parameters.bom_processing, true) }}:
@@ -267,7 +267,7 @@ stages:
                   azureClientId:             $(ARM_CLIENT_ID)
                   azureClientSecret:         $(ARM_CLIENT_SECRET)
                   azureTenantId:             $(ARM_TENANT_ID)
-                  azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
+                  azureSubscriptionId:       $(Preparation.ARM_SUBSCRIPTION_ID)
                   USE_MSI:                   $(USE_MSI)
                   CONTROL_PLANE_SUBSCRIPTION_ID: $(Terraform_Remote_Storage_Subscription)
           - ${{ if eq(parameters.scs_installation, true) }}:
@@ -287,7 +287,7 @@ stages:
                   azureClientId:             $(ARM_CLIENT_ID)
                   azureClientSecret:         $(ARM_CLIENT_SECRET)
                   azureTenantId:             $(ARM_TENANT_ID)
-                  azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
+                  azureSubscriptionId:       $(Preparation.ARM_SUBSCRIPTION_ID)
                   USE_MSI:                   $(USE_MSI)
                   CONTROL_PLANE_SUBSCRIPTION_ID: $(Terraform_Remote_Storage_Subscription)
           - ${{ if eq(parameters.database_install, true) }}:
@@ -307,7 +307,7 @@ stages:
                   azureClientId:             $(ARM_CLIENT_ID)
                   azureClientSecret:         $(ARM_CLIENT_SECRET)
                   azureTenantId:             $(ARM_TENANT_ID)
-                  azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
+                  azureSubscriptionId:       $(Preparation.ARM_SUBSCRIPTION_ID)
                   USE_MSI:                   $(USE_MSI)
                   CONTROL_PLANE_SUBSCRIPTION_ID: $(Terraform_Remote_Storage_Subscription)
           - ${{ if eq(parameters.db_load, true) }}:
@@ -327,7 +327,7 @@ stages:
                   azureClientId:             $(ARM_CLIENT_ID)
                   azureClientSecret:         $(ARM_CLIENT_SECRET)
                   azureTenantId:             $(ARM_TENANT_ID)
-                  azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
+                  azureSubscriptionId:       $(Preparation.ARM_SUBSCRIPTION_ID)
                   USE_MSI:                   $(USE_MSI)
                   CONTROL_PLANE_SUBSCRIPTION_ID: $(Terraform_Remote_Storage_Subscription)
           - ${{ if eq(parameters.high_availability_configuration, true) }}:
@@ -347,7 +347,7 @@ stages:
                   azureClientId:             $(ARM_CLIENT_ID)
                   azureClientSecret:         $(ARM_CLIENT_SECRET)
                   azureTenantId:             $(ARM_TENANT_ID)
-                  azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
+                  azureSubscriptionId:       $(Preparation.ARM_SUBSCRIPTION_ID)
                   USE_MSI:                   $(USE_MSI)
                   CONTROL_PLANE_SUBSCRIPTION_ID: $(Terraform_Remote_Storage_Subscription)
           - ${{ if eq(parameters.pas_installation, true) }}:
@@ -367,7 +367,7 @@ stages:
                   azureClientId:             $(ARM_CLIENT_ID)
                   azureClientSecret:         $(ARM_CLIENT_SECRET)
                   azureTenantId:             $(ARM_TENANT_ID)
-                  azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
+                  azureSubscriptionId:       $(Preparation.ARM_SUBSCRIPTION_ID)
                   USE_MSI:                   $(USE_MSI)
                   CONTROL_PLANE_SUBSCRIPTION_ID: $(Terraform_Remote_Storage_Subscription)
           - ${{ if eq(parameters.application_server_installation, true) }}:
@@ -387,7 +387,7 @@ stages:
                   azureClientId:             $(ARM_CLIENT_ID)
                   azureClientSecret:         $(ARM_CLIENT_SECRET)
                   azureTenantId:             $(ARM_TENANT_ID)
-                  azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
+                  azureSubscriptionId:       $(Preparation.ARM_SUBSCRIPTION_ID)
                   USE_MSI:                   $(USE_MSI)
                   CONTROL_PLANE_SUBSCRIPTION_ID: $(Terraform_Remote_Storage_Subscription)
           - ${{ if eq(parameters.webdispatcher_installation, true) }}:
@@ -407,7 +407,7 @@ stages:
                   azureClientId:             $(ARM_CLIENT_ID)
                   azureClientSecret:         $(ARM_CLIENT_SECRET)
                   azureTenantId:             $(ARM_TENANT_ID)
-                  azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
+                  azureSubscriptionId:       $(Preparation.ARM_SUBSCRIPTION_ID)
                   USE_MSI:                   $(USE_MSI)
                   CONTROL_PLANE_SUBSCRIPTION_ID: $(Terraform_Remote_Storage_Subscription)
           - ${{ if eq(parameters.post_configuration_actions, true) }}:
@@ -427,7 +427,7 @@ stages:
                   azureClientId:             $(ARM_CLIENT_ID)
                   azureClientSecret:         $(ARM_CLIENT_SECRET)
                   azureTenantId:             $(ARM_TENANT_ID)
-                  azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
+                  azureSubscriptionId:       $(Preparation.ARM_SUBSCRIPTION_ID)
                   USE_MSI:                   $(USE_MSI)
                   CONTROL_PLANE_SUBSCRIPTION_ID: $(Terraform_Remote_Storage_Subscription)
           - ${{ if eq(parameters.sap_on_azure_quality_checks, true) }}:
@@ -447,7 +447,7 @@ stages:
                   azureClientId:             $(ARM_CLIENT_ID)
                   azureClientSecret:         $(ARM_CLIENT_SECRET)
                   azureTenantId:             $(ARM_TENANT_ID)
-                  azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
+                  azureSubscriptionId:       $(Preparation.ARM_SUBSCRIPTION_ID)
                   USE_MSI:                   $(USE_MSI)
                   CONTROL_PLANE_SUBSCRIPTION_ID: $(Terraform_Remote_Storage_Subscription)
           - ${{ if eq(parameters.acss_registration, true) }}:
@@ -467,7 +467,7 @@ stages:
                   azureClientId:             $(ARM_CLIENT_ID)
                   azureClientSecret:         $(ARM_CLIENT_SECRET)
                   azureTenantId:             $(ARM_TENANT_ID)
-                  azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
+                  azureSubscriptionId:       $(Preparation.ARM_SUBSCRIPTION_ID)
                   acssEnvironment:           ${{ parameters.acss_environment }}
                   acssSapProduct:            ${{ parameters.acss_sap_product }}
                   USE_MSI:                   $(USE_MSI)
@@ -489,7 +489,7 @@ stages:
                   azureClientId:             $(ARM_CLIENT_ID)
                   azureClientSecret:         $(ARM_CLIENT_SECRET)
                   azureTenantId:             $(ARM_TENANT_ID)
-                  azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
+                  azureSubscriptionId:       $(Preparation.ARM_SUBSCRIPTION_ID)
                   CONTROL_PLANE_SUBSCRIPTION_ID: $(Terraform_Remote_Storage_Subscription)
           - template:                        templates\collect-log-files.yaml
             parameters:
