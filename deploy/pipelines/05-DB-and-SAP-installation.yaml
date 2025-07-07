@@ -199,7 +199,7 @@ stages:
               secretName:                    "$(Preparation.SSH_KEY_NAME)"
               passwordSecretName:            "$(Preparation.PASSWORD_KEY_NAME)"
               userNameSecretName:            "$(Preparation.USERNAME_KEY_NAME)"
-              KEYVAULT:                      $(Preparation.VAULT_NAME)
+              vaultName:                     $(KEYVAULT)
               parametersFolder:              $(Preparation.FOLDER)
               sapParams:                     "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
               sidHosts:                      $(Preparation.HOSTS)
@@ -219,7 +219,7 @@ stages:
                   secretName:                "$(Preparation.SSH_KEY_NAME)"
                   passwordSecretName:        "$(Preparation.PASSWORD_KEY_NAME)"
                   userNameSecretName:        "$(Preparation.USERNAME_KEY_NAME)"
-                  KEYVAULT:                  $(Preparation.VAULT_NAME)
+                  vaultName:                 $(KEYVAULT)
                   parametersFolder:          $(Preparation.FOLDER)
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)
@@ -239,7 +239,7 @@ stages:
                   secretName:                "$(Preparation.SSH_KEY_NAME)"
                   passwordSecretName:        "$(Preparation.PASSWORD_KEY_NAME)"
                   userNameSecretName:        "$(Preparation.USERNAME_KEY_NAME)"
-                  KEYVAULT:                  $(Preparation.VAULT_NAME)
+                  vaultName:                 $(KEYVAULT)
                   parametersFolder:          $(Preparation.FOLDER)
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)
@@ -259,7 +259,7 @@ stages:
                   secretName:                "$(Preparation.SSH_KEY_NAME)"
                   passwordSecretName:        "$(Preparation.PASSWORD_KEY_NAME)"
                   userNameSecretName:        "$(Preparation.USERNAME_KEY_NAME)"
-                  KEYVAULT:                  $(Preparation.VAULT_NAME)
+                  vaultName:                 $(KEYVAULT)
                   parametersFolder:          $(Preparation.FOLDER)
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)
@@ -279,7 +279,7 @@ stages:
                   secretName:                "$(Preparation.SSH_KEY_NAME)"
                   passwordSecretName:        "$(Preparation.PASSWORD_KEY_NAME)"
                   userNameSecretName:        "$(Preparation.USERNAME_KEY_NAME)"
-                  KEYVAULT:                  $(Preparation.VAULT_NAME)
+                  vaultName:                 $(KEYVAULT)
                   parametersFolder:          $(Preparation.FOLDER)
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)
@@ -299,7 +299,7 @@ stages:
                   secretName:                "$(Preparation.SSH_KEY_NAME)"
                   passwordSecretName:        "$(Preparation.PASSWORD_KEY_NAME)"
                   userNameSecretName:        "$(Preparation.USERNAME_KEY_NAME)"
-                  KEYVAULT:                  $(Preparation.VAULT_NAME)
+                  vaultName:                 $(KEYVAULT)
                   parametersFolder:          $(Preparation.FOLDER)
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)
@@ -319,7 +319,7 @@ stages:
                   secretName:                "$(Preparation.SSH_KEY_NAME)"
                   passwordSecretName:        "$(Preparation.PASSWORD_KEY_NAME)"
                   userNameSecretName:        "$(Preparation.USERNAME_KEY_NAME)"
-                  KEYVAULT:                  $(Preparation.VAULT_NAME)
+                  vaultName:                 $(KEYVAULT)
                   parametersFolder:          $(Preparation.FOLDER)
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)
@@ -339,7 +339,7 @@ stages:
                   secretName:                "$(Preparation.SSH_KEY_NAME)"
                   passwordSecretName:        "$(Preparation.PASSWORD_KEY_NAME)"
                   userNameSecretName:        "$(Preparation.USERNAME_KEY_NAME)"
-                  KEYVAULT:                  $(Preparation.VAULT_NAME)
+                  vaultName:                 $(KEYVAULT)
                   parametersFolder:          $(Preparation.FOLDER)
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)
@@ -359,7 +359,7 @@ stages:
                   secretName:                "$(Preparation.SSH_KEY_NAME)"
                   passwordSecretName:        "$(Preparation.PASSWORD_KEY_NAME)"
                   userNameSecretName:        "$(Preparation.USERNAME_KEY_NAME)"
-                  KEYVAULT:                  $(Preparation.VAULT_NAME)
+                  vaultName:                 $(KEYVAULT)
                   parametersFolder:          $(Preparation.FOLDER)
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)
@@ -379,7 +379,7 @@ stages:
                   secretName:                "$(Preparation.SSH_KEY_NAME)"
                   passwordSecretName:        "$(Preparation.PASSWORD_KEY_NAME)"
                   userNameSecretName:        "$(Preparation.USERNAME_KEY_NAME)"
-                  KEYVAULT:                  $(Preparation.VAULT_NAME)
+                  vaultName:                 $(KEYVAULT)
                   parametersFolder:          $(Preparation.FOLDER)
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)
@@ -399,7 +399,7 @@ stages:
                   secretName:                "$(Preparation.SSH_KEY_NAME)"
                   passwordSecretName:        "$(Preparation.PASSWORD_KEY_NAME)"
                   userNameSecretName:        "$(Preparation.USERNAME_KEY_NAME)"
-                  KEYVAULT:                  $(Preparation.VAULT_NAME)
+                  vaultName:                 $(KEYVAULT)
                   parametersFolder:          $(Preparation.FOLDER)
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)
@@ -419,7 +419,7 @@ stages:
                   secretName:                "$(Preparation.SSH_KEY_NAME)"
                   passwordSecretName:        "$(Preparation.PASSWORD_KEY_NAME)"
                   userNameSecretName:        "$(Preparation.USERNAME_KEY_NAME)"
-                  KEYVAULT:                  $(Preparation.VAULT_NAME)
+                  vaultName:                 $(KEYVAULT)
                   parametersFolder:          $(Preparation.FOLDER)
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)
@@ -439,7 +439,7 @@ stages:
                   secretName:                "$(Preparation.SSH_KEY_NAME)"
                   passwordSecretName:        "$(Preparation.PASSWORD_KEY_NAME)"
                   userNameSecretName:        "$(Preparation.USERNAME_KEY_NAME)"
-                  KEYVAULT:                  $(Preparation.VAULT_NAME)
+                  vaultName:                 $(KEYVAULT)
                   parametersFolder:          $(Preparation.FOLDER)
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)
@@ -459,7 +459,7 @@ stages:
                   secretName:                "$(Preparation.SSH_KEY_NAME)"
                   passwordSecretName:        "$(Preparation.PASSWORD_KEY_NAME)"
                   userNameSecretName:        "$(Preparation.USERNAME_KEY_NAME)"
-                  KEYVAULT:                  $(Preparation.VAULT_NAME)
+                  vaultName:                 $(KEYVAULT)
                   parametersFolder:          $(Preparation.FOLDER)
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)
@@ -481,7 +481,7 @@ stages:
                   secretName:                "$(Preparation.SSH_KEY_NAME)"
                   passwordSecretName:        "$(Preparation.PASSWORD_KEY_NAME)"
                   userNameSecretName:        "$(Preparation.USERNAME_KEY_NAME)"
-                  KEYVAULT:                  $(Preparation.VAULT_NAME)
+                  vaultName:                 $(KEYVAULT)
                   parametersFolder:          $(Preparation.FOLDER)
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)
