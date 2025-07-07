@@ -71,8 +71,7 @@ else
 	fi
 fi
 
-vault_name=$(echo "$VAULT_NAME" | tr [:upper:] [:lower:] | xargs)
-key_vault_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$vault_name' | project id, name, subscription" --query data[0].id --output tsv)
+key_vault_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$VAULT_NAME' | project id, name, subscription" --query data[0].id --output tsv)
 key_vault_subscription=$(echo "$key_vault_id" | cut -d '/' -f 3)
 
 if [ -n "$key_vault_subscription" ]; then

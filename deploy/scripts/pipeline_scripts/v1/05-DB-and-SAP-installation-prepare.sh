@@ -131,16 +131,12 @@ echo "Hosts file:                          ${SID}_hosts.yaml"
 echo "sap_parameters_file:                 $parameters_filename"
 echo "Configuration file:                  $environment_file_name"
 
-echo -e "$green--- Get Files from the DevOps Repository ---$reset"
 cd "$CONFIG_REPO_PATH/SYSTEM/${SAP_SYSTEM_CONFIGURATION_NAME}"
 
 echo -e "$green--- Add BOM Base Name and SAP FQDN to sap-parameters.yaml ---$reset"
 sed -i 's|bom_base_name:.*|bom_base_name:                 '"$BOM_BASE_NAME"'|' sap-parameters.yaml
 
-echo -e "$green--- Get connection details ---$reset"
 mkdir -p artifacts
-
-prefix="${ENVIRONMENT}${LOCATION}${NETWORK}"
 
 workload_key_vault=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "KEYVAULT" "${environment_file_name}" "workloadkeyvault" || true)
 workload_prefix=$(echo "$SAP_SYSTEM_CONFIGURATION_NAME" | cut -d'-' -f1-3)
