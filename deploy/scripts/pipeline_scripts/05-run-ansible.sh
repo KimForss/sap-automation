@@ -118,6 +118,9 @@ fi
 
 az account set --subscription "$ARM_SUBSCRIPTION_ID" --output none
 
+control_plane_subscription="$ARM_SUBSCRIPTION_ID"
+export control_plane_subscription
+
 
 ############################################################################################
 #                                                                                          #
