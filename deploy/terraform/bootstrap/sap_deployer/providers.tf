@@ -32,7 +32,7 @@ provider "azurerm"                     {
                                                                      purge_soft_deleted_certificates_on_destroy = false
                                                                    }
                                                     storage        {
-                                                                        data_plane_available = var.data_plane_available
+                                                                        data_plane_available = true
                                                                    }
                                                   app_configuration {
                                                                        purge_soft_delete_on_destroy = !var.enable_purge_control_for_keyvaults
@@ -81,6 +81,7 @@ provider "azuread"                     {
 
 provider "azapi"                       {
                                           alias                      = "restapi"
+                                          schema_validation_enabled  = false
                                        }
 
 terraform                              {
@@ -107,7 +108,7 @@ terraform                              {
                                                                          }
                                                               azapi =   {
                                                                            source  = "Azure/azapi"
-                                                                           version = "2.4.0"
+                                                                           version = "2.5.0"
                                                                          }
                                                             }
                                        }
