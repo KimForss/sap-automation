@@ -34,8 +34,7 @@ script_directory="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
 readonly script_directory
 
 SCRIPT_NAME="$(basename "$0")"
-banner_title="Remove Deployer"
-print_banner "$banner_title" "Starting the script: $SCRIPT_NAME" "info"
+echo "Starting the script: $SCRIPT_NAME"
 
 if [[ -f /etc/profile.d/deploy_server.sh ]]; then
 	path=$(grep -m 1 "export PATH=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
