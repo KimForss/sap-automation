@@ -186,8 +186,8 @@ echo -e "$green--- Running the remove region script that destroys deployer VM an
 
 cd "$CONFIG_REPO_PATH/DEPLOYER/$DEPLOYER_FOLDERNAME" || exit
 
-if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/remove_deployer_v2.sh" --auto-approve \
-	--parameter_file "$DEPLOYER_TFVARS_FILENAME"; then
+if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/remove_deployer.sh" --auto-approve \
+	--parameterfile "$DEPLOYER_TFVARS_FILENAME"; then
 	return_code=$?
 	echo "Control Plane $DEPLOYER_FOLDERNAME removal step 2 completed."
 	echo "##vso[task.logissue type=warning]Control Plane $DEPLOYER_FOLDERNAME removal step 2 completed."
