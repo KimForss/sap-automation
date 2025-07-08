@@ -78,7 +78,7 @@ resource "azapi_resource" "deployer" {
                                           }
   parent_id                                     = var.infrastructure.resource_group.exists ? data.azurerm_resource_group.deployer[0].id : azurerm_resource_group.deployer[0].id
 
-
+  schema_validation_enabled                     = false
   body = {
     properties = {
       organizationProfile = {

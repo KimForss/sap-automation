@@ -81,7 +81,7 @@ provider "azuread"                     {
 
 provider "azapi"                       {
                                           alias                      = "restapi"
-                                          schema_validation_enabled  = false
+
                                        }
 
 terraform                              {
