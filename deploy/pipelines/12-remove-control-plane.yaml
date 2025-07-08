@@ -44,6 +44,7 @@ parameters:
 stages:
   - stage:                             Remove_control_plane_remote
     displayName:                       "Control plane removal (on agent)"
+    condition:                         false
     variables:
       - template:                      variables/12-remove-control-plane-variables.yaml
         parameters:
@@ -100,9 +101,9 @@ stages:
           use_deployer:                 ${{ parameters.use_deployer }}
     pool:
       name:                             $(Agent)
-    dependsOn:
-      - Remove_control_plane_remote
-    condition:                          in(dependencies.Remove_control_plane_remote.result, 'Succeeded', 'Skipped')
+    # dependsOn:
+    #   - Remove_control_plane_remote
+    # condition:                          in(dependencies.Remove_control_plane_remote.result, 'Succeeded', 'Skipped')
     jobs:
       - job:                            Remove_control_plane
         displayName:                    "Finalize control plane removal"
