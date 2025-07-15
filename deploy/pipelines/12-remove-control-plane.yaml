@@ -89,7 +89,6 @@ stages:
               TF_LOG:                   $(TF_LOG)
               USE_MSI:                  $(Use_MSI)
               key_vault:                $(DEPLOYER_KEYVAULT)
-              key_vault:                $(DEPLOYER_KEYVAULT)
   - stage:                              Remove_control_plane
     displayName:                        "Finalize control plane removal"
     variables:
@@ -144,5 +143,4 @@ stages:
               TF_IN_AUTOMATION:         true
               TF_LOG:                   $(TF_LOG)
               USE_MSI:                  $(Use_MSI)
-              key_vault:                $(DEPLOYER_KEYVAULT)
               key_vault:                $(DEPLOYER_KEYVAULT)
