@@ -32,9 +32,9 @@ module "sap_library" {
 module "sap_namegenerator" {
   source                            = "../../terraform-units/modules/sap_namegenerator"
   codename                          = try(local.infrastructure.codename, "")
-  deployer_environment              = try(split("-", var.control_plane_name)[0], var.environment)
+  deployer_environment              = var.environment
   deployer_location                 = var.location
-  environment                       = var.environment
+  environment                       = local.infrastructure.environment
   location                          = var.location
   management_vnet_name              = ""
   random_id                         = coalesce(var.custom_random_id, module.sap_library.random_id)
