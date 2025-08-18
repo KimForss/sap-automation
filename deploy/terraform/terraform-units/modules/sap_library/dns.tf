@@ -110,7 +110,7 @@ data "azurerm_private_dns_zone" "appconfig" {
   resource_group_name                  = coalesce(var.dns_settings.privatelink_dns_resourcegroup_name,
                                            var.dns_settings.management_dns_resourcegroup_name,
                                            var.infrastructure.resource_group.exists ? (
-                                             split("/", var.infrastructure.resource_group.arm_id)[4]) : (
+                                             split("/", var.infrastructure.resource_group.id)[4]) : (
                                              azurerm_resource_group.library[0].name
                                          ))
 

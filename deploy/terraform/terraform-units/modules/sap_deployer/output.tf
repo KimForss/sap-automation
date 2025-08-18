@@ -137,6 +137,11 @@ output "agent_subnet_id" {
   value                                = var.infrastructure.dev_center_deployment ? (var.infrastructure.virtual_network.management.subnet_agent.exists ? data.azurerm_subnet.subnet_agent[0].id : azurerm_subnet.subnet_agent[0].id) : ""
 }
 
+output "agent_subnet_id" {
+  description                          = "Agent Subnet ID"
+  value                                = var.infrastructure.dev_center_deployment ? (var.infrastructure.virtual_network.management.subnet_agent.exists ? data.azurerm_subnet.subnet_agent[0].id : azurerm_subnet.subnet_agent[0].id) : ""
+}
+
 // Details of the management vnet NSG that is deployed/imported
 output "nsg_mgmt" {
                                         description       = "Management VNet NSG"
