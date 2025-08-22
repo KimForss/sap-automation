@@ -98,7 +98,7 @@ stages:
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
               SYSTEM_ACCESSTOKEN:       $(System.AccessToken)
               USE_MSI:                  $(Use_MSI)
-              ZONE:                     $(workload_zone_name)
+              ZONE:                     ${{ parameters.workload_zone }}
   - stage:                             Remove_SAP_workload_zone
     displayName:                       "Removing the SAP workload zone"
     condition:                         and(not(failed()), not(canceled()), eq(${{ parameters.cleanup_zone }}, true))
