@@ -30,16 +30,6 @@ parameters:
     type:                              string
     default:                           DEV-WEEU-SAP01
 
-  - name:                              workload_environment
-    displayName:                       Environment (DEV, QUA, PRD)
-    type:                              string
-    default:                           DEV
-
-  - name:                              deployer_environment
-    displayName:                       Environment (MGMT)
-    type:                              string
-    default:                           MGMT
-
   - name:                              use_deployer
     displayName:                       Run removal on self hosted agent
     type:                              boolean
@@ -60,8 +50,6 @@ stages:
     variables:
       - template:                      variables/10-remover-terraform-variables.yaml
         parameters:
-          deployer_environment:        ${{ parameters.deployer_environment }}
-          workload_environment:        ${{ parameters.workload_environment }}
           workload_zone:               ${{ parameters.workload_zone }}
           sap_system:                  ${{ parameters.sap_system }}
     jobs:
@@ -105,8 +93,6 @@ stages:
     variables:
       - template:                      variables/10-remover-terraform-variables.yaml
         parameters:
-          deployer_environment:        ${{ parameters.deployer_environment }}
-          workload_environment:        ${{ parameters.workload_environment }}
           workload_zone:               ${{ parameters.workload_zone }}
           sap_system:                  ${{ parameters.sap_system }}
 
@@ -114,7 +100,7 @@ stages:
       - job:                           Remove_SAP_workload_zone
         displayName:                   Remove the SAP Workload Zone
         variables:
-          - group:                     SDAF-${{ parameters.workload_environment }}
+          - group:                     SDAF-${{ parameters.workload_zone }}
         workspace:
           clean:                       all
         steps:
