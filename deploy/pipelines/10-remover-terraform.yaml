@@ -87,7 +87,6 @@ stages:
 
             displayName:               "Remove SAP system"
             env:
-<<<<<<< HEAD
               ARM_CLIENT_ID:            $(ARM_CLIENT_ID)
               ARM_CLIENT_SECRET:        $(ARM_CLIENT_SECRET)
               ARM_SUBSCRIPTION_ID:      $(ARM_SUBSCRIPTION_ID)
@@ -96,15 +95,6 @@ stages:
               AZURE_DEVOPS_EXT_PAT:     $(System.AccessToken)
               CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
               CONTROL_PLANE_NAME:       $(CONTROL_PLANE_NAME)
-=======
-              SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
-              ARM_SUBSCRIPTION_ID:     $(ARM_SUBSCRIPTION_ID)
-              ARM_CLIENT_ID:           $(ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET:       $(ARM_CLIENT_SECRET)
-              ARM_TENANT_ID:           $(ARM_TENANT_ID)
-              ARM_USE_MSI:             $(Use_MSI)
-              AZURE_DEVOPS_EXT_PAT:    $(System.AccessToken)
->>>>>>> 0ee42f2a4 (Feature/july 2025/managed devops pool (#789))
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
               SYSTEM_ACCESSTOKEN:       $(System.AccessToken)
               USE_MSI:                  $(Use_MSI)
