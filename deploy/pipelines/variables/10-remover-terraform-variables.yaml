@@ -9,8 +9,6 @@
 
 
 parameters:
-  deployer_environment: ''
-  workload_environment: ''
   workload_zone: ''
   sap_system: ''
 

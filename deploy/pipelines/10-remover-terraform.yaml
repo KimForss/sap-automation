@@ -56,7 +56,7 @@ stages:
       - job:                           Remove_SAP_systems
         displayName:                   "Removing the SAP System"
         variables:
-          - group:                     SDAF-${{ parameters.workload_environment }}
+          - group:                     SDAF-${{ parameters.workload_zone }}
         workspace:
           clean:                       all
         steps:
