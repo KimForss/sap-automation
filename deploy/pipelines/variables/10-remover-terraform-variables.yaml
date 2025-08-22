@@ -16,16 +16,13 @@ parameters:
 
 variables:
   - group:                             "SDAF-General"
-  - group:                             SDAF-${{ parameters.workload_environment }}
-
-  - name:                              parent_variable_group
-    value:                             SDAF-${{ parameters.deployer_environment }}
+  - group:                             SDAF-${{ parameters.workload_zone }}
 
   - name:                              run_on
     value:                             $[lower(coalesce(variables['POOL'], variables['AGENT']))]
 
   - name:                              variable_group
-    value:                             SDAF-${{ parameters.workload_environment }}
+    value:                             SDAF-${{ parameters.workload_zone }}
 
   - name:                              workload_zone_foldername
     value:                             ${{ parameters.workload_zone }}-INFRASTRUCTURE
@@ -47,6 +44,3 @@ variables:
 
   - name:                              this_agent
     value:                             $[lower(coalesce(variables['POOL'], variables['AGENT']))]
-
-  - name:                              workload_zone_name
-    value:                             $[upper(format('{0}-{1}-{2}', split('${{ parameters.workload_zone }}', '-')[0], split('${{ parameters.workload_zone }}', '-')[1], split('${{ parameters.workload_zone }}', '-')[2]))]
