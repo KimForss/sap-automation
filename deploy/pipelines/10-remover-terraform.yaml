@@ -25,10 +25,10 @@ parameters:
     type:                              boolean
     default:                           true
 
-  - name:
-    displayName:                       "SAP workload zone configuration name, use this format: ENV-LOCA-VNET-INFRASTRUCTURE"
+  - name:                              workload_zone
+    displayName:                       "SAP workload zone configuration name, use this format: ENV-LOCA-VNET"
     type:                              string
-    default:                           DEV-WEEU-SAP01-INFRASTRUCTURE
+    default:                           DEV-WEEU-SAP01
 
   - name:                              workload_environment
     displayName:                       Environment (DEV, QUA, PRD)
