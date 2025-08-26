@@ -10,8 +10,7 @@
 # Creates SAP web subnet nsg
 resource "azurerm_network_security_group" "nsg_web" {
   provider                             = azurerm.main
-  count                                = local.enable_deployment && var.infrastructure.virtual_networks.sap.subnet_web.defined ? 1 : 0
-
+  count                                = local.enable_deployment && var.infrastructure.virtual_networks.sap.subnet_web.defined ? (var.infrastructure.virtual_networks.sap.subnet_web.nsg.exists || var.infrastructure.virtual_networks.sap.subnet_web.nsg.exists_in_workload ? 0 : 1) : 0
   name                                 = local.web_subnet_nsg_name
   resource_group_name                  = var.options.nsg_asg_with_vnet ? (
                                            var.network_resource_group) : (
@@ -34,7 +33,7 @@ data "azurerm_network_security_group" "nsg_web" {
 # Associates SAP web nsg to SAP web subnet
 resource "azurerm_subnet_network_security_group_association" "Associate_nsg_web" {
   provider                             = azurerm.main
-  count                                = local.enable_deployment && var.infrastructure.virtual_networks.sap.subnet_web.defined ? 1 : 0
+  count                                = local.enable_deployment && var.infrastructure.virtual_networks.sap.subnet_web.defined ? (var.infrastructure.virtual_networks.sap.subnet_web.nsg.exists || var.infrastructure.virtual_networks.sap.subnet_web.nsg.exists_in_workload ? 0 : 1) : 0
   subnet_id                            = var.infrastructure.virtual_networks.sap.subnet_web.exists ? (
                                            data.azurerm_subnet.subnet_sap_web[0].id) : (
                                            azurerm_subnet.subnet_sap_web[0].id
