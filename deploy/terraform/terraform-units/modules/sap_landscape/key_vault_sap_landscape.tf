@@ -320,13 +320,17 @@ resource "time_offset" "secret_expiry_date" {
 resource "time_sleep" "wait_for_role_assignment" {
   create_duration                      = "60s"
 
-  triggers                           = {
-                                           msi = try(azurerm_role_assignment.role_assignment_msi[0].id, "")
-                                           spn = try(azurerm_role_assignment.role_assignment_spn[0].id, "")
-                                           ssi = try(azurerm_role_assignment.role_assignment_vault_ssi[0].id, "")
-                                           policy_msi = try(azurerm_key_vault_access_policy.kv_user_msi[0].id, "")
-                                           policy_spn = try(azurerm_key_vault_access_policy.kv_user[0].id, "")
-                                       }
+  triggers                             = {
+                                          policy_spn = try(azurerm_key_vault_access_policy.kv_user_spn[0].id, "")
+                                          policy_msi = try(azurerm_key_vault_access_policy.kv_user_msi[0].id, "")
+                                          role_assignment_spn_officer = try(azurerm_role_assignment.role_assignment_spn_officer[0].id, "")
+                                          role_assignment_msi_officer = try(azurerm_role_assignment.role_assignment_msi_officer[0].id, "")
+                                          role_assignment_ssi_officer = try(azurerm_role_assignment.role_assignment_vault_ssi[0].id, "")
+
+                                          endpoint_kv_user = try(azurerm_private_endpoint.kv_user[0].id, "")
+                                          dns_network_link = try(azurerm_private_dns_zone_virtual_network_link.vault[0].id, "")
+                                        }
+
 }
 
 
