@@ -352,7 +352,7 @@ locals {
                                          }
 
   app_nic_ips                          = distinct(var.application_server_app_nic_ips)
-  app_nic_secondary_ips                = distinct(var.application_server_app_nic_ips)
+  app_nic_secondary_ips                = distinct(var.application_server_nic_secondary_ips)
   app_admin_nic_ips                    = distinct(var.application_server_admin_nic_ips)
 
   scs_nic_ips                          = distinct(var.scs_server_app_nic_ips)
