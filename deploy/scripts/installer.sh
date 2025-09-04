@@ -736,7 +736,17 @@ if [ 1 != $return_value ]; then
 
 			keyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name | tr -d \")
 			if [ -n "$keyvault" ]; then
-				save_config_var "keyvault" "${deployer_config_information}"
+				save_config_var "keyvault" "${system_config_information}"
+			fi
+
+			webapp_url_base=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_url_base | tr -d \")
+			if [ -n "$webapp_url_base" ]; then
+				save_config_var "webapp_url_base" "${system_config_information}"
+			fi
+
+			webapp_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_id | tr -d \")
+			if [ -n "$webapp_id" ]; then
+				save_config_var "webapp_id" "${system_config_information}"
 			fi
 
 		fi
