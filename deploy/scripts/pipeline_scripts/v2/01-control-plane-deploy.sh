@@ -534,47 +534,18 @@ if [ 1 = $added ]; then
 		fi
 	fi
 fi
-end_group
-start_group "Adding variables"
-# Add variables to storage based on platform
-echo -e "$green--- Adding variables to storage ---$reset_formatting"
-if [ 0 = $return_code ]; then
-	if [ "$PLATFORM" == "devops" ]; then
-		echo -e "$green--- Adding variables to the variable group: $VARIABLE_GROUP ---$reset_formatting"
 
-		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_ENVIRONMENT" "$ENVIRONMENT"
-		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_LOCATION" "$LOCATION"
+echo -e "$green--- Adding variables to the variable group: $VARIABLE_GROUP ---$reset"
+if [ 0 -eq "$return_code" ]; then
 
-		if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_NAME" "$CONTROL_PLANE_NAME"; then
-			echo "Variable CONTROL_PLANE_NAME was added to the $VARIABLE_GROUP variable group."
-		else
-			echo "##vso[task.logissue type=error]Variable CONTROL_PLANE_NAME was not added to the $VARIABLE_GROUP variable group."
-			echo "Variable CONTROL_PLANE_NAME was not added to the $VARIABLE_GROUP variable group."
-		fi
-		if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME" "$TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME"; then
-			echo "Variable TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME was added to the $VARIABLE_GROUP variable group."
-		else
-			echo "##vso[task.logissue type=error]Variable TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME was not added to the $VARIABLE_GROUP variable group."
-			echo "Variable TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME was not added to the $VARIABLE_GROUP variable group."
-		fi
-	elif [ "$PLATFORM" == "github" ]; then
-		# Set output variables for GitHub Actions
-		echo "Setting output variable for GitHub Actions"
-		set_output_variable "control_plane_name" "$CONTROL_PLANE_NAME"
-		set_output_variable "deployer_keyvault" "$DEPLOYER_KEYVAULT"
-		set_value_with_key "TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME" "${TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME}" "env"
+	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_NAME" "$CONTROL_PLANE_NAME"; then
+		echo "Variable CONTROL_PLANE_NAME was added to the $VARIABLE_GROUP variable group."
+	else
+		echo "##vso[task.logissue type=error]Variable CONTROL_PLANE_NAME was not added to the $VARIABLE_GROUP variable group."
+		echo "Variable CONTROL_PLANE_NAME was not added to the $VARIABLE_GROUP variable group."
 	fi
-fi
-end_group
-# Platform-specific summary handling
-if [ -f "$CONFIG_REPO_PATH/.sap_deployment_automation/${CONTROL_PLANE_NAME}.md" ]; then
-	if [ "$PLATFORM" == "devops" ]; then
-		echo "##vso[task.uploadsummary]$CONFIG_REPO_PATH/.sap_deployment_automation/${CONTROL_PLANE_NAME}.md"
-	elif [ "$PLATFORM" == "github" ]; then
-		cat "$CONFIG_REPO_PATH/.sap_deployment_automation/${CONTROL_PLANE_NAME}.md" >>$GITHUB_STEP_SUMMARY
-	fi
-fi
 
+fi
 print_banner "$banner_title" "Exiting $SCRIPT_NAME" "info"
 
 exit $return_code
