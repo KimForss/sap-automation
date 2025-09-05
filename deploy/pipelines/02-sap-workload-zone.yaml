@@ -155,7 +155,7 @@ stages:
       - template:                      variables/02-sap-workload-zone-variables.yaml
         parameters:
           workload_zone_name:          ${{ parameters.workload_zone_name }}
-          workload_environment:        ${{ parameters.workload_environment }}
+          workload_environment:        ${{ parameters.workload_zone_name }}
           deployer_environment:        ${{ parameters.deployer_environment }}
           deployer_region:             ${{ parameters.deployer_region }}
           inherit_settings:            ${{ parameters.inherit_settings }}

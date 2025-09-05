@@ -9,13 +9,14 @@
 
 parameters:
   sap_system: ''
-  environment: ''
+  workload_zone_name: ''
+  workload_environment: ''
   test: false
 
 variables:
   - group:                             "SDAF-General"
 
-  - group:                             SDAF-${{ parameters.environment }}
+  - group:                             SDAF-${{ parameters.workload_zone_name }}
 
   - name:                              sap_system_foldername
     value:                             ${{ parameters.sap_system }}
