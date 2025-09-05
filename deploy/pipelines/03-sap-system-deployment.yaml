@@ -13,8 +13,8 @@ parameters:
     type:                              string
     default:                           DEV-WEEU-SAP01-X00
 
-  - name:                              environment
-    displayName:                       Workload Environment (DEV, QA, PRD, ...)
+  - name:                              workload_zone_name
+    displayName:                       Workload Zone Name (DEV-WEEU-SAP01-X00)
     type:                              string
     default:                           DEV
 
