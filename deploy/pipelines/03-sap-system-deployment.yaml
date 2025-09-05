@@ -15,6 +15,7 @@ parameters:
   - name:                              environment
     displayName:                       Workload Environment (DEV, QA, PRD, ...)
     type:                              string
+    default:                           'ENV'
 
   - name:                              workload_zone_name
     displayName:                       "Workload zone configuration name, use the following syntax: ENV-LOCA-VNET"
