@@ -28,7 +28,7 @@ parameters:
 variables:
   - group:                             "SDAF-General"
 
-  - group:                             SDAF-${{ parameters.environment }}
+  - group:                             SDAF-${{ parameters.workload_zone_name }}
 
   - name:                              sap_system_foldername
     value:                             ${{ parameters.sap_system }}
