@@ -346,6 +346,37 @@ if [ -n "${APP_SERVICE_DEPLOYMENT}" ]; then
 		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APP_SERVICE_DEPLOYMENT" "$APP_SERVICE_DEPLOYMENT"
 	fi
 fi
+
+webapp_url_base=$(grep "^webapp_url_base=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
+if [ -n "${webapp_url_base}" ]; then
+	echo "Webapp URL Base:      ${webapp_url_base}"
+fi
+
+webapp_id=$(grep "^webapp_id=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
+if [ -n "${webapp_id}" ]; then
+	echo "Webapp ID:            ${webapp_id}"
+	if [ "$PLATFORM" == "devops" ]; then
+		if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "WEBAPP_ID" "$WEBAPP_ID"; then
+			echo "Variable WEBAPP_ID was added to the $VARIABLE_GROUP variable group."
+		else
+			echo "##vso[task.logissue type=error]Variable WEBAPP_ID was not added to the $VARIABLE_GROUP variable group."
+			echo "Variable WEBAPP_ID was not added to the $VARIABLE_GROUP variable group."
+		fi
+	fi
+
+fi
+
+if [ -n "$WEBAPP_ID" ]; then
+	WEBAPP_URL_BASE=$(echo "$WEBAPP_ID" | cut -d '/' -f 9)
+	if [ "$PLATFORM" == "devops" ]; then
+		if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "WEBAPP_URL_BASE" "$WEBAPP_URL_BASE"; then
+			echo "Variable WEBAPP_URL_BASE was added to the $VARIABLE_GROUP variable group."
+		else
+			echo "##vso[task.logissue type=error]Variable WEBAPP_URL_BASE was not added to the $VARIABLE_GROUP variable group."
+			echo "Variable WEBAPP_URL_BASE was not added to the $VARIABLE_GROUP variable group."
+		fi
+	fi
+fi
 start_group "Update the repository"
 
 echo -e "$green--- Pushing the changes to the repository ---$reset_formatting"
