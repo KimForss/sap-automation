@@ -8,9 +8,22 @@
 #--------------------------------------+---------------------------------------8
 
 parameters:
-  sap_system: ''
-  environment: ''
-  test: false
+  - name:                              workload_zone_name
+    displayName:                       "Workload zone configuration name, use the following syntax: ENV-LOCA-VNET"
+    type:                              string
+
+  - name:                              sap_system
+    displayName:                       "SAP System name, use the following syntax: ENV-LOCA-VNET-SID"
+    type:                              string
+
+  - name:                              environment
+    displayName:                       "SAP System environment"
+    type:                              string
+
+  - name:                              test
+    displayName:                       "SAP System test only"
+    type:                              string
+    value:                             false
 
 variables:
   - group:                             "SDAF-General"
@@ -48,4 +61,4 @@ variables:
     value:                             ${{ parameters.test }}
 
   - name:                              workload_zone_name
-    value:                             $[upper(format('{0}-{1}-{2}', split('${{ parameters.sap_system }}', '-')[0], split('${{ parameters.sap_system }}', '-')[1], split('${{ parameters.sap_system }}', '-')[2]))]
+    value:                             $[upper(${{ parameters.workload_zone_name }})]
