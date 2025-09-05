@@ -9,7 +9,7 @@
 # +------------------------------------4--------------------------------------*/
 
 parameters:
-  - name:                              workload_zone
+  - name:                              workload_zone_name
     displayName:                       "Workload zone configuration name, use the following syntax: ENV-LOCA-VNET-INFRASTRUCTURE"
     type:                              string
     default:                           DEV-WEEU-SAP01-INFRASTRUCTURE
