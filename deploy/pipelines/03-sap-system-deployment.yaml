@@ -11,12 +11,15 @@ parameters:
   - name:                              sap_system
     displayName:                       "SAP System configuration name, use the following syntax: ENV-LOCA-VNET-SID"
     type:                              string
-    default:                           DEV-WEEU-SAP01-X00
 
   - name:                              environment
     displayName:                       Workload Environment (DEV, QA, PRD, ...)
     type:                              string
-    default:                           DEV
+
+  - name:                              workload_zone_name
+    displayName:                       "Workload zone configuration name, use the following syntax: ENV-LOCA-VNET"
+    type:                              string
+    default:                           'ENV-LOCA-VNET'
 
   - name:                              sap_automation_repo_path
     displayName:                       The local path on the agent where the sap_automation repo can be found
