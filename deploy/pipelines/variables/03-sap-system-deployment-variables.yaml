@@ -23,7 +23,7 @@ parameters:
   - name:                              test
     displayName:                       "SAP System test only"
     type:                              string
-    value:                             false
+    default:                           false
 
 variables:
   - group:                             "SDAF-General"
