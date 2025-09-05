@@ -61,4 +61,4 @@ variables:
     value:                             ${{ parameters.test }}
 
   - name:                              workload_zone_name
-    value:                             $[upper(${{ parameters.workload_zone_name }})]
+    value:                             ${{ parameters.workload_zone_name }}
