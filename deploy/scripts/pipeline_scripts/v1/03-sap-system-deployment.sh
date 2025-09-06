@@ -144,7 +144,14 @@ fi
 deployer_tfstate_key=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_STATE_FILENAME" "${workload_environment_file_name}" "deployer_tfstate_key")
 export deployer_tfstate_key
 
-Terraform_Remote_Storage_Account_Name=$(getVariableFromVariableGroup "${VARIABLE_GROUP}" "TERRAFORM_STATE_STORAGE_ACCOUNT" "${workload_environment_file_name}" "REMOTE_STATE_SA")
+Terraform_Remote_Storage_Account_Name=$(getVariableFromVariableGroup "${VARIABLE_GROUP}" "TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME" "${workload_environment_file_name}" "REMOTE_STATE_SA")
+if [ -z "$Terraform_Remote_Storage_Account_Name" ]; then
+	Terraform_Remote_Storage_Account_Name=$(getVariableFromVariableGroup "${VARIABLE_GROUP}" "TERRAFORM_STATE_STORAGE_ACCOUNT" "${workload_environment_file_name}" "REMOTE_STATE_SA")
+	if [ -z "$Terraform_Remote_Storage_Account_Name" ]; then
+		Terraform_Remote_Storage_Account_Name=$(getVariableFromVariableGroup "${VARIABLE_GROUP}" "Terraform_Remote_Storage_Account_Name" "${workload_environment_file_name}" "REMOTE_STATE_SA")
+	fi
+fi
+
 tfstate_resource_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$Terraform_Remote_Storage_Account_Name' | project id, name, subscription" --query data[0].id --output tsv)
 
 if [ -v DEPLOYER_KEYVAULT ] && [ -n "$DEPLOYER_KEYVAULT" ]; then
@@ -184,6 +191,8 @@ fi
 export TF_VAR_spn_keyvault_id=${key_vault_id}
 
 terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
+saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME" "$terraform_storage_account_name"
+
 terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 5)
 terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d '/' -f 3)
 
