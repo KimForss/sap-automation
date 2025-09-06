@@ -11,7 +11,7 @@ parameters:
   - name:                              workload_zone_name
     displayName:                       "Workload zone configuration name, use the following syntax: ENV-LOCA-VNET"
     type:                              string
-    default:                           DEV-WEEU-SAP01-INFRASTRUCTURE
+    default:                           DEV-WEEU-SAP01
 
   - name:                              workload_environment
     displayName:                       Workload Environment (DEV, QUA, PRD, ...)
@@ -26,7 +26,7 @@ parameters:
   - name:                              control_plane_name
     displayName:                       "Control Plane name, use the following syntax: ENV-LOCA-VNET"
     type:                              string
-    default:                           MGMT
+    default:                           MGMT-WEEU-DEP01
 
   - name:                              deployer_region
     displayName:                       Deployer region name code (MGMT, DEV, QA, PRD, ...)
