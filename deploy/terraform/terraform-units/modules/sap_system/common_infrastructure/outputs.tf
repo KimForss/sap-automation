@@ -149,15 +149,13 @@ output "db_subnet_netmask"                       {
                                                                    null
                                                                  )
                                                  }
-output "storage_subnet"                          {
+output "storage_subnet_id"                       {
                                                    description = "Storage subnet"
                                                    value       = (var.infrastructure.virtual_networks.sap.subnet_storage.exists || var.infrastructure.virtual_networks.sap.subnet_storage.exists_in_workload) ?(
-                                                                     data.azurerm_subnet.storage[0]) : (
+                                                                     data.azurerm_subnet.storage[0].id) : (
                                                                      var.infrastructure.virtual_networks.sap.subnet_storage.defined ? (
-                                                                       try(azurerm_subnet.storage[0], {})) : (
-                                                                       {
-
-                                                                       }
+                                                                       try(azurerm_subnet.storage[0].id, "")) : (
+                                                                       ""
                                                                      )
                                                                   )
 

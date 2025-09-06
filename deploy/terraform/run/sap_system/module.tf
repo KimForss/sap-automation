@@ -166,7 +166,7 @@ module "hdb_node" {
   sid_password                                  = module.common_infrastructure.sid_password
   sid_username                                  = module.common_infrastructure.sid_username
   storage_bootdiag_endpoint                     = module.common_infrastructure.storage_bootdiag_endpoint
-  storage_subnet                                = module.common_infrastructure.storage_subnet
+  storage_subnet_id                             = module.common_infrastructure.storage_subnet_id
   tags                                          = var.tags
   terraform_template_version                    = var.terraform_template_version
   use_admin_nic_suffix_for_observer             = var.use_admin_nic_suffix_for_observer

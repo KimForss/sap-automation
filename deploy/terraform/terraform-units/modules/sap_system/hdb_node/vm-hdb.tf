@@ -144,7 +144,7 @@ resource "azurerm_network_interface" "nics_dbnodes_storage" {
   ip_configuration {
                      primary   = true
                      name      = "ipconfig1"
-                     subnet_id = var.storage_subnet.id
+                     subnet_id = var.storage_subnet_id
 
                       private_ip_address = var.database.use_DHCP ? (
                        null) : (
