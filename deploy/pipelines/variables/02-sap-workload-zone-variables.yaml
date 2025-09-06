@@ -8,7 +8,7 @@
 #--------------------------------------+---------------------------------------8
 
 parameters:
-  - name:                              workload_zone_name
+  - name:                              workload_zone
     displayName:                       "Workload zone configuration name, use the following syntax: ENV-LOCA-VNET"
     type:                              string
     default:                           DEV-WEEU-SAP01
@@ -106,10 +106,10 @@ variables:
     value:                             SDAF-${{ parameters.workload_environment }}
 
   - name:                              workload_zone_foldername
-    value:                             ${{ iif(contains(parameters.workload_zone_name, '-INFRASTRUCTURE'),parameters.workload_zone_name, format('{0}-{1}', parameters.workload_zone_name, 'INFRASTRUCTURE')) }}
+    value:                             ${{ iif(contains(parameters.workload_zone, '-INFRASTRUCTURE'),parameters.workload_zone, format('{0}-{1}', parameters.workload_zone, 'INFRASTRUCTURE')) }}
 
   - name:                              workload_zone_tfvars_filename
-    value:                             ${{ iif(contains(parameters.workload_zone_name, '-INFRASTRUCTURE'),format('[{0}.tfvars]', parameters.workload_zone_name), format('{0}-{1}.tfvars', parameters.workload_zone_name, 'INFRASTRUCTURE')) }}
+    value:                             ${{ iif(contains(parameters.workload_zone, '-INFRASTRUCTURE'),format('[{0}.tfvars]', parameters.workload_zone), format('{0}-{1}.tfvars', parameters.workload_zone, 'INFRASTRUCTURE')) }}
 
   - name:                              deployer_environment
     value:                             ${{ parameters.deployer_environment }}
