@@ -27,7 +27,6 @@ parameters:
   - name:                              control_plane_name
     displayName:                       "Control Plane name, use the following syntax: ENV-LOCA-VNET"
     type:                              string
-    default:                           MGMT-WEEU-DEP01
 
   - name:                              deployer_region
     displayName:                       Deployer region name code (MGMT, DEV, QA, PRD, ...)
