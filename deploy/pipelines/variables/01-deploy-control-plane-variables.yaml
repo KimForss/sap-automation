@@ -57,7 +57,7 @@ parameters:
 variables:
   - group:                             "SDAF-General"
 
-  - group:                             SDAF-${{ parameters.environment }}
+  - group:                             SDAF-${{ parameters.control_plane_name }}
 
   - name:                              run_on
     value:                             $[replace(replace('True',eq(${{ parameters.use_deployer }}, 'True'), variables['POOL']),'True',variables['AGENT'])]
