@@ -109,7 +109,7 @@ variables:
     value:                             ${{ iif(contains(parameters.workload_zone, '-INFRASTRUCTURE'),parameters.workload_zone, format('{0}-{1}', parameters.workload_zone, 'INFRASTRUCTURE')) }}
 
   - name:                              workload_zone_tfvars_filename
-    value:                             ${{ iif(contains(parameters.workload_zone, '-INFRASTRUCTURE'),format('[{0}.tfvars]', parameters.workload_zone), format('{0}-{1}.tfvars', parameters.workload_zone, 'INFRASTRUCTURE')) }}
+    value:                             ${{ iif(contains(parameters.workload_zone, '-INFRASTRUCTURE'),format('{0}.tfvars', parameters.workload_zone), format('{0}-{1}.tfvars', parameters.workload_zone, 'INFRASTRUCTURE')) }}
 
   - name:                              deployer_environment
     value:                             ${{ parameters.deployer_environment }}
