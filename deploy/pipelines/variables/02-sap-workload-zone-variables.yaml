@@ -109,7 +109,7 @@ variables:
     value:                             ${{ parameters.workload_zone_name }}
 
   - name:                              workload_zone_tfvars_filename
-    value:                             ${{ parameters.workload_zone_name }}.tfvars
+    value:                             ${{ parameters.workload_zone_name }}-INFRASTRUCTURE.tfvars
 
   - name:                              deployer_environment
     value:                             ${{ parameters.deployer_environment }}
