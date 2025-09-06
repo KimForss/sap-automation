@@ -84,6 +84,8 @@ if ! get_variable_group_id "$VARIABLE_GROUP_WORKLOAD" "VARIABLE_GROUP_ID"; then
 		echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
 		exit 2
 	fi
+else
+	VARIABLE_GROUP=$VARIABLE_GROUP_WORKLOAD
 fi
 export VARIABLE_GROUP_ID
 
