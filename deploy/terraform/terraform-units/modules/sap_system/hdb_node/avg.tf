@@ -3,7 +3,7 @@
 
 #######################################4#######################################8
 #                                                                              #
-#           Azure Net App Application Volume groupss for HANA                  #
+#           Azure Net App Application Volume groups for HANA                   #
 #                                                                              #
 #######################################4#######################################8
 
@@ -62,7 +62,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_full" {
 
   volume                    {
                                name                          = format("%s%s%s%s%d",
-                                                                var.naming.resource_prefixes.hanadata,
+                                                                var.naming.resource_prefixes.hanalog,
                                                                 local.prefix,
                                                                 var.naming.separator,
                                                                 local.resource_suffixes.hanalog,
@@ -193,7 +193,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_data2" {
 
   volume                    {
                                name                          = format("%s%s%s%slog_2%d",
-                                                                var.naming.resource_prefixes.hanadata,
+                                                                var.naming.resource_prefixes.hanalog,
                                                                 local.prefix,
                                                                 var.naming.separator,
                                                                 local.resource_suffixes.hanalog,
@@ -286,7 +286,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_data3" {
 
   volume                    {
                                name                          = format("%s%s%s%slog_32%d",
-                                                                var.naming.resource_prefixes.hanadata,
+                                                                var.naming.resource_prefixes.hanalog,
                                                                 local.prefix,
                                                                 var.naming.separator,
                                                                 local.resource_suffixes.hanalog,
