@@ -130,9 +130,15 @@ elif [ "v2" == "${SDAFWZ_CALLER_VERSION:-v2}" ]; then
 	deployer_environment_file_name="${automation_config_directory}$DEPLOYER_ENVIRONMENT"
 fi
 if [ ! -f "${deployer_environment_file_name}" ]; then
-	echo -e "$bold_red--- $deployer_environment_file_name was not found ---$reset"
-	echo "##vso[task.logissue type=error]Control plane configuration file $deployer_environment_file_name was not found."
-	exit 2
+	deployer_environment_file_name_v2="${automation_config_directory}$DEPLOYER_ENVIRONMENT"
+	if [ ! -f "${deployer_environment_file_name_v2}" ]; then
+
+		echo -e "$bold_red--- $deployer_environment_file_name was not found ---$reset"
+		echo "##vso[task.logissue type=error]Control plane configuration file $deployer_environment_file_name was not found."
+		exit 2
+	else
+		deployer_environment_file_name=$deployer_environment_file_name_v2
+	fi
 else
 	echo "Deployer Environment File:           $deployer_environment_file_name"
 fi
