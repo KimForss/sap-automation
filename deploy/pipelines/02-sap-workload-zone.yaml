@@ -14,7 +14,7 @@ parameters:
     type:                              string
     default:                           DEV-WEEU-SAP01-INFRASTRUCTURE
 
-  - name:                              workload_environment_parameter
+  - name:                              workload_environment
     displayName:                       "Workload zone configuration name, use the following syntax: ENV-LOCA-VNET"
     type:                              string
     default:                           DEV-WEEU-SAP01
