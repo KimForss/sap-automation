@@ -99,10 +99,17 @@ if [ 0 != $return_code ]; then
 	exit $return_code
 fi
 
-if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
-	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
-	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
-	exit 2
+variableGroupName="$VARIABLE_GROUP_CONTROL_PLANE"
+
+if ! get_variable_group_id "$variableGroupName" "VARIABLE_GROUP_ID"; then
+	echo -e "$cyan--- Variable group $variableGroupName not found ---$reset"
+	variableGroupName="$VARIABLE_GROUP"
+
+	if ! get_variable_group_id "$variableGroupName" "VARIABLE_GROUP_ID"; then
+		echo -e "$bold_red--- Variable group $variableGroupName not found ---$reset"
+		echo "##vso[task.logissue type=error]Variable group $variableGroupName not found."
+		exit 2
+	fi
 fi
 export VARIABLE_GROUP_ID
 

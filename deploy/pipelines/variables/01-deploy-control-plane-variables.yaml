@@ -18,6 +18,11 @@ parameters:
     type:                              string
     default:                           MGMT-WEEU-SAP_LIBRARY
 
+  - name:                              control_plane_name
+    displayName:                       "Environment name, MGMT, DEV, QA, etc"
+    type:                              string
+    default:                           MGMT
+
   - name:                              environment
     displayName:                       "Environment name, MGMT, DEV, QA, etc"
     type:                              string
@@ -43,6 +48,12 @@ parameters:
     type:                              boolean
     default:                           false
 
+  - name:                              test
+    displayName:                       Perform a test deployment
+    type:                              boolean
+    default:                           false
+
+
 variables:
   - group:                             "SDAF-General"
 
@@ -53,6 +64,9 @@ variables:
 
   - name:                              variable_group
     value:                             SDAF-${{ parameters.environment }}
+
+  - name:                              variable_group_control_plane
+    value:                             SDAF-${{ parameters.control_plane_name }}
 
   - name:                              use_webapp
     value:                             ${{ lower(parameters.use_webapp_param) }}
