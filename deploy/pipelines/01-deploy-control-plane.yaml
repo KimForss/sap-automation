@@ -192,12 +192,14 @@ stages:
     variables:
       - template:                      variables/01-deploy-control-plane-variables.yaml
         parameters:
+          control_plane_name:          ${{ parameters.control_plane_name }}
           deployer:                    ${{ parameters.deployer }}
-          library:                     ${{ parameters.library }}
           environment:                 ${{ parameters.environment }}
-          use_webapp_param:            ${{ parameters.use_webapp_param }}
-          use_deployer:                ${{ parameters.use_deployer }}
           force_reset:                 ${{ parameters.force_reset }}
+          library:                     ${{ parameters.library }}
+          test:                        ${{ parameters.test }}
+          use_deployer:                ${{ parameters.use_deployer }}
+          use_webapp_param:            ${{ parameters.use_webapp_param }}
     displayName:                       Deploy the control plane
 
     jobs:
@@ -257,11 +259,14 @@ stages:
     variables:
       - template:                      variables/01-deploy-control-plane-variables.yaml
         parameters:
-          deployer: ${{ parameters.deployer }}
-          library: ${{ parameters.library }}
-          environment: ${{ parameters.environment }}
-          use_webapp_param: ${{ parameters.use_webapp_param }}
-          use_deployer: ${{ parameters.use_deployer }}
+          control_plane_name:          ${{ parameters.control_plane_name }}
+          deployer:                    ${{ parameters.deployer }}
+          environment:                 ${{ parameters.environment }}
+          force_reset:                 ${{ parameters.force_reset }}
+          library:                     ${{ parameters.library }}
+          test:                        ${{ parameters.test }}
+          use_deployer:                ${{ parameters.use_deployer }}
+          use_webapp_param:            ${{ parameters.use_webapp_param }}
     displayName: Deploy SAP configuration Web App
 
     dependsOn:
