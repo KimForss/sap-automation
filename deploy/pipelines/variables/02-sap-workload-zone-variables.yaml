@@ -97,7 +97,7 @@ parameters:
 variables:
   - group:                             "SDAF-General"
 
-  - group:                             SDAF-${{ parameters.workload_environment }}
+  - group:                             SDAF-${{ replace(parameters.workload_environment, '-INFRASTRUCTURE', '') }}
 
   - name:                              parent_variable_group
     value:                             SDAF-${{ parameters.deployer_environment }}
