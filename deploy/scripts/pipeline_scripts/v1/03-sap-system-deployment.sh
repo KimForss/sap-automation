@@ -75,17 +75,18 @@ else
 	fi
 fi
 
-if ! get_variable_group_id "$VARIABLE_GROUP_WORKLOAD" "VARIABLE_GROUP_ID"; then
-	echo -e "$cyan--- Variable group $VARIABLE_GROUP not found ---$reset"
-	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP_WORKLOAD not found."
+variableGroupName="$VARIABLE_GROUP_WORKLOAD"
 
-	if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
-		echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
-		echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
+if ! get_variable_group_id "$variableGroupName" "VARIABLE_GROUP_ID"; then
+	echo -e "$cyan--- Variable group $variableGroupName not found ---$reset"
+	variableGroupName="$VARIABLE_GROUP"
+
+	if ! get_variable_group_id "$variableGroupName" "VARIABLE_GROUP_ID"; then
+		echo -e "$bold_red--- Variable group $variableGroupName not found ---$reset"
+		echo "##vso[task.logissue type=error]Variable group $variableGroupName not found."
 		exit 2
 	fi
-else
-	VARIABLE_GROUP=$VARIABLE_GROUP_WORKLOAD
+
 fi
 export VARIABLE_GROUP_ID
 
@@ -146,11 +147,11 @@ fi
 deployer_tfstate_key=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_STATE_FILENAME" "${workload_environment_file_name}" "deployer_tfstate_key")
 export deployer_tfstate_key
 
-Terraform_Remote_Storage_Account_Name=$(getVariableFromVariableGroup "${VARIABLE_GROUP}" "TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME" "${workload_environment_file_name}" "REMOTE_STATE_SA")
+Terraform_Remote_Storage_Account_Name=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME" "${workload_environment_file_name}" "REMOTE_STATE_SA")
 if [ -z "$Terraform_Remote_Storage_Account_Name" ]; then
-	Terraform_Remote_Storage_Account_Name=$(getVariableFromVariableGroup "${VARIABLE_GROUP}" "TERRAFORM_STATE_STORAGE_ACCOUNT" "${workload_environment_file_name}" "REMOTE_STATE_SA")
+	Terraform_Remote_Storage_Account_Name=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "TERRAFORM_STATE_STORAGE_ACCOUNT" "${workload_environment_file_name}" "REMOTE_STATE_SA")
 	if [ -z "$Terraform_Remote_Storage_Account_Name" ]; then
-		Terraform_Remote_Storage_Account_Name=$(getVariableFromVariableGroup "${VARIABLE_GROUP}" "Terraform_Remote_Storage_Account_Name" "${workload_environment_file_name}" "REMOTE_STATE_SA")
+		Terraform_Remote_Storage_Account_Name=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Terraform_Remote_Storage_Account_Name" "${workload_environment_file_name}" "REMOTE_STATE_SA")
 	fi
 fi
 
