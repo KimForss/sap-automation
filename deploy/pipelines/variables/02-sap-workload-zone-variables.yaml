@@ -103,7 +103,7 @@ variables:
     value:                             SDAF-${{ parameters.deployer_environment }}
 
   - name:                              variable_group
-    value:                             SDAF-${{ parameters.workload_environment }}
+    value:                             SDAF-${{ replace(parameters.workload_environment, '-INFRASTRUCTURE', '') }}
 
   - name:                              workload_zone_foldername
     value:                             ${{ iif(contains(parameters.workload_zone, '-INFRASTRUCTURE'),parameters.workload_zone, format('{0}-{1}', parameters.workload_zone, 'INFRASTRUCTURE')) }}
