@@ -155,7 +155,9 @@ output "storage_subnet"                          {
                                                                      data.azurerm_subnet.storage[0]) : (
                                                                      var.infrastructure.virtual_networks.sap.subnet_storage.defined ? (
                                                                        try(azurerm_subnet.storage[0], {})) : (
-                                                                       ""
+                                                                       {
+
+                                                                       }
                                                                      )
                                                                   )
 
