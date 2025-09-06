@@ -14,6 +14,11 @@ parameters:
     type:                              string
     default:                           MGMT-WEEU-DEP01-INFRASTRUCTURE
 
+  - name:                              control_plane_name
+    displayName:                       "Control Plane name, use the following syntax: ENV-LOCA-VNET"
+    type:                              string
+    default:                           MGMT-WEEU-DEP01
+
   - name:                              library
     displayName:                       "SAP Library configuration name, use the following syntax: ENV-LOCA-SAP_LIBRARY"
     type:                              string
@@ -55,18 +60,24 @@ parameters:
     displayName:                       Force a re-install - may require multiple re-runs
     type:                              boolean
 
+  - name:                              test
+    displayName:                       Test the deployment
+    type:                              boolean
+
 stages:
   - stage:                             Prepare_Deployer
     condition:                         and(not(failed()), not(canceled()))
     variables:
       - template:                      variables/01-deploy-control-plane-variables.yaml
         parameters:
+          control_plane_name:          ${{ parameters.control_plane_name }}
           deployer:                    ${{ parameters.deployer }}
-          library:                     ${{ parameters.library }}
           environment:                 ${{ parameters.environment }}
-          use_webapp_param:            ${{ parameters.use_webapp_param }}
-          use_deployer:                ${{ parameters.use_deployer }}
           force_reset:                 ${{ parameters.force_reset }}
+          library:                     ${{ parameters.library }}
+          test:                        ${{ parameters.test }}
+          use_deployer:                ${{ parameters.use_deployer }}
+          use_webapp_param:            ${{ parameters.use_webapp_param }}
     displayName:                       Prepare the self hosted agent(s)
 
     jobs:
@@ -129,12 +140,14 @@ stages:
     variables:
       - template:                      variables/01-deploy-control-plane-variables.yaml
         parameters:
+          control_plane_name:          ${{ parameters.control_plane_name }}
           deployer:                    ${{ parameters.deployer }}
-          library:                     ${{ parameters.library }}
           environment:                 ${{ parameters.environment }}
-          use_webapp_param:            ${{ parameters.use_webapp_param }}
-          use_deployer:                ${{ parameters.use_deployer }}
           force_reset:                 ${{ parameters.force_reset }}
+          library:                     ${{ parameters.library }}
+          test:                        ${{ parameters.test }}
+          use_deployer:                ${{ parameters.use_deployer }}
+          use_webapp_param:            ${{ parameters.use_webapp_param }}
     jobs:
       - job:                           SaveDeploymentCredentials
         displayName:                   Save the Deployment Credentials
