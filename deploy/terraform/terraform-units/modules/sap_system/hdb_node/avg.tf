@@ -23,9 +23,8 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_full" {
   account_name                         = local.ANF_pool_settings.account_name
   group_description                    = format("Application Volume %d group for %s", count.index + 1, var.sap_sid)
   application_identifier               = local.sid
-
   volume                    {
-                               name                          = format("%s%s%s%s%d",
+                               name                          = format("%s%s%s%s%02d",
                                                                 var.naming.resource_prefixes.hanadata,
                                                                 local.prefix,
                                                                 var.naming.separator,
@@ -61,7 +60,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_full" {
                             }
 
   volume                    {
-                               name                          = format("%s%s%s%s%d",
+                               name                          = format("%s%s%s%s%02d",
                                                                 var.naming.resource_prefixes.hanalog,
                                                                 local.prefix,
                                                                 var.naming.separator,
@@ -100,7 +99,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_full" {
                      iterator = pub
                      for_each = range(count.index < length(var.database.zones)  ? 1 : 0)
                      content {
-                               name                         = format("%s%s%s%s%d",
+                               name                         = format("%s%s%s%s%02d",
                                                                 var.naming.resource_prefixes.hanashared,
                                                                 local.prefix,
                                                                 var.naming.separator,
@@ -141,7 +140,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_full" {
 resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_data2" {
   provider                             = azurerm.main
   depends_on                           = [ azurerm_linux_virtual_machine.vm_dbnode ]
-  count                                = local.use_avg && var.database_server_count / length(var.database.zones) > 1 ? length(var.database.zones) : 0
+  count                                = local.use_avg && (var.database_server_count / length(var.database.zones) > 1) ? length(var.database.zones) : 0
   name                                 = format("%s%s%s%sdata2_%d",
                                            var.naming.resource_prefixes.hana_avg,
                                            local.prefix,
@@ -156,7 +155,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_data2" {
   application_identifier               = local.sid
 
   volume                    {
-                               name                          = format("%s%s%s%sdata_2%d",
+                               name                          = format("%s%s%s%sdata_2%02d",
                                                                 var.naming.resource_prefixes.hanadata,
                                                                 local.prefix,
                                                                 var.naming.separator,
@@ -192,7 +191,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_data2" {
                             }
 
   volume                    {
-                               name                          = format("%s%s%s%slog_2%d",
+                               name                          = format("%s%s%s%slog_2%02d",
                                                                 var.naming.resource_prefixes.hanalog,
                                                                 local.prefix,
                                                                 var.naming.separator,
@@ -249,7 +248,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_data3" {
   application_identifier               = local.sid
 
   volume                    {
-                               name                          = format("%s%s%s%sdata_3%d",
+                               name                          = format("%s%s%s%sdata_3%02d",
                                                                 var.naming.resource_prefixes.hanadata,
                                                                 local.prefix,
                                                                 var.naming.separator,
@@ -285,14 +284,14 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_data3" {
                             }
 
   volume                    {
-                               name                          = format("%s%s%s%slog_32%d",
+                               name                          = format("%s%s%s%slog_3%02d",
                                                                 var.naming.resource_prefixes.hanalog,
                                                                 local.prefix,
                                                                 var.naming.separator,
                                                                 local.resource_suffixes.hanalog,
                                                                 count.index + 1
                                                               )
-                               volume_path                  = format("%s-%s-log2%02d",
+                               volume_path                  = format("%s-%s-log3%02d",
                                                                 var.sap_sid,
                                                                 local.resource_suffixes.hanalog,
                                                                 count.index + 1
