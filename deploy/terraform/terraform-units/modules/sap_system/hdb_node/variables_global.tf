@@ -16,11 +16,11 @@ variable "database"                                     {}
 
 variable "database_dual_nics"                           {
                                                           description = "Defines if the HANA DB uses dual network interfaces"
-                                                          default     = true
+                                                          type        = bool
                                                         }
 variable "enable_storage_nic"                           {
                                                           description = "Boolean to determine if a storage nic should be used when scale out is enabled"
-                                                          default     = true
+                                                          type        = bool
                                                         }
 variable "database_server_count"                        {
                                                           description = "The number of database servers"
