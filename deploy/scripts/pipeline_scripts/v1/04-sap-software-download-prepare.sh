@@ -6,15 +6,15 @@ green="\e[1;32m"
 reset="\e[0m"
 bold_red="\e[1;31m"
 
-#External helper functions
+# External helper functions
+#. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 parent_directory="$(dirname "$script_directory")"
 grand_parent_directory="$(dirname "$parent_directory")"
 
 SCRIPT_NAME="$(basename "$0")"
-
-banner_title="Deploy SAP System"
+banner_title="Prepare Software download"
 
 #call stack has full script name when using source
 # shellcheck disable=SC1091
@@ -22,7 +22,7 @@ source "${grand_parent_directory}/deploy_utils.sh"
 
 #call stack has full script name when using source
 source "${parent_directory}/helper.sh"
-
+print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
 DEBUG=False
 
 if [ "$SYSTEM_DEBUG" = True ]; then
