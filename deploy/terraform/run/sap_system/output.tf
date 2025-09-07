@@ -174,7 +174,7 @@ output "db_vm_ips"                     {
 output "db_vm_admin_ips"               {
                                          description = "Database Virtual Machine Admin IPs"
                                          value = upper(try(local.database.platform, "HANA")) == "HANA" ? (
-                                                   module.hdb_node.db_admin_ip) : (
+                                                   module.hdb_node.db_admin_ips) : (
                                                    [])
                                        }
 

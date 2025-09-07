@@ -122,7 +122,7 @@ output "database_loadbalancer_id"      {
                                                        ]
                                        }
 
-output "db_admin_ip"                   {
+output "db_admin_ips"                  {
                                          description = "Database Admin IP information"
                                          value       = local.enable_deployment && var.database_dual_nics ? (
                                                          azurerm_network_interface.nics_dbnodes_admin[*].private_ip_address) : (

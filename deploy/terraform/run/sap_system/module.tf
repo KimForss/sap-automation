@@ -345,7 +345,7 @@ module "output_files" {
   #  Database tier                                                                        #
   #########################################################################################
   database_admin_ips                            = upper(try(local.database.platform, "HANA")) == "HANA" ? (
-                                                    module.hdb_node.db_admin_ip) : (
+                                                    var.database_dual_nics ? module.hdb_node.db_admin_ips : module.hdb_node.database_server_ips ) : (
                                                     module.anydb_node.database_server_admin_ips
                                                   ) #TODO Change to use Admin IP
   database_authentication_type                  = try(local.database.authentication.type, "key")
