@@ -44,28 +44,59 @@ print_header
 # Configure DevOps
 configure_devops
 
-# Set logon variables
-if [ $USE_MSI == "true" ]; then
-	unset ARM_CLIENT_SECRET
-	ARM_USE_MSI=true
-	export ARM_USE_MSI
-fi
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 	configureNonDeployer "${tf_version:-1.12.2}"
 fi
 
-if az account show --query name; then
-	echo -e "$green--- Already logged in to Azure ---$reset"
-else
-	echo -e "$green--- az login ---$reset"
-	LogonToAzure $USE_MSI
-	return_code=$?
-	if [ 0 != $return_code ]; then
-		echo -e "$bold_red--- Login failed ---$reset"
-		echo "##vso[task.logissue type=error]az login failed."
-		exit $return_code
+echo -e "$green--- Validations ---$reset"
+if [ "$USE_MSI" != "true" ]; then
+
+	if ! printenv ARM_SUBSCRIPTION_ID; then
+		echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined in the $VARIABLE_GROUP variable group."
+		print_banner "$banner_title" "Variable ARM_SUBSCRIPTION_ID was not defined in the $VARIABLE_GROUP variable group" "error"
+		exit 2
 	fi
+
+	if ! printenv ARM_CLIENT_SECRET; then
+		echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined in the $VARIABLE_GROUP variable group."
+		print_banner "$banner_title" "Variable ARM_CLIENT_SECRET was not defined in the $VARIABLE_GROUP variable group" "error"
+		exit 2
+	fi
+
+	if ! printenv ARM_CLIENT_ID; then
+		echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined in the $VARIABLE_GROUP variable group."
+		print_banner "$banner_title" "Variable ARM_CLIENT_ID was not defined in the $VARIABLE_GROUP variable group" "error"
+		exit 2
+	fi
+
+	if ! printenv ARM_TENANT_ID; then
+		echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined in the $VARIABLE_GROUP variable group."
+		print_banner "$banner_title" "Variable ARM_SUBSCRIPTION_ID was not defined in the $VARIABLE_GROUP variable group" "error"
+		exit 2
+	fi
+fi
+
+echo -e "$green--- az login ---$reset"
+# Set logon variables
+if [ "$USE_MSI" != "true" ]; then
+
+	ARM_TENANT_ID=$(az account show --query tenantId --output tsv)
+	export ARM_TENANT_ID
+	ARM_SUBSCRIPTION_ID=$(az account show --query id --output tsv)
+	export ARM_SUBSCRIPTION_ID
+else
+	unset ARM_CLIENT_SECRET
+	ARM_USE_MSI=true
+	export ARM_USE_MSI
+fi
+
+LogonToAzure $USE_MSI
+return_code=$?
+if [ 0 != $return_code ]; then
+	echo -e "$bold_red--- Login failed ---$reset"
+	echo "##vso[task.logissue type=error]az login failed."
+	exit $return_code
 fi
 
 if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
