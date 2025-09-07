@@ -157,6 +157,7 @@ stages:
                   source ~/.bashrc; pipx uninstall ansible-core --verbose
 
                   pipx install ansible-core=="${ansible_core_version:-2.16.5}" --force
+                  pipx  install jmespath
                   ansible-galaxy collection install --force ansible.windows ansible.posix ansible.utils community.windows microsoft.ad community.general
                   ansible --version
                 fi
