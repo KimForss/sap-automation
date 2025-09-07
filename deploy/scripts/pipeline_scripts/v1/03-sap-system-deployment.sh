@@ -154,6 +154,7 @@ if [ -z "$Terraform_Remote_Storage_Account_Name" ]; then
 		Terraform_Remote_Storage_Account_Name=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Terraform_Remote_Storage_Account_Name" "${workload_environment_file_name}" "REMOTE_STATE_SA")
 	fi
 fi
+saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME" "$Terraform_Remote_Storage_Account_Name"
 
 tfstate_resource_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$Terraform_Remote_Storage_Account_Name' | project id, name, subscription" --query data[0].id --output tsv)
 
