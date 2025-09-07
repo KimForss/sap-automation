@@ -14,7 +14,7 @@ parent_directory="$(dirname "$script_directory")"
 grand_parent_directory="$(dirname "$parent_directory")"
 
 SCRIPT_NAME="$(basename "$0")"
-banner_title="Prepare Software download"
+banner_title="Prepare software download"
 
 #call stack has full script name when using source
 # shellcheck disable=SC1091
@@ -22,7 +22,10 @@ source "${grand_parent_directory}/deploy_utils.sh"
 
 #call stack has full script name when using source
 source "${parent_directory}/helper.sh"
+
+echo "##vso[build.updatebuildnumber]Deploying the Control Plane defined in $DEPLOYER_FOLDERNAME"
 print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
+
 DEBUG=False
 
 if [ "$SYSTEM_DEBUG" = True ]; then
@@ -34,11 +37,6 @@ if [ "$SYSTEM_DEBUG" = True ]; then
 fi
 export DEBUG
 set -eu
-
-AZURE_DEVOPS_EXT_PAT=$SYSTEM_ACCESSTOKEN
-export AZURE_DEVOPS_EXT_PAT
-
-cd "$CONFIG_REPO_PATH" || exit
 
 # Print the execution environment details
 print_header
