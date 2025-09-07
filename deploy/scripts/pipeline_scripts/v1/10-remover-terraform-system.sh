@@ -133,9 +133,9 @@ elif [ "v2" == "${SDAFWZ_CALLER_VERSION:-v2}" ]; then
 	workload_environment_file_name="${automation_config_directory}${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}${NETWORK}"
 fi
 
-deployer_tfstate_key=$(getVariableFromVariableGroup "${PARENT_VARIABLE_GROUP_ID}" "DEPLOYER_STATE_FILENAME" "${workload_environment_file_name}" "deployer_tfstate_key")
+deployer_tfstate_key=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_STATE_FILENAME" "${workload_environment_file_name}" "deployer_tfstate_key")
 if [ -z "$deployer_tfstate_key" ]; then
-	deployer_tfstate_key=$(getVariableFromVariableGroup "${PARENT_VARIABLE_GROUP_ID}" "Deployer_State_FileName" "${workload_environment_file_name}" "deployer_tfstate_key")
+	deployer_tfstate_key=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_State_FileName" "${workload_environment_file_name}" "deployer_tfstate_key")
 	if [ -z "$deployer_tfstate_key" ]; then
 
 		echo -e "$bold_red--- DEPLOYER_STATE_FILENAME not found in variable group $PARENT_VARIABLE_GROUP ---$reset"
