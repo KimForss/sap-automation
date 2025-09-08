@@ -106,7 +106,7 @@
         path:                          "{{ dir_params }}/{{ sap_inifile }}"
         state:                         absent
 
-    - name:                            "4.0.3 - SAP HANA SCALE OUT: SAP HANA Template processing: Create ini file {{ sap_inifile }} from {{ HANA_2_00_install.rsp }}"
+    - name:                            "4.0.3 - SAP HANA SCALE OUT: SAP HANA Template processing: Create ini file {{ sap_inifile }} from HANA_2_00_install_scaleout.rsp"
       ansible.builtin.template:
         src:                           "HANA_2_00_install_scaleout.rsp"
         dest:                          "{{ dir_params }}/{{ sap_inifile }}"
@@ -122,6 +122,8 @@
         _rsp_number:                   "{{ db_instance_number }}"
         _rsp_system_usage:             "custom"
         # use_master_password:           "{{ hana_use_master_password }}"
+        _rsp_hana_data_basepath:       "{{ hana_data_basepath }}"
+        _rsp_hana_log_basepath:        "{{ hana_log_basepath }}"
         pwd_hdb_system:                "{{ hana_system_user_password | default(main_password) }}"
         pwd_os_sidadm:                 "{{ hana_os_sidadm_password | default(main_password) }}"
         pwd_os_sapadm:                 "{{ hana_os_sapadm_password | default(main_password) }}"
