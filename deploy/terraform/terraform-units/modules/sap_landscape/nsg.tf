@@ -337,3 +337,33 @@ resource "azurerm_network_security_rule" "nsr_controlplane_admin" {
                                            )))
   destination_address_prefixes         = var.infrastructure.virtual_networks.sap.subnet_admin.exists ? data.azurerm_subnet.admin[0].address_prefixes : azurerm_subnet.admin[0].address_prefixes
 }
+
+resource "azurerm_network_security_rule" "nsr_controlplane_anf" {
+  provider                             = azurerm.main
+
+  count                                = var.infrastructure.virtual_networks.sap.subnet_anf.defined ? var.infrastructure.virtual_networks.sap.subnet_anf.nsg.exists ? 0 : 1 : 0
+  depends_on                           = [
+                                           azurerm_network_security_group.anf
+                                         ]
+  name                                 = "ConnectivityToSAPApplicationSubnetFromControlPlane-ssh-rdp-winrm-ANF"
+  resource_group_name                  = var.infrastructure.virtual_networks.sap.exists ? (
+                                           data.azurerm_virtual_network.vnet_sap[0].resource_group_name
+                                           ) : (
+                                           azurerm_virtual_network.vnet_sap[0].resource_group_name
+                                         )
+  network_security_group_name          = try(azurerm_network_security_group.anf[0].name, azurerm_network_security_group.app[0].name)
+  priority                             = 100
+  direction                            = "Inbound"
+  access                               = "Allow"
+  protocol                             = "*"
+  source_port_range                    = "*"
+  destination_port_ranges              = [22, 443, 3389, 5985, 5986, 111, 635, 2049, 4045, 4046, 4049]
+  source_address_prefixes              = compact(concat(
+                                           local.use_deployer ? var.deployer_tfstate.subnet_mgmt_address_prefixes : [""],
+                                           local.use_deployer ? var.deployer_tfstate.subnet_bastion_address_prefixes : [""],
+                                           var.infrastructure.virtual_networks.sap.exists ? (
+                                             flatten(data.azurerm_virtual_network.vnet_sap[0].address_space)) : (
+                                             flatten(azurerm_virtual_network.vnet_sap[0].address_space)
+                                           )))
+  destination_address_prefixes         = var.infrastructure.virtual_networks.sap.subnet_storage.exists ? data.azurerm_subnet.storage[0].address_prefixes : azurerm_subnet.storage[0].address_prefixes
+}
