@@ -166,6 +166,11 @@ stages:
                    jmespath --force
                   ansible-galaxy collection install --force ansible.windows ansible.posix ansible.utils community.windows microsoft.ad community.general
                   ansible --version
+                else
+                  echo "Running on SDAF deployed agent"
+
+
+                  sudo apt install python3-jmespath -y
                 fi
 
             env:
