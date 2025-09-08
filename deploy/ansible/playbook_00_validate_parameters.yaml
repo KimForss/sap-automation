@@ -35,11 +35,11 @@
     #   tags:
     #                                    - always
 
-    - name:                            "0.0 Validations - Ensure netaddr is installed in the controller"
-      ansible.builtin.pip:
-        name:                          netaddr
-        state:                         present
-      tags:
+    # - name:                            "0.0 Validations - Ensure netaddr is installed in the controller"
+    #   ansible.builtin.pip:
+    #     name:                          netaddr
+    #     state:                         present
+    #   tags:
                                        - always
 
     # - name:                            "0.0 Validations - ensure credssp is installed in the controller"
