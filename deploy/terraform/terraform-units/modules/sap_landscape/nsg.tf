@@ -156,6 +156,36 @@ resource "azurerm_subnet_network_security_group_association" "storage" {
   network_security_group_id            = azurerm_network_security_group.storage[0].id
 }
 
+# Creates SAP web subnet nsg
+resource "azurerm_network_security_group" "anf" {
+  provider                             = azurerm.main
+  count                                = var.infrastructure.virtual_networks.sap.subnet_anf.defined && !var.infrastructure.virtual_networks.sap.subnet_anf.nsg.exists ? 1 : 0
+  depends_on                           = [
+                                          azurerm_subnet.anf
+                                        ]
+  name                                 = local.ANF_subnet_nsg_name
+  resource_group_name                  = var.infrastructure.virtual_networks.sap.exists ? (
+                                           data.azurerm_virtual_network.vnet_sap[0].resource_group_name
+                                           ) : (
+                                           azurerm_virtual_network.vnet_sap[0].resource_group_name
+                                         )
+  location                             = var.infrastructure.virtual_networks.sap.exists ? (
+                                           data.azurerm_virtual_network.vnet_sap[0].location) : (
+                                           azurerm_virtual_network.vnet_sap[0].location
+                                         )
+  tags                                 = var.tags
+}
+
+# Associates SAP web nsg to SAP web subnet
+resource "azurerm_subnet_network_security_group_association" "anf" {
+  provider                             = azurerm.main
+  count                                = var.infrastructure.virtual_networks.sap.subnet_anf.defined && !var.infrastructure.virtual_networks.sap.subnet_anf.nsg.exists ? 1 : 0
+  subnet_id                            = var.infrastructure.virtual_networks.sap.subnet_anf.exists ? var.infrastructure.virtual_networks.sap.subnet_anf.id : azurerm_subnet.anf[0].id
+  network_security_group_id            = azurerm_network_security_group.anf[0].id
+}
+
+
+
 
 // Add network security rule
 resource "azurerm_network_security_rule" "nsr_controlplane_app" {
