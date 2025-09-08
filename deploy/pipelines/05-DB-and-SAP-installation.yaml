@@ -155,9 +155,13 @@ stages:
                   python3 -m pip install pipx; python3 -m pipx ensurepath
 
                   source ~/.bashrc; pipx uninstall ansible-core --verbose
+                  pipx install --upgrade wheel setuptools
 
-                  pipx install ansible-core=="${ansible_core_version:-2.16.5}" --force
-                  pipx  install jmespath
+                  pipx install ansible-core=="${ansible_core_version:-2.16.5}" \
+                   jmespath argcomplete \
+                   'pywinrm>=0.3.0' \
+                   netaddr \
+                   jmespath --force
                   ansible-galaxy collection install --force ansible.windows ansible.posix ansible.utils community.windows microsoft.ad community.general
                   ansible --version
                 fi
