@@ -309,6 +309,7 @@
             - { key: "ChallengeResponseAuthentication", value: "yes" }
 
         - name:                            Append root user to AllowUsers if used
+          become:                          true
           ansible.builtin.lineinfile:
             path:                          "/etc/ssh/sshd_config"
             regexp:                        '^AllowUsers (?!.*root.*)(.*)'
