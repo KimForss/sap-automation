@@ -355,7 +355,7 @@ resource "azurerm_network_security_rule" "nsr_controlplane_anf" {
   priority                             = 100
   direction                            = "Inbound"
   access                               = "Allow"
-  protocol                             = "tcp"
+  protocol                             = "Tcp"
   source_port_range                    = "*"
   destination_port_ranges              = [22, 111, 443, 635, 2049, 3389, 4045, 4046, 4049, 5985, 5986]
   source_address_prefixes              = compact(concat(
