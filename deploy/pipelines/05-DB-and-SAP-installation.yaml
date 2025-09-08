@@ -157,19 +157,18 @@ stages:
                   sudo apt install python3-jmespath -y
 
                   source ~/.bashrc; pipx uninstall ansible-core --verbose
-                  pipx install wheel setuptools --force
 
                   pipx install ansible-core=="${ansible_core_version:-2.16.5}" \
                    jmespath argcomplete \
                    'pywinrm>=0.3.0' \
                    netaddr \
-                   jmespath --force
+                   jmespath \
+                   wheel \
+                   setuptools --force
                   ansible-galaxy collection install --force ansible.windows ansible.posix ansible.utils community.windows microsoft.ad community.general
                   ansible --version
                 else
                   echo "Running on SDAF deployed agent"
-
-
                   sudo apt install python3-jmespath -y
                 fi
 
