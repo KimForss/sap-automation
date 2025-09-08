@@ -10,7 +10,7 @@
 parameters:
   sap_system: ''
   workload_zone_name: ''
-  workload_environment: ''
+
   test: false
 
 variables:
@@ -28,7 +28,7 @@ variables:
     value:                             https://releases.hashicorp.com/terraform/$(tf_version)/terraform_$(tf_version)_linux_amd64.zip
 
   - name:                              variable_group
-    value:                             SDAF-${{ parameters.environment }}
+    value:                             SDAF-${{ parameters.workload_zone_name }}
 
   - name:                              variable_group_workload
     value:                             SDAF-${{ parameters.workload_zone_name }}
