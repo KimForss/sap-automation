@@ -152,14 +152,14 @@ stages:
 
                 if [ ! -f "/etc/profile.d/deploy_server.sh" ]; then
                   echo "installing pipx"
-                  python3 -m pip install pip3; python3 -m pip3 ensurepath
+                  python3 -m pip install pipx; python3 -m pipx ensurepath
 
                   sudo apt install python3-jmespath -y
 
-                  source ~/.bashrc; pip3 uninstall ansible-core --verbose
-                  pip3 install --upgrade wheel setuptools
+                  source ~/.bashrc; pipx uninstall ansible-core --verbose
+                  pipx install wheel setuptools --force
 
-                  pip3 install ansible-core=="${ansible_core_version:-2.16.5}" \
+                  pipx install ansible-core=="${ansible_core_version:-2.16.5}" \
                    jmespath argcomplete \
                    'pywinrm>=0.3.0' \
                    netaddr \
