@@ -436,7 +436,7 @@
       'type':              'shared',
       'temppath':          'shared',
       'mount':             "{% if site | default('SITE1') == 'SITE1' %}{{ hana_shared_mountpoint[0] }}{% else %}{{ hana_shared_mountpoint[1] }}{% endif %}",
-      'opts':              'vers=4,minorversion=1,sec=sys',
+      'opts':              'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp',
       'path':              '/hana/shared',
       'owner':             '{{ sidadm_uid }}',
       'permissions':       '0775',
