@@ -154,6 +154,8 @@ stages:
                   echo "installing pipx"
                   python3 -m pip install pipx; python3 -m pipx ensurepath
 
+                  apt install python3-jmespath -y
+
                   source ~/.bashrc; pipx uninstall ansible-core --verbose
                   pipx install --upgrade wheel setuptools
 
