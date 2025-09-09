@@ -267,7 +267,7 @@ else
 		git clean -d -f -X
 
 		if [ -f ".terraform/terraform.tfstate" ]; then
-			git rm --ignore-unmatch -q --ignore-unmatch ".terraform/terraform.tfstate"
+			git rm --ignore-unmatch -q  ".terraform/terraform.tfstate"
 			changed=1
 		fi
 
@@ -282,6 +282,16 @@ else
 
 		if [ -f "$WORKLOAD_ZONE_TFVARS_FILENAME" ]; then
 			git add "$WORKLOAD_ZONE_TFVARS_FILENAME"
+			changed=1
+		fi
+
+		if [ -f "$workload_environment_file_name" ]; then
+			git rm --ignore-unmatch -q "$workload_environment_file_name"
+			changed=1
+		fi
+
+		if [ -f "$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT_IN_FILENAME}/${LOCATION_CODE_IN_FILENAME}" ]; then
+			git rm --ignore-unmatch -q "$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT_IN_FILENAME}/${LOCATION_CODE_IN_FILENAME}"
 			changed=1
 		fi
 
