@@ -23,11 +23,11 @@ parent_caller_directory="$(dirname $(realpath "${parent_caller}"))"
 
 # Check if parent caller is from v1 directory
 if [[ "${parent_caller_directory}" == *"/v1/"* || "${parent_caller_directory}" == *"/v1" ]]; then
-    echo "DEBUG: Detected v1 caller"
-		isCallerV1=0
+	echo "DEBUG: Detected v1 caller"
+	isCallerV1=0
 else
-		echo "DEBUG: Detected v2 caller"
-    isCallerV1=1
+	echo "DEBUG: Detected v2 caller"
+	isCallerV1=1
 fi
 
 #call stack has full script name when using source
@@ -230,25 +230,29 @@ fi
 automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation
 generic_config_information="${automation_config_directory}"/config
 
-if [ $isCallerV1 -eq 1 ]; then
-	if [ "$deployer_environment" != "$environment" ]; then
-		if [ -f "${automation_config_directory}/${environment}${region_code}" ]; then
-			# Add support for having multiple vnets in the same environment and zone - rename exiting file to support seamless transition
-			if [ -f "${automation_config_directory}/${environment}${region_code}${network_logical_name}" ]; then
-				mv "${automation_config_directory}/${environment}${region_code}" "${automation_config_directory}/${environment}${region_code}${network_logical_name}"
-			fi
+if [ "$deployer_environment" != "$environment" ]; then
+	if [ -f "${automation_config_directory}/${environment}${region_code}" ]; then
+		# Add support for having multiple vnets in the same environment and zone - rename exiting file to support seamless transition
+		if [ -f "${automation_config_directory}/${environment}${region_code}${network_logical_name}" ]; then
+			mv "${automation_config_directory}/${environment}${region_code}" "${automation_config_directory}/${environment}${region_code}${network_logical_name}"
 		fi
 	fi
 fi
 
-if [ $isCallerV1 -eq 0 ]; then
-	workload_config_information="${automation_config_directory}/${environment}${region_code}"
-elif [ $isCallerV1 -eq 1 ]; then
+workload_config_information="${automation_config_directory}/${environment}${region_code}"
+if [ ! -f "${workload_config_information}" ]; then
 	workload_config_information="${automation_config_directory}/${environment}${region_code}${network_logical_name}"
 fi
 
 touch "${workload_config_information}"
 deployer_config_information="${automation_config_directory}/${deployer_environment}${region_code}"
+if [ ! -f "${deployer_config_information}" ]; then
+	deployer_environment=$(echo "$deployer_tfstate_key" | awk -F'-' '{print $1}' | xargs)
+	deployer_location=$(echo "$deployer_tfstate_key" | awk -F'-' '{print $2}' | xargs)
+	deployer_network=$(echo "$deployer_tfstate_key" | awk -F'-' '{print $3}' | xargs)
+	deployer_config_information="${automation_config_directory}/${deployer_environment}${deployer_location}${deployer_network}"
+fi
+
 save_config_vars "${workload_config_information}" \
 	STATE_SUBSCRIPTION REMOTE_STATE_SA subscription
 
@@ -1044,7 +1048,7 @@ if [ 1 == $apply_needed ]; then
 		else
 			return_value=${PIPESTATUS[0]}
 		fi
-		echo    "Return value:                        $return_value"
+		echo "Return value:                        $return_value"
 		if [ $return_value -eq 1 ]; then
 			echo ""
 			echo -e "${bold_red}Terraform apply:                       failed$reset_formatting"
@@ -1062,7 +1066,7 @@ if [ 1 == $apply_needed ]; then
 		terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" $allParameters
 		return_value=$?
 
-		echo    "Return value:                        $return_value"
+		echo "Return value:                        $return_value"
 		if [ $return_value -ne 1 ]; then
 			echo ""
 			echo -e "${cyan}Terraform apply:                     succeeded$reset_formatting"

@@ -256,10 +256,19 @@ fi
 automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
 generic_config_information="${automation_config_directory}"config
 
-if [ "v1" == "${SDAFWZ_CALLER_VERSION:-v2}" ]; then
-	system_config_information="${automation_config_directory}${environment}${region_code}"
-elif [ "v2" == "${SDAFWZ_CALLER_VERSION:-v2}" ]; then
-	system_config_information="${automation_config_directory}${environment}${region_code}${network_logical_name}"
+if [ -n "$landscape_tfstate_key" ]; then
+	environment=$(echo "$landscape_tfstate_key" | awk -F'-' '{print $1}' | xargs)
+	region_code=$(echo "$landscape_tfstate_key" | awk -F'-' '{print $2}' | xargs)
+	network_logical_name=$(echo "$landscape_tfstate_key" | awk -F'-' '{print $3}' | xargs)
+else
+	environment=$(echo "$deployer_tfstate_key" | awk -F'-' '{print $1}' | xargs)
+	region_code=$(echo "$deployer_tfstate_key" | awk -F'-' '{print $2}' | xargs)
+	network_logical_name=$(echo "$deployer_tfstate_	key" | awk -F'-' '{print $3}' | xargs)
+fi
+
+system_config_information="${automation_config_directory}/${environment}${region_code}${network_logical_name}"
+if [ ! -f "${system_config_information}" ]; then
+	system_config_information="${automation_config_directory}/${environment}${region_code}"
 fi
 
 echo "Configuration file:                  $system_config_information"
