@@ -1434,36 +1434,3 @@ function get_terraform_output() {
 	fi
 }
 
-################################################################################
-#                                                                              #
-# Function to return the configuration file                                    #
-# Arguments:                                                                   #
-#   $1 - The directory for the file                                            #
-#   $2 - The environment name (e.g., DEV, PROD)                                #
-#   $3 - The region code (e.g., WEEU, NEU)					    											 #
-#   $4 - The logical network name (e.g., SAP01, SAP02                          #
-# Returns:                                                                     #
-#   The configuration file path or an empty string if not found                #
-#                                                                              #
-################################################################################
-
-function get_configuration_file {
-	local directory=$1
-	local environment=$2
-	local region_code=$3
-	local logical_network_name=$4
-
-	local configurationFile="${directory}${environment}${region_code}${logical_network_name}"
-
-	if [ ! -f "${configurationFile}" ]; then
-		configurationFile="${directory}${environment}${region_code}"
-		if [ ! -f "${configurationFile}" ]; then
-			configurationFile="${directory}${environment}${region_code}${logical_network_name}"
-		else
-		  sudo mv "${configurationFile}" "${directory}${environment}${region_code}${logical_network_name}"
-			configurationFile="${directory}${environment}${region_code}${logical_network_name}"
-		fi
-	fi
-
-	echo "${configurationFile}"
-}
