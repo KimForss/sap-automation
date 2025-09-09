@@ -315,7 +315,7 @@ resource "time_offset" "secret_expiry_date" {
 }
 
 resource "time_sleep" "wait_for_role_assignment" {
-  create_duration                      = "60s"
+  create_duration                      = "90s"
 
   triggers                             = {
                                           policy_spn = try(azurerm_key_vault_access_policy.kv_user_spn[0].id, "")
