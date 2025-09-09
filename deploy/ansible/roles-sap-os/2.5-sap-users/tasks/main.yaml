@@ -61,8 +61,8 @@
     - { group: 'racdba',    gid: '{{ racdba_gid }}'    }
     - { group: 'oinstall',  gid: '{{ oinstall_gid }}'  }
   when:
-    - node_tier in ["oracle-asm", "observer"]
-    - platform == "ORACLE"
+    - node_tier in ['oracle-asm', 'observer']
+    - platform == "ORACLE-ASM"
 
 - name:                                "2.5.1 SAP Users: - Create SAP Groups for Oracle ASM on observer"
   ansible.builtin.group:
