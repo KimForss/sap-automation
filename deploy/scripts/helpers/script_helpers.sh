@@ -1082,7 +1082,7 @@ function ImportAndReRunApply {
 	if [ -f "$fileName" ]; then
 		retry_errors_temp=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary} | select(.summary | contains("A retryable error occurred."))' "$fileName")
 		if [[ -n "${retry_errors_temp}" ]]; then
-		  rm "$fileName"
+			rm "$fileName"
 			sleep 30
 			# shellcheck disable=SC2086
 			if terraform -chdir="${terraform_module_directory}" apply -no-color -compact-warnings -json -input=false --auto-approve $applyParameters | tee "$fileName"; then
@@ -1432,4 +1432,35 @@ function get_terraform_output() {
 	else
 		echo "$default_value"
 	fi
+}
+
+################################################################################
+#                                                                              #
+# Function to return the configuration file                                    #
+# Arguments:                                                                   #
+#   $1 - The directory for the file                                            #
+#   $2 - The environment name (e.g., DEV, PROD)                                #
+#   $3 - The region code (e.g., WEEU, NEU)					    											 #
+#   $4 - The logical network name (e.g., SAP01, SAP02                          #
+# Returns:                                                                     #
+#   The configuration file path or an empty string if not found                #
+#                                                                              #
+################################################################################
+
+function get_configuration_file {
+	local directory=$1
+	local environment=$2
+	local region_code=$3
+	local logical_network_name=$4
+
+	local configurationFile="${directory}${environment}${region_code}${logical_network_name}"
+
+	if [ ! -f "${configurationFile}" ]; then
+		configurationFile="${directory}${environment}${region_code}"
+		if [ ! -f "${configurationFile}" ]; then
+			print_banner "Installer" "Configuration file: ${configurationFile} not found" "error"
+			configurationFile=""
+		fi
+	fi
+	echo "${configurationFile}"
 }
