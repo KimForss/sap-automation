@@ -205,18 +205,18 @@ function getEnvVarValue() {
 }
 
 function checkforEnvVar() {
-    # Add parameter validation
-    if [ -z "$1" ]; then
-        return 1
-    fi
+	# Add parameter validation
+	if [ -z "$1" ]; then
+		return 1
+	fi
 
-    local env_var=
-    env_var=$(declare -p "$1" 2>/dev/null)
-    if ! [[ -v $1 && $env_var =~ ^declare\ -x ]]; then
-        return 1
-    else
-        return 0
-    fi
+	local env_var=
+	env_var=$(declare -p "$1" 2>/dev/null)
+	if ! [[ -v $1 && $env_var =~ ^declare\ -x ]]; then
+		return 1
+	else
+		return 0
+	fi
 }
 
 ###############################################################################
@@ -606,7 +606,6 @@ function valid_kv_name() {
 #check the AZURE_HTTP_USER_AGENT=cloud-shell/1.0 to identify the cloud shell
 #update template to user the following user http://localhost:50342/oauth2/token
 
-
 ################################################################################
 #                                                                              #
 # Function to return the configuration file                                    #
@@ -633,11 +632,7 @@ function get_configuration_file {
 		if [ ! -f "${configurationFile}" ]; then
 			configurationFile="${directory}${environment}${region_code}${logical_network_name}"
 		else
-			echo ""
-			echo "Renaming ${configurationFile} to ${directory}${environment}${region_code}${logical_network_name}"
-		  sudo mv "${configurationFile}" "${directory}${environment}${region_code}${logical_network_name}"
-			ls -lart "${directory}"
-			echo ""
+			sudo mv "${configurationFile}" "${directory}${environment}${region_code}${logical_network_name}" 2>/dev/null || true
 			configurationFile="${directory}${environment}${region_code}${logical_network_name}"
 		fi
 	fi
