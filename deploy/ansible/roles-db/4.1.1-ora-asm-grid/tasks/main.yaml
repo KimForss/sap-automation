@@ -251,7 +251,6 @@
     ORACLE_HOME:                       /oracle/GRID/{{ ora_version }}
     DB_SID:                            "{{ db_sid | upper }}"
   args:
-    executable:                        /bin/csh
     chdir:                             "/oracle/GRID/{{ ora_version }}"
     creates:                           /etc/sap_deployment_automation/oracle/gridinstall.txt
 
