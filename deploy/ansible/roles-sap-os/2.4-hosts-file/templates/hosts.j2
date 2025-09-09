@@ -83,6 +83,17 @@ ansible_facts.
 
 #}
 
+{% set db_scale_out = database_scale_out | default(false) %}
+{% set db_ha = database_high_availability | default(false) %}
+{% set subnet_db_valid = subnet_cidr_db is defined and subnet_cidr_db and subnet_cidr_db | string | length > 0 %}
+{% set subnet_storage_valid = subnet_cidr_storage is defined and subnet_cidr_storage and subnet_cidr_storage | string | length > 0 %}
+
+# Scale out: {{ db_scale_out }}
+# High availability: {{ db_ha }}
+# Subnet DB valid: {{ subnet_db_valid }}
+# Subnet Storage valid: {{ subnet_storage_valid }}
+
+
 {# This template generates host entries based on the provided data #}
 {% for host in ansible_play_hosts|sort %}
 {# Set variables for the current host #}
@@ -126,11 +137,6 @@ ansible_facts.
 {%   endfor %}
 {# Keep only unique values in the virtual_host_names #}
 {% set virtual_host_names = virtual_host_names | unique %}
-{% set db_scale_out = database_scale_out | default(false) %}
-{% set db_ha = database_high_availability | default(false) %}
-{% set subnet_db_valid = subnet_cidr_db is defined and subnet_cidr_db and subnet_cidr_db | string | length > 0 %}
-{% set subnet_storage_valid = subnet_cidr_storage is defined and subnet_cidr_storage and subnet_cidr_storage | string | length > 0 %}
-
 {# Determine the IPs for the current host from ipadd variable. Do not sort it, the order is already correct. #}
 {%   set host_ips = hostvars[host]['ipadd'] if 'ipadd' in hostvars[host] else [] %}
 {# Check if there are IPs available for the current host #}
