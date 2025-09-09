@@ -633,9 +633,10 @@ function get_configuration_file {
 		if [ ! -f "${configurationFile}" ]; then
 			configurationFile="${directory}${environment}${region_code}${logical_network_name}"
 		else
-		  sudo mv "${configurationFile}" "${directory}${environment}${region_code}${logical_network_name}"
 			echo ""
 			echo "Renaming ${configurationFile} to ${directory}${environment}${region_code}${logical_network_name}"
+		  sudo mv "${configurationFile}" "${directory}${environment}${region_code}${logical_network_name}"
+			ls -lart "${directory}"
 			echo ""
 			configurationFile="${directory}${environment}${region_code}${logical_network_name}"
 		fi
