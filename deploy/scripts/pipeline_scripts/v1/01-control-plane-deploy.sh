@@ -334,9 +334,13 @@ cd "${CONFIG_REPO_PATH}" || exit
 git pull -q origin "$BUILD_SOURCEBRANCHNAME"
 
 echo -e "$green--- Update repo ---$reset"
-if [ -f .sap_deployment_automation/"${ENVIRONMENT}${LOCATION}" ]; then
-	git add .sap_deployment_automation/"${ENVIRONMENT}${LOCATION}"
+
+if [ -f "${deployer_environment_file_name}" ]; then
+	git add "${deployer_environment_file_name}"
 	added=1
+	if [ -f .sap_deployment_automation/"${ENVIRONMENT}${LOCATION}" ]; then
+		git rm --ignore-unmatch -q .sap_deployment_automation/"${ENVIRONMENT}${LOCATION}"
+	fi
 fi
 
 if [ -f .sap_deployment_automation/"${ENVIRONMENT}${LOCATION}".md ]; then
@@ -495,7 +499,6 @@ if [ "$return_code" -eq 0 ]; then
 			echo "Variable TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME was not added to the $VARIABLE_GROUP variable group."
 		fi
 	fi
-
 
 	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "$file_key_vault"; then
 		echo "Variable DEPLOYER_KEYVAULT was added to the $VARIABLE_GROUP variable group."
