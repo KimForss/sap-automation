@@ -352,6 +352,7 @@
     - db_high_availability
     - hana_shared_mountpoint is defined
     - hana_shared_mountpoint | length == 2
+    - node_tier in ['hana']
 
 - name:                                 "AFS Mount: Create Directories (lss)"
   ansible.builtin.file:
@@ -365,6 +366,7 @@
     - db_high_availability
     - hana_shared_mountpoint is defined
     - hana_shared_mountpoint | length == 2
+    - node_tier in ['hana']
 
 
 ...
