@@ -225,7 +225,7 @@ function install_deployer() {
 	print_banner "$banner_title" "Deploying the deployer" "info"
 
 	#Persisting the parameters across executions
-	automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
+	automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
 	generic_environment_file_name="${automation_config_directory}"config
 	ENVIRONMENT=$(echo "$dir_name" | awk -F'-' '{print $1}' | xargs)
 	LOCATION=$(echo "$dir_name" | awk -F'-' '{print $2}' | xargs)

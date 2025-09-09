@@ -83,7 +83,7 @@ SID=$(echo "${SAP_SYSTEM_CONFIGURATION_NAME}" | awk -F'-' '{print $4}' | xargs)
 
 cd "$CONFIG_REPO_PATH" || exit
 
-automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
+automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
 
 workload_environment_file_name=$(get_configuration_file "${automation_config_directory}" "${ENVIRONMENT_IN_FILENAME}" "${LOCATION_CODE_IN_FILENAME}" "${NETWORK_IN_FILENAME}")
 

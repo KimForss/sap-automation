@@ -225,7 +225,7 @@ this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
 export TF_VAR_Agent_IP=$this_ip
 echo "Agent IP:                            $this_ip"
 
-automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation
+automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
 generic_environment_file_name="${automation_config_directory}"/config
 
 if [ -n "$landscape_tfstate_key" ]; then

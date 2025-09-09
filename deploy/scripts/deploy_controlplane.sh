@@ -201,7 +201,7 @@ get_region_code "$region"
 
 echo "Region code:                         ${region_code}"
 
-automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation
+automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
 generic_environment_file_name="${automation_config_directory}"/config
 
 ENVIRONMENT=$(echo "$deployer_tf_state" | awk -F'-' '{print $1}' | xargs)

@@ -189,7 +189,7 @@ else
 	exit 2
 fi
 
-automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation
+automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
 generic_environment_file_name="${automation_config_directory}"/config
 deployer_environment_file_name="${automation_config_directory}"/"${environment}""${region_code}"
 

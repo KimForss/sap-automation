@@ -117,9 +117,9 @@ LOCATION_CODE_IN_FILENAME=$(echo $WORKLOAD_ZONE_FOLDERNAME | awk -F'-' '{print $
 LOCATION_IN_FILENAME=$(get_region_from_code "$LOCATION_CODE_IN_FILENAME" || true)
 NETWORK_IN_FILENAME=$(echo $WORKLOAD_ZONE_FOLDERNAME | awk -F'-' '{print $3}')
 
-automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
+automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
 
-automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
+automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
 workload_environment_file_name=$(get_configuration_file "${automation_config_directory}" "${ENVIRONMENT_IN_FILENAME}" "${LOCATION_CODE_IN_FILENAME}" "${NETWORK_IN_FILENAME}")
 
 separator="-"

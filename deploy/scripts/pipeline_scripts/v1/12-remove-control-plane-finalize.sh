@@ -93,7 +93,7 @@ ENVIRONMENT=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $1}' | xargs)
 LOCATION=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $2}' | xargs)
 NETWORK=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $3}' | xargs)
 
-automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
+automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
 
 deployer_environment_file_name=$(get_configuration_file "$automation_config_directory" "$ENVIRONMENT" "$LOCATION" "$NETWORK")
 CONTROL_PLANE_NAME="${ENVIRONMENT}-${LOCATION}-${NETWORK}"
@@ -131,9 +131,9 @@ export TF_VAR_deployer_tfstate_key
 CONTROL_PLANE_NAME=$(echo "$DEPLOYER_FOLDERNAME" | cut -d'-' -f1-3)
 export "CONTROL_PLANE_NAME"
 
-automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
+automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
 
-automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
+automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
 
 separator="-"
 if [[ "$CONTROL_PLANE_NAME" == *"$separator"* ]]; then

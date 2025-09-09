@@ -119,7 +119,7 @@ if ! get_variable_group_id "$PARENT_VARIABLE_GROUP" "PARENT_VARIABLE_GROUP_ID"; 
 fi
 export PARENT_VARIABLE_GROUP_ID
 
-automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
+automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
 
 separator="-"
 if [[ "$CONTROL_PLANE_NAME" == *"$separator"* ]]; then
@@ -135,7 +135,7 @@ ENVIRONMENT_IN_FILENAME=$(echo $WORKLOAD_ZONE_NAME | awk -F'-' '{print $1}')
 LOCATION_CODE_IN_FILENAME=$(echo $WORKLOAD_ZONE_NAME | awk -F'-' '{print $2}')
 NETWORK_IN_FILENAME=$(echo $WORKLOAD_ZONE_NAME | awk -F'-' '{print $3}')
 
-automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
+automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
 workload_environment_file_name=$(get_configuration_file "${automation_config_directory}" "${ENVIRONMENT_IN_FILENAME}" "${LOCATION_CODE_IN_FILENAME}" "${NETWORK_IN_FILENAME}")
 
 if [ -z "$APPLICATION_CONFIGURATION_ID" ]; then
