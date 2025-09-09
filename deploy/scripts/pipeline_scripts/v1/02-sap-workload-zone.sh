@@ -280,11 +280,17 @@ fi
 if [ -f "${workload_environment_file_name}" ]; then
 	git add "${workload_environment_file_name}"
 	added=1
+
+	if [ -f "$automation_config_directory/${ENVIRONMENT_IN_FILENAME}/${LOCATION_CODE_IN_FILENAME}" ]; then
+		git rm --ignore-unmatch -q "$automation_config_directory/${ENVIRONMENT_IN_FILENAME}/${LOCATION_CODE_IN_FILENAME}"
+	fi
+
 fi
 
 if [ -f "$WORKLOAD_ZONE_TFVARS_FILENAME" ]; then
 	git add "$WORKLOAD_ZONE_TFVARS_FILENAME"
 	added=1
+
 fi
 
 if [ 1 == $added ]; then
