@@ -69,9 +69,23 @@ Notes:
 
 0.........1.........2.........3.........4.........5.........6.........7.........8
 
+
+
 #}
+
+{% set db_scale_out = database_scale_out | default(false) %}
+{% set db_ha = database_high_availability | default(false) %}
+{% set subnet_db_valid = subnet_cidr_db is defined  and (subnet_cidr_db | string | length > 0) %}
+{% set subnet_storage_valid = subnet_cidr_storage is defined and (subnet_cidr_storage | string | length > 0) %}
+
+
 # {{ sap_sid|upper }}
 # {{ ansible_play_hosts|length }} Hosts
+# Scale out: {{ db_scale_out }}
+# High availability: {{ db_ha }}
+# Subnet DB valid: {{ subnet_db_valid }}
+# Subnet Storage valid: {{ subnet_storage_valid }}
+
 {#
 
 Loop through all the hosts that are referenced by the Playbook.
@@ -83,15 +97,6 @@ ansible_facts.
 
 #}
 
-{% set db_scale_out = database_scale_out | default(false) %}
-{% set db_ha = database_high_availability | default(false) %}
-{% set subnet_db_valid = subnet_cidr_db is defined and subnet_cidr_db and subnet_cidr_db | string | length > 0 %}
-{% set subnet_storage_valid = subnet_cidr_storage is defined and subnet_cidr_storage and subnet_cidr_storage | string | length > 0 %}
-
-# Scale out: {{ db_scale_out }}
-# High availability: {{ db_ha }}
-# Subnet DB valid: {{ subnet_db_valid }}
-# Subnet Storage valid: {{ subnet_storage_valid }}
 
 
 {# This template generates host entries based on the provided data #}
@@ -105,32 +110,32 @@ ansible_facts.
 {%   for tier in supported_tiers %}
 {%     if tier == 'scs' %}
 {%       set scs_virtual_host = hostvars[host]['custom_scs_virtual_hostname'] if 'custom_scs_virtual_hostname' in hostvars[host] else default_virtual_host %}
-{%       if scs_virtual_host and scs_virtual_host not in virtual_host_names and not scs_ha_enabled %}
+{%       if scs_virtual_host not in virtual_host_names and not scs_ha_enabled %}
 {%         set _ = virtual_host_names.append(scs_virtual_host) %}
 {%       endif %}
 {%     elif tier == 'ers' %}
 {%       set ers_virtual_host = hostvars[host]['custom_ers_virtual_hostname'] if 'custom_ers_virtual_hostname' in hostvars[host] else default_virtual_host %}
-{%       if ers_virtual_host and ers_virtual_host not in virtual_host_names and not scs_ha_enabled %}
+{%       if ers_virtual_host not in virtual_host_names and not scs_ha_enabled %}
 {%         set _ = virtual_host_names.append(ers_virtual_host) %}
 {%       endif %}
 {%     elif tier == 'pas' %}
 {%       set pas_virtual_host = hostvars[host]['custom_pas_virtual_hostname'] if 'custom_pas_virtual_hostname' in hostvars[host] else default_virtual_host %}
-{%       if pas_virtual_host and pas_virtual_host not in virtual_host_names %}
+{%       if pas_virtual_host not in virtual_host_names %}
 {%         set _ = virtual_host_names.append(pas_virtual_host) %}
 {%       endif %}
 {%     elif tier == 'app' %}
 {%       set app_virtual_host = hostvars[host]['custom_app_virtual_hostname'] if 'custom_app_virtual_hostname' in hostvars[host] else default_virtual_host %}
-{%       if app_virtual_host and app_virtual_host not in virtual_host_names %}
+{%       if app_virtual_host not in virtual_host_names %}
 {%         set _ = virtual_host_names.append(app_virtual_host) %}
 {%       endif %}
 {%     elif tier == 'web' %}
 {%       set web_virtual_host = hostvars[host]['custom_web_virtual_hostname'] if 'custom_web_virtual_hostname' in hostvars[host] else default_virtual_host %}
-{%       if web_virtual_host and web_virtual_host not in virtual_host_names %}
+{%       if  web_virtual_host not in virtual_host_names %}
 {%         set _ = virtual_host_names.append(web_virtual_host) %}
 {%       endif %}
 {%     elif tier in ['hana', 'oracle', 'oracle-asm', 'db2', 'sybase'] %}
 {%       set db_virtual_host = hostvars[host]['custom_db_virtual_hostname'] if 'custom_db_virtual_hostname' in hostvars[host] else default_virtual_host %}
-{%       if db_virtual_host and db_virtual_host not in virtual_host_names %}
+{%       if db_virtual_host not in virtual_host_names %}
 {%         set _ = virtual_host_names.append(db_virtual_host) %}
 {%       endif %}
 {%     endif %}
