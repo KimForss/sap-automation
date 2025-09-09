@@ -282,6 +282,7 @@ if [ -f "${workload_environment_file_name}" ]; then
 	added=1
 
 	if [ -f "$automation_config_directory/${ENVIRONMENT_IN_FILENAME}/${LOCATION_CODE_IN_FILENAME}" ]; then
+	  rm "$automation_config_directory/${ENVIRONMENT_IN_FILENAME}/${LOCATION_CODE_IN_FILENAME}"
 		git rm --ignore-unmatch -q "$automation_config_directory/${ENVIRONMENT_IN_FILENAME}/${LOCATION_CODE_IN_FILENAME}"
 	fi
 
