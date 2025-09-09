@@ -1458,9 +1458,12 @@ function get_configuration_file {
 	if [ ! -f "${configurationFile}" ]; then
 		configurationFile="${directory}${environment}${region_code}"
 		if [ ! -f "${configurationFile}" ]; then
-			print_banner "Installer" "Configuration file: ${configurationFile} not found" "error"
-			configurationFile=""
+			configurationFile="${directory}${environment}${region_code}${logical_network_name}"
+		else
+		  sudo mv "${configurationFile}" "${directory}${environment}${region_code}${logical_network_name}"
+			configurationFile="${directory}${environment}${region_code}${logical_network_name}"
 		fi
 	fi
+
 	echo "${configurationFile}"
 }

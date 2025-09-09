@@ -119,26 +119,22 @@ LOCATION_IN_FILENAME=$(get_region_from_code "$LOCATION_CODE_IN_FILENAME" || true
 NETWORK_IN_FILENAME=$(echo $WORKLOAD_ZONE_FOLDERNAME | awk -F'-' '{print $3}')
 
 automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
-if [ "v1" == "${SDAFWZ_CALLER_VERSION:-v2}" ]; then
-	echo "Running v1 script"
-	workload_environment_file_name="${automation_config_directory}${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}"
-	ENVIRONMENT_IN_NAME=$(echo $DEPLOYER_ENVIRONMENT | awk -F'-' '{print $1}')
-	deployer_environment_file_name="${automation_config_directory}$ENVIRONMENT_IN_NAME$DEPLOYER_REGION"
-elif [ "v2" == "${SDAFWZ_CALLER_VERSION:-v2}" ]; then
-	echo "Running v2 script"
-	workload_environment_file_name="${automation_config_directory}${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}${NETWORK}"
-	deployer_environment_file_name="${automation_config_directory}$DEPLOYER_ENVIRONMENT"
+workload_environment_file_name=$(get_configuration_file "${automation_config_directory}" "${ENVIRONMENT_IN_FILENAME}" "${LOCATION_CODE_IN_FILENAME}" "${NETWORK_IN_FILENAME}")
+
+separator="-"
+if [[ "$DEPLOYER_ENVIRONMENT" == *"$separator"* ]]; then
+	DEPLOYER_ENVIRONMENT_IN_FILENAME=$(echo $DEPLOYER_ENVIRONMENT | awk -F'-' '{print $1}')
+	DEPLOYER_LOCATION_CODE_IN_FILENAME=$(echo $DEPLOYER_ENVIRONMENT | awk -F'-' '{print $2}')
+	DEPLOYER_NETWORK_IN_FILENAME=$(echo $DEPLOYER_ENVIRONMENT | awk -F'-' '{print $3}')
+	deployer_environment_file_name=$(get_configuration_file "${automation_config_directory}" "${DEPLOYER_ENVIRONMENT_IN_FILENAME}" "${DEPLOYER_LOCATION_CODE_IN_FILENAME}" "${DEPLOYER_NETWORK_IN_FILENAME}")
+else
+	deployer_environment_file_name=$(get_configuration_file "${automation_config_directory}" "${DEPLOYER_ENVIRONMENT}" "${LOCATION_CODE_IN_FILENAME}" "")
 fi
 
 if [ ! -f "${deployer_environment_file_name}" ]; then
-	deployer_environment_file_name_v2="${automation_config_directory}$DEPLOYER_ENVIRONMENT"
-	if [ ! -f "${deployer_environment_file_name_v2}" ]; then
-		echo -e "$bold_red--- $deployer_environment_file_name was not found ---$reset"
-		echo "##vso[task.logissue type=error]Control plane configuration file $deployer_environment_file_name was not found."
-		exit 2
-	else
-		deployer_environment_file_name=$deployer_environment_file_name_v2
-	fi
+	echo -e "$bold_red--- $deployer_environment_file_name was not found ---$reset"
+	echo "##vso[task.logissue type=error]Control plane configuration file $deployer_environment_file_name was not found."
+	exit 2
 else
 	echo "Deployer Environment File:           $deployer_environment_file_name"
 fi
@@ -146,9 +142,9 @@ fi
 echo "Workload Zone Environment File:      $workload_environment_file_name"
 touch "$workload_environment_file_name"
 
-deployer_tfstate_key=$(getVariableFromVariableGroup "${PARENT_VARIABLE_GROUP_ID}" "DEPLOYER_STATE_FILENAME" "${workload_environment_file_name}" "deployer_tfstate_key")
+deployer_tfstate_key=$(getVariableFromVariableGroup "${PARENT_VARIABLE_GROUP_ID}" "DEPLOYER_STATE_FILENAME" "${deployer_environment_file_name}" "deployer_tfstate_key")
 if [ -z "$deployer_tfstate_key" ]; then
-	deployer_tfstate_key=$(getVariableFromVariableGroup "${PARENT_VARIABLE_GROUP_ID}" "Deployer_State_FileName" "${workload_environment_file_name}" "deployer_tfstate_key")
+	deployer_tfstate_key=$(getVariableFromVariableGroup "${PARENT_VARIABLE_GROUP_ID}" "Deployer_State_FileName" "${deployer_environment_file_name}" "deployer_tfstate_key")
 	if [ -z "$deployer_tfstate_key" ]; then
 
 		echo -e "$bold_red--- DEPLOYER_STATE_FILENAME not found in variable group $PARENT_VARIABLE_GROUP ---$reset"
@@ -235,8 +231,6 @@ if [ -z "$tfstate_resource_id" ]; then
 	export tfstate_resource_id
 fi
 saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME" "$terraform_storage_account_name"
-
-
 
 print_banner "$banner_title" "Starting the deployment" "info"
 cd "$CONFIG_REPO_PATH/LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME" || exit

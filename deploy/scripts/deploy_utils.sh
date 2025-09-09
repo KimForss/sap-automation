@@ -74,7 +74,7 @@ function load_config_vars() {
 
 function init() {
 	local automation_config_directory="${1}"
-	local generic_config_information="${2}"
+	local generic_environment_file_name="${2}"
 	local app_config_information="${3}"
 
 	if [ ! -d "${automation_config_directory}" ]; then

@@ -118,17 +118,20 @@ LOCATION_IN_FILENAME=$(get_region_from_code "$LOCATION_CODE_IN_FILENAME" || true
 NETWORK_IN_FILENAME=$(echo $WORKLOAD_ZONE_FOLDERNAME | awk -F'-' '{print $3}')
 
 automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
-if [ "v1" == "${SDAFWZ_CALLER_VERSION:-v2}" ]; then
-	echo "Running v1 script"
-	workload_environment_file_name="${automation_config_directory}${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}"
-	ENVIRONMENT_IN_NAME=$(echo $DEPLOYER_ENVIRONMENT | awk -F'-' '{print $1}')
-	DEPLOYER_REGION=$(echo $DEPLOYER_ENVIRONMENT | awk -F'-' '{print $2}')
-	deployer_environment_file_name="${automation_config_directory}$ENVIRONMENT_IN_NAME$DEPLOYER_REGION"
-elif [ "v2" == "${SDAFWZ_CALLER_VERSION:-v2}" ]; then
-	echo "Running v2 script"
-	workload_environment_file_name="${automation_config_directory}${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}${NETWORK}"
-	deployer_environment_file_name="${automation_config_directory}$DEPLOYER_ENVIRONMENT"
+
+automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
+workload_environment_file_name=$(get_configuration_file "${automation_config_directory}" "${ENVIRONMENT_IN_FILENAME}" "${LOCATION_CODE_IN_FILENAME}" "${NETWORK_IN_FILENAME}")
+
+separator="-"
+if [[ "$DEPLOYER_ENVIRONMENT" == *"$separator"* ]]; then
+	DEPLOYER_ENVIRONMENT_IN_FILENAME=$(echo $DEPLOYER_ENVIRONMENT | awk -F'-' '{print $1}')
+	DEPLOYER_LOCATION_CODE_IN_FILENAME=$(echo $DEPLOYER_ENVIRONMENT | awk -F'-' '{print $2}')
+	DEPLOYER_NETWORK_IN_FILENAME=$(echo $DEPLOYER_ENVIRONMENT | awk -F'-' '{print $3}')
+	deployer_environment_file_name=$(get_configuration_file "${automation_config_directory}" "${DEPLOYER_ENVIRONMENT_IN_FILENAME}" "${DEPLOYER_LOCATION_CODE_IN_FILENAME}" "${DEPLOYER_NETWORK_IN_FILENAME}")
+else
+	deployer_environment_file_name=$(get_configuration_file "${automation_config_directory}" "${DEPLOYER_ENVIRONMENT}" "${LOCATION_CODE_IN_FILENAME}" "")
 fi
+
 if [ ! -f "${deployer_environment_file_name}" ]; then
 	echo -e "$bold_red--- $deployer_environment_file_name was not found ---$reset"
 	echo "##vso[task.logissue type=error]Control plane configuration file $deployer_environment_file_name was not found."
