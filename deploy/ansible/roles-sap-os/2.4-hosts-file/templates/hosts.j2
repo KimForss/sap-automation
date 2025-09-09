@@ -79,7 +79,7 @@ Notes:
 {% set subnet_storage_valid = subnet_cidr_storage is defined and (subnet_cidr_storage | string | length > 0) %}
 
 
-# {{ sap_sid|upper }}
+# SID: {{ sap_sid|upper }}
 # {{ ansible_play_hosts|length }} Hosts
 # Scale out: {{ db_scale_out }}
 # High availability: {{ db_ha }}
