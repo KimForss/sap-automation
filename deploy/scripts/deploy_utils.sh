@@ -634,6 +634,9 @@ function get_configuration_file {
 			configurationFile="${directory}${environment}${region_code}${logical_network_name}"
 		else
 		  sudo mv "${configurationFile}" "${directory}${environment}${region_code}${logical_network_name}"
+			echo ""
+			echo "Renaming ${configurationFile} to ${directory}${environment}${region_code}${logical_network_name}"
+			echo ""
 			configurationFile="${directory}${environment}${region_code}${logical_network_name}"
 		fi
 	fi
