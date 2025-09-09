@@ -121,37 +121,30 @@ ansible_facts.
 {%   if host_ips %}
 
 {{ '%-19s' | format(host_ips[0]) }}{{ '%-80s ' | format(host + '.' + sap_fqdn) }}{{ '%-21s' | format(host) }}
-
-{# If there's only one IP, replicate the entry with different virtual_host_names #}
-{%     if host_ips|length == 1 %}
-{%       for vh_name in virtual_host_names if virtual_host_names | length >= 1 %}
-
+{%     for vh_name in virtual_host_names if virtual_host_names | length >= 1 %}
 {{ '%-19s' | format(host_ips[0]) }}{{ '%-80s ' | format(vh_name + '.' + sap_fqdn) }}{{ '%-21s' | format(vh_name) }}
-
-{%       endfor %}
-{%     else %}
+{%     endfor %}
 {# Loop through remaining IPs for the virtual host #}
-{%       for ip in host_ips[1:] %}
-{%         if (database_scale_out) %}
-{%            if (database_high_availability) %}
-{%              if (subnet_cidr_db | ansible.utils.network_in_usable(ip)) %}
+{%     for ip in host_ips[1:] %}
+{%       if (database_scale_out) %}
+{%          if (database_high_availability) %}
+{%            if (subnet_cidr_db | ansible.utils.network_in_usable(ip)) %}
 {{ '%-19s' | format(ip) }}{{ '%-80s ' | format(host + '-hsr.' + sap_fqdn) }}{{ '%-21s' | format(host + '-hsr') }}
-{%              elif (subnet_cidr_storage | ansible.utils.network_in_usable(ip)) %}
+{%            elif (subnet_cidr_storage | ansible.utils.network_in_usable(ip)) %}
 {{ '%-19s' | format(ip) }}{{ '%-80s ' | format(host + '-inter.' + sap_fqdn) }}{{ '%-21s' | format(host + '-inter') }}
-{%              endif %}
-{%            else %}
-{%              if (subnet_cidr_db | ansible.utils.network_in_usable(ip)) %}
-{{ '%-19s' | format(ip) }}{{ '%-80s ' | format(host + '-storage.' + sap_fqdn) }}{{ '%-21s' | format(host + '-storage') }}
-{%              elif (subnet_cidr_storage | ansible.utils.network_in_usable(ip)) %}
-{{ '%-19s' | format(ip) }}{{ '%-80s ' | format(host + '-hana.' + sap_fqdn) }}{{ '%-21s' | format(host + '-hana') }}
-{%              endif %}
 {%            endif %}
-{%         else %}
-{%           for vh_name in virtual_host_names if virtual_host_names | length >= 1 %}
+{%          else %}
+{%            if (subnet_cidr_db | ansible.utils.network_in_usable(ip)) %}
+{{ '%-19s' | format(ip) }}{{ '%-80s ' | format(host + '-storage.' + sap_fqdn) }}{{ '%-21s' | format(host + '-storage') }}
+{%            elif (subnet_cidr_storage | ansible.utils.network_in_usable(ip)) %}
+{{ '%-19s' | format(ip) }}{{ '%-80s ' | format(host + '-hana.' + sap_fqdn) }}{{ '%-21s' | format(host + '-hana') }}
+{%            endif %}
+{%          endif %}
+{%       else %}
+{%         for vh_name in virtual_host_names if virtual_host_names | length >= 1 %}
 {{ '%-19s' | format(ip) }}{{ '%-80s ' | format(vh_name + '.' + sap_fqdn) }}{{ '%-21s' | format(vh_name) }}
-{%           endfor %}
-{%         endif %}
-{%       endfor %}
-{%     endif %}
+{%         endfor %}
+{%       endif %}
+{%     endfor %}
 {%   endif %}
 {% endfor %}
