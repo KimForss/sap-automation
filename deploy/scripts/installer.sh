@@ -243,6 +243,14 @@ else
 fi
 key=$(echo "${parameterfile_name}" | cut -d. -f1)
 
+if [ "${deployment_system}" == sap_deployer ]; then
+	banner_title="Install Deployer"
+	deployer_tfstate_key=${key}.terraform.tfstate
+	ARM_SUBSCRIPTION_ID=$STATE_SUBSCRIPTION
+	export ARM_SUBSCRIPTION_ID
+fi
+
+
 network_logical_name=""
 
 if [ "${deployment_system}" == sap_system ]; then
@@ -260,10 +268,17 @@ if [ -n "$landscape_tfstate_key" ]; then
 	environment=$(echo "$landscape_tfstate_key" | awk -F'-' '{print $1}' | xargs)
 	region_code=$(echo "$landscape_tfstate_key" | awk -F'-' '{print $2}' | xargs)
 	network_logical_name=$(echo "$landscape_tfstate_key" | awk -F'-' '{print $3}' | xargs)
-else
+fi
+if [ -n "$deployer_tfstate_key" ]; then
 	environment=$(echo "$deployer_tfstate_key" | awk -F'-' '{print $1}' | xargs)
 	region_code=$(echo "$deployer_tfstate_key" | awk -F'-' '{print $2}' | xargs)
 	network_logical_name=$(echo "$deployer_tfstate_	key" | awk -F'-' '{print $3}' | xargs)
+fi
+
+if [ -z "$environment" ]; then
+	environment=$(echo "$key" | awk -F'-' '{print $1}' | xargs)
+	region_code=$(echo "$key" | awk -F'-' '{print $2}' | xargs)
+	network_logical_name=$(echo "$key" | awk -F'-' '{print $3}' | xargs)
 fi
 
 system_environment_file_name=$(get_configuration_file "${automation_config_directory}" "${environment}" "${region_code}" "${network_logical_name}")
@@ -316,12 +331,6 @@ else
 	unset extra_vars
 fi
 
-if [ "${deployment_system}" == sap_deployer ]; then
-	banner_title="Install Deployer"
-	deployer_tfstate_key=${key}.terraform.tfstate
-	ARM_SUBSCRIPTION_ID=$STATE_SUBSCRIPTION
-	export ARM_SUBSCRIPTION_ID
-fi
 if [[ -z $STATE_SUBSCRIPTION ]]; then
 	STATE_SUBSCRIPTION=$ARM_SUBSCRIPTION_ID
 fi

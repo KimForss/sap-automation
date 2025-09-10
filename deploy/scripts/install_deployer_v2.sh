@@ -227,9 +227,9 @@ function install_deployer() {
 	#Persisting the parameters across executions
 	automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
 	generic_environment_file_name="${automation_config_directory}"config
-	ENVIRONMENT=$(echo "$dir_name" | awk -F'-' '{print $1}' | xargs)
-	LOCATION=$(echo "$dir_name" | awk -F'-' '{print $2}' | xargs)
-	NETWORK=$(echo "$dir_name" | awk -F'-' '{print $3}' | xargs)
+	ENVIRONMENT=$(echo "$parameter_file_name" | awk -F'-' '{print $1}' | xargs)
+	LOCATION=$(echo "$parameter_file_name" | awk -F'-' '{print $2}' | xargs)
+	NETWORK=$(echo "$parameter_file_name" | awk -F'-' '{print $3}' | xargs)
 
 	deployer_environment_file_name=$(get_configuration_file "$automation_config_directory" "$ENVIRONMENT" "$LOCATION" "$NETWORK")
 
