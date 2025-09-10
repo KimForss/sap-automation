@@ -353,19 +353,13 @@ git pull -q origin "$BUILD_SOURCEBRANCHNAME"
 
 echo -e "$green--- Update repo ---$reset"
 
-if [ -f ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}" ]; then
-	git add ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}"
+if [ -f "${deployer_environment_file_name}" ]; then
+	git add "${deployer_environment_file_name}"
 	added=1
 fi
 
-if [ ! -f ".sap_deployment_automation/${CONTROL_PLANE_NAME}" ]; then
-	if [ -f ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}" ]; then
-		cp ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}" ".sap_deployment_automation/${CONTROL_PLANE_NAME}"
-	fi
-fi
-
-if [ -f ".sap_deployment_automation/${CONTROL_PLANE_NAME}" ]; then
-	git add ".sap_deployment_automation/${CONTROL_PLANE_NAME}"
+if [ -f ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}" ]; then
+	git add ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}"
 	added=1
 fi
 
