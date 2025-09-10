@@ -54,6 +54,8 @@
   ansible.builtin.shell: |
                                        python3 --version
   register:                            version_status
+  failed_when:                         false
+
   args:
     chdir:                              "/usr/sap/{{ DB }}/exe"
   # environment:
@@ -77,6 +79,7 @@
   ansible.builtin.shell: |
                                        python3 --version
   register:                            version_status2
+  failed_when:                         false
   args:
     chdir:                              "/usr/sap/{{ DB }}/exe"
   # environment:
