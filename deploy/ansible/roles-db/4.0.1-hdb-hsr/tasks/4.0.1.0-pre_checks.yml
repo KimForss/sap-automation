@@ -29,7 +29,7 @@
 
 - name:                                "HANA HSR: - HSR Create helper variables"
   ansible.builtin.set_fact:
-    DB:                                "{{ DB }}"
+    DB:                                "{{ db_sid | upper }}/HDB{{ db_instance_number }}"
 
 
 - name:                                 "HSR - Check that HANA was installed successfully and is running normally"
@@ -60,8 +60,10 @@
   environment:
     PATH:                               /usr/sap/{{ DB }}:/usr/sap/{{ DB }}/exe
     DIR_LIBRARY:                        /usr/sap/{{ DB }}/exe
-    LD_LIBRARY_PATH:                    /usr/sap/{{ DB }}/exe
+    LD_LIBRARY_PATH:                    "/usr/sap/{{ DB }}/exe:/usr/sap/{{ DB }}/exe/Python3/lib:/usr/sap/{{ DB }}/exe/Py3"
     SAPSYSTEMNAME:                      "{{ db_sid | upper }}"
+    PYTHONHOME:                         "/usr/sap/{{ DB }}/exe/Python3"
+    PYTHONPATH:                         "/usr/sap/{{ DB }}/exe/Py3:/usr/sap/{{ DB }}/exe/Python3/lib/python3.12"
   vars:
     allow_world_readable_tmpfiles:      true
 
