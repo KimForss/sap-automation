@@ -174,6 +174,7 @@ fi
 echo "Configuration file:                  $parameterfile"
 echo "Deployment region:                   $region"
 echo "Deployment region code:              $region_code"
+echo "Deployment configuration file:       $deployer_environment_file_name"
 
 terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/"${deployment_system}"/
 export TF_DATA_DIR="${param_dirname}"/.terraform
