@@ -53,10 +53,12 @@
   become_user:                         "{{ db_sid_admin_user }}"
   become:                              true
   ansible.builtin.shell: |
-                                       source /usr/sap/{{ db_sid | upper }}/home/.sapenv.sh && /usr/sap/{{ DB }}/exe/hdbnsutil -sr_state
+                                       hdbnsutil -sr_state
   register:                            hana_replication_status
   changed_when:                        false
   failed_when:                         hana_replication_status.rc != 0
+  args:
+    chdir:                              "/usr/sap/{{ DB }}/exe"
   environment:
     PATH:                               /usr/sap/{{ DB }}:/usr/sap/{{ DB }}/exe
     DIR_LIBRARY:                        /usr/sap/{{ DB }}/exe
