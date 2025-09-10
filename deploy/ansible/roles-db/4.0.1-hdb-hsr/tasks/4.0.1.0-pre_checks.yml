@@ -29,7 +29,7 @@
 
 - name:                                "HANA HSR: - HSR Create helper variables"
   ansible.builtin.set_fact:
-    DB:                                "{{ db_sid | upper }}/HDB{{ db_instance_number }}"
+    DB:                                "{{ DB }}"
 
 
 - name:                                 "HSR - Check that HANA was installed successfully and is running normally"
@@ -41,9 +41,9 @@
   failed_when:                          false
   register:                             hana_started
   environment:
-    PATH:                               /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
-    DIR_LIBRARY:                        /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
-    LD_LIBRARY_PATH:                    /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+    PATH:                               /usr/sap/{{ DB }}:/usr/sap/{{ DB }}/exe
+    DIR_LIBRARY:                        /usr/sap/{{ DB }}/exe
+    LD_LIBRARY_PATH:                    /usr/sap/{{ DB }}/exe
     SAPSYSTEMNAME:                      "{{ db_sid | upper }}"
   vars:
     allow_world_readable_tmpfiles:      true
@@ -53,12 +53,17 @@
   become_user:                         "{{ db_sid_admin_user }}"
   become:                              true
   ansible.builtin.shell: |
-                                       source /usr/sap/{{ db_sid | upper }}/home/.sapenv.sh && \
-                                        /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe/hdbnsutil \
-                                        -sr_state
+                                       source /usr/sap/{{ db_sid | upper }}/home/.sapenv.sh && /usr/sap/{{ DB }}/exe/hdbnsutil -sr_state
   register:                            hana_replication_status
   changed_when:                        false
   failed_when:                         hana_replication_status.rc != 0
+  environment:
+    PATH:                               /usr/sap/{{ DB }}:/usr/sap/{{ DB }}/exe
+    DIR_LIBRARY:                        /usr/sap/{{ DB }}/exe
+    LD_LIBRARY_PATH:                    /usr/sap/{{ DB }}/exe
+    SAPSYSTEMNAME:                      "{{ db_sid | upper }}"
+  vars:
+    allow_world_readable_tmpfiles:      true
 
 - name:                                "HANA HSR: - Show replication status"
   ansible.builtin.debug:
