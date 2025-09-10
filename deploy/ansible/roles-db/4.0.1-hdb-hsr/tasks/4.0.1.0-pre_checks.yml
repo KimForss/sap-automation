@@ -63,7 +63,7 @@
     LD_LIBRARY_PATH:                    "/usr/sap/{{ DB }}/exe:/usr/sap/{{ DB }}/exe/Python3/lib:/usr/sap/{{ DB }}/exe/Py3"
     SAPSYSTEMNAME:                      "{{ db_sid | upper }}"
     PYTHONHOME:                         "/usr/sap/{{ DB }}/exe/Python3"
-    PYTHONPATH:                         "/usr/sap/{{ DB }}/exe/Py3:/usr/sap/{{ DB }}/exe/Python3/lib/python3.12"
+    PYTHONPATH:                         "/usr/sap/{{ DB }}/exe/Py3:/usr/sap/HDB/SYS/global/hdb/custom/python_support:/usr/sap/{{ DB }}/exe/python_support:/usr/sap/{{ DB }}/{{ ansible_hostname }}:/usr/sap/{{ DB }}/exe:/usr/sap/{{ DB }}/exe/testscripts/Py3:/usr/sap/{{ DB }}/exe/testscripts::/usr/sap/HDB/HDB00/exe/Python3/lib/python3.12"
   vars:
     allow_world_readable_tmpfiles:      true
 
