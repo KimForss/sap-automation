@@ -868,7 +868,7 @@ if [ 4 -eq $step ]; then
 			--type sap_library \
 			--parameterfile "${library_file_parametername}" \
 			--storageaccountname "${REMOTE_STATE_SA}" \
-			--deployer_tf_state "${deployer_tf_state}" \
+			--deployer_tfstate_key "${deployer_tf_state}" \
 			$ado_flag \
 			--auto-approve; then
 			return_code=$?
@@ -883,7 +883,7 @@ if [ 4 -eq $step ]; then
 			--type sap_library \
 			--parameterfile "${library_file_parametername}" \
 			--storageaccountname "${REMOTE_STATE_SA}" \
-			--deployer_tf_state "${deployer_tf_state}"; then
+			--deployer_tfstate_key "${deployer_tf_state}"; then
 			return_code=$?
 		else
 			echo "Migrating the SAP Library state failed"
