@@ -138,11 +138,10 @@ key=$(echo "${parameterfile}" | cut -d. -f1)
 automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
 generic_environment_file_name="${automation_config_directory}config"
 
-dir_name=$(basename "${param_dirname}")
 
-ENVIRONMENT=$(echo "$dir_name" | awk -F'-' '{print $1}' | xargs)
-LOCATION=$(echo "$dir_name" | awk -F'-' '{print $2}' | xargs)
-NETWORK=$(echo "$dir_name" | awk -F'-' '{print $3}' | xargs)
+ENVIRONMENT=$(echo "$key" | awk -F'-' '{print $1}' | xargs)
+LOCATION=$(echo "$key" | awk -F'-' '{print $2}' | xargs)
+NETWORK=$(echo "$key" | awk -F'-' '{print $3}' | xargs)
 
 deployer_environment_file_name=$(get_configuration_file "$automation_config_directory" "$ENVIRONMENT" "$LOCATION" "$NETWORK")
 
