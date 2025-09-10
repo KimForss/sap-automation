@@ -159,7 +159,7 @@ stages:
 
                   source ~/.bashrc; pipx uninstall ansible-core --verbose
 
-                  pip3 install ansible-core=="${ansible_core_version:-2.16.5}" \
+                  pip3 install ansible-core=="${ansible_core_version:-2.16.14}" \
                    argcomplete \
                    'pywinrm>=0.3.0' \
                    netaddr \
