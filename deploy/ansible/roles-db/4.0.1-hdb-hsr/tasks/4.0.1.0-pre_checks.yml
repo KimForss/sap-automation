@@ -88,7 +88,7 @@
   #   LD_LIBRARY_PATH:                    "/usr/sap/{{ DB }}/exe:/usr/sap/{{ DB }}/exe/Python3/lib:/usr/sap/{{ DB }}/exe/Py3"
   #   SAPSYSTEMNAME:                      "{{ db_sid | upper }}"
     PYTHONHOME:                         "/usr/sap/{{ DB }}/exe/Python3"
-    PYTHONPATH:                         "/usr/sap/{{ DB }}/exe/Py3:/usr:/usr/sap/{{ DB }}/exe/python_support:"
+    PYTHONPATH:                         "/usr/sap/{{ DB }}/exe/Py3:/usr:/usr/sap/{{ DB }}/exe/python_support:/usr/sap/{{ DB }}/exe/Python3/lib/python3.12/"
   vars:
     allow_world_readable_tmpfiles:      true
     ansible_python_interpreter:         "/usr/sap/{{ DB }}/exe/Python3/bin/python3"
