@@ -158,6 +158,7 @@ stages:
                   sudo apt install python3-jmespath -y
 
                   source ~/.bashrc; pipx uninstall ansible-core --verbose
+                  source ~/.bashrc; pip3 uninstall ansible-core --verbose
 
                   pip3 install ansible-core=="${ansible_core_version:-2.16.14}" \
                    argcomplete \
