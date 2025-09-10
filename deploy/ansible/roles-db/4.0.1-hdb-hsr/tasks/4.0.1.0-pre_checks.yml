@@ -52,15 +52,17 @@
 - name:                                "HANA HSR: - Check whether replication has already been set up"
   become_user:                         "{{ db_sid_admin_user }}"
   become:                              true
-  ansible.builtin.command:             hdbnsutil -sr_state
+  ansible.builtin.shell:               hdbnsutil -sr_state
   register:                            hana_replication_status
   changed_when:                        false
   failed_when:                         hana_replication_status.rc != 0
-  vars:
-    allow_world_readable_tmpfiles:     true
   environment:
-    ANSIBLE_REMOTE_TEMP:               "{{ tmp_directory }}/{{ db_sid | upper }}"
-    TEMPDIR:                           "{{ tmp_directory }}/{{ db_sid | upper }}"
+    PATH:                               /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+    DIR_LIBRARY:                        /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+    LD_LIBRARY_PATH:                    /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+    SAPSYSTEMNAME:                      "{{ db_sid | upper }}"
+  vars:
+    allow_world_readable_tmpfiles:      true
 
 - name:                                "HANA HSR: - Show replication status"
   ansible.builtin.debug:
