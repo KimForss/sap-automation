@@ -71,14 +71,10 @@ stages:
               failOnStderr:            false
               script:
                 if [ ! -f "/etc/profile.d/deploy_server.sh" ]; then
-                  echo "installing pipx"
-                  python3 -m pip install pip3;
-                  python3 -m pip3 ensurepath
 
                   sudo apt install python3-jmespath -y
 
-                  source ~/.bashrc; pipx uninstall ansible-core --verbose
-                  source ~/.bashrc; pip3 uninstall -y ansible-core --verbose
+                  pip3 uninstall -y ansible-core --verbose
 
                   pip3 install ansible-core=="${ansible_core_version:-2.16.14}" \
                    argcomplete \
