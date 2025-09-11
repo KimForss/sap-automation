@@ -14,7 +14,7 @@ parameters:
     type:                              string
     default:                           DEV-WEEU-SAP01-X00
 
-  - name:                              workload_environment
+  - name:                              workload_zone_name
     displayName:                       Workload Zone Name (DEV-WEEU-SAP01-X00)
     type:                              string
     default:                           DEV
@@ -27,7 +27,7 @@ parameters:
 variables:
   - group:                             "SDAF-General"
 
-  - group:                             SDAF-${{ parameters.workload_environment }}
+  - group:                             SDAF-${{ parameters.workload_zone_name }}
 
   - name:                              sap_system_foldername
     value:                             ${{ parameters.sap_system }}
@@ -39,7 +39,7 @@ variables:
     value:                             https://releases.hashicorp.com/terraform/$(tf_version)/terraform_$(tf_version)_linux_amd64.zip
 
   - name:                              variable_group
-    value:                             SDAF-${{ parameters.workload_environment }}
+    value:                             SDAF-${{ parameters.workload_zone_name }}
 
   - name:                              this_agent
     value:                             $[lower(coalesce(variables['POOL'], variables['AGENT']))]
@@ -60,5 +60,4 @@ variables:
     value:                             ${{ parameters.test }}
 
   - name:                              workload_zone_name
-    value:                             ${{ parameters.workload_environment }}
-    # $[upper(format('{0}-{1}-{2}', split('${{ parameters.sap_system }}', '-')[0], split('${{ parameters.sap_system }}', '-')[1], split('${{ parameters.sap_system }}', '-')[2]))]
+    value:                             $[upper(format('{0}-{1}-{2}', split('${{ parameters.sap_system }}', '-')[0], split('${{ parameters.sap_system }}', '-')[1], split('${{ parameters.sap_system }}', '-')[2]))]
