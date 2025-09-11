@@ -11,10 +11,10 @@ resource "azurerm_public_ip" "ng_pip" {
   resource_group_name                  = azurerm_resource_group.resource_group[0].name
   idle_timeout_in_minutes              = local.nat_gateway_idle_timeout_in_minutes
   zones                                = local.nat_gateway_public_ip_zones
-  ip_tags                              = try(length(var.infrastructure.nat_gateway.ip_tags,"") > 0 ? var.infrastructure.nat_gateway.ip_tags : null, null)
   tags                                 = var.infrastructure.tags
   allocation_method                    = "Static"
   sku                                  = "Standard"
+  ip_tags                              = var.infrastructure.nat_gateway.ip_tags
   lifecycle                            {
                                          create_before_destroy = true
                                        }
@@ -32,6 +32,8 @@ resource "azurerm_nat_gateway" "ng" {
   resource_group_name                  = azurerm_resource_group.resource_group[0].name
   idle_timeout_in_minutes              = local.nat_gateway_idle_timeout_in_minutes
   sku_name                             = "Standard"
+
+
   depends_on                           = [
                                            azurerm_public_ip.ng_pip
                                          ]
