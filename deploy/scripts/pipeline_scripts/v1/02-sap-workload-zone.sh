@@ -154,10 +154,10 @@ if [ -z "$deployer_tfstate_key" ]; then
 		# Delete the old variable
 
 		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_State_FileName" ""
-		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_STATE_FILENAME" "$deployer_tfstate_key"
 	fi
 fi
 export deployer_tfstate_key
+saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_STATE_FILENAME" "$deployer_tfstate_key"
 
 DEPLOYER_KEYVAULT=$(getVariableFromVariableGroup "${PARENT_VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "${deployer_environment_file_name}" "deployer_keyvault")
 export DEPLOYER_KEYVAULT
@@ -208,7 +208,6 @@ TF_VAR_spn_keyvault_id=$(az graph query -q "Resources | join kind=leftouter (Res
 export TF_VAR_spn_keyvault_id
 TF_VAR_management_subscription_id=$(echo "$TF_VAR_spn_keyvault_id" | cut -d '/' -f 3)
 export TF_VAR_management_subscription_id
-
 
 terraform_storage_account_name=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME" "${workload_environment_file_name}" "REMOTE_STATE_SA")
 if [ -z "$terraform_storage_account_name" ]; then
@@ -292,7 +291,7 @@ if [ -f "${workload_environment_file_name}" ]; then
 	added=1
 
 	if [ -f "$automation_config_directory/${ENVIRONMENT_IN_FILENAME}/${LOCATION_CODE_IN_FILENAME}" ]; then
-	  rm "$automation_config_directory/${ENVIRONMENT_IN_FILENAME}/${LOCATION_CODE_IN_FILENAME}"
+		rm "$automation_config_directory/${ENVIRONMENT_IN_FILENAME}/${LOCATION_CODE_IN_FILENAME}"
 		git rm --ignore-unmatch -q "$automation_config_directory/${ENVIRONMENT_IN_FILENAME}/${LOCATION_CODE_IN_FILENAME}"
 	fi
 
