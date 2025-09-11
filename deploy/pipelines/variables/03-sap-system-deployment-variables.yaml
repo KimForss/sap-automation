@@ -8,10 +8,21 @@
 #--------------------------------------+---------------------------------------8
 
 parameters:
-  sap_system: ''
-  workload_zone_name: ''
 
-  test: false
+  - name:                              sap_system
+    displayName:                       "SAP System configuration name, use the following syntax: ENV-LOCA-VNET-SID"
+    type:                              string
+    default:                           DEV-WEEU-SAP01-X00
+
+  - name:                              workload_zone_name
+    displayName:                       Workload Zone Name (DEV-WEEU-SAP01-X00)
+    type:                              string
+    default:                           DEV
+
+  - name:                              test
+    displayName:                       Test deployment without applying the changes
+    type:                              boolean
+    default:                           true
 
 variables:
   - group:                             "SDAF-General"
