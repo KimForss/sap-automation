@@ -27,74 +27,21 @@
       - "hana_dir | trim | length != 0"
       - "sap_dir | trim | length != 0"
 
-- name:                                "HANA HSR: - HSR Create helper variables"
-  ansible.builtin.set_fact:
-    DB:                                "{{ db_sid | upper }}/HDB{{ db_instance_number }}"
-
-- name:                                "Check python version"
-  become_user:                         "{{ db_sid_admin_user }}"
-  become:                              true
-  ansible.builtin.shell: |
-                                       python3 --version
-  register:                            version_status
-  failed_when:                         false
-
-- name:                                "HANA HSR: - Show python version"
-  ansible.builtin.debug:
-    var:                               version_status
-
-- name:                                "Check python version 2"
-  become_user:                         "{{ db_sid_admin_user }}"
-  become:                              true
-  ansible.builtin.shell: |
-                                       python3 --version
-  register:                            version_status2
-  failed_when:                         false
-  args:
-    chdir:                              "/usr/sap/{{ DB }}/exe"
-  # environment:
-  #   PATH:                               /usr/sap/{{ DB }}:/usr/sap/{{ DB }}/exe
-  #   DIR_LIBRARY:                        /usr/sap/{{ DB }}/exe
-  #   LD_LIBRARY_PATH:                    "/usr/sap/{{ DB }}/exe:/usr/sap/{{ DB }}/exe/Python3/lib:/usr/sap/{{ DB }}/exe/Py3"
-  #   SAPSYSTEMNAME:                      "{{ db_sid | upper }}"
-    PYTHONHOME:                         "/usr/sap/{{ DB }}/exe/Python3"
-    PYTHONPATH:                         "/usr/sap/{{ DB }}/exe/Py3:/usr:/usr/sap/{{ DB }}/exe/python_support:/usr/sap/{{ DB }}/exe/Python3/lib/python3.12/"
-  vars:
-    allow_world_readable_tmpfiles:      true
-    ansible_python_interpreter:         "/usr/sap/{{ DB }}/exe/Python3/bin/python3"
-
-- name:                                "HANA HSR: - Show python version 2"
-  ansible.builtin.debug:
-    var:                               version_status2
-
-
-
-
-- name:                                 "HSR - Check that HANA was installed successfully and is running normally"
-  ansible.builtin.import_tasks:         ../../../roles-misc/0.4-helpers/tasks/04.01-start_hana.yml
-
-
+- name:                                HSR - Check that HANA was installed successfully and is running normally
+  ansible.builtin.import_tasks:        ../../../roles-misc/0.4-helpers/tasks/04.01-start_hana.yml
 
 - name:                                "HANA HSR: - Check whether replication has already been set up"
   become_user:                         "{{ db_sid_admin_user }}"
   become:                              true
-  ansible.builtin.shell: |
-                                       source /usr/sap/{{ db_sid | upper }}/home/.sapenv.sh && hdbnsutil -sr_state
+  ansible.builtin.command:             hdbnsutil -sr_state
   register:                            hana_replication_status
   changed_when:                        false
   failed_when:                         hana_replication_status.rc != 0
-  args:
-    chdir:                              "/usr/sap/{{ DB }}/exe"
-  # environment:
-  #   PATH:                               /usr/sap/{{ DB }}:/usr/sap/{{ DB }}/exe
-  #   DIR_LIBRARY:                        /usr/sap/{{ DB }}/exe
-  #   LD_LIBRARY_PATH:                    "/usr/sap/{{ DB }}/exe:/usr/sap/{{ DB }}/exe/Python3/lib:/usr/sap/{{ DB }}/exe/Py3"
-  #   SAPSYSTEMNAME:                      "{{ db_sid | upper }}"
-  #   PYTHONHOME:                         "/usr/sap/{{ DB }}/exe/Python3"
-  #   PYTHONPATH:                         "/usr/sap/{{ DB }}/exe/Py3:/usr/sap/HDB/SYS/global/hdb/custom/python_support:/usr/sap/{{ DB }}/exe/python_support:/usr/sap/{{ DB }}/{{ ansible_hostname }}:/usr/sap/{{ DB }}/exe:/usr/sap/{{ DB }}/exe/testscripts/Py3:/usr/sap/{{ DB }}/exe/testscripts::/usr/sap/{{ DB }}/exe/Python3/lib/python3.12"
   vars:
-    allow_world_readable_tmpfiles:      true
-    ansible_python_interpreter:         "/usr/sap/{{ DB }}/exe/Python3/bin/python3"
+    allow_world_readable_tmpfiles:     true
+  environment:
+    ANSIBLE_REMOTE_TEMP:               "{{ tmp_directory }}/{{ db_sid | upper }}"
+    TEMPDIR:                           "{{ tmp_directory }}/{{ db_sid | upper }}"
 
 - name:                                "HANA HSR: - Show replication status"
   ansible.builtin.debug:
