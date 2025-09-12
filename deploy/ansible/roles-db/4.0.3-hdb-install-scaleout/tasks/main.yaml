@@ -40,20 +40,20 @@
       - "secondary_site_hosts : {{ secondary_site_hosts }}"
 
 - name:                                "4.0.3 - SAP HANA SCALE OUT: get the SSH host key from each server in Site 1"
-  ansible.builtin.command:             "ssh-keyscan {{item}}"
+  ansible.builtin.command:             "ssh-keyscan -t rsa {{item}}"
   register:                            "site1_host_keys"
   changed_when:                        false
   with_items:                          '{{ primary_site_hosts }}'
   delegate_to:                         localhost
-  become:                              false
+  become:                              true
 
 - name:                                "4.0.3 - SAP HANA SCALE OUT: get the SSH host key from each server in Site 2"
-  ansible.builtin.command:             "ssh-keyscan {{item}}"
+  ansible.builtin.command:             "ssh-keyscan -t rsa {{item}}"
   register:                            "site2_host_keys"
   changed_when:                        false
   with_items:                          '{{ secondary_site_hosts }}'
   delegate_to:                         localhost
-  become:                              false
+  become:                              true
 
 
 
