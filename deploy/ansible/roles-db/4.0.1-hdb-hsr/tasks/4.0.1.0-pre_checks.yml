@@ -37,8 +37,6 @@
   register:                            hana_replication_status
   changed_when:                        false
   failed_when:                         hana_replication_status.rc != 0
-  vars:
-    allow_world_readable_tmpfiles:     true
   environment:
     PATH:                              /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
     HOME:                              /usr/sap/{{ db_sid | upper }}/home
@@ -68,14 +66,8 @@
                                        set -o pipefail && grep '^alias cdglo=' ~/.sapenv.sh | sed -e 's/^.* //' -e 's/$SAPSYSTEMNAME/{{ db_sid | upper }}/' -e "s/'//"
   register:                            global_path_status
   changed_when:                        false
-  environment:
-    PATH:                              /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
-    HOME:                              /usr/sap/{{ db_sid | upper }}/home
-    DIR_LIBRARY:                       /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
-    LD_LIBRARY_PATH:                   /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
-    SAPSYSTEMNAME:                     "{{ db_sid | upper }}"
-- name:                                "HANA HSR: - Ensure SAP global directory fact is set"
 
+- name:                                "HANA HSR: - Ensure SAP global directory fact is set"
   ansible.builtin.set_fact:
     hana_global_dir: "                 {{ global_path_status.stdout_lines[0] }}"
 
