@@ -132,8 +132,6 @@
 
     - name:                            "HANA HSR: - Start HANA on {{ virtual_host }}"
       ansible.builtin.import_tasks:    ../../../roles-misc/0.4-helpers/tasks/04.01-start_hana.yml
-  vars:
-    ansible_python_interpreter:        python3
     
 
 - name:                                "HANA HSR: - Ensure System Replication is configured command on secondary"
