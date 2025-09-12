@@ -26,8 +26,8 @@
     dir_params:                        "{{ tmp_directory }}/.params"
     sap_custom_config:                 "global.ini"
 
-- name:                                "4.0.3 - SAP HANA SCALE OUT: Set BOM facts"
-  ansible.builtin.include_task:
+- name:                                "4.0.3 - SAP HANA SCALE OUT: Preparation tasks"
+  ansible.builtin.include_tasks:
     file:                              "preparation.yaml"
 
 
