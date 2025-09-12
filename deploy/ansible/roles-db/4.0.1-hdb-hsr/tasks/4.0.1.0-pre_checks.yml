@@ -64,7 +64,7 @@
   become:                              true
   ansible.builtin.shell: >
                                        set -o pipefail
-                                       /usr/bin/grep '^alias cdglo=' ~/.sapenv.sh | /usr/bin/sed -e 's/^.* //' -e 's/$SAPSYSTEMNAME/{{ db_sid | upper }}/' -e "s/'//"
+                                       /usr/bin/grep '^alias cdglo=' /usr/sap/{{ db_sid | upper }}/home/.sapenv.sh | /usr/bin/sed -e 's/^.* //' -e 's/$SAPSYSTEMNAME/{{ db_sid | upper }}/' -e "s/'//"
   args:
     executable:                        /bin/bash
   register:                            global_path_status
