@@ -63,6 +63,23 @@
   become_user:                         "{{ db_sid_admin_user }}"
   become:                              true
   ansible.builtin.shell: >
+                                       cat /usr/sap/{{ db_sid | upper }}/home/.sapenv.sh
+  args:
+    executable:                        /bin/bash
+  register:                            global_path_status_text
+  changed_when:                        false
+
+- name:                                "[DEBUG]: show global_path_status_text value"
+  ansible.builtin.debug:
+    var:                               global_path_status_text
+    verbosity:                         0
+
+
+
+- name:                                "HANA HSR: - Determine runtime value of SAP global path"
+  become_user:                         "{{ db_sid_admin_user }}"
+  become:                              true
+  ansible.builtin.shell: >
                                        set -o pipefail
                                        /usr/bin/grep '^alias cdglo=' /usr/sap/{{ db_sid | upper }}/home/.sapenv.sh | /usr/bin/sed -e 's/^.* //' -e 's/$SAPSYSTEMNAME/{{ db_sid | upper }}/' -e "s/'//"
   args:
