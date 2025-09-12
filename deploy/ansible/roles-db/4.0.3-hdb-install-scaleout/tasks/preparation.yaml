@@ -1,0 +1,66 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                Prepare for the SAP DB Instance installation for scale out  |
+# |                  SAP: Register BOM                                         |
+# |                  create .params directory                                  |
+# |                  deploy db install template                                |
+# |                  deploy hdblcm password file                               |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |    This code contains references to terms that Microsoft no longer uses.   |
+# |    When these terms are removed from the SAP software and documentation,   |
+# |    we’ll remove them from this codebase.                                   |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+---
+
+# +------------------------------------4--------------------------------------*/
+
+- name:                                "4.0.3 - SAP HANA SCALE OUT: Create list of all db hosts"
+  ansible.builtin.set_fact:
+    db_hosts:                          "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
+    primary_site_hosts:                "{{ hostvars | dict2items | selectattr('value.site', 'defined') | selectattr('value.site', 'eq', 'SITE1') | map(attribute='key') }}"
+    secondary_site_hosts:              "{{ hostvars | dict2items | selectattr('value.site', 'defined') | selectattr('value.site', 'eq', 'SITE2') | map(attribute='key') }}"
+
+- name:                                "4.0.3 - SAP HANA SCALE OUT: Create list of all db hosts"
+  ansible.builtin.debug:
+    msg:
+      - "db_hosts : {{ db_hosts }}"
+      - "primary_site_hosts : {{ primary_site_hosts }}"
+      - "secondary_site_hosts : {{ secondary_site_hosts }}"
+
+- name:                                "4.0.3 - SAP HANA SCALE OUT: get the SSH host key from each server in Site 1"
+  ansible.builtin.command:             "ssh-keyscan -t rsa {{item}}"
+  register:                            "site1_host_keys"
+  changed_when:                        false
+  with_items:                          '{{ primary_site_hosts }}'
+  when:
+  - ansible_hostname == primary_instance_name
+  become:                              true
+
+
+- name:                                "4.0.3 - SAP HANA SCALE OUT: get the SSH host key from each server in Site 2"
+  ansible.builtin.command:             "ssh-keyscan -t rsa {{item}}"
+  register:                            "site2_host_keys"
+  changed_when:                        false
+  with_items:                          '{{ secondary_site_hosts }}'
+  when:
+  - ansible_hostname == secondary_instance_name
+
+
+- name:                                "4.0.3 - SAP HANA SCALE OUT: Create list of all db hosts"
+  ansible.builtin.debug:
+    msg:
+      - "primary_site_hostkeys : {{ site1_host_keys }}"
+      - "secondary_site_hostkeys : {{ site2_host_keys }}"
+
+
+...
+# /*---------------------------------------------------------------------------8
+# |                                   END                                      |
+# +------------------------------------4--------------------------------------*/
