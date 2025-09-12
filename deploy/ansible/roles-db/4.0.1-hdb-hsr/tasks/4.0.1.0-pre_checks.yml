@@ -70,14 +70,19 @@
   register:                            global_path_status
   changed_when:                        false
 
+- name:                                "[DEBUG]: show global_path_status value"
+  ansible.builtin.debug:
+    var:                               global_path_status
+    verbosity:                         0
+
 - name:                                "HANA HSR: - Ensure SAP global directory fact is set"
   ansible.builtin.set_fact:
     hana_global_dir:                   "{{ global_path_status.stdout_lines[0] }}"
 
-- name: "[DEBUG]: show hana_global_dir value"
+- name:                                "[DEBUG]: show hana_global_dir value"
   ansible.builtin.debug:
-    var: hana_global_dir
-    verbosity: 0
+    var:                               hana_global_dir
+    verbosity:                         0
 
 - name:                                "HANA HSR: - Check on the primary node whether installed HANA is single container or multi-container"
   block:
