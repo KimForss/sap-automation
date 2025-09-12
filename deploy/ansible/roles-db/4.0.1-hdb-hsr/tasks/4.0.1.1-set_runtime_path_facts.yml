@@ -83,13 +83,17 @@
       ansible.builtin.shell:           /hana/shared/{{ db_sid | upper }}/HDB{{ db_instance_number }}/HDB version
       register:                        hdbversion
       changed_when:                    false
+      args:
+        chdir:                         /usr/sap/HDB/HDB00
       vars:
         allow_world_readable_tmpfiles: true
       environment:
         PATH:                          /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        HOME:                          /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
         DIR_LIBRARY:                   /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
         LD_LIBRARY_PATH:               /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
         SAPSYSTEMNAME:                 "{{ db_sid | upper }}"
+
     - name:                            "HANA HSR: - capture the Hana DB version"
       ansible.builtin.set_fact:
         hdb_version:                   "{{ hdbversion.stdout_lines.1.split().1 }}"
