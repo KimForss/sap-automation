@@ -29,8 +29,8 @@
 - name:                                "4.0.3 - SAP HANA SCALE OUT: Create list of all db hosts"
   ansible.builtin.set_fact:
     db_hosts:                          "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
-    primary_site_hosts:                "{{ hostvars | dict2items | selectattr('value.site', 'defined') | selectattr('value.site', 'eq', 'SITE1') | map(attribute='ip') }}"
-    secondary_site_hosts:              "{{ hostvars | dict2items | selectattr('value.site', 'defined') | selectattr('value.site', 'eq', 'SITE2') | map(attribute='ip') }}"
+    primary_site_hosts:                "{{ hostvars | dict2items | selectattr('value.site', 'defined') | selectattr('value.site', 'eq', 'SITE1') | map(attribute='key') }}"
+    secondary_site_hosts:              "{{ hostvars | dict2items | selectattr('value.site', 'defined') | selectattr('value.site', 'eq', 'SITE2') | map(attribute='key') }}"
 
 - name:                                "4.0.3 - SAP HANA SCALE OUT: Create list of all db hosts"
   ansible.builtin.debug:
@@ -38,6 +38,11 @@
       - "db_hosts : {{ db_hosts }}"
       - "primary_site_hosts : {{ primary_site_hosts }}"
       - "secondary_site_hosts : {{ secondary_site_hosts }}"
+
+- name:                                "4.0.3 - SAP HANA SCALE OUT: Create list of all db hosts"
+  ansible.builtin.debug:
+    var:                               hostvars[item]
+  with_items:                          '{{ primary_site_hosts }}'
 
 - name:                                "4.0.3 - SAP HANA SCALE OUT: get the SSH host key from each server in Site 1"
   ansible.builtin.command:             "ssh-keyscan -t rsa {{item}}"
@@ -48,7 +53,7 @@
   become:                              true
 
 - name:                                "4.0.3 - SAP HANA SCALE OUT: get the SSH host key from each server in Site 2"
-  ansible.builtin.command:             "ssh-keyscan -t rsa {{item}}"
+  ansible.builtin.command:             "ssh-keyscan -t rsa {{ hostvars[item] }}"
   register:                            "site2_host_keys"
   changed_when:                        false
   with_items:                          '{{ secondary_site_hosts }}'
