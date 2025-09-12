@@ -205,7 +205,7 @@
     owner:                             root
     group:                             root
     mode:                              '0644'
-    create:                            true
+    force:                             true
     backup:                            true
 
 
