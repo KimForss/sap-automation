@@ -63,7 +63,7 @@
   become_user:                         "{{ db_sid_admin_user }}"
   become:                              true
   ansible.builtin.shell: >
-                                       cat /usr/sap/{{ db_sid | upper }}/home/.sapenv.sh
+                                       /usr/bin/cat /usr/sap/{{ db_sid | upper }}/home/.sapenv.sh
   args:
     executable:                        /bin/bash
   register:                            global_path_status_text
@@ -72,6 +72,11 @@
 - name:                                "[DEBUG]: show global_path_status_text value"
   ansible.builtin.debug:
     var:                               global_path_status_text
+    verbosity:                         0
+
+- name:                                "[DEBUG]: show global_path_status_text value"
+  ansible.builtin.debug:
+    msg:                               "global_path_status_text.stdout_lines | select('search', 'alias cdglo='cd ') }}"
     verbosity:                         0
 
 
