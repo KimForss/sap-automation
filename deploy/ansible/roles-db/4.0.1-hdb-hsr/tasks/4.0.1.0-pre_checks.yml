@@ -76,7 +76,7 @@
 
 - name:                                "[DEBUG]: show global_path_status_text value"
   ansible.builtin.debug:
-    msg:                               "global_path_status_text.stdout_lines | select('search', 'alias cdglo='cd ') }}"
+    msg:                               "{{ global_path_status_text.stdout_lines | select('search', 'alias cdglo='cd ') }}"
     verbosity:                         0
 
 
