@@ -29,6 +29,20 @@
 - name:                                "4.0.3 - SAP HANA SCALE OUT: Create list of all db hosts"
   ansible.builtin.set_fact:
     db_hosts:                          "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
+    primary_site_hosts:                >-
+      {{ [ h for h in groups[sap_sid|upper ~ '_DB'] if hostvars[h].site == 'SITE1' ] }}
+    secondary_site_hosts:                >-
+      {{ [ h for h in groups[sap_sid|upper ~ '_DB'] if hostvars[h].site == 'SITE2' ] }}
+
+- name:                                "4.0.3 - SAP HANA SCALE OUT: Create list of all db hosts"
+  ansible.builtin.debug:
+    msg:
+      - "db_hosts : {{ db_hosts }}"
+      - "primary_site_hosts : {{ primary_site_hosts }}"
+      - "secondary_site_hosts : {{ secondary_site_hosts }}"
+
+
+
 
 #   0x) Create hidden directory for parameter files
 - name:                                "4.0.3 - SAP HANA SCALE OUT: Create directories"
@@ -707,6 +721,9 @@
     # |             Secondary site setup with Shared nothing scale out               |
     # +------------------------------------4--------------------------------------*/
     - name:                                "4.0.3 - SAP HANA SCALE OUT: HANA Install - Scale Out - HSR ( Secondary Site )"
+      when:
+      - ansible_hostname == secondary_instance_name
+      - not hana_installed.stat.exists
       block:
         - name:                            "4.0.3 - SAP HANA SCALE OUT-HSR: remove install response file if exists"
           ansible.builtin.file:
@@ -977,9 +994,6 @@
           - name:                        "Wait 2 minutes for SAP system to start"
             ansible.builtin.wait_for:
               timeout:                   120
-      when:
-      - ansible_hostname == secondary_instance_name
-      - not hana_installed.stat.exists
 
 # /*----------------------------End of setup----------------------------------8
 
