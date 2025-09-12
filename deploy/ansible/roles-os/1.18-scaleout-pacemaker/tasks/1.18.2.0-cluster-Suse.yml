@@ -112,6 +112,8 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 - name:                                "1.18.2.0 Generic Pacemaker - Ensure the STONITH Azure fence agent is created when SBD not used"
+  become:                              true
+  become_user:                         root
   block:
     - name:                            "1.18.2.0 Generic Pacemaker - Enable Stonith"
       ansible.builtin.shell: |
@@ -120,7 +122,7 @@
 
 # <TODO> templatize the pcmk_host_map from all entries in ansible_play_hosts_all and mm_hosts
     - name:                            "1.18.2.0 Generic Pacemaker - Create Azure Fencing Agent"
-      ansible.builtin.command: >
+      ansible.builtin.shell: >
                                        crm configure primitive rsc_st_azure stonith:fence_azure_arm params
                                        subscriptionId="{{ fencing_spn_subscription_id }}"
                                        resourceGroup="{{ resource_group_name }}"
@@ -136,7 +138,7 @@
         - not use_msi_for_clusters or distribution_full_id in ["sles_sap12.4"]
 
     - name:                            "1.18.2.0 Generic Pacemaker - Create Azure Fencing Agent (MSI)"
-      ansible.builtin.command: >
+      ansible.builtin.shell: >
                                        crm configure primitive rsc_st_azure stonith:fence_azure_arm params
                                        subscriptionId="{{ fencing_spn_subscription_id }}"
                                        resourceGroup="{{ resource_group_name }}"
@@ -153,7 +155,7 @@
 
     - name:                            "1.18.2.0 Generic Pacemaker - Stonith Timeout Property"
       become:                          true
-      ansible.builtin.command:         crm configure property stonith-timeout=900
+      ansible.builtin.shell:         crm configure property stonith-timeout=900
 
   when:
                                         - database_cluster_type == "AFA"
@@ -170,38 +172,40 @@
 # | SBD - BEGIN                                                                |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
-- name:                                           "1.18.2.0 Generic Pacemaker - Ensure the STONITH Azure fence agent is created when SBD not used"
+- name:                                "1.18.2.0 Generic Pacemaker - Ensure the STONITH Azure fence agent is created when SBD not used"
+  become:                              true
+  become_user:                         root
   when:
-                                                  - (database_cluster_type == "ASD")   or
-                                                    (database_cluster_type == "ISCSI")
-                                                  - inventory_hostname  == primary_instance_name
+                                       - (database_cluster_type == "ASD")   or
+                                         (database_cluster_type == "ISCSI")
+                                       - inventory_hostname  == primary_instance_name
   block:
-    - name:                                      "1.18.2.0 Generic Pacemaker - Check if Stonith SBD is configured in cluster"
-      ansible.builtin.shell:                     crm resource show stonith-sbd
-      register:                                  stonith_sbd_configured
-      failed_when:                               false
-      changed_when:                              false
+    - name:                            "1.18.2.0 Generic Pacemaker - Check if Stonith SBD is configured in cluster"
+      ansible.builtin.shell:           crm resource show stonith-sbd
+      register:                        stonith_sbd_configured
+      failed_when:                     false
+      changed_when:                    false
 
-    - name:                                      "1.18.2.0 Generic Pacemaker - Delete Stonith SBD if it is already configured in cluster"
-      when:                                      stonith_sbd_configured.rc == 0
-      ansible.builtin.command:                   crm configure delete stonith-sbd
+    - name:                            "1.18.2.0 Generic Pacemaker - Delete Stonith SBD if it is already configured in cluster"
+      when:                            stonith_sbd_configured.rc == 0
+      ansible.builtin.shell:           crm configure delete stonith-sbd
 
-    - name:                                      "1.18.2.0 Generic Pacemaker - Ensure Stonith SBD is configured in cluster"
-      when:                                      stonith_sbd_configured.rc != 0
-      ansible.builtin.command: >-
-                                                 crm configure primitive stonith-sbd stonith:external/sbd \
-                                                   params pcmk_delay_max="15" \
-                                                   op monitor interval="600" timeout="15"
+    - name:                            "1.18.2.0 Generic Pacemaker - Ensure Stonith SBD is configured in cluster"
+      when:                            stonith_sbd_configured.rc != 0
+      ansible.builtin.shell: >-
+                                       crm configure primitive stonith-sbd stonith:external/sbd \
+                                         params pcmk_delay_max="15" \
+                                         op monitor interval="600" timeout="15"
 
-    - name:                                      "1.18.2.0 Generic Pacemaker - Set the Stonith SBD Timeout Property"
-      ansible.builtin.command:                   crm configure property stonith-timeout=210
+    - name:                            "1.18.2.0 Generic Pacemaker - Set the Stonith SBD Timeout Property"
+      ansible.builtin.shell:           crm configure property stonith-timeout=210
 
-    - name:                                      "1.18.2.0 Generic Pacemaker - Enable Stonith"
-      ansible.builtin.command:                   crm configure property stonith-enabled=true
+    - name:                            "1.18.2.0 Generic Pacemaker - Enable Stonith"
+      ansible.builtin.shell:           crm configure property stonith-enabled=true
 
   always:
-    - name:                                      "1.18.2.0 Generic Pacemaker - SBD device configuration"
-      when:                                      inventory_hostname == primary_instance_name
+    - name:                            "1.18.2.0 Generic Pacemaker - SBD device configuration"
+      when:                            inventory_hostname == primary_instance_name
       ansible.builtin.debug:
         msg:                                      "SBD device configuration ends"
 
@@ -218,7 +222,11 @@
 # +------------------------------------4--------------------------------------*/
 
 - name:                                "1.18.2.0 Generic Pacemaker - Ensure Azure scheduled events is configured"
+  become:                              true
+  become_user:                         root
   block:
+
+  
   # After configuring the Pacemaker resources for azure-events agent,
   # when you place the cluster in or out of maintenance mode, you may get warning messages like:
   #   WARNING: cib-bootstrap-options: unknown attribute 'hostName_ hostname'
@@ -226,7 +234,7 @@
   #   WARNING: cib-bootstrap-options: unknown attribute 'hostName_ hostname'
   # These warning messages can be ignored.
     - name:                            "1.18.2.0 Generic Pacemaker - Ensure maintenance mode is set"
-      ansible.builtin.command:         crm configure property maintenance-mode=true
+      ansible.builtin.shell:           crm configure property maintenance-mode=true
 
     - name:                            "1.18.2.0 Generic Pacemaker - Ensure Pacemaker resources for the Azure agent is created"
       ansible.builtin.shell:           crm configure primitive rsc_azure-events ocf:heartbeat:azure-events op monitor interval=10s
@@ -238,7 +246,7 @@
       ansible.builtin.shell:           crm_resource -C
 
     - name:                            "1.18.2.0 Generic Pacemaker - Ensure maintenance mode is disabled"
-      ansible.builtin.command:         crm configure property maintenance-mode=false
+      ansible.builtin.shell:           crm configure property maintenance-mode=false
   when:                                inventory_hostname == primary_instance_name
 
 # /*---------------------------------------------------------------------------8
