@@ -139,7 +139,7 @@
     #               entries.
     #
     - name:                                   "Update Block Device"
-      ansible.builtin.include_tasks:          "1.17.1.3-sbd-deviceUpdate.yaml"
+      ansible.builtin.include_tasks:          "1.18.1.3-sbd-deviceUpdate.yaml"
       loop:                                   "{{ sbdMap }}"
       loop_control:
         loop_var:                             sdbMap_entry

@@ -102,7 +102,7 @@
     name:                              pacemaker
     state:                             restarted
 
-- name:                                "1.17 Generic Pacemaker - Pause"
+- name:                                "1.18.2.0 Generic Pacemaker - Pause"
   ansible.builtin.wait_for:
     timeout:                           30
 
