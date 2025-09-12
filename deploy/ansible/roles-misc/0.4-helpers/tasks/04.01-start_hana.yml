@@ -40,7 +40,7 @@
         verbosity:                     2
 
     - name:                            "Ensure HANA is running on {{ ansible_hostname }}"
-      ansible.builtin.shell:           "{{ sapcontrol_command }} -function StartWait {{ hana_stop_start_timeout_in_seconds }} {{ hana_stop_start_delay_in_seconds }}"
+      ansible.builtin.shell:           "{{ sapcontrol_command }} -function StartSystem {{ db_sid | upper }} {{ hana_stop_start_timeout_in_seconds }}"
       changed_when:                    false
       vars:
         allow_world_readable_tmpfiles:     true
