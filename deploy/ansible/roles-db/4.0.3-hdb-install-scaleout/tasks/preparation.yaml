@@ -56,8 +56,8 @@
 - name:                                "4.0.3 - SAP HANA SCALE OUT: Create list of all db hosts"
   ansible.builtin.debug:
     msg:
-      - "primary_site_hostkeys : {{ site1_host_keys }}"
-      - "secondary_site_hostkeys : {{ site2_host_keys }}"
+      - "primary_site_hostkeys : {{ site1_host_keys.stdout_lines }}"
+      - "secondary_site_hostkeys : {{ site2_host_keys.stdout_lines }}"
 
 
 ...
