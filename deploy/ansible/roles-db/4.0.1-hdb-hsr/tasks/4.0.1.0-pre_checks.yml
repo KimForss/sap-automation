@@ -69,37 +69,13 @@
   register:                            global_path_status_text
   changed_when:                        false
 
-- name:                                "[DEBUG]: show global_path_status_text value"
-  ansible.builtin.debug:
-    var:                               global_path_status_text
-    verbosity:                         0
-
-- name:                                "[DEBUG]: show global_path_status_text value"
-  ansible.builtin.debug:
-    msg:                               "{{ global_path_status_text.stdout_lines | select('search', 'alias cdglo=') }}"
-    verbosity:                         0
-
-
-
-- name:                                "HANA HSR: - Determine runtime value of SAP global path"
-  become_user:                         "{{ db_sid_admin_user }}"
-  become:                              true
-  ansible.builtin.shell: >
-                                       set -o pipefail
-                                       /usr/bin/grep '^alias cdglo=' /usr/sap/{{ db_sid | upper }}/home/.sapenv.sh | /usr/bin/sed -e 's/^.* //' -e 's/$SAPSYSTEMNAME/{{ db_sid | upper }}/' -e "s/'//"
-  args:
-    executable:                        /bin/bash
-  register:                            global_path_status
-  changed_when:                        false
-
-- name:                                "[DEBUG]: show global_path_status value"
-  ansible.builtin.debug:
-    var:                               global_path_status
-    verbosity:                         0
+- name:                                "HANA HSR: - Set SAP global directory default"
+  ansible.builtin.set_fact:
+    hana_global_dir_default:           "/usr/sap/{{ db_sid | upper }}/SYS/global"
 
 - name:                                "HANA HSR: - Ensure SAP global directory fact is set"
   ansible.builtin.set_fact:
-    hana_global_dir:                   "{{ global_path_status.stdout_lines[0] }}"
+    hana_global_dir:                   "{{ global_path_status_text.stdout_lines | select('search', 'alias cdglo=') | split('=') | last | split(' ') | last | default(hana_global_dir_default) }}"
 
 - name:                                "[DEBUG]: show hana_global_dir value"
   ansible.builtin.debug:
