@@ -59,29 +59,6 @@
   ansible.builtin.debug:
     msg:                               "HSR Replication configuration needed: {{ hana_system_replication_needed }}"
 
-- name:                                "HANA HSR: - Determine runtime value of SAP global path"
-  become_user:                         "{{ db_sid_admin_user }}"
-  become:                              true
-  ansible.builtin.shell: >
-                                       /usr/bin/cat /usr/sap/{{ db_sid | upper }}/home/.sapenv.sh
-  args:
-    executable:                        /bin/bash
-  register:                            global_path_status_text
-  changed_when:                        false
-
-- name:                                "HANA HSR: - Set SAP global directory default"
-  ansible.builtin.set_fact:
-    hana_global_dir_default:           "/usr/sap/{{ db_sid | upper }}/SYS/global"
-
-- name:                                "HANA HSR: - Ensure SAP global directory fact is set"
-  ansible.builtin.set_fact:
-    hana_global_dir:                   "{{ global_path_status_text.stdout_lines | select('search', 'alias cdglo=') | first |split('=') | last | split(' ') | last | default(hana_global_dir_default) }}"
-
-- name:                                "[DEBUG]: show hana_global_dir value"
-  ansible.builtin.debug:
-    var:                               hana_global_dir
-    verbosity:                         0
-
 - name:                                "HANA HSR: - Check on the primary node whether installed HANA is single container or multi-container"
   block:
     - name:                            "HANA HSR: - Check whether HANA has been installed as a single container (no SYSTEMDB)"

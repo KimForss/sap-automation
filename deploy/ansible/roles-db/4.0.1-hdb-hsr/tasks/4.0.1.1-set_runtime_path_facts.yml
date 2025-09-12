@@ -12,13 +12,24 @@
   become_user:                         "{{ db_sid_admin_user }}"
   become:                              true
   ansible.builtin.shell: >
-                                       set -o pipefail && grep '^alias cdglo=' ~/.sapenv.sh | sed -e 's/^.* //' -e 's/$SAPSYSTEMNAME/{{ db_sid | upper }}/' -e "s/'//"
-  register:                            global_path_status
+                                       /usr/bin/cat /usr/sap/{{ db_sid | upper }}/home/.sapenv.sh
+  args:
+    executable:                        /bin/bash
+  register:                            global_path_status_text
   changed_when:                        false
+
+- name:                                "HANA HSR: - Set SAP global directory default"
+  ansible.builtin.set_fact:
+    hana_global_dir_default:           "/usr/sap/{{ db_sid | upper }}/SYS/global"
 
 - name:                                "HANA HSR: - Ensure SAP global directory fact is set"
   ansible.builtin.set_fact:
-    hana_global_dir: "                 {{ global_path_status.stdout_lines[0] }}"
+    hana_global_dir:                   "{{ global_path_status_text.stdout_lines | select('search', 'alias cdglo=') | first |split('=') | last | split(' ') | last | default(hana_global_dir_default) }}"
+
+- name:                                "[DEBUG]: show hana_global_dir value"
+  ansible.builtin.debug:
+    var:                               hana_global_dir
+    verbosity:                         0
 
 - name:                                "HANA HSR: - Load the disk configuration settings"
   ansible.builtin.include_vars:        disks_config.yml
