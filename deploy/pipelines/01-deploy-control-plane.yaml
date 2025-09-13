@@ -259,7 +259,7 @@ stages:
               exit 0
 
             displayName:               "HasAppService"
-            Name: "HasAppService"
+            name:                      "HasAppService"
             env:
               APP_SERVICE_DEPLOYMENT:  $(APP_SERVICE_DEPLOYMENT)
 
