@@ -43,6 +43,7 @@
           ansible.builtin.package:
             name:                      python3-passlib
             state:                     present
+          when:                        ansible_os_family | upper == "SUSE"
           tags:
             - always
 
