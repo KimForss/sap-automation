@@ -23,6 +23,8 @@ using Microsoft.VisualStudio.Services.TenantPolicy;
 using Microsoft.VisualStudio.Services.WebApi;
 
 using JsonSerializer = System.Text.Json.JsonSerializer;
+using Microsoft.TeamFoundation.Common;
+using Newtonsoft.Json.Schema;
 
 #pragma warning disable SYSLIB0020
 namespace SDAFWebApp.Controllers
@@ -53,6 +55,15 @@ namespace SDAFWebApp.Controllers
             collectionUri = configuration["CollectionUri"];
             project = configuration["ProjectName"];
             repositoryId = configuration["RepositoryId"];
+
+            if(project.IsNullOrEmpty())
+            {
+                ModelState.AddModelError("ProjectName", "ProjectName is not specifed in ApplicationException settings");
+            }
+            if(repositoryId.IsNullOrEmpty())
+            {
+                ModelState.AddModelError("RepositoryId", "RepositoryId is not specifed in ApplicationException settings");
+            }
             PAT = configuration["PAT"];
             string devops_authentication = configuration["AUTHENTICATION_TYPE"];
             branch = configuration["SourceBranch"];
