@@ -30,9 +30,10 @@
       vars:
         allow_world_readable_tmpfiles: true
       environment:
-        PATH:                          /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
         DIR_LIBRARY:                   /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        HOME:                          /usr/sap/{{ db_sid | upper }}/home
         LD_LIBRARY_PATH:               /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        PATH:                          /usr/bin:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
         SAPSYSTEMNAME:                 "{{ db_sid | upper }}"
 
     - name:                            "Determine if HANA is running on {{ ansible_hostname }} - No. 2"
@@ -45,9 +46,10 @@
       vars:
         allow_world_readable_tmpfiles: true
       environment:
-        PATH:                          /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
         DIR_LIBRARY:                   /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        HOME:                          /usr/sap/{{ db_sid | upper }}/home
         LD_LIBRARY_PATH:               /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        PATH:                          /usr/bin:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
         SAPSYSTEMNAME:                 "{{ db_sid | upper }}"
 
     - name:                            "Determine if HANA is running on {{ ansible_hostname }}"
@@ -63,9 +65,10 @@
       vars:
         allow_world_readable_tmpfiles: true
       environment:
-        PATH:                          /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
         DIR_LIBRARY:                   /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        HOME:                          /usr/sap/{{ db_sid | upper }}/home
         LD_LIBRARY_PATH:               /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        PATH:                          /usr/bin:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
         SAPSYSTEMNAME:                 "{{ db_sid | upper }}"
 
     - name:                            "Validate HANA is running  on {{ ansible_hostname }}"
@@ -78,10 +81,12 @@
       vars:
         allow_world_readable_tmpfiles: true
       environment:
-        PATH:                          /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
         DIR_LIBRARY:                   /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        HOME:                          /usr/sap/{{ db_sid | upper }}/home
         LD_LIBRARY_PATH:               /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        PATH:                          /usr/bin:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
         SAPSYSTEMNAME:                 "{{ db_sid | upper }}"
+
   rescue:
     - name:                            "Rescue: Ensure HANA is running on {{ ansible_hostname }}"
       become_user:                     "{{ db_sid | lower }}adm"
@@ -91,14 +96,15 @@
       vars:
         allow_world_readable_tmpfiles: true
       environment:
-        PATH:                          /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
         DIR_LIBRARY:                   /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        HOME:                          /usr/sap/{{ db_sid | upper }}/home
         LD_LIBRARY_PATH:               /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        PATH:                          /usr/bin:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
         SAPSYSTEMNAME:                 "{{ db_sid | upper }}"
 
     - name:                            "Rescue: Validate HANA is running  on {{ ansible_hostname }}"
       become_user:                     "{{ db_sid | lower }}adm"
-      become:                          true    
+      become:                          true
       ansible.builtin.shell:           "{{ sapcontrol_command }} -function GetProcessList"
       changed_when:                    false
       register:                        hana_running
@@ -106,11 +112,11 @@
       vars:
         allow_world_readable_tmpfiles: true
       environment:
-        PATH:                          /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
         DIR_LIBRARY:                   /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        HOME:                          /usr/sap/{{ db_sid | upper }}/home
         LD_LIBRARY_PATH:               /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        PATH:                          /usr/bin:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
         SAPSYSTEMNAME:                 "{{ db_sid | upper }}"
-
 
   # environment:
   #   HOME:                              "/usr/sap/{{ db_sid | upper }}/home"
