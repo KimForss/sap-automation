@@ -144,9 +144,8 @@
       ansible.builtin.blockinfile:
         path:                          "/var/tmp/{{ db_sid | upper }}/colocation.txt"
         block: |
-                                       crm configure colocation col_saphana_ip_{{ db_sid | upper }}_HDB{{ db_instance_number }}
-                                       4000:
-                                       g_ip_{{ db_sid | upper }}_HDB{{ db_instance_number }}:Started
+                                       crm configure colocation col_saphana_ip_{{ db_sid | upper }}_HDB{{ db_instance_number }} 4000: \
+                                       g_ip_{{ db_sid | upper }}_HDB{{ db_instance_number }}:Started \
                                        msl_SAPHana_{{ db_sid | upper }}_HDB{{ db_instance_number }}:Master
         create:                        true
         backup:                        true
