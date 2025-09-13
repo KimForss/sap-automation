@@ -141,7 +141,7 @@ stages:
       - template:                      variables/01-deploy-control-plane-variables.yaml
         parameters:
           control_plane_name:          ${{ parameters.control_plane_name }}
-          deployer:                    ${{ parameters.deployer }}
+          deployer:                    ${{ parameters.control_plane_name }}
           environment:                 ${{ parameters.environment }}
           force_reset:                 ${{ parameters.force_reset }}
           library:                     ${{ parameters.library }}
@@ -162,7 +162,6 @@ stages:
           - template:                  templates\download.yaml
             parameters:
               getLatestFromBranch: true
-
           - task:                      Bash@3
             inputs:
               targetType:              'filePath'
