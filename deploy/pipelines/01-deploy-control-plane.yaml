@@ -284,7 +284,7 @@ stages:
     condition: |
       and
       (
-        eq(dependencies.Deploy_controlplane.outputs['Deploy_controlplane.HasAppService.appServiceDeployment'], 'true')
+        eq(dependencies.Deploy_controlplane.outputs['Deploy_controlplane.HasAppService.appServiceDeployment'], 'true'),
         eq(dependencies.Deploy_controlplane.result, 'Succeeded'),
         eq(dependencies.Prepare_Deployer.result, 'Succeeded')
       )
