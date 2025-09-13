@@ -159,8 +159,6 @@
                                        pcmk_reboot_timeout=900
                                        pcmk_host_map="{% for item in ansible_play_hosts_all %}{{ item }}:{{ hostvars[item]['vm_name'] }}{{ ';' if not loop.last }}{% endfor %}"
 
-
-
     - name:                            "1.18.2.0 Generic Pacemaker - Stonith Timeout Property"
       become:                          true
       ansible.builtin.shell:           crm configure property stonith-timeout=900
