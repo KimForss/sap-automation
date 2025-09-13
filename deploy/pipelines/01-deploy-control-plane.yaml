@@ -253,6 +253,15 @@ stages:
               WEB_APP_CLIENT_SECRET:       $(WEB_APP_CLIENT_SECRET)
               keyvault:                    $(DEPLOYER_KEYVAULT)
               DEPLOYER_KEYVAULT:           $(DEPLOYER_KEYVAULT)
+          - bash: |
+              #!/bin/bash
+              echo "##vso[task.setvariable variable=appServiceDeployment;isOutput=true]$APP_SERVICE_DEPLOYMENT"
+              exit 0
+
+            displayName:               "HasAppService"
+            Name: "HasAppService"
+            env:
+              APP_SERVICE_DEPLOYMENT:  $(APP_SERVICE_DEPLOYMENT)
 
   - stage:                             Web_App_Deployment
     pool:                              $(this_agent)
@@ -275,8 +284,7 @@ stages:
     condition: |
       and
       (
-        eq(${{ parameters.use_webapp_param }}, true),
-        eq(${{ parameters.deploy_webapp_software }}, true),
+        eq(dependencies.Deploy_controlplane.outputs['Deploy_controlplane.HasAppService.appServiceDeployment'], 'true')
         eq(dependencies.Deploy_controlplane.result, 'Succeeded'),
         eq(dependencies.Prepare_Deployer.result, 'Succeeded')
       )
