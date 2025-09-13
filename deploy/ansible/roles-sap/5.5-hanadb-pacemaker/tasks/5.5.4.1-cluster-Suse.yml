@@ -122,7 +122,7 @@
     #    params binfile="/usr/bin/socat" cmdline_options="-U TCP-LISTEN:625{{ instance_number }},backlog=10,fork,reuseaddr /dev/null"
     #    op monitor timeout=20s interval=10 depth=0
     - name:                            "5.5.4.1 HANA Pacemaker configuration - Ensure SAP HANA azure-lb resource agent is configured"
-      ansible.builtin.shell:         >
+      ansible.builtin.shell: >
                                        crm configure primitive rsc_nc_{{ db_sid | upper }}_HDB{{ db_instance_number }} azure-lb port=625{{ db_instance_number }} \
                                          op monitor timeout=20s interval=10 \
                                          meta resource-stickiness=0
