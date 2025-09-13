@@ -480,6 +480,19 @@ if [ -f "${deployer_environment_file_name}" ]; then
 	webapp_url_base=$(grep "^webapp_url_base=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
 	if [ -n "${webapp_url_base}" ]; then
 		echo "Webapp URL Base:      ${webapp_url_base}"
+		if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APP_SERVICE_DEPLOYMENT" "true"; then
+			echo "Variable APP_SERVICE_DEPLOYMENT was added to the $VARIABLE_GROUP variable group."
+		else
+			echo "##vso[task.logissue type=error]Variable APP_SERVICE_DEPLOYMENT was not added to the $VARIABLE_GROUP variable group."
+			echo "Variable APP_SERVICE_DEPLOYMENT was not added to the $VARIABLE_GROUP variable group."
+		fi
+	else
+		if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APP_SERVICE_DEPLOYMENT" "false"; then
+			echo "Variable APP_SERVICE_DEPLOYMENT was added to the $VARIABLE_GROUP variable group."
+		else
+			echo "##vso[task.logissue type=error]Variable APP_SERVICE_DEPLOYMENT was not added to the $VARIABLE_GROUP variable group."
+			echo "Variable APP_SERVICE_DEPLOYMENT was not added to the $VARIABLE_GROUP variable group."
+		fi
 	fi
 
 	webapp_id=$(grep "^webapp_id=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)

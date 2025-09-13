@@ -114,6 +114,7 @@
   when:
     - database_high_availability
     - platform == "HANA"
+    - not database_scale_out
 
 - name:                                "PAS Install: DEBUG - DB Loadbalancer check"
   ansible.builtin.debug:
@@ -121,6 +122,7 @@
     verbosity:                         2
   when:
     - database_high_availability
+    - not database_scale_out
     - platform == "HANA"
     - db_port_open.msg is defined
 
@@ -129,6 +131,7 @@
     msg:                               "INSTALL:0026:PAS Install failed, database is unreachable."
   when:
     - database_high_availability
+    - not database_scale_out
     - platform == "HANA"
     - db_port_open.msg is defined
 

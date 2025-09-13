@@ -253,6 +253,15 @@ stages:
               WEB_APP_CLIENT_SECRET:       $(WEB_APP_CLIENT_SECRET)
               keyvault:                    $(DEPLOYER_KEYVAULT)
               DEPLOYER_KEYVAULT:           $(DEPLOYER_KEYVAULT)
+          - bash: |
+              #!/bin/bash
+              echo "##vso[task.setvariable variable=appServiceDeployment;isOutput=true]$APP_SERVICE_DEPLOYMENT"
+              exit 0
+
+            displayName:               "HasAppService"
+            name:                      "HasAppService"
+            env:
+              APP_SERVICE_DEPLOYMENT:  $(APP_SERVICE_DEPLOYMENT)
 
   - stage:                             Web_App_Deployment
     pool:                              $(this_agent)
@@ -267,7 +276,7 @@ stages:
           test:                        ${{ parameters.test }}
           use_deployer:                ${{ parameters.use_deployer }}
           use_webapp_param:            ${{ parameters.use_webapp_param }}
-    displayName: Deploy SAP configuration Web App
+    displayName:                       Deploy SAP configuration Web App
 
     dependsOn:
       - Deploy_controlplane
@@ -275,33 +284,32 @@ stages:
     condition: |
       and
       (
-        eq(${{ parameters.use_webapp_param }}, true),
-        eq(${{ parameters.deploy_webapp_software }}, true),
+        eq(dependencies.Deploy_controlplane.outputs['Deploy_controlplane.HasAppService.appServiceDeployment'], 'true'),
         eq(dependencies.Deploy_controlplane.result, 'Succeeded'),
         eq(dependencies.Prepare_Deployer.result, 'Succeeded')
       )
     jobs:
-      - job: Deploy_web_app
-        displayName: Deploy SAP configuration Web App
+      - job:                           Deploy_web_app
+        displayName:                   Deploy SAP configuration Web App
         workspace:
-          clean: all
+          clean:                       all
         steps:
-          - template: templates\download.yaml
-          - task: PostBuildCleanup@4
-          - task: DotNetCoreCLI@2
-            displayName: "Build the Configuration Web Application"
+          - template:                  templates\download.yaml
+          - task:                      PostBuildCleanup@4
+          - task:                      DotNetCoreCLI@2
+            displayName:               "Build the Configuration Web Application"
             inputs:
-              command: "build"
-              projects: "$(System.DefaultWorkingDirectory)/sap-automation/Webapp/SDAF/*.csproj"
-          - task: DotNetCoreCLI@2
-            displayName: "Publish the Configuration Web Application"
+              command:                 "build"
+              projects:                "$(System.DefaultWorkingDirectory)/sap-automation/Webapp/SDAF/*.csproj"
+          - task:                      DotNetCoreCLI@2
+            displayName:               "Publish the Configuration Web Application"
             inputs:
-              command: publish
-              projects: "**/Webapp/**/*.csproj"
-              publishWebProjects: false
-              arguments: "--output $(Build.ArtifactStagingDirectory)/WebApp"
-              zipAfterPublish: true
-              modifyOutputPath: true
+              command:                 publish
+              projects:                "**/Webapp/**/*.csproj"
+              publishWebProjects:      false
+              arguments:               "--output $(Build.ArtifactStagingDirectory)/WebApp"
+              zipAfterPublish:         true
+              modifyOutputPath:        true
 
           - task:                      AzureWebApp@1
             displayName:               "Deploy the Configuration Web Application"
