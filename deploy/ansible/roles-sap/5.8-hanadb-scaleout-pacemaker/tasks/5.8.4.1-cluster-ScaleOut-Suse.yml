@@ -66,8 +66,8 @@
       ansible.builtin.shell: >
                                        crm configure location loc_cln_fs_{{ db_sid | upper }}_HDB{{ db_instance_number }}_fscheck_not_on_mm \
                                          cln_fs_{{ db_sid | upper }}_HDB{{ db_instance_number }}_fscheck -inf: {{ majority_maker }}
-      register:                        sap_file_cluster
-      failed_when:                     sap_file_cluster.rc > 1
+      register:                        sap_file_cluster_location
+      failed_when:                     sap_file_cluster_location.rc > 1
 
 
     # Operation Default recommendation from section 5.3.1 in https://www.suse.com/media/white-paper/suse_linux_enterprise_server_for_sap_applications_12_sp1.pdf#page=26
