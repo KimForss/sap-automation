@@ -4,12 +4,36 @@
 ---
 - name:                                "5.5 HANADB Pacemaker - include - set_runtime_facts"
   ansible.builtin.include_tasks:        5.5.1-set_runtime_facts.yml
+  vars:
+    allow_world_readable_tmpfiles: true
+  environment:
+    PATH:                              /usr/bin:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+    HOME:                              /usr/sap/{{ db_sid | upper }}/home
+    DIR_LIBRARY:                       /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+    LD_LIBRARY_PATH:                   /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+    SAPSYSTEMNAME:                     "{{ db_sid | upper }}"
 
 - name:                                "5.5 HANADB Pacemaker - include - pre_checks"
   ansible.builtin.include_tasks:        5.5.2-pre_checks.yml
+  vars:
+    allow_world_readable_tmpfiles: true
+  environment:
+    PATH:                              /usr/bin:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+    HOME:                              /usr/sap/{{ db_sid | upper }}/home
+    DIR_LIBRARY:                       /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+    LD_LIBRARY_PATH:                   /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+    SAPSYSTEMNAME:                     "{{ db_sid | upper }}"
 
 - name:                                "5.5 HANADB Pacemaker - include - SAP HanaSR"
   ansible.builtin.include_tasks:       5.5.3-SAPHanaSR.yml
+  vars:
+    allow_world_readable_tmpfiles: true
+  environment:
+    PATH:                              /usr/bin:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+    HOME:                              /usr/sap/{{ db_sid | upper }}/home
+    DIR_LIBRARY:                       /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+    LD_LIBRARY_PATH:                   /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+    SAPSYSTEMNAME:                     "{{ db_sid | upper }}"
 
 - name:                                "5.5 HANADB Pacemaker - include - SAP HanaSR - Cluster Preparation"
   ansible.builtin.include_tasks:
@@ -19,8 +43,24 @@
         - 5.5.4-provision
       become:                          true
       become_user:                     root
+  vars:
+    allow_world_readable_tmpfiles: true
+  environment:
+    PATH:                              /usr/bin:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+    HOME:                              /usr/sap/{{ db_sid | upper }}/home
+    DIR_LIBRARY:                       /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+    LD_LIBRARY_PATH:                   /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+    SAPSYSTEMNAME:                     "{{ db_sid | upper }}"
 
 - name:                                "5.5 HANADB Pacemaker - include - post_provision_report"
   ansible.builtin.include_tasks:        5.5.5-post_provision_report.yml
+  vars:
+    allow_world_readable_tmpfiles: true
+  environment:
+    PATH:                              /usr/bin:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+    HOME:                              /usr/sap/{{ db_sid | upper }}/home
+    DIR_LIBRARY:                       /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+    LD_LIBRARY_PATH:                   /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+    SAPSYSTEMNAME:                     "{{ db_sid | upper }}"
 
 ...
