@@ -151,7 +151,7 @@
 
     - name:                            "5.8 HANA Pacemaker Scaleout - Adjust global.ini on each cluster node ( with susChkSrv )"
       when:
-                                       - configure_susTkOver
+                                       - configure_susChkSrv
                                        - ansible_os_family | upper == "SUSE"
                                        - ansible_hostname in [ primary_instance_name, secondary_instance_name ]
       ansible.builtin.blockinfile:
