@@ -161,9 +161,9 @@
         path:                          "/var/tmp/{{ db_sid | upper }}/colocation.txt"
         state:                         absent
 
-    - name:                            "5.8 HANA Pacemaker Scaleout - Ensure HANA Topology before HANA  instance"
+    - name:                            "5.8 HANA Pacemaker Scaleout - Ensure HANA Topology starts before HANA instance"
       ansible.builtin.shell: >
-                                       crm configure order ord_SAPHana_{{ db_sid | upper }}_HDB{{ db_instance_number }} Optional: cln_SAPHanaTopology_{{ db_sid | upper }}_HDB{{ db_instance_number }}
+                                       crm configure order ord_SAPHana_{{ db_sid | upper }}_HDB{{ db_instance_number }} Optional: cln_SAPHanaTopology_{{ db_sid | upper }}_HDB{{ db_instance_number }} \
                                          msl_SAPHana_{{ db_sid | upper }}_HDB{{ db_instance_number }}
       register:                        sap_hana_ord_ip
       failed_when:                     sap_hana_ord_ip.rc > 1
