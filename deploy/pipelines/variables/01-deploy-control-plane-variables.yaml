@@ -72,14 +72,8 @@ variables:
   - name:                              deployer_foldername
     value:                             ${{ parameters.deployer }}
 
-  - name:                              deployer_tfvars_filename
-    value:                             ${{ parameters.deployer }}.tfvars
-
   - name:                              library_foldername
     value:                             ${{ parameters.library }}
-
-  - name:                              library_tfvars_filename
-    value:                             ${{ parameters.library }}.tfvars
 
   - name:                              log
     value:                             logfile_$(Build.BuildId)
