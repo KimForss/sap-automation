@@ -51,8 +51,8 @@
 
     - name:                            "5.5.4.1 HANA Pacemaker configuration - Ensure the Resource Defaults are configured"
       ansible.builtin.shell: >
-                                       crm configure rsc_defaults \$id="rsc-options"
-                                         resource-stickiness="1000"
+                                       crm configure rsc_defaults \$id="rsc-options" \
+                                         resource-stickiness="1000" \
                                          migration-threshold="5000"
     # Operation Default recommendation from section 5.3.1 in https://www.suse.com/media/white-paper/suse_linux_enterprise_server_for_sap_applications_12_sp1.pdf#page=26
 
