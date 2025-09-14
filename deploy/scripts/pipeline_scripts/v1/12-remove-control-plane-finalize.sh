@@ -96,6 +96,9 @@ NETWORK=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $3}' | xargs)
 automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
 
 deployer_environment_file_name=$(get_configuration_file "$automation_config_directory" "$ENVIRONMENT" "$LOCATION" "$NETWORK")
+SYSTEM_CONFIGURATION_FILE="$deployer_environment_file_name"
+export SYSTEM_CONFIGURATION_FILE
+
 CONTROL_PLANE_NAME="${ENVIRONMENT}-${LOCATION}-${NETWORK}"
 export CONTROL_PLANE_NAME
 

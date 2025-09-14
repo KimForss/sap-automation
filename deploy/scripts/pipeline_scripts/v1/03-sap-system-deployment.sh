@@ -139,6 +139,8 @@ export landscape_tfstate_key
 
 automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
 workload_environment_file_name=$(get_configuration_file "${automation_config_directory}" "${ENVIRONMENT_IN_FILENAME}" "${LOCATION_CODE_IN_FILENAME}" "${NETWORK_IN_FILENAME}")
+SYSTEM_CONFIGURATION_FILE="$workload_environment_file_name"
+export SYSTEM_CONFIGURATION_FILE
 
 deployer_tfstate_key=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_STATE_FILENAME" "${workload_environment_file_name}" "deployer_tfstate_key")
 export deployer_tfstate_key

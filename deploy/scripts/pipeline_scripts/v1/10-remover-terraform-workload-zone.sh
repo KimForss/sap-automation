@@ -121,6 +121,8 @@ automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
 
 automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
 workload_environment_file_name=$(get_configuration_file "${automation_config_directory}" "${ENVIRONMENT_IN_FILENAME}" "${LOCATION_CODE_IN_FILENAME}" "${NETWORK_IN_FILENAME}")
+SYSTEM_CONFIGURATION_FILE="$workload_environment_file_name"
+export SYSTEM_CONFIGURATION_FILE
 
 separator="-"
 if [[ "$DEPLOYER_ENVIRONMENT" == *"$separator"* ]]; then

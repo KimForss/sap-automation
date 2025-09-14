@@ -280,7 +280,13 @@ if [ -z "$environment" ]; then
 	network_logical_name=$(echo "$key" | awk -F'-' '{print $3}' | xargs)
 fi
 
-system_environment_file_name=$(get_configuration_file "${automation_config_directory}" "${environment}" "${region_code}" "${network_logical_name}")
+if [ -v SYSTEM_CONFIGURATION_FILE ]; then
+	system_environment_file_name=$SYSTEM_CONFIGURATION_FILE
+else
+	system_environment_file_name=$(get_configuration_file "$automation_config_directory" "$environment" "$region_code" "$network_logical_name")
+fi
+
+
 
 echo "Configuration file:                  $system_environment_file_name"
 echo "Deployment region:                   $region"
