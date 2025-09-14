@@ -962,7 +962,7 @@
             ansible.builtin.wait_for:
               timeout:                   120
 
-          - name:                        "Start HANA Database on secondary node"
+          - name:                        "Start HANA Database on secondary node and wait 2 minutes"
             become_user:                 "{{ db_sid | lower }}adm"
             become:                      true
             ansible.builtin.shell: |
