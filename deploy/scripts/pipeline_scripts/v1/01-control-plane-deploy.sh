@@ -183,7 +183,7 @@ key_vault=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAU
 if [ "$sourced_from_file" == 1 ]; then
 	az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name DEPLOYER_KEYVAULT --value "${key_vault}" --output none --only-show-errors
 fi
-echo "Deployer TFvars:                      $DEPLOYER_TFVARS_FILENAME"
+echo "Deployer TFvars:                      $deployer_configuration_file"
 
 if [ -n "${key_vault}" ]; then
 	echo "Deployer Key Vault:                   ${key_vault}"
@@ -348,8 +348,8 @@ if [ -f .sap_deployment_automation/"${ENVIRONMENT}${LOCATION}".md ]; then
 	added=1
 fi
 
-if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME" ]; then
-	git add -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
+if [ -f "${deployer_configuration_file}" ]; then
+	git add -f "${deployer_configuration_file}"
 	added=1
 fi
 
@@ -391,13 +391,8 @@ if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate" ]; then
 	fi
 fi
 
-if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME" ]; then
-	git add -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME"
-	added=1
-fi
-
-if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME" ]; then
-	git add -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME"
+if [ -f "${library_configuration_file}" ]; then
+	git add -f "${library_configuration_file}"
 	added=1
 fi
 
