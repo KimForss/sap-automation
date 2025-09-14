@@ -38,8 +38,6 @@
       ansible.builtin.package:
         name:                          python3-passlib
         state:                         present
-      tags:
-        - always
       when:                            ansible_os_family | upper == "SUSE"
 
     - name:                            "SCS Installation Playbook: - Set scs fact"
