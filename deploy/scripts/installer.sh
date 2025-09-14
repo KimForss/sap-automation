@@ -720,26 +720,36 @@ if [ 1 != $return_value ]; then
 	if [ "${deployment_system}" == sap_deployer ]; then
 		state_path="DEPLOYER"
 
-		if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
+		deployer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output deployer_public_ip_address | tr -d \")
+		save_config_var "deployer_public_ip_address" "${system_environment_file_name}"
 
-			deployer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output deployer_public_ip_address | tr -d \")
-			save_config_var "deployer_public_ip_address" "${system_environment_file_name}"
+		keyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name | tr -d \")
+		if [ -n "$keyvault" ]; then
+			save_config_var "keyvault" "${system_environment_file_name}"
+		fi
 
-			keyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name | tr -d \")
-			if [ -n "$keyvault" ]; then
-				save_config_var "keyvault" "${system_environment_file_name}"
-			fi
+		webapp_url_base=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_url_base | tr -d \")
+		if [ -n "$webapp_url_base" ]; then
+			save_config_var "webapp_url_base" "${system_environment_file_name}"
+		fi
 
-			webapp_url_base=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_url_base | tr -d \")
-			if [ -n "$webapp_url_base" ]; then
-				save_config_var "webapp_url_base" "${system_environment_file_name}"
-			fi
+		webapp_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_id | tr -d \")
+		if [ -n "$webapp_id" ]; then
+			save_config_var "webapp_id" "${system_environment_file_name}"
+		fi
 
-			webapp_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_id | tr -d \")
-			if [ -n "$webapp_id" ]; then
-				save_config_var "webapp_id" "${system_environment_file_name}"
-			fi
+		APP_SERVICE_NAME=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_url_base | tr -d \")
+		if [ -n "${APP_SERVICE_NAME}" ]; then
+			printf -v val %-.20s "$APP_SERVICE_NAME"
+			print_banner "$banner_title" "Application Configuration: $val" "info"
+			save_config_var "APP_SERVICE_NAME" "${system_environment_file_name}"
+			export APP_SERVICE_NAME
+		fi
 
+		APP_SERVICE_DEPLOYMENT=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw app_service_deployment | tr -d \")
+		if [ -n "${APP_SERVICE_DEPLOYMENT}" ]; then
+			save_config_var "APP_SERVICE_DEPLOYMENT" "${system_environment_file_name}"
+			export APP_SERVICE_DEPLOYMENT
 		fi
 
 	fi

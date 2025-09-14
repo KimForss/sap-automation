@@ -474,9 +474,17 @@ if [ -f "${deployer_environment_file_name}" ]; then
 		echo "Terraform rg name:    ${file_REMOTE_STATE_RG}"
 	fi
 
-	webapp_url_base=$(grep "^webapp_url_base=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
-	if [ -n "${webapp_url_base}" ]; then
-		echo "Webapp URL Base:      ${webapp_url_base}"
+	APP_SERVICE_NAME=$(grep "^APP_SERVICE_NAME=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
+	if [ -n "${APP_SERVICE_NAME}" ]; then
+
+		echo "Webapp URL Base:      ${APP_SERVICE_NAME}"
+		if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APP_SERVICE_NAME" "${APP_SERVICE_NAME}"; then
+			echo "Variable APP_SERVICE_NAME was added to the $VARIABLE_GROUP variable group."
+		else
+			echo "##vso[task.logissue type=error]Variable APP_SERVICE_NAME was not added to the $VARIABLE_GROUP variable group."
+			echo "Variable APP_SERVICE_NAME was not added to the $VARIABLE_GROUP variable group."
+		fi
+
 		if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APP_SERVICE_DEPLOYMENT" "true"; then
 			echo "Variable APP_SERVICE_DEPLOYMENT was added to the $VARIABLE_GROUP variable group."
 		else
