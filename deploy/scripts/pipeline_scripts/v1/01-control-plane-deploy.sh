@@ -478,12 +478,6 @@ if [ -f "${deployer_environment_file_name}" ]; then
 	if [ -n "${APP_SERVICE_NAME}" ]; then
 
 		echo "Webapp URL Base:      ${APP_SERVICE_NAME}"
-		if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APP_SERVICE_NAME" "${APP_SERVICE_NAME}"; then
-			echo "Variable APP_SERVICE_NAME was added to the $VARIABLE_GROUP variable group."
-		else
-			echo "##vso[task.logissue type=error]Variable APP_SERVICE_NAME was not added to the $VARIABLE_GROUP variable group."
-			echo "Variable APP_SERVICE_NAME was not added to the $VARIABLE_GROUP variable group."
-		fi
 
 		if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APP_SERVICE_DEPLOYMENT" "true"; then
 			echo "Variable APP_SERVICE_DEPLOYMENT was added to the $VARIABLE_GROUP variable group."
@@ -539,10 +533,10 @@ if [ "$return_code" -eq 0 ]; then
 		echo "Variable CONTROL_PLANE_LOCATION was not added to the $VARIABLE_GROUP variable group."
 	fi
 
-	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "WEBAPP_URL_BASE" "$webapp_url_base"; then
-		echo "Variable WEBAPP_URL_BASE was added to the $VARIABLE_GROUP variable group."
+	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "WEBAPP_URL_BASE" "$APP_SERVICE_NAME"; then
+		echo "Variable APP_SERVICE_NAME was added to the $VARIABLE_GROUP variable group."
 	else
-		echo "##vso[task.logissue type=error]Variable WEBAPP_URL_BASE was not added to the $VARIABLE_GROUP variable group."
+		echo "##vso[task.logissue type=error]Variable APP_SERVICE_NAME was not added to the $VARIABLE_GROUP variable group."
 		echo "Variable WEBAPP_URL_BASE was not added to the $VARIABLE_GROUP variable group."
 	fi
 
