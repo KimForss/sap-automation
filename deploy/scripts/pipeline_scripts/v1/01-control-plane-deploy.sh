@@ -339,7 +339,9 @@ if [ -f "${deployer_environment_file_name}" ]; then
 	git add "${deployer_environment_file_name}"
 	added=1
 	if [ -f .sap_deployment_automation/"${ENVIRONMENT}${LOCATION}" ]; then
-		git rm --ignore-unmatch -q .sap_deployment_automation/"${ENVIRONMENT}${LOCATION}"
+		rm -f .sap_deployment_automation/"${ENVIRONMENT}${LOCATION}"
+		git rm --ignore-unmatch -q -f .sap_deployment_automation/"${ENVIRONMENT}${LOCATION}"
+
 	fi
 fi
 
