@@ -250,7 +250,6 @@ if [ "${deployment_system}" == sap_deployer ]; then
 	export ARM_SUBSCRIPTION_ID
 fi
 
-
 network_logical_name=""
 
 if [ "${deployment_system}" == sap_system ]; then
@@ -717,43 +716,6 @@ fi
 state_path="SYSTEM"
 if [ 1 != $return_value ]; then
 
-	if [ "${deployment_system}" == sap_deployer ]; then
-		state_path="DEPLOYER"
-
-		deployer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output deployer_public_ip_address | tr -d \")
-		save_config_var "deployer_public_ip_address" "${system_environment_file_name}"
-
-		keyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name | tr -d \")
-		if [ -n "$keyvault" ]; then
-			save_config_var "keyvault" "${system_environment_file_name}"
-		fi
-
-		webapp_url_base=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_url_base | tr -d \")
-		if [ -n "$webapp_url_base" ]; then
-			save_config_var "webapp_url_base" "${system_environment_file_name}"
-		fi
-
-		webapp_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_id | tr -d \")
-		if [ -n "$webapp_id" ]; then
-			save_config_var "webapp_id" "${system_environment_file_name}"
-		fi
-
-		APP_SERVICE_NAME=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_url_base | tr -d \")
-		if [ -n "${APP_SERVICE_NAME}" ]; then
-			printf -v val %-.30s "$APP_SERVICE_NAME"
-			print_banner "$banner_title" "Application Service: $val" "info"
-			save_config_var "APP_SERVICE_NAME" "${system_environment_file_name}"
-			export APP_SERVICE_NAME
-		fi
-
-		APP_SERVICE_DEPLOYMENT=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw app_service_deployment | tr -d \")
-		if [ -n "${APP_SERVICE_DEPLOYMENT}" ]; then
-			save_config_var "APP_SERVICE_DEPLOYMENT" "${system_environment_file_name}"
-			export APP_SERVICE_DEPLOYMENT
-		fi
-
-	fi
-
 	if [ "${deployment_system}" == sap_landscape ]; then
 		state_path="LANDSCAPE"
 		if [ $landscape_tfstate_key_exists == false ]; then
@@ -1085,16 +1047,23 @@ fi
 
 if [ "${deployment_system}" == sap_deployer ]; then
 
-	# terraform -chdir="${terraform_module_directory}"  output
-	if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
+	webapp_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_id | tr -d \")
+	if [ -n "$webapp_id" ]; then
+		save_config_var "webapp_id" "${system_environment_file_name}"
+	fi
 
-		deployer_random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id | tr -d \")
-		if [ -n "${deployer_random_id}" ]; then
-			save_config_var "deployer_random_id" "${system_environment_file_name}"
-			custom_random_id="${deployer_random_id:0:3}"
-			sed -i -e /"custom_random_id"/d "${parameterfile}"
-			printf "# The parameter 'custom_random_id' can be used to control the random 3 digits at the end of the storage accounts and key vaults\ncustom_random_id=\"%s\"\n" "${custom_random_id}" >>"${var_file}"
-		fi
+	APP_SERVICE_NAME=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_url_base | tr -d \")
+	if [ -n "${APP_SERVICE_NAME}" ]; then
+		printf -v val %-.30s "$APP_SERVICE_NAME"
+		print_banner "$banner_title" "Application Service: $val" "info"
+		save_config_var "APP_SERVICE_NAME" "${system_environment_file_name}"
+		export APP_SERVICE_NAME
+	fi
+
+	APP_SERVICE_DEPLOYMENT=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw app_service_deployment | tr -d \")
+	if [ -n "${APP_SERVICE_DEPLOYMENT}" ]; then
+		save_config_var "APP_SERVICE_DEPLOYMENT" "${system_environment_file_name}"
+		export APP_SERVICE_DEPLOYMENT
 	fi
 
 	deployer_random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id | tr -d \")
@@ -1103,27 +1072,24 @@ if [ "${deployment_system}" == sap_deployer ]; then
 		custom_random_id="${deployer_random_id}"
 		sed -i -e "" -e /"custom_random_id"/d "${parameterfile}"
 		printf "custom_random_id=\"%s\"\n" "${custom_random_id}" >>"${var_file}"
-
 	fi
 
 	# shellcheck disable=SC2034
 	deployer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_public_ip_address | tr -d \")
 	save_config_var "deployer_public_ip_address" "${system_environment_file_name}"
-
-	if (terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name | tr -d \"); then
-		keyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name | tr -d \")
-		if valid_kv_name "$keyvault"; then
-			save_config_var "keyvault" "${system_environment_file_name}"
-		else
-			printf -v val %-40.40s "$keyvault"
-			echo "#########################################################################################"
-			echo "#                                                                                       #"
-			echo -e "#       The provided keyvault is not valid:$bold_red ${val} $reset_formatting  #"
-			echo "#                                                                                       #"
-			echo "#########################################################################################"
-			echo "The provided keyvault is not valid " "${val}" >secret.err
-		fi
+	keyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name | tr -d \")
+	if valid_kv_name "$keyvault"; then
+		save_config_var "keyvault" "${system_environment_file_name}"
+	else
+		printf -v val %-40.40s "$keyvault"
+		echo "#########################################################################################"
+		echo "#                                                                                       #"
+		echo -e "#       The provided keyvault is not valid:$bold_red ${val} $reset_formatting  #"
+		echo "#                                                                                       #"
+		echo "#########################################################################################"
+		echo "The provided keyvault is not valid " "${val}" >secret.err
 	fi
+
 fi
 
 if [ "${deployment_system}" == sap_landscape ]; then
