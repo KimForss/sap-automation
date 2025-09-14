@@ -315,7 +315,7 @@ stages:
             inputs:
               azureSubscription:       ${{parameters.connection_name}}
               appType:                 "webApp"
-              appName:                 $(WEBAPP_URL_BASE)
+              appName:                 $(APP_SERVICE_NAME)
               package:                 "$(Build.ArtifactStagingDirectory)/WebApp/*.zip"
               deploymentMethod:        "auto"
               appSettings: '-CollectionUri $(System.CollectionUri)
@@ -335,7 +335,7 @@ stages:
               WORKLOADZONE_PIPELINE_ID: $(WORKLOADZONE_PIPELINE_ID)
               SAP_INSTALL_PIPELINE_ID: $(SAP_INSTALL_PIPELINE_ID)
               SDAF_GENERAL_GROUP_ID:   $(SDAF_GENERAL_GROUP_ID)
-              WEBAPP_URL_BASE:         $(WEBAPP_URL_BASE)
+              APP_SERVICE_NAME:        $(APP_SERVICE_NAME)
               WEBAPP_RESOURCE_GROUP:   $(WEBAPP_RESOURCE_GROUP)
               WEBAPP_ID:               $(WEBAPP_ID)
               APP_REGISTRATION_APP_ID: $(APP_REGISTRATION_APP_ID)
