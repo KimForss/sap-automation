@@ -1080,14 +1080,10 @@ if [ "${deployment_system}" == sap_deployer ]; then
 	keyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name | tr -d \")
 	if valid_kv_name "$keyvault"; then
 		save_config_var "keyvault" "${system_environment_file_name}"
+		print_banner "Installer" "The Control plane keyvault: ${val}" "info"
 	else
 		printf -v val %-40.40s "$keyvault"
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo -e "#       The provided keyvault is not valid:$bold_red ${val} $reset_formatting  #"
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
-		echo "The provided keyvault is not valid " "${val}" >secret.err
+		print_banner "Installer" "The provided keyvault is not valid: ${val}" "error"
 	fi
 
 fi
