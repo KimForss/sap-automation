@@ -112,7 +112,7 @@ if ! get_variable_group_id "$variableGroupName" "VARIABLE_GROUP_ID"; then
 	fi
 else
 	VARIABLE_GROUP="${VARIABLE_GROUP_CONTROL_PLANE}"
-  export VARIABLE_GROUP
+	export VARIABLE_GROUP
 fi
 
 export VARIABLE_GROUP_ID
@@ -487,6 +487,12 @@ if [ -f "${deployer_environment_file_name}" ]; then
 
 	APP_SERVICE_NAME=$(grep "^APP_SERVICE_NAME=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
 	if [ -n "${APP_SERVICE_NAME}" ]; then
+		if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APP_SERVICE_NAME" "$APP_SERVICE_NAME"; then
+			echo "Variable APP_SERVICE_NAME was added to the $VARIABLE_GROUP variable group."
+		else
+			echo "##vso[task.logissue type=error]Variable APP_SERVICE_NAME was not added to the $VARIABLE_GROUP variable group."
+			echo "Variable APP_SERVICE_NAME was not added to the $VARIABLE_GROUP variable group."
+		fi
 
 		echo "Webapp URL Base:      ${APP_SERVICE_NAME}"
 
@@ -513,50 +519,47 @@ if [ -f "${deployer_environment_file_name}" ]; then
 fi
 
 echo -e "$green--- Adding variables to the variable group: $VARIABLE_GROUP ---$reset"
-if [ "$return_code" -eq 0 ]; then
-	if [ -n "${file_REMOTE_STATE_SA}" ]; then
-		if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME" "${file_REMOTE_STATE_SA}"; then
-			echo "Variable TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME was added to the $VARIABLE_GROUP variable group."
-		else
-			echo "##vso[task.logissue type=error]Variable TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME was not added to the $VARIABLE_GROUP variable group."
-			echo "Variable TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME was not added to the $VARIABLE_GROUP variable group."
-		fi
-	fi
-
-	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "$file_key_vault"; then
-		echo "Variable DEPLOYER_KEYVAULT was added to the $VARIABLE_GROUP variable group."
+if [ -n "${file_REMOTE_STATE_SA}" ]; then
+	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME" "${file_REMOTE_STATE_SA}"; then
+		echo "Variable TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME was added to the $VARIABLE_GROUP variable group."
 	else
-		echo "##vso[task.logissue type=error]Variable DEPLOYER_KEYVAULT was not added to the $VARIABLE_GROUP variable group."
-		echo "Variable DEPLOYER_KEYVAULT was not added to the $VARIABLE_GROUP variable group."
+		echo "##vso[task.logissue type=error]Variable TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME was not added to the $VARIABLE_GROUP variable group."
+		echo "Variable TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME was not added to the $VARIABLE_GROUP variable group."
 	fi
+fi
 
-	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_ENVIRONMENT" "$ENVIRONMENT"; then
-		echo "Variable CONTROL_PLANE_ENVIRONMENT was added to the $VARIABLE_GROUP variable group."
-	else
-		echo "##vso[task.logissue type=error]Variable CONTROL_PLANE_ENVIRONMENT was not added to the $VARIABLE_GROUP variable group."
-		echo "Variable CONTROL_PLANE_ENVIRONMENT was not added to the $VARIABLE_GROUP variable group."
-	fi
+if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "$file_key_vault"; then
+	echo "Variable DEPLOYER_KEYVAULT was added to the $VARIABLE_GROUP variable group."
+else
+	echo "##vso[task.logissue type=error]Variable DEPLOYER_KEYVAULT was not added to the $VARIABLE_GROUP variable group."
+	echo "Variable DEPLOYER_KEYVAULT was not added to the $VARIABLE_GROUP variable group."
+fi
 
-	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_LOCATION" "$LOCATION"; then
-		echo "Variable CONTROL_PLANE_LOCATION was added to the $VARIABLE_GROUP variable group."
-	else
-		echo "##vso[task.logissue type=error]Variable CONTROL_PLANE_LOCATION was not added to the $VARIABLE_GROUP variable group."
-		echo "Variable CONTROL_PLANE_LOCATION was not added to the $VARIABLE_GROUP variable group."
-	fi
+if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_ENVIRONMENT" "$ENVIRONMENT"; then
+	echo "Variable CONTROL_PLANE_ENVIRONMENT was added to the $VARIABLE_GROUP variable group."
+else
+	echo "##vso[task.logissue type=error]Variable CONTROL_PLANE_ENVIRONMENT was not added to the $VARIABLE_GROUP variable group."
+	echo "Variable CONTROL_PLANE_ENVIRONMENT was not added to the $VARIABLE_GROUP variable group."
+fi
 
-	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "WEBAPP_URL_BASE" "$APP_SERVICE_NAME"; then
-		echo "Variable APP_SERVICE_NAME was added to the $VARIABLE_GROUP variable group."
-	else
-		echo "##vso[task.logissue type=error]Variable APP_SERVICE_NAME was not added to the $VARIABLE_GROUP variable group."
-		echo "Variable WEBAPP_URL_BASE was not added to the $VARIABLE_GROUP variable group."
-	fi
+if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_LOCATION" "$LOCATION"; then
+	echo "Variable CONTROL_PLANE_LOCATION was added to the $VARIABLE_GROUP variable group."
+else
+	echo "##vso[task.logissue type=error]Variable CONTROL_PLANE_LOCATION was not added to the $VARIABLE_GROUP variable group."
+	echo "Variable CONTROL_PLANE_LOCATION was not added to the $VARIABLE_GROUP variable group."
+fi
 
-	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "WEBAPP_ID" "$webapp_id"; then
-		echo "Variable WEBAPP_ID was added to the $VARIABLE_GROUP variable group."
-	else
-		echo "##vso[task.logissue type=error]Variable WEBAPP_ID was not added to the $VARIABLE_GROUP variable group."
-		echo "Variable WEBAPP_ID was not added to the $VARIABLE_GROUP variable group."
-	fi
+if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APP_SERVICE_NAME" "$APP_SERVICE_NAME"; then
+	echo "Variable APP_SERVICE_NAME was added to the $VARIABLE_GROUP variable group."
+else
+	echo "##vso[task.logissue type=error]Variable APP_SERVICE_NAME was not added to the $VARIABLE_GROUP variable group."
+	echo "Variable WEBAPP_URL_BASE was not added to the $VARIABLE_GROUP variable group."
+fi
 
+if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "WEBAPP_ID" "$webapp_id"; then
+	echo "Variable WEBAPP_ID was added to the $VARIABLE_GROUP variable group."
+else
+	echo "##vso[task.logissue type=error]Variable WEBAPP_ID was not added to the $VARIABLE_GROUP variable group."
+	echo "Variable WEBAPP_ID was not added to the $VARIABLE_GROUP variable group."
 fi
 exit $return_code
