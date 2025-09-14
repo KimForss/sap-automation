@@ -22,7 +22,7 @@
     ansible_python_interpreter:        "{{ python_version }}"
   tags:
     - always
-
+  when:                                ansible_os_family | upper == "SUSE"
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
