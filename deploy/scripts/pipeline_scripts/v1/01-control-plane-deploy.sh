@@ -110,7 +110,11 @@ if ! get_variable_group_id "$variableGroupName" "VARIABLE_GROUP_ID"; then
 		echo "##vso[task.logissue type=error]Variable group $variableGroupName not found."
 		exit 2
 	fi
+else
+	VARIABLE_GROUP="${VARIABLE_GROUP_CONTROL_PLANE}"
+  export VARIABLE_GROUP
 fi
+
 export VARIABLE_GROUP_ID
 
 if [ -v SYSTEM_ACCESSTOKEN ]; then
