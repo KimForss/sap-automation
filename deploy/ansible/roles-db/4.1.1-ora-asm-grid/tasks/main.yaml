@@ -211,7 +211,7 @@
   become:                              true
   become_user:                         root
   ansible.builtin.file:
-    path:                              '{{ item }}1'
+    path:                              '{{ item }}'
     owner:                             oracle
     group:                             oinstall
     mode:                              '755'
@@ -221,7 +221,7 @@
   become:                              true
   become_user:                         root
   ansible.builtin.file:
-    path:                              '{{ item }}1'
+    path:                              '{{ item }}'
     owner:                             oracle
     group:                             oinstall
     mode:                              '755'
@@ -231,7 +231,7 @@
   become:                              true
   become_user:                         root
   ansible.builtin.file:
-    path:                              '{{ item }}1'
+    path:                              '{{ item }}'
     owner:                             oracle
     group:                             oinstall
     mode:                              '755'
