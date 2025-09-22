@@ -131,22 +131,16 @@
 
 - name:                           "ORACLE ASM: Append /dev/oracleasm/disk to each of of the disk"
   ansible.builtin.set_fact:
-    data_disk_list:   {{ asm_datadisklist | split(',') | list }}
-    arch_disk_list:   {{ asm_archdisklist | split(',') | list }}"
-    reco_disk_list:   {{ asm_recodisklist | split(',') | list }}"
+    data_disk_list:   "{{ asm_datadisklist | split(',') | list }}"
+    arch_disk_list:   "{{ asm_archdisklist | split(',') | list }}"
+    reco_disk_list:   "{{ asm_recodisklist | split(',') | list }}"
 
 - name:                            "ORACLE ASM: DISPLAY Oracle lists with prefix"
   ansible.builtin.debug:
     msg:
-      - "Data:     {{ data_disk_list | split(',') | list }}"
-      - "Archive:  {{ arch_disk_list | split(',') | list }}"
-      - "Recovery: {{ reco_disk_list | split(',') | list }}"
-
-# - name:                              "Prepare the Data disk list"
-#   vars:
-#     prefix:                          /dev/oracleasm/disks/
-#     datadisk_list:                   result
-#     result1:                          "{{ [prefix] | product(datadisk_list) | map('join') | list }}"
+      - "Data:     {{ data_disk_list }}"
+      - "Archive:  {{ arch_disk_list }}"
+      - "Recovery: {{ reco_disk_list }}"
 
 - name:                               "ORACLE ASM: deploy Grid install response file"
   become:                             true
