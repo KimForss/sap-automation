@@ -123,11 +123,17 @@
       - "Recovery: {{ asm_rlist1 }}"
 
 
+# - name:                           "ORACLE ASM: Append /dev/oracleasm/disk to each of of the disk"
+#   ansible.builtin.set_fact:
+#     asm_datadisklist:     "{{ asm_dlist1 | map('regex_replace', '^(.*)$', '/dev/oracleasm/disks/\\1') | join(',') }}"
+#     asm_archdisklist:     "{{ asm_alist1 | map('regex_replace', '^(.*)$', '/dev/oracleasm/disks/\\1') | join(',') }}"
+#     asm_recodisklist:     "{{ asm_rlist1 | map('regex_replace', '^(.*)$', '/dev/oracleasm/disks/\\1') | join(',') }}"
+
 - name:                           "ORACLE ASM: Append /dev/oracleasm/disk to each of of the disk"
   ansible.builtin.set_fact:
-    asm_datadisklist:     "{{ asm_dlist1 | map('regex_replace', '^(.*)$', '/dev/oracleasm/disks/\\1') | join(',') }}"
-    asm_archdisklist:     "{{ asm_alist1 | map('regex_replace', '^(.*)$', '/dev/oracleasm/disks/\\1') | join(',') }}"
-    asm_recodisklist:     "{{ asm_rlist1 | map('regex_replace', '^(.*)$', '/dev/oracleasm/disks/\\1') | join(',') }}"
+    asm_datadisklist:     "{{ asm_dlist1 | join(',') }}"
+    asm_archdisklist:     "{{ asm_alist1 | join(',') }}"
+    asm_recodisklist:     "{{ asm_rlist1 | join(',') }}"
 
 - name:                           "ORACLE ASM: Append /dev/oracleasm/disk to each of of the disk"
   ansible.builtin.set_fact:
