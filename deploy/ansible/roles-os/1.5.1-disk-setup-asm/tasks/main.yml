@@ -250,18 +250,23 @@
                           set -o errexit
                           /usr/sbin/oracleasm configure -u oracle -g oinstall -e -s y
                           /usr/sbin/oracleasm init
-                          /usr/sbin/oracleasm status
-                          touch /etc/sap_deployment_automation/asmconfigure.txt
       register:           asmconfig_results
       args:
         chdir:            "/usr/sbin"
         creates:          /etc/sap_deployment_automation/asmconfigure.txt
+      failed_when:        asmconfig_results.rc not in [0, 1]
+
+    - name:                            "ORACLE ASM: Configuration"
+      ansible.builtin.file:
+        path:                          /etc/sap_deployment_automation/asmconfigure.txt
+        state:                         touch
+        mode:                          0755
 
     - name:                            "ORACLE ASM: Start and enable oracleasm service"
       ansible.builtin.systemd:
-        name:                           oracleasm
-        state:                          restarted
-        enabled:                        true
+        name:                          oracleasm
+        state:                         restarted
+        enabled:                       true
 
 
     # STEP3 Initialize Disks for ASM
