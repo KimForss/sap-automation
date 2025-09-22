@@ -219,7 +219,6 @@
   loop:                                '{{ datadisklist }}'
 
 - name:                                "ORACLE ASM: Make oracle:oinstall are the owners for ASM Arch Disks "
-- name:                                "Make oracle:oinstall are the owners for ASM Arch Disks "
   become:                              true
   become_user:                         root
   ansible.builtin.file:
