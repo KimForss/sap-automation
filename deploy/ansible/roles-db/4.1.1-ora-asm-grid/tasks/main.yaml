@@ -207,35 +207,35 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-- name:                                "ORACLE ASM: Make oracle:oinstall are the owners for ASM Data Disks "
-  become:                              true
-  become_user:                         root
-  ansible.builtin.file:
-    path:                              '{{ item }}'
-    owner:                             oracle
-    group:                             oinstall
-    mode:                              '755'
-  loop:                                '{{ data_disk_list }}'
+# - name:                                "ORACLE ASM: Make oracle:oinstall are the owners for ASM Data Disks "
+#   become:                              true
+#   become_user:                         root
+#   ansible.builtin.file:
+#     path:                              '{{ item }}'
+#     owner:                             oracle
+#     group:                             oinstall
+#     mode:                              '755'
+#   loop:                                '{{ data_disk_list }}'
 
-- name:                                "ORACLE ASM: Make oracle:oinstall are the owners for ASM Archive Disks "
-  become:                              true
-  become_user:                         root
-  ansible.builtin.file:
-    path:                              '{{ item }}'
-    owner:                             oracle
-    group:                             oinstall
-    mode:                              '755'
-  loop:                                '{{ arch_disk_list }}'
+# - name:                                "ORACLE ASM: Make oracle:oinstall are the owners for ASM Archive Disks "
+#   become:                              true
+#   become_user:                         root
+#   ansible.builtin.file:
+#     path:                              '{{ item }}'
+#     owner:                             oracle
+#     group:                             oinstall
+#     mode:                              '755'
+#   loop:                                '{{ arch_disk_list }}'
 
-- name:                                "ORACLE ASM: Make oracle:oinstall are the owners for ASM Recovery Disks "
-  become:                              true
-  become_user:                         root
-  ansible.builtin.file:
-    path:                              '{{ item }}'
-    owner:                             oracle
-    group:                             oinstall
-    mode:                              '755'
-  loop:                                '{{ reco_disk_list }}'
+# - name:                                "ORACLE ASM: Make oracle:oinstall are the owners for ASM Recovery Disks "
+#   become:                              true
+#   become_user:                         root
+#   ansible.builtin.file:
+#     path:                              '{{ item }}'
+#     owner:                             oracle
+#     group:                             oinstall
+#     mode:                              '755'
+#   loop:                                '{{ reco_disk_list }}'
 
 - name:                                "ORACLE ASM: Install Execute GRIDSETUP"
   become:                              true
@@ -243,7 +243,7 @@
   ansible.builtin.shell: |
                                        set -o errexit
                                        set -o pipefail
-                                       ./gridSetup.sh -silent -responseFile /etc/sap_deployment_automation/oracle/ORACLE_{{ ora_release }}c_00_ASM_{{ ansible_hostname }}_{{ db_sid }}_install.rsp |tee -a /etc/sap_deployment_automation/oracle/gridinstall.log
+                                       ./gridSetup.sh -silent -responseFile /etc/sap_deployment_automation/oracle/ORACLE_{{ ora_release }}c_00_ASM_{{ ansible_hostname }}_{{ db_sid }}_install.rsp | tee -a /etc/sap_deployment_automation/oracle/gridinstall.log
   register:                            gridinstaller_results
   failed_when:                         gridinstaller_results.rc >= 2              # installer returns rc=1 (exited with warning) by default when run is silent mode as the oratab file is created only after running the root.sh
   environment:
