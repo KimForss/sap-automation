@@ -216,7 +216,7 @@
     owner:                             oracle
     group:                             oinstall
     mode:                              '755'
-  loop:                                '{{ datadisklist }}'
+  loop:                                '{{ asm_datadisklist }}'
 
 - name:                                "ORACLE ASM: Make oracle:oinstall are the owners for ASM Arch Disks "
   become:                              true
@@ -226,7 +226,7 @@
     owner:                             oracle
     group:                             oinstall
     mode:                              '755'
-  loop:                                '{{ archdisklist }}'
+  loop:                                '{{ asm_archdisklist }}'
 
 - name:                                "ORACLE ASM: Make oracle:oinstall are the owners for ASM Reco Disks "
   become:                              true
@@ -236,7 +236,7 @@
     owner:                             oracle
     group:                             oinstall
     mode:                              '755'
-  loop:                                '{{ recodisklist }}'
+  loop:                                '{{ asm_recodisklist }}'
 
 - name:                                "ORACLE ASM: Install Execute GRIDSETUP"
   become:                              true
