@@ -288,8 +288,10 @@
 
     # This configures root account on HANA nodes for scale out configuration ( shared and shared nothing with HSR ) to use password based login.
     - name:                            "SAP HANA: Configure root credential for Scale-Out"
-      become_user:                     root
-      become: true
+      become:                          true
+      when:
+                                       - database_scale_out
+                                       - hostvars.localhost.root_password is defined
       block:
         - name:                            Reset root password
           ansible.builtin.user:
@@ -336,9 +338,6 @@
           changed_when:                    false
           failed_when:                     false
           ignore_errors:                   true
-      when:
-        - database_scale_out
-        - hostvars.localhost.root_password is defined
 
     - name:                            "Database Installation Playbook: - Install HANA Scale Out"
       become:                          true
@@ -436,26 +435,23 @@
             update_password:               always
             password:                      "{{ lookup('ansible.builtin.password', '/dev/null', seed=inventory_hostname) | password_hash('sha512') }}"
 
-        # - name:                            Enable {{ item.key }} in /etc/ssh/sshd_config
-        #   become:                          true
-        #   ansible.builtin.lineinfile:
-        #     path:                          "/etc/ssh/sshd_config"
-        #     regex:                         "^(# *)?{{ item.key }}"
-        #     line:                          "{{ item.key }} {{ item.value }}"
-        #     state:                         present
-        #   loop:
-        #     - { key: "PermitRootLogin", value: "yes" }
-        #     - { key: "PasswordAuthentication", value: "no" }
-        #     - { key: "ChallengeResponseAuthentication", value: "no" }
+        - name:                            Enable {{ item.key }} in /etc/ssh/sshd_config
+          become:                          true
+          ansible.builtin.lineinfile:
+            path:                          "/etc/ssh/sshd_config"
+            regex:                         "^(# *)?{{ item.key }}"
+            line:                          "{{ item.key }} {{ item.value }}"
+            state:                         present
+          loop:
+            - { key: "PermitRootLogin", value: "yes" }
+            - { key: "PasswordAuthentication", value: "no" }
+            - { key: "ChallengeResponseAuthentication", value: "no" }
 
-        # - name:                            "Restart SSHD on {{ ansible_hostname }}"
-        #   become:                          true
-        #   ansible.builtin.service:
-        #     name:                          sshd
-        #     state:                         restarted
-      when:
-        - database_scale_out
-        - hostvars.localhost.root_password is defined
+        - name:                            "Restart SSHD on {{ ansible_hostname }}"
+          become:                          true
+          ansible.builtin.service:
+            name:                          sshd
+            state:                         restarted
 
 
 # Configure HANA Scale out Pacemaker, run on DB nodes and majority maker node ( first node if multiple are provided, rest are ignored. )

@@ -455,7 +455,7 @@
                                        - hana_shared_mountpoint is defined
                                        - hana_shared_mountpoint | length == 2
   block:
-    - name:                                "2.6.0 - AFS - SAP HANA SCALE OUT: Create list of all db hosts"
+    - name:                            "2.6.0 - AFS - SAP HANA SCALE OUT: Create list of all db hosts"
       ansible.builtin.set_fact:
         db_hosts:                      "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
         site1_hosts: >-
@@ -476,14 +476,24 @@
                                          | map(attribute='key')
                                          | list
                                        }}
+        primary_site_first_host: >-
+                                       {{
+                                         hostvars
+                                         | dict2items
+                                         | selectattr('value.site', 'defined')
+                                         | selectattr('value.site', 'eq', 'SITE1')
+                                         | map(attribute='key')
+                                         | first
+                                       }}
 
-
+    # we will use the user id (SAP HANA admin) and group id  (sapsys)
+    # this is to ensure that the task works.
     - name:                            "AFS Mount: Create backup directory on SITE1 hana_shared"
       become:                          true
       become_user:                     root
       when:
                                        - inventory_hostname in site1_hosts
-                                       - inventory_hostname == site1_hosts[0]  # Run only on first node of SITE1
+                                       - inventory_hostname == site1_hosts[0]
       ansible.builtin.file:
         path:                          "/hana/shared/{{ db_sid | upper }}/HDB{{ db_instance_number }}/backup/data/DB_{{ db_sid | upper }}{{ db_instance_number }}"
         state:                         directory
@@ -498,7 +508,7 @@
       become_user:                     root
       when:
                                        - inventory_hostname in site2_hosts
-                                       - inventory_hostname == site2_hosts[0]  # Run only on first node of SITE2
+                                       - inventory_hostname == site2_hosts[0]
       ansible.builtin.file:
         path:                          "/hana/shared/{{ db_sid | upper }}/HDB{{ db_instance_number }}/backup/data/DB_{{ db_sid | upper }}{{ db_instance_number }}"
         state:                         directory
