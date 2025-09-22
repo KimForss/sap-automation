@@ -118,8 +118,8 @@
 - name:                            "ORACLE ASM: DISPLAY Oracle lists"
   ansible.builtin.debug:
     msg:
-      - "Data: {{ asm_dlist1 }}"
-      - "Archive: {{ asm_alist1 }}"
+      - "Data:     {{ asm_dlist1 }}"
+      - "Archive:  {{ asm_alist1 }}"
       - "Recovery: {{ asm_rlist1 }}"
 
 
@@ -129,13 +129,18 @@
     asm_archdisklist:     "{{ asm_alist1 | map('regex_replace', '^(.*)$', '/dev/oracleasm/disks/\\1') | join(',') }}"
     asm_recodisklist:     "{{ asm_rlist1 | map('regex_replace', '^(.*)$', '/dev/oracleasm/disks/\\1') | join(',') }}"
 
+- name:                           "ORACLE ASM: Append /dev/oracleasm/disk to each of of the disk"
+  ansible.builtin.set_fact:
+    data_disk_list:   {{ asm_datadisklist | split(',') | list }}
+    arch_disk_list:   {{ asm_archdisklist | split(',') | list }}"
+    reco_disk_list:   {{ asm_recodisklist | split(',') | list }}"
 
 - name:                            "ORACLE ASM: DISPLAY Oracle lists with prefix"
   ansible.builtin.debug:
     msg:
-      - "Data: {{ asm_datadisklist }}"
-      - "Archive: {{ asm_archdisklist }}"
-      - "Recovery: {{ asm_recodisklist }}"
+      - "Data:     {{ data_disk_list | split(',') | list }}"
+      - "Archive:  {{ arch_disk_list | split(',') | list }}"
+      - "Recovery: {{ reco_disk_list | split(',') | list }}"
 
 # - name:                              "Prepare the Data disk list"
 #   vars:
@@ -216,9 +221,9 @@
     owner:                             oracle
     group:                             oinstall
     mode:                              '755'
-  loop:                                '{{ asm_datadisklist }}'
+  loop:                                '{{ data_disk_list }}'
 
-- name:                                "ORACLE ASM: Make oracle:oinstall are the owners for ASM Arch Disks "
+- name:                                "ORACLE ASM: Make oracle:oinstall are the owners for ASM Archive Disks "
   become:                              true
   become_user:                         root
   ansible.builtin.file:
@@ -226,9 +231,9 @@
     owner:                             oracle
     group:                             oinstall
     mode:                              '755'
-  loop:                                '{{ asm_archdisklist }}'
+  loop:                                '{{ arch_disk_list }}'
 
-- name:                                "ORACLE ASM: Make oracle:oinstall are the owners for ASM Reco Disks "
+- name:                                "ORACLE ASM: Make oracle:oinstall are the owners for ASM Recovery Disks "
   become:                              true
   become_user:                         root
   ansible.builtin.file:
@@ -236,7 +241,7 @@
     owner:                             oracle
     group:                             oinstall
     mode:                              '755'
-  loop:                                '{{ asm_recodisklist }}'
+  loop:                                '{{ reco_disk_list }}'
 
 - name:                                "ORACLE ASM: Install Execute GRIDSETUP"
   become:                              true
