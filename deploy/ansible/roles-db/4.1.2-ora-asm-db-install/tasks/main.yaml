@@ -38,6 +38,13 @@
     task_prefix:                       "Oracle ASM: "
     sa_enabled:                        true
 
+- name:                                "Oracle ASM: Create ASM folder"
+  ansible.builtin.file:
+    path:                              "{{ target_media_location }}/ASM"
+    mode:                              '0755'
+    state:                             directory
+    owner:                             oracle
+    group:                             oinstall
 
 - name:                                "Oracle ASM: Add the repositories"
   become:                              true
