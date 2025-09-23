@@ -679,7 +679,7 @@
       # become:                              true
       # become_user:                         "{{ oracle_user_name }}"
       ansible.builtin.copy:
-        src:                           "{{ mopatch_path }}"
+        src:                           "{{ mopatch_path }}/MOPatch"
         dest:                          "/oracle/{{ db_sid | upper }}/{{ ora_version }}/MOPatch"
         remote_src:                    true
         mode:                          '0777'
