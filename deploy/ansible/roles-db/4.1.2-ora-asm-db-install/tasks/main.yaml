@@ -38,19 +38,11 @@
     task_prefix:                       "Oracle ASM: "
     sa_enabled:                        true
 
-- name:                                "Oracle ASM: Create ASM folder"
-  ansible.builtin.file:
-    path:                              "{{ target_media_location }}/ASM"
-    mode:                              '0755'
-    state:                             directory
-    owner:                             oracle
-    group:                             oinstall
-
 - name:                                "Oracle ASM: Add the repositories"
   become:                              true
   become_user:                         root
   ansible.builtin.yum:
-    name:                              "{{ target_media_location }}/ASM/{{ item.archive }}"
+    name:                              "{{ target_media_location }}/download_basket/{{ item.archive }}"
     state:                             "present"
     disable_gpg_check:                 true
   loop:                                "{{ bom.materials.media | flatten(levels=1) }}"
