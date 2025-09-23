@@ -22,7 +22,7 @@
     - repos_for_tier | length > 0
 
 - name:                                "1.3 Repos: Add the repositories {{ ansible_os_family }}"
-  ansible.builtin.dnf:
+  ansible.builtin.yum_repository:
     name:                              "{{ item.url }}"
     state:                             "{{ item.state }}"
     disable_gpg_check:                 true

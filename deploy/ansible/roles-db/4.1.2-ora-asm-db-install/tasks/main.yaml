@@ -42,16 +42,14 @@
 - name:                                "Oracle ASM: Add the repositories"
   become:                              true
   become_user:                         root
-  ansible.builtin.dnf:
-    name:                              "{{ item.name }}"
+  ansible.builtin.yum:
+    name:                              "{{ target_media_location }}/ASM/{{ item.archive }}"
     state:                             "present"
     disable_gpg_check:                 true
-  register:                            zypresult
-  ignore_errors:                       true
   loop:                                "{{ bom.materials.media | flatten(levels=1) }}"
   when:
-    - ( item.type is defined    and (item.type | lower) == 'rpm' )
-    - ( item.name is defined    and (item.name | trim | length) > 0 )
+    - ( item.type is defined       and (item.type | lower) == 'rpm' )
+    - ( item.archive is defined    and (item.archive | trim | length) > 0 )
 
 
 - name:                                "Oracle ASM: Load the disk configuration settings"
