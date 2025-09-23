@@ -28,6 +28,32 @@
   loop_control:
     loop_var: item_to_check
 
+# Returns bom object
+- name:                                "Oracle ASM: Register BoM"
+  ansible.builtin.include_role:
+    name:                              roles-sap/3.3.1-bom-utility
+    tasks_from:                        bom-register
+  vars:
+    bom_name:                          "{{ bom_base_name }}"
+    task_prefix:                       "Oracle ASM: "
+    sa_enabled:                        true
+
+
+- name:                                "Oracle ASM: Add the repositories"
+  become:                              true
+  become_user:                         root
+  ansible.builtin.dnf:
+    name:                              "{{ item.name }}"
+    state:                             "present"
+    disable_gpg_check:                 true
+  register:                            zypresult
+  ignore_errors:                       true
+  loop:                                "{{ bom.materials.media | flatten(levels=1) }}"
+  when:
+    - ( item.type is defined    and (item.type | lower) == 'rpm' )
+    - ( item.name is defined    and (item.name | trim | length) > 0 )
+
+
 - name:                                "Oracle ASM: Load the disk configuration settings"
   ansible.builtin.include_vars:        disks_config_asm.yml
 
@@ -69,6 +95,8 @@
   ansible.builtin.stat:
     path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/grid_sbp_installed.txt"
   register:                            oracle_installed
+
+
 
 # /*---------------------------------------------------------------------------8
 # | Start of Oracle software installation using SAP RUNINSTALLER wrapper.      |
