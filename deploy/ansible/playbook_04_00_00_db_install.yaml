@@ -715,7 +715,7 @@
         - node_tier == 'oracle-asm'
         - platform == 'ORACLE-ASM'
       block:
-        - name:                        Setting the DB facts for ASM
+        - name:                        "Oracle ASM: Setting the DB facts for ASM"
           ansible.builtin.set_fact:
             tier:                      ora                                    # Actions for Oracle DB Servers
             main_password:             "{{ hostvars.localhost.sap_password }}"
@@ -724,40 +724,47 @@
           tags:
             - always
 
-        - name:                        Include 1.5.1.1-disk-setup-asm-sap
+        - name:                         Oracle ASM: Register repositories
+          ansible.builtin.import_tasks: roles-misc/0.4-helpers/tasks/04.01-start_hana.yml
+
+        - name:                        "Oracle ASM: Install Oracle specific packages"
+          ansible.builtin.include_role:
+            name:                      roles-os/1.4-packages
+
+        - name:                        "Oracle ASM: ASM Disk setup"
           ansible.builtin.include_role:
             name:                      roles-os/1.5.1.1-disk-setup-asm-sap
 
-        - name:                        "OS configuration playbook: - Ensure the kernel parameters are set"
+        - name:                        "Oracle ASM: Ensure the kernel parameters are set"
           ansible.builtin.include_role:
             name:                      roles-os/1.9-kernelparameters
           tags:
             - 1.9-kernelparameters
 
-        - name:                        "SAP OS configuration playbook: - Create SAP users/groups"
+        - name:                        "Oracle ASM: Create SAP users/groups"
           ansible.builtin.include_role:
             name:                      roles-sap-os/2.5-sap-users
           tags:
             - 2.5-sap-users
 
-        - name:                        Mount the file systems for ASM installation
+        - name:                        "Oracle ASM: Mount the file systems for ASM installation"
           ansible.builtin.include_role:
             name:                      roles-sap-os/2.6-sap-mounts
 
-        - name:                        Include 1.5.1-disk-setup-asm role
+        - name:                        "Oracle ASM: Include 1.5.1-disk-setup-asm role"
           ansible.builtin.include_role:
             name:                      roles-os/1.5.1-disk-setup-asm
 
-        - name:                        Check for file system mounts
+        - name:                        "Oracle ASM: Check for file system mounts"
           ansible.builtin.include_role:
             name:                      roles-sap-os/2.6-sap-mounts
 
-        - name:                        Installing Oracle ASM Grid
+        - name:                        "Oracle ASM: Installing Oracle ASM Grid"
           ansible.builtin.include_role:
             name:                      roles-db/4.1.1-ora-asm-grid
           tags:                        4.1.1-ora-asm-grid
 
-        - name:                        Installing Oracle on ASM
+        - name:                        "Oracle ASM: Installing Oracle on ASM"
           ansible.builtin.include_role:
             name:                      roles-db/4.1.2-ora-asm-db-install
 
