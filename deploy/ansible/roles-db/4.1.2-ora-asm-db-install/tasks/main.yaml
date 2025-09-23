@@ -625,24 +625,6 @@
         mopatch_path:                  "{{ mopatch_directory.files[0].path }}"
       when:                            mopatch_directory.matched == 1
 
-    - name:                            "Oracle ASM: Find OPatch"
-      ansible.builtin.find:
-        paths:                         "{{ target_media_location }}/SBP/SAPSBP"
-        patterns:                      ["OPatch"]
-        file_type:                     directory
-        recurse:                       true
-      register:                        opatch_directory
-
-    - name:                            "Oracle ASM: Find OPatch"
-      ansible.builtin.fail:
-        msg:                           "Too many OPatches found"
-      when:                            opatch_directory.matched != 1
-
-    - name:                            "Oracle ASM: OPatch path"
-      ansible.builtin.set_fact:
-        opatch_path:                   "{{ opatch_directory.files[0].path }}"
-      when:                            opatch_directory.matched == 1
-
     - name:                            "Oracle ASM: Check if 'OPatch.bck' exists"
       ansible.builtin.stat:
         path:                          "{{ tmp_directory }}/{{ db_sid | upper }}/{{ ora_version }}/OPatch.bck"
