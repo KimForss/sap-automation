@@ -28,6 +28,14 @@
   loop_control:
     loop_var: item_to_check
 
+- name:                                "Oracle ASM: - Set DB SID"
+  ansible.builtin.debug:
+    msg:
+                                       - "DB SID: {{ sap_sid | upper }}"
+                                       - "Oracle Version: {{ ora_version }}"
+                                       - "Oracle Release: {{ ora_release }}"
+                                       - "Oracle SBP Patch: {{ oracle_sbp_patch }}"
+
 # Returns bom object
 - name:                                "Oracle ASM: Register BoM"
   ansible.builtin.include_role:
@@ -37,6 +45,8 @@
     bom_name:                          "{{ bom_base_name }}"
     task_prefix:                       "Oracle ASM: "
     sa_enabled:                        true
+  when:
+                                       - bom is undefined
 
 - name:                                "Oracle ASM: Add the repositories"
   become:                              true
@@ -47,9 +57,9 @@
     disable_gpg_check:                 true
   loop:                                "{{ bom.materials.media | flatten(levels=1) }}"
   when:
+    - bom is defined
     - ( item.type is defined       and (item.type | lower) == 'rpm' )
     - ( item.archive is defined    and (item.archive | trim | length) > 0 )
-
 
 - name:                                "Oracle ASM: Load the disk configuration settings"
   ansible.builtin.include_vars:        disks_config_asm.yml
