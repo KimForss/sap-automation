@@ -680,7 +680,7 @@
       # become_user:                         "{{ oracle_user_name }}"
       ansible.builtin.copy:
         src:                           "{{ mopatch_path }}/MOPatch"
-        dest:                          "/oracle/{{ db_sid | upper }}/{{ ora_version }}/MOPatch"
+        dest:                          "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
         remote_src:                    true
         mode:                          '0777'
         owner:                         oracle
@@ -713,7 +713,7 @@
       failed_when:                     sbpscript_results.rc >= 2
       args:
         creates:                       "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sbpdb_installed.txt"
-        chdir:                         "/oracle/{{ db_sid | upper }}/{{ ora_version }}/MOPatch"
+        chdir:                         "{{ target_media_location }}/SBP"
         executable:                    /bin/csh
 
     - name:                            "Oracle ASM: pre processing reset permissions"
