@@ -657,7 +657,7 @@
 
     - name:                            "Oracle ASM: backup OPatch"
       ansible.builtin.copy:
-        src:                           "{{ tmp_directory }}/{{ db_sid | upper }}/{{ ora_version }}/OPatch"
+        src:                           "/oracle/{{ db_sid | upper }}/{{ ora_version }/OPatch"
         dest:                          "{{ tmp_directory }}/{{ db_sid | upper }}/{{ ora_version }}/OPatch.bck"
         remote_src:                    true
         mode:                          '0755'
@@ -666,7 +666,7 @@
 
     - name:                            "Oracle ASM: remove old OPatch"
       ansible.builtin.file:
-        path:                          "{{ tmp_directory }}/{{ db_sid | upper }}/{{ ora_version }}/OPatch"
+        path:                          "/oracle/{{ db_sid | upper }}/{{ ora_version }}/OPatch"
         state:                         absent
       when:
         - not opatch_stat.stat.exists
