@@ -672,7 +672,6 @@
             state:                     touch
             mode:                      0755
 
-
     - name:                            "Install Oracle for MSID"
       become:                          true
       become_user:                     root
@@ -721,6 +720,7 @@
           ansible.builtin.set_fact:
             tier:                      ora                                    # Actions for Oracle DB Servers
             main_password:             "{{ hostvars.localhost.sap_password }}"
+            sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
           tags:
             - always
 
@@ -733,12 +733,6 @@
             name:                      roles-os/1.9-kernelparameters
           tags:
             - 1.9-kernelparameters
-
-        # - name:                        "SAP OS configuration playbook: - Configure accounts"
-        #   ansible.builtin.include_role:
-        #     name:                      roles-os/1.11-accounts
-        #   tags:
-        #     - 1.11-accounts
 
         - name:                        "SAP OS configuration playbook: - Create SAP users/groups"
           ansible.builtin.include_role:
