@@ -666,20 +666,21 @@
 
     - name:                            "Oracle ASM: Extract File, OPatch"
       ansible.builtin.unarchive:
-      src:                               "{{ target_media_location }}/{% if item.path is undefined %}downloads{% else %}{{ item.path }}{% endif %}/\
-                                          {% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}"
-      dest:                              "{{ target_media_location }}/{{ item.extractDir }}"
-      remote_src:                        true
-      creates:                           "{{ target_media_location }}/{{ item.extractDir }}/{% if item.creates is defined %}\
-                                          {{ item.creates }}{% else %}NOT_DEFINED{% endif %}"
-    loop:                                "{{ bom.materials.media | flatten(levels=1) }}"
-    when:
-      - item.extract is not undefined
-      - item.extract
-      - ( item.filename is undefined and (item.archive |regex_search('[^.]+(?=\\.*$)')|upper=="ZIP") ) or
-        ( item.filename is defined   and (item.filename|regex_search('[^.]+(?=\\.*$)')|upper=="ZIP") ) or
-        ( item.filename is undefined and (item.archive |regex_search('[^.]+(?=\\.*$)')|upper=="TGZ") ) or
-        ( item.filename is defined   and (item.filename|regex_search('[^.]+(?=\\.*$)')|upper=="TGZ") )
+        src:                           "{{ target_media_location }}/SBP/OPATCH/{{ oracle_patch }}"
+        dest:                          "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
+        remote_src:                    true
+        mode:                          '0755'
+        owner:                         oracle
+        group:                         oinstall
+
+    - name:                            "Oracle ASM: Extract File, SBPPatch"
+      ansible.builtin.unarchive:
+        src:                           "{{ target_media_location }}/SBP/{{ oracle_sbp_patch }}"
+        dest:                          "/oracle/{{ db_sid | upper }}/{{ ora_version }}/sbp"
+        remote_src:                    true
+        mode:                          '0755'
+        owner:                         oracle
+        group:                         oinstall
 
 
     - name:                            "Oracle ASM: copy OPatch"
@@ -687,7 +688,7 @@
       # become_user:                         "{{ oracle_user_name }}"
       ansible.builtin.copy:
         src:                           "{{ target_media_location }}/SBP/OPATCH/OPatch"
-        dest:                          "{{ tmp_directory }}/{{ db_sid | upper }}/{{ ora_version }}"
+        dest:                          "/oracle/{{ db_sid | upper }}/{{ ora_version }}/OPatch"
         remote_src:                    true
         mode:                          '0755'
         owner:                         oracle
@@ -698,7 +699,7 @@
       # become_user:                         "{{ oracle_user_name }}"
       ansible.builtin.copy:
         src:                           "{{ mopatch_path }}"
-        dest:                          "{{ tmp_directory }}/{{ db_sid | upper }}/{{ ora_version }}"
+        dest:                          "/oracle/{{ db_sid | upper }}/{{ ora_version }}/MOPatch"
         remote_src:                    true
         mode:                          '0777'
         owner:                         oracle
@@ -720,7 +721,7 @@
     - name:                            "Oracle ASM: Post Processing - SBP Patching"
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
-      ansible.builtin.shell:           "{{ tmp_directory }}/{{ db_sid | upper }}/{{ ora_version }}/MOPatch/mopatch.sh -v -s {{ target_media_location }}/SBP/{{ oracle_sbp_patch }}"
+      ansible.builtin.shell:           "env ORACLE_HOME=$IHRDBMS $IHRDBMS/MOPatch/mopatch.sh -v -s {{ oracle_sbp_patch }}"
       environment:
         DB_SID:                        "{{ db_sid }}"
         CV_ASSUME_DISTID:              OL7
@@ -731,7 +732,7 @@
       failed_when:                     sbpscript_results.rc >= 2
       args:
         creates:                       "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sbpdb_installed.txt"
-        chdir:                         "{{ tmp_directory }}/{{ db_sid | upper }}"
+        chdir:                         "/oracle/{{ db_sid | upper }}/{{ ora_version }}/MOPatch"
         executable:                    /bin/csh
 
     - name:                            "Oracle ASM: pre processing reset permissions"
