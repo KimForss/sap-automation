@@ -652,7 +652,7 @@
 
     - name:                            "Oracle ASM: Check if 'OPatch.bck' exists"
       ansible.builtin.stat:
-        path:                          "{{ tmp_directory }}/{{ db_sid | upper }}/{{ ora_version }}
+        path:                          "{{ tmp_directory }}/{{ db_sid | upper }}/{{ ora_version }}/OPatch.bck"
       register:                        opatch_stat
 
     - name:                            "Oracle ASM: backup OPatch"
