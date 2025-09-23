@@ -649,8 +649,8 @@
 
     - name:                            "Oracle ASM: backup OPatch"
       ansible.builtin.copy:
-        src:                           /oracle/{{ db_sid | upper }}/{{ ora_version }}/OPatch
-        dest:                          /oracle/{{ db_sid | upper }}/{{ ora_version }}/OPatch.bck
+        src:                           "{{ tmp_directory }}/{{ db_sid | upper }}/{{ ora_version }}/OPatch"
+        dest:                          "{{ tmp_directory }}/{{ db_sid | upper }}/{{ ora_version }}/OPatch.bck"
         remote_src:                    true
         mode:                          '0755'
       when:
@@ -658,7 +658,7 @@
 
     - name:                            "Oracle ASM: remove old OPatch"
       ansible.builtin.file:
-        path:                          /oracle/{{ db_sid | upper }}/{{ ora_version }}/OPatch
+        path:                          "{{ tmp_directory }}/{{ db_sid | upper }}/{{ ora_version }}/OPatch"
         state:                         absent
       when:
         - not opatch_stat.stat.exists
@@ -668,7 +668,7 @@
       # become_user:                         "{{ oracle_user_name }}"
       ansible.builtin.copy:
         src:                           "{{ target_media_location }}/SBP/OPATCH/OPatch"
-        dest:                          /oracle/{{ db_sid | upper }}/{{ ora_version }}
+        dest:                          "{{ tmp_directory }}/{{ db_sid | upper }}/{{ ora_version }}"
         remote_src:                    true
         mode:                          '0755'
         owner:                         oracle
@@ -679,7 +679,7 @@
       # become_user:                         "{{ oracle_user_name }}"
       ansible.builtin.copy:
         src:                           "{{ mopatch_path }}"
-        dest:                          /oracle/{{ db_sid | upper }}/{{ ora_version }}
+        dest:                          "{{ tmp_directory }}/{{ db_sid | upper }}/{{ ora_version }}"
         remote_src:                    true
         mode:                          '0777'
         owner:                         oracle
@@ -701,7 +701,7 @@
     - name:                            "Oracle ASM: Post Processing - SBP Patching"
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
-      ansible.builtin.shell:           $IHRDBMS/MOPatch/mopatch.sh -v -s {{ oracle_sbp_patch }}
+      ansible.builtin.shell:           "{{ tmp_directory }}/{{ db_sid | upper }}/{{ ora_version }}/MOPatch/mopatch.sh -v -s {{ oracle_sbp_patch }}"
       environment:
         DB_SID:                        "{{ db_sid }}"
         CV_ASSUME_DISTID:              OL7
