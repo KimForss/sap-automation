@@ -675,11 +675,11 @@
         owner:                         oracle
         group:                         oinstall
 
-    - name:                            "Oracle ASM: copy MOPatch"
+    - name:                            "Oracle ASM: copy MOPatch ({{ mopatch_path }})"
       # become:                              true
       # become_user:                         "{{ oracle_user_name }}"
       ansible.builtin.copy:
-        src:                           "{{ mopatch_path }}/MOPatch"
+        src:                           "{{ mopatch_path }}"
         dest:                          "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
         remote_src:                    true
         mode:                          '0777'
