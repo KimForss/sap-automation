@@ -646,46 +646,23 @@
       when:
         - not opatch_stat.stat.exists
 
-    # - name:                            "Oracle ASM: Extract File, OPatch"
-    #   ansible.builtin.unarchive:
-    #     src:                           "{{ target_media_location }}/SBP/OPATCH/{{ oracle_patch }}"
-    #     dest:                          "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
-    #     remote_src:                    true
-    #     mode:                          '0755'
-    #     owner:                         oracle
-    #     group:                         oinstall
-
-    # - name:                            "Oracle ASM: Extract File, SBPPatch"
-    #   ansible.builtin.unarchive:
-    #     src:                           "{{ target_media_location }}/SBP/{{ oracle_sbp_patch }}"
-    #     dest:                          "/oracle/{{ db_sid | upper }}/{{ ora_version }}/sbp"
-    #     remote_src:                    true
-    #     mode:                          '0755'
-    #     owner:                         oracle
-    #     group:                         oinstall
-
-    - name:                            "Oracle ASM: copy OPatch"
-      # become:                              true
-      # become_user:                         "{{ oracle_user_name }}"
+    - name:                            "ORACLE ASM: copy OPatch from {{ target_media_location }}/SBP/OPATCH/OPatch to /oracle/{{ db_sid | upper }}/{{ ora_version }}"
       ansible.builtin.copy:
         src:                           "{{ target_media_location }}/SBP/OPATCH/OPatch"
-        dest:                          "/oracle/{{ db_sid | upper }}/{{ ora_version }}/OPatch"
-        remote_src:                    true
-        mode:                          '0755'
-        owner:                         oracle
-        group:                         oinstall
-
-    - name:                            "Oracle ASM: copy MOPatch ({{ mopatch_path }})"
-      # become:                              true
-      # become_user:                         "{{ oracle_user_name }}"
-      ansible.builtin.copy:
-        src:                           "{{ mopatch_path }}"
         dest:                          "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
         remote_src:                    true
-        mode:                          '0777'
+        mode:                          0755
         owner:                         oracle
         group:                         oinstall
 
+    - name:                            "ORACLE ASM: copy MOPatch from {{ mopatch_path }} to /oracle/{{ db_sid | upper }}/{{ ora_version }}"
+      ansible.builtin.copy:
+        src:                           "{{ mopatch_path }}"
+        dest:                          /oracle/{{ db_sid | upper }}/{{ ora_version }}
+        remote_src:                    true
+        mode:                          0777
+        owner:                         oracle
+        group:                         oinstall
 
     - name:                            "Oracle ASM: Pre Processing set permissions"
       ansible.builtin.file:
