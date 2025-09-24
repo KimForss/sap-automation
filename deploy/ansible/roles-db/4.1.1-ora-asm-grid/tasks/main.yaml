@@ -128,12 +128,19 @@
 
 - name:                                "ORACLE ASM: display package facts"
   ansible.builtin.debug:
-    var:                               ansible_facts.packages
+    var:                               ansible_facts.packages['oracleasmlib']
 
 - name:                                "ORACLE ASM: - Check oracleasmlib version is 3.1.0 or higher"
   when:                                ansible_facts.packages['oracleasmlib'] is defined
   ansible.builtin.set_fact:
     is_asmlib_310_or_later:           "{{ ansible_facts.packages['oracleasmlib'][0].version is version('3.1.0', '>=') }}"
+
+- name:                                "ORACLE ASM: display package facts"
+  ansible.builtin.debug:
+    msg:
+      - "{{ ansible_facts.packages['oracleasmlib'][0].version }}"
+      - "is_asmlib_310_or_later: {{ is_asmlib_310_or_later | default('not defined') }}"
+
 
 - name:                               "ORACLE ASM: Prepend /dev/oracleasm/disk to each of of the disk"
   ansible.builtin.set_fact:
@@ -344,7 +351,7 @@
   become:                              true
   become_user:                         oracle
   ansible.builtin.shell: |
-                                       ./gridSetup.sh -executeConfigTools -silent -lenientInstallMode -responseFile ./{{ ansible_hostname }}_{{ db_sid }}_install.rsp
+                                       ./gridSetup.sh -executeConfigTools -silent -responseFile ./{{ ansible_hostname }}_{{ db_sid }}_install.rsp
   register:                            tools_installer_results
   failed_when:                         tools_installer_results.rc >= 2              # installer returns rc=1 (exited with warning) by default when run is silent mode as the oratab file is created only after running the root.sh
   environment:
