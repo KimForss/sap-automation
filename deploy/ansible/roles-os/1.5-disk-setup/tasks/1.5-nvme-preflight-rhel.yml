@@ -263,9 +263,16 @@
   changed_when:                        true
   register:                            udev_rules_reloaded
 
-- name:                                "1.5.4 NVMe Support (RHEL/OL) - Trigger udev rules for existing devices"
-  when:                                helper_script_created.changed or udev_rules_added.changed
-  ansible.builtin.command:             udevadm trigger --name-match=nvme*
+- name:                                "1.5.4 NVMe Support (RHEL/OL) - Trigger udev rules for specific NVMe devices"
+  when:
+                                       - helper_script_created.changed or udev_rules_added.changed
+                                       - use_nvme_disks | default(false) | bool
+  ansible.builtin.shell: |
+                                       DEVICES=""
+                                       {% for disk in disks | selectattr('host', 'equalto', inventory_hostname) | selectattr('type', 'in', disktypes) %}
+                                       DEVICES="$DEVICES --name-match=nvme0n{{ ((disk.LUN | int) + 2) }}"
+                                       {% endfor %}
+                                       udevadm trigger $DEVICES
   changed_when:                        true
   register:                            udev_triggered
 
