@@ -247,7 +247,7 @@
   become:                              true
   become_user:                         oracle
   ansible.builtin.shell: |
-                                       ./gridSetup.sh -silent  -lenientInstallMode -responseFile ./{{ ansible_hostname }}_{{ db_sid }}_install.rsp
+                                       ./gridSetup.sh -silent -lenientInstallMode -responseFile ./{{ ansible_hostname }}_{{ db_sid }}_install.rsp
   register:                            gridinstaller_results
   failed_when:                         gridinstaller_results.rc >= 2              # installer returns rc=1 (exited with warning) by default when run is silent mode as the oratab file is created only after running the root.sh
   environment:
@@ -344,7 +344,7 @@
   become:                              true
   become_user:                         oracle
   ansible.builtin.shell: |
-                                       ./gridSetup.sh -executeConfigTools -silent -lenientInstallMode -responseFile ./{{ ansible_hostname }}_{{ db_sid }}_install.rsp -silent
+                                       ./gridSetup.sh -executeConfigTools -silent -lenientInstallMode -responseFile ./{{ ansible_hostname }}_{{ db_sid }}_install.rsp
   register:                            tools_installer_results
   failed_when:                         tools_installer_results.rc >= 2              # installer returns rc=1 (exited with warning) by default when run is silent mode as the oratab file is created only after running the root.sh
   environment:
