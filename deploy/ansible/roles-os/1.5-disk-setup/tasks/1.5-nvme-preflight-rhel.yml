@@ -286,7 +286,7 @@
     timeout:                           30
   failed_when:                         false
 
-- name:                                "1.5.4 NVMe Support (SUSE) - Verify Azure NVMe symlinks exist"
+- name:                                "1.5.4 NVMe Support (RHEL/OL) - Verify Azure NVMe symlinks exist"
   when:                                use_nvme_disks | default(false) | bool
   ansible.builtin.stat:
     path:                              "/dev/disk/azure/data/by-lun/{{ item.LUN }}"
