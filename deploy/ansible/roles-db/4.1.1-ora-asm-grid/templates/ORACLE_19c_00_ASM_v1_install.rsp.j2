@@ -429,10 +429,10 @@ oracle.install.asm.diskGroup.quorumFailureGroupNames=
 #     oracle.install.asm.diskGroup.diskDiscoveryString=\\.\ORCLDISK*
 #
 #-------------------------------------------------------------------------------
-{% if _is_asmlib_310_or_later %}
-oracle.install.asm.diskGroup.diskDiscoveryString=/dev/disk/by-label/*
-{% else %}
+{% if _is_UEK6 %}
 oracle.install.asm.diskGroup.diskDiscoveryString=/dev/oracleasm/disks/*
+{% else %}
+oracle.install.asm.diskGroup.diskDiscoveryString=/dev/disk/by-label/*
 {% endif %}
 
 

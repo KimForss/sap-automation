@@ -122,25 +122,10 @@
       - "Archive:  {{ asm_alist1 }}"
       - "Recovery: {{ asm_rlist1 }}"
 
-- name:                                "ORACLE ASM: Check package facts"
-  ansible.builtin.package_facts:
-    manager:                           auto
-
-- name:                                "ORACLE ASM: display package facts"
-  ansible.builtin.debug:
-    var:                               ansible_facts.packages['oracleasmlib']
-
-- name:                                "ORACLE ASM: - Check oracleasmlib version is 3.1.0 or higher"
-  when:                                ansible_facts.packages['oracleasmlib'] is defined
+- name:                                "ORACLE ASM: - Check UEK Kernel version"
   ansible.builtin.set_fact:
-    is_asmlib_310_or_later:           "{{ ansible_facts.packages['oracleasmlib'][0].version is version('3.1.0', '>=') }}"
+    is_UEK6:                           "{{ ansible_kernel is version('5.5', '<') }}"
 
-- name:                                "ORACLE ASM: display package facts"
-  ansible.builtin.debug:
-    msg:
-      - "{{ ansible_facts.packages['oracleasmlib'][0].version }}"
-      - "is_asmlib_310_or_later: {{ is_asmlib_310_or_later | default('not defined') }}"
-    verbosity:                         2
 
 - name:                               "ORACLE ASM: Prepend /dev/oracleasm/disk to each of of the disk"
   ansible.builtin.set_fact:
@@ -148,7 +133,7 @@
     asm_archdisklist:     "{{ asm_alist1 | map('regex_replace', '^(.*)$', '/dev/oracleasm/disks/\\1') | join(',') }}"
     asm_recodisklist:     "{{ asm_rlist1 | map('regex_replace', '^(.*)$', '/dev/oracleasm/disks/\\1') | join(',') }}"
   when:
-    - not is_asmlib_310_or_later
+    - is_UEK6
 
 - name:                               "ORACLE ASM: Prepend /dev/disk/by-label to each of of the disk"
   ansible.builtin.set_fact:
@@ -156,7 +141,7 @@
     asm_archdisklist:     "{{ asm_alist1 | map('regex_replace', '^(.*)$', '/dev/disk/by-label/\\1') | join(',') }}"
     asm_recodisklist:     "{{ asm_rlist1 | map('regex_replace', '^(.*)$', '/dev/disk/by-label/\\1') | join(',') }}"
   when:
-    - is_asmlib_310_or_later
+    - not is_UEK6
 
 - name:                               "ORACLE ASM: Store the disk lists as arrays"
   ansible.builtin.set_fact:
@@ -180,7 +165,7 @@
     mode:                              '0644'
     force:                             true
   vars:
-    _is_asmlib_310_or_later:           "{{ is_asmlib_310_or_later | default(true) }}"
+    _is_UEK6:                           "{{ is_UEK6 | default(false) }}"
 
 
 # +------------------------------------4--------------------------------------*/
