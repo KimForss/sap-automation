@@ -157,16 +157,16 @@
       - "Archive:  {{ arch_disk_list }}"
       - "Recovery: {{ reco_disk_list }}"
 
-- name:                               "ORACLE ASM: deploy Grid install response file"
-  become:                             true
-  become_user:                        oracle
+- name:                                "ORACLE ASM: deploy Grid install response file"
+  become:                              true
+  become_user:                         oracle
   ansible.builtin.template:
-    src:                              ORACLE_19c_00_ASM_v1_install.rsp.j2
-    dest:                             "/etc/sap_deployment_automation/oracle/ORACLE_{{ ora_release }}c_00_ASM_{{ ansible_hostname }}_{{ db_sid }}_install.rsp"
-    mode:                             '0644'
-    force:                            true
-    vars:
-      _is_asmlib_310_or_later:        "{{ is_asmlib_310_or_later | default(false) }}"
+    src:                               ORACLE_19c_00_ASM_v1_install.rsp.j2
+    dest:                              "/etc/sap_deployment_automation/oracle/ORACLE_{{ ora_release }}c_00_ASM_{{ ansible_hostname }}_{{ db_sid }}_install.rsp"
+    mode:                              '0644'
+    force:                             true
+  vars:
+    _is_asmlib_310_or_later:           "{{ is_asmlib_310_or_later | default(false) }}"
 
 
 # +------------------------------------4--------------------------------------*/
