@@ -123,11 +123,26 @@
       - "Recovery: {{ asm_rlist1 }}"
 
 
+- name:                                "ORACLE ASM: - Check oracleasmlib version is 3.1.0 or higher"
+  when:                                ansible_facts.packages['oracleasmlib'] is defined
+  ansible.builtin.set_fact:
+    is_asmlib_310_or_later:           "{{ ansible_facts.packages['oracleasmlib'][0].version is version('3.1.0', '>=') }}"
+
 - name:                               "ORACLE ASM: Prepend /dev/oracleasm/disk to each of of the disk"
   ansible.builtin.set_fact:
     asm_datadisklist:     "{{ asm_dlist1 | map('regex_replace', '^(.*)$', '/dev/oracleasm/disks/\\1') | join(',') }}"
     asm_archdisklist:     "{{ asm_alist1 | map('regex_replace', '^(.*)$', '/dev/oracleasm/disks/\\1') | join(',') }}"
     asm_recodisklist:     "{{ asm_rlist1 | map('regex_replace', '^(.*)$', '/dev/oracleasm/disks/\\1') | join(',') }}"
+  when:
+    - not is_asmlib_310_or_later | default(false)
+
+- name:                               "ORACLE ASM: Prepend /dev/oracleasm/disk to each of of the disk"
+  ansible.builtin.set_fact:
+    asm_datadisklist:     "{{ asm_dlist1 | map('regex_replace', '^(.*)$', '/dev/disk/by-label/\\1') | join(',') }}"
+    asm_archdisklist:     "{{ asm_alist1 | map('regex_replace', '^(.*)$', '/dev/disk/by-label/\\1') | join(',') }}"
+    asm_recodisklist:     "{{ asm_rlist1 | map('regex_replace', '^(.*)$', '/dev/disk/by-label/\\1') | join(',') }}"
+  when:
+    - is_asmlib_310_or_later | default(true)
 
 - name:                               "ORACLE ASM: Store the disk lists as arrays"
   ansible.builtin.set_fact:

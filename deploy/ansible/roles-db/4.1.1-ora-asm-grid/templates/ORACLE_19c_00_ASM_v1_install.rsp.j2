@@ -429,7 +429,12 @@ oracle.install.asm.diskGroup.quorumFailureGroupNames=
 #     oracle.install.asm.diskGroup.diskDiscoveryString=\\.\ORCLDISK*
 #
 #-------------------------------------------------------------------------------
-oracle.install.asm.diskGroup.diskDiscoveryString=/dev/oracleasm/disks
+{% if is_asmlib_310_or_later %}
+oracle.install.asm.diskGroup.diskDiscoveryString=/dev/disk/by-label/*
+{% else %}
+oracle.install.asm.diskGroup.diskDiscoveryString=/dev/oracleasm/disks/*
+{% endif %}
+
 
 #-------------------------------------------------------------------------------
 # Password for ASMSNMP account
