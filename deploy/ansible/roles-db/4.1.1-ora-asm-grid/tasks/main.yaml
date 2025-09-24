@@ -165,6 +165,8 @@
     dest:                             "/etc/sap_deployment_automation/oracle/ORACLE_{{ ora_release }}c_00_ASM_{{ ansible_hostname }}_{{ db_sid }}_install.rsp"
     mode:                             '0644'
     force:                            true
+    vars:
+      _is_asmlib_310_or_later:        "{{ is_asmlib_310_or_later | default(false) }}"
 
 
 # +------------------------------------4--------------------------------------*/
