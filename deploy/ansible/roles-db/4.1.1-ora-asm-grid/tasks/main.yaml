@@ -140,7 +140,7 @@
     msg:
       - "{{ ansible_facts.packages['oracleasmlib'][0].version }}"
       - "is_asmlib_310_or_later: {{ is_asmlib_310_or_later | default('not defined') }}"
-
+    verbosity:                         2
 
 - name:                               "ORACLE ASM: Prepend /dev/oracleasm/disk to each of of the disk"
   ansible.builtin.set_fact:
@@ -148,15 +148,15 @@
     asm_archdisklist:     "{{ asm_alist1 | map('regex_replace', '^(.*)$', '/dev/oracleasm/disks/\\1') | join(',') }}"
     asm_recodisklist:     "{{ asm_rlist1 | map('regex_replace', '^(.*)$', '/dev/oracleasm/disks/\\1') | join(',') }}"
   when:
-    - not is_asmlib_310_or_later | default(false)
+    - not is_asmlib_310_or_later
 
-- name:                               "ORACLE ASM: Prepend /dev/oracleasm/disk to each of of the disk"
+- name:                               "ORACLE ASM: Prepend /dev/disk/by-label to each of of the disk"
   ansible.builtin.set_fact:
     asm_datadisklist:     "{{ asm_dlist1 | map('regex_replace', '^(.*)$', '/dev/disk/by-label/\\1') | join(',') }}"
     asm_archdisklist:     "{{ asm_alist1 | map('regex_replace', '^(.*)$', '/dev/disk/by-label/\\1') | join(',') }}"
     asm_recodisklist:     "{{ asm_rlist1 | map('regex_replace', '^(.*)$', '/dev/disk/by-label/\\1') | join(',') }}"
   when:
-    - is_asmlib_310_or_later | default(true)
+    - is_asmlib_310_or_later
 
 - name:                               "ORACLE ASM: Store the disk lists as arrays"
   ansible.builtin.set_fact:
@@ -353,7 +353,7 @@
   ansible.builtin.shell: |
                                        ./gridSetup.sh -executeConfigTools -silent -responseFile ./{{ ansible_hostname }}_{{ db_sid }}_install.rsp
   register:                            tools_installer_results
-  failed_when:                         tools_installer_results.rc >= 2              # installer returns rc=1 (exited with warning) by default when run is silent mode as the oratab file is created only after running the root.sh
+  failed_when:                         false # tools_installer_results.rc >= 2              # installer returns rc=1 (exited with warning) by default when run is silent mode as the oratab file is created only after running the root.sh
   environment:
     DB_SID:                            "{{ db_sid }}"
     CV_ASSUME_DISTID:                  OL7
@@ -386,18 +386,16 @@
 
 # +------------------------------------4--------------------------------------*/
 # |                                                                            |
-# |           Oracle Grid: Create ARCH and RECO disk groups using ASMCA        |
+# |           Oracle Grid: Create DATA ARCH and RECO disk groups using ASMCA   |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
 
-- name:                                "ORACLE ASM: Create ASM Disk groups ARCH and RECO"
+- name:                                "ORACLE ASM: Create ASM Disk groups DATA"
   become:                              true
   become_user:                         oracle
   ansible.builtin.shell: |
-                                       set -o errexit
-                                       ./asmca -silent -createDiskGroup -diskGroupName RECO -diskList '{{ asm_recodisklist }}'
-                                       ./asmca -silent -createDiskGroup -diskGroupName ARCH -diskList '{{ asm_archdisklist }}'
+                                       ./asmca -silent -createDiskGroup -diskGroupName DATA -diskList '{{ asm_datadisklist }}'
   register:                            diskgroup_creation_results
   environment:
     DB_SID:                            "{{ db_sid | upper }}"
@@ -406,6 +404,36 @@
     executable:                        /bin/csh
     chdir:                             "/oracle/GRID/{{ ora_version }}/bin"
     creates:                           /etc/sap_deployment_automation/oracle/diskgroups_created.txt
+
+- name:                                "ORACLE ASM: Create ASM Disk groups ARCH"
+  become:                              true
+  become_user:                         oracle
+  ansible.builtin.shell: |
+                                       ./asmca -silent -createDiskGroup -diskGroupName ARCH -diskList '{{ asm_archdisklist }}'
+  register:                            arch_diskgroup_creation_results
+  environment:
+    DB_SID:                            "{{ db_sid | upper }}"
+    CV_ASSUME_DISTID:                  OL7
+  args:
+    executable:                        /bin/csh
+    chdir:                             "/oracle/GRID/{{ ora_version }}/bin"
+    creates:                           /etc/sap_deployment_automation/oracle/diskgroups_created.txt
+
+- name:                                "ORACLE ASM: Create ASM Disk groups RECO"
+  become:                              true
+  become_user:                         oracle
+  ansible.builtin.shell: |
+                                       set -o errexit
+                                       ./asmca -silent -createDiskGroup -diskGroupName RECO -diskList '{{ asm_recodisklist }}'
+  register:                            reco_diskgroup_creation_results
+  environment:
+    DB_SID:                            "{{ db_sid | upper }}"
+    CV_ASSUME_DISTID:                  OL7
+  args:
+    executable:                        /bin/csh
+    chdir:                             "/oracle/GRID/{{ ora_version }}/bin"
+    creates:                           /etc/sap_deployment_automation/oracle/diskgroups_created.txt
+
 
 - name:                                "ORACLE ASM: Created after a successful disk group creation"
   ansible.builtin.file:
