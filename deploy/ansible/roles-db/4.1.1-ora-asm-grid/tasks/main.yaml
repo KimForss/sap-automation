@@ -169,7 +169,7 @@
   become_user:                         oracle
   ansible.builtin.template:
     src:                               ORACLE_19c_00_ASM_v1_install.rsp.j2
-    dest:                              "/etc/sap_deployment_automation/oracle/ORACLE_{{ ora_release }}c_00_ASM_{{ ansible_hostname }}_{{ db_sid }}_install.rsp"
+    dest:                              "/oracle/GRID/{{ ora_version }}/{{ ansible_hostname }}_{{ db_sid }}_install.rsp"
     mode:                              '0644'
     force:                             true
   vars:
@@ -243,13 +243,11 @@
     mode:                              '755'
   loop:                                '{{ reco_disk_list }}'
 
-- name:                                "ORACLE ASM: Install Execute GRIDSETUP"
+- name:                                "ORACLE ASM: Install Execute gridSetup.sh"
   become:                              true
   become_user:                         oracle
   ansible.builtin.shell: |
-                                       set -o errexit
-                                       set -o pipefail
-                                       ./gridSetup.sh -silent -responseFile /etc/sap_deployment_automation/oracle/ORACLE_{{ ora_release }}c_00_ASM_{{ ansible_hostname }}_{{ db_sid }}_install.rsp | tee -a /etc/sap_deployment_automation/oracle/gridinstall.log
+                                       ./gridSetup.sh -silent  -lenientInstallMode -responseFile ./{{ ansible_hostname }}_{{ db_sid }}_install.rsp
   register:                            gridinstaller_results
   failed_when:                         gridinstaller_results.rc >= 2              # installer returns rc=1 (exited with warning) by default when run is silent mode as the oratab file is created only after running the root.sh
   environment:
@@ -262,6 +260,13 @@
     executable:                        /bin/csh
     chdir:                             "/oracle/GRID/{{ ora_version }}"
     creates:                           /etc/sap_deployment_automation/oracle/grid_install.txt
+
+- name:                                "ORACLE ASM: Debug: gridSetup.sh output"
+  ansible.builtin.copy:
+    dest:                              "/etc/sap_deployment_automation/oracle/grid_install.log"
+    content:                           "{{ gridinstaller_results.stdout }}"
+    mode:                              0777
+  when:                                gridinstaller_results.stdout is defined
 
 - name:                                "ORACLE ASM: Create after a successful GRID install"
   ansible.builtin.file:
@@ -283,13 +288,41 @@
   become:                              true
   become_user:                         root
   ansible.builtin.shell: |
-                                       set -o pipefail
-                                       /oracle/oraInventory/orainstRoot.sh |tee -a /etc/sap_deployment_automation/oracle/orainst.log
-                                       /oracle/GRID/{{ ora_version }}/root.sh |tee -a /etc/sap_deployment_automation/oracle/gridrootexec.log
+                                       /oracle/oraInventory/orainstRoot.sh
+  register:                            orainstRoot_results
+  args:
+    executable:                        /bin/csh
+    creates:                           "/etc/sap_deployment_automation/oracle/orainstRoot_rootscript.txt"
+
+- name:                                "ORACLE ASM: Debug: root.sh output"
+  ansible.builtin.copy:
+    dest:                              "/etc/sap_deployment_automation/oracle/orainst.log"
+    content:                           "{{ orainstRoot_results.stdout }}"
+    mode:                              0777
+  when:                                orainstRoot_results.stdout is defined
+
+- name:                                "ORACLE ASM: creates after a successful post processing script execution"
+  ansible.builtin.file:
+    path:                              "/etc/sap_deployment_automation/oracle/orainstRoot_rootscript.txt"
+    state:                             touch
+    mode:                              '0755'
+
+- name:                                "ORACLE ASM: Oracle Post Processing - Run GRID root.sh"
+  become:                              true
+  become_user:                         root
+  ansible.builtin.shell: |
+                                       /oracle/GRID/{{ ora_version }}/root.sh
   register:                            grid_rootscript_results
   args:
     executable:                        /bin/csh
     creates:                           "/etc/sap_deployment_automation/oracle/gridinstall_rootscript.txt"
+
+- name:                                "ORACLE ASM: Debug: GRID root.sh output"
+  ansible.builtin.copy:
+    dest:                              "/etc/sap_deployment_automation/oracle/gridrootexec.log"
+    content:                           "{{ grid_rootscript_results.stdout }}"
+    mode:                              0777
+  when:                                grid_rootscript_results.stdout is defined
 
 - name:                                "ORACLE ASM: creates after a successful post processing script execution"
   ansible.builtin.file:
@@ -311,9 +344,7 @@
   become:                              true
   become_user:                         oracle
   ansible.builtin.shell: |
-                                       set -o errexit
-                                       set -o pipefail
-                                       ./gridSetup.sh -executeConfigTools  -responseFile /etc/sap_deployment_automation/oracle/ORACLE_19c_00_ASM_{{ ansible_hostname }}_{{ db_sid }}_install.rsp -silent |tee -a /etc/sap_deployment_automation/oracle/asm_tools_install.log
+                                       ./gridSetup.sh -executeConfigTools -silent -lenientInstallMode -responseFile ./{{ ansible_hostname }}_{{ db_sid }}_install.rsp -silent
   register:                            tools_installer_results
   failed_when:                         tools_installer_results.rc >= 2              # installer returns rc=1 (exited with warning) by default when run is silent mode as the oratab file is created only after running the root.sh
   environment:
@@ -328,6 +359,13 @@
     # chdir:                             "/oracle/GRID/{{ ora_version }}"
     chdir:                             /oracle/GRID/{{ ora_version }}/
     creates:                           /etc/sap_deployment_automation/oracle/asm_tools_install.txt
+
+- name:                                "ORACLE ASM: Debug: gridSetup.sh executeConfigTools output"
+  ansible.builtin.copy:
+    dest:                              "/etc/sap_deployment_automation/oracle/asm_tools_install.log"
+    content:                           "{{ tools_installer_results.stdout }}"
+    mode:                              0777
+  when:                                tools_installer_results.stdout is defined
 
 - name:                                "ORACLE ASM: Create after a successful Config tool execution"
   ansible.builtin.file:
