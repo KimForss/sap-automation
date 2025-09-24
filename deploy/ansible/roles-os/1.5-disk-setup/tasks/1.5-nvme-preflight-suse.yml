@@ -294,7 +294,7 @@
   ansible.builtin.stat:
     path:                              "/dev/disk/azure/data/by-lun/{{ item.LUN }}"
   register:                            azure_symlink_verification
-  loop: "{{ disks | selectattr('host', 'equalto', inventory_hostname) | selectattr('type', 'in', disktypes) | list }}"
+  loop: "{{ disks | selectattr('host', 'equalto', inventory_hostname) | list }}"
   loop_control:
     label:                             "LUN {{ item.LUN }}"
 
