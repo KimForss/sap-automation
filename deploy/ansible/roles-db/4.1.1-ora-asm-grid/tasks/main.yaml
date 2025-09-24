@@ -122,6 +122,13 @@
       - "Archive:  {{ asm_alist1 }}"
       - "Recovery: {{ asm_rlist1 }}"
 
+- name:                                "ORACLE ASM: Check package facts"
+  ansible.builtin.package_facts:
+    manager:                           auto
+
+- name:                                "ORACLE ASM: display package facts"
+  ansible.builtin.debug:
+    var:                               ansible_facts.packages
 
 - name:                                "ORACLE ASM: - Check oracleasmlib version is 3.1.0 or higher"
   when:                                ansible_facts.packages['oracleasmlib'] is defined
@@ -166,7 +173,7 @@
     mode:                              '0644'
     force:                             true
   vars:
-    _is_asmlib_310_or_later:           "{{ is_asmlib_310_or_later | default(false) }}"
+    _is_asmlib_310_or_later:           "{{ is_asmlib_310_or_later | default(true) }}"
 
 
 # +------------------------------------4--------------------------------------*/
