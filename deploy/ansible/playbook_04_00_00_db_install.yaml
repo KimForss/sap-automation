@@ -759,6 +759,14 @@
           ansible.builtin.include_role:
             name:                      roles-sap-os/2.6-sap-mounts
 
+        - name:                        "Oracle ASM: End play"
+          ansible.builtin.meta:        end_play
+
+        - name:                        "Oracle ASM: End play"
+          ansible.builtin.fail:
+            msg:                       "ASM Disks not found, please check the prerequisites and retry."
+
+
         - name:                        "Oracle ASM: Installing Oracle ASM Grid"
           ansible.builtin.include_role:
             name:                      roles-db/4.1.1-ora-asm-grid
