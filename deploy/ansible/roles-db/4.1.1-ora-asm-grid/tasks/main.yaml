@@ -338,7 +338,7 @@
   ansible.builtin.shell: |
                                        ./gridSetup.sh -executeConfigTools -silent -responseFile ./{{ ansible_hostname }}_{{ db_sid }}_install.rsp
   register:                            tools_installer_results
-  failed_when:                         false # tools_installer_results.rc >= 2              # installer returns rc=1 (exited with warning) by default when run is silent mode as the oratab file is created only after running the root.sh
+  failed_when:                         tools_installer_results.rc >= 2              # installer returns rc=1 (exited with warning) by default when run is silent mode as the oratab file is created only after running the root.sh
   environment:
     DB_SID:                            "{{ db_sid }}"
     CV_ASSUME_DISTID:                  OL7
@@ -371,24 +371,10 @@
 
 # +------------------------------------4--------------------------------------*/
 # |                                                                            |
-# |           Oracle Grid: Create DATA ARCH and RECO disk groups using ASMCA   |
+# |           Oracle Grid: Create ARCH and RECO disk groups using ASMCA        |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-
-- name:                                "ORACLE ASM: Create ASM Disk groups DATA"
-  become:                              true
-  become_user:                         oracle
-  ansible.builtin.shell: |
-                                       ./asmca -silent -createDiskGroup -diskGroupName DATA -diskList '{{ asm_datadisklist }}'
-  register:                            diskgroup_creation_results
-  environment:
-    DB_SID:                            "{{ db_sid | upper }}"
-    CV_ASSUME_DISTID:                  OL7
-  args:
-    executable:                        /bin/csh
-    chdir:                             "/oracle/GRID/{{ ora_version }}/bin"
-    creates:                           /etc/sap_deployment_automation/oracle/diskgroups_created.txt
 
 - name:                                "ORACLE ASM: Create ASM Disk groups ARCH"
   become:                              true
