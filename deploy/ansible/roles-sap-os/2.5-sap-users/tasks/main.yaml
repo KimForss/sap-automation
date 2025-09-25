@@ -130,6 +130,7 @@
     groups:                            asmoper,asmadmin,asmdba,asmoper,backupdba,dgdba,kmdba,racdba
     append:                            true
     shell:                             /bin/csh
+    password:                          "{{ main_password | password_hash('sha512', inventory_hostname) }}"
     # create_home:                       true
     # home:                              "{{ item.home }}"
   # loop:
