@@ -107,7 +107,7 @@
       # changed_when:                    oraprecheck_results.rc < 3
       environment:
         DB_SID:                        "{{ db_sid }}"
-        CV_ASSUME_DISTID:              OL7
+        CV_ASSUME_DISTID:              "{{ CV_ASSUME_DISTID }}"
       args:
         chdir:                         "{{ target_media_location }}/oraserver/LINUX_X86_64/db_home/SAP"
         creates:                       "/etc/sap_deployment_automation/{{ sap_sid | upper }}/oracle_pre_check_install.txt"
@@ -149,7 +149,7 @@
       failed_when:                     orainstaller_results.rc >= 2              # installer returns rc=1 (exited with warning) by default when run is silent mode as the oratab file is created only after running the root.sh
       environment:
         DB_SID:                        "{{ db_sid }}"
-        CV_ASSUME_DISTID:              OL7
+        CV_ASSUME_DISTID:              "{{ CV_ASSUME_DISTID }}"
       args:
         executable:                    /bin/csh
         chdir:                         "{{ target_media_location }}/oraserver/LINUX_X86_64/db_home/SAP"
@@ -682,7 +682,7 @@
       ansible.builtin.shell:           "env ORACLE_HOME=$IHRDBMS $IHRDBMS/MOPatch/mopatch.sh -v -s {{ oracle_sbp_patch }}"
       environment:
         DB_SID:                        "{{ db_sid }}"
-        CV_ASSUME_DISTID:              OL7
+        CV_ASSUME_DISTID:              "{{ CV_ASSUME_DISTID }}"
         IHRDBMS:                       /oracle/{{ db_sid | upper }}/{{ ora_version }}
         ORACLE_HOME:                   /oracle/{{ db_sid | upper }}/{{ ora_version }}
         RDBMS:                         /oracle/{{ db_sid | upper }}/{{ ora_version }}

@@ -122,11 +122,6 @@
       - "Archive:  {{ asm_alist1 }}"
       - "Recovery: {{ asm_rlist1 }}"
 
-- name:                                "ORACLE ASM: - Check UEK Kernel version"
-  ansible.builtin.set_fact:
-    is_UEK6:                           "{{ ansible_kernel is version('5.5', '<') }}"
-
-
 - name:                               "ORACLE ASM: Prepend /dev/oracleasm/disk to each of of the disk"
   ansible.builtin.set_fact:
     asm_datadisklist:     "{{ asm_dlist1 | map('regex_replace', '^(.*)$', '/dev/oracleasm/disks/\\1') | join(',') }}"
@@ -243,7 +238,7 @@
   register:                            gridinstaller_results
   failed_when:                         gridinstaller_results.rc >= 2              # installer returns rc=1 (exited with warning) by default when run is silent mode as the oratab file is created only after running the root.sh
   environment:
-    CV_ASSUME_DISTID:                  OL7
+    CV_ASSUME_DISTID:                  "{{ CV_ASSUME_DISTID }}"
     ORACLE_SID:                        "{{ db_sid | upper }}"
     ORACLE_BASE:                       /oracle/BASE
     ORACLE_HOME:                       /oracle/GRID/{{ ora_version }}
@@ -341,7 +336,7 @@
   failed_when:                         tools_installer_results.rc >= 2              # installer returns rc=1 (exited with warning) by default when run is silent mode as the oratab file is created only after running the root.sh
   environment:
     DB_SID:                            "{{ db_sid }}"
-    CV_ASSUME_DISTID:                  OL7
+    CV_ASSUME_DISTID:                  "{{ CV_ASSUME_DISTID }}"
     ORACLE_SID:                       "{{ db_sid | upper }}"
     ORACLE_BASE:                      /oracle/BASE
     ORACLE_HOME:                      /oracle/GRID/{{ ora_version }}
@@ -384,7 +379,7 @@
   register:                            arch_diskgroup_creation_results
   environment:
     DB_SID:                            "{{ db_sid | upper }}"
-    CV_ASSUME_DISTID:                  OL7
+    CV_ASSUME_DISTID:                  "{{ CV_ASSUME_DISTID }}"
   args:
     executable:                        /bin/csh
     chdir:                             "/oracle/GRID/{{ ora_version }}/bin"
@@ -399,7 +394,7 @@
   register:                            reco_diskgroup_creation_results
   environment:
     DB_SID:                            "{{ db_sid | upper }}"
-    CV_ASSUME_DISTID:                  OL7
+    CV_ASSUME_DISTID:                  "{{ CV_ASSUME_DISTID }}"
   args:
     executable:                        /bin/csh
     chdir:                             "/oracle/GRID/{{ ora_version }}/bin"
@@ -425,7 +420,7 @@
   failed_when:                        diskgroupupdate_results.rc >= 1
   environment:
     DB_SID:                           "{{ db_sid }}"
-    CV_ASSUME_DISTID:                 OL7
+    CV_ASSUME_DISTID:                 "{{ CV_ASSUME_DISTID }}"
   args:
     executable:                       /bin/csh
     chdir:                            /oracle/GRID/{{ ora_version }}/bin

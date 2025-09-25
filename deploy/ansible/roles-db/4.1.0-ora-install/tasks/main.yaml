@@ -113,7 +113,7 @@
       # changed_when:                    oraprecheck_results.rc < 3
       environment:
         DB_SID:                        "{{ db_sid | upper }}"
-        CV_ASSUME_DISTID:              OL7
+        CV_ASSUME_DISTID:              "{{ CV_ASSUME_DISTID }}"
         TMPDIR:                        "{{ tmp_directory }}/{{ sap_sid | upper }}"
 
       args:
@@ -161,7 +161,7 @@
       failed_when:                     orainstaller_results.rc >= 2              # installer returns rc=1 (exited with warning) by default when run is silent mode as the oratab file is created only after running the root.sh
       environment:
         DB_SID:                        "{{ db_sid }}"
-        CV_ASSUME_DISTID:              OL7
+        CV_ASSUME_DISTID:              "{{ CV_ASSUME_DISTID }}"
         TMPDIR:                        "{{ tmp_directory }}/{{ sap_sid | upper }}"
       args:
         executable:                    /bin/csh
@@ -205,7 +205,7 @@
         executable:                    /bin/csh
       environment:
         DB_SID:                        "{{ db_sid }}"
-        CV_ASSUME_DISTID:              OL7
+        CV_ASSUME_DISTID:              "{{ CV_ASSUME_DISTID }}"
         TMPDIR:                        "{{ tmp_directory }}/{{ sap_sid | upper }}"
 
     - name:                            "ORACLE: Debug: orainstRoot output"
@@ -236,7 +236,7 @@
         executable:                    /bin/csh
       environment:
         DB_SID:                        "{{ db_sid }}"
-        CV_ASSUME_DISTID:              OL7
+        CV_ASSUME_DISTID:              "{{ CV_ASSUME_DISTID }}"
         TMPDIR:                        "{{ tmp_directory }}/{{ sap_sid | upper }}"
 
     - name:                            "ORACLE: Debug: rootscript output"
