@@ -230,9 +230,13 @@
     mode:                              '755'
   loop:                                '{{ reco_disk_list }}'
 
-- name:                                "ErrorHandling"
+- name:                                "Oracle ASM: End play"
+  ansible.builtin.meta:                end_play
+
+- name:                                "Oracle ASM: End play"
   ansible.builtin.fail:
-    msg:                               "INSTALL:0001:Unable to find hdblcm, please check that the installation media is mounted"
+    msg:                               "ASM Disks not found, please check the prerequisites and retry."
+
 
 - name:                                "ORACLE ASM: Install Execute gridSetup.sh"
   become:                              true
