@@ -62,7 +62,7 @@ stages:
     variables:
       - template:                      variables/01-deploy-control-plane-variables.yaml
         parameters:
-          control_plane_name:          ${{ parameters.control_plane_name }}
+          control_plane_name:          ${{ parameters.deployer }}
           deployer:                    ${{ parameters.deployer }}
           environment:                 ${{ parameters.environment }}
           force_reset:                 ${{ parameters.force_reset }}
@@ -132,8 +132,8 @@ stages:
     variables:
       - template:                      variables/01-deploy-control-plane-variables.yaml
         parameters:
-          control_plane_name:          ${{ parameters.control_plane_name }}
-          deployer:                    ${{ parameters.control_plane_name }}
+          control_plane_name:          ${{ parameters.deployer }}
+          deployer:                    ${{ parameters.deployer }}
           environment:                 ${{ parameters.environment }}
           force_reset:                 ${{ parameters.force_reset }}
           library:                     ${{ parameters.library }}
@@ -183,7 +183,7 @@ stages:
     variables:
       - template:                      variables/01-deploy-control-plane-variables.yaml
         parameters:
-          control_plane_name:          ${{ parameters.control_plane_name }}
+          control_plane_name:          ${{ parameters.deployer }}
           deployer:                    ${{ parameters.deployer }}
           environment:                 ${{ parameters.environment }}
           force_reset:                 ${{ parameters.force_reset }}
@@ -259,7 +259,7 @@ stages:
     variables:
       - template:                      variables/01-deploy-control-plane-variables.yaml
         parameters:
-          control_plane_name:          ${{ parameters.control_plane_name }}
+          control_plane_name:          ${{ parameters.deployer }}
           deployer:                    ${{ parameters.deployer }}
           environment:                 ${{ parameters.environment }}
           force_reset:                 ${{ parameters.force_reset }}
