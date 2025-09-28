@@ -16,6 +16,7 @@ parameters:
   - name:                              control_plane_name
     displayName:                       "Control Plane name, use the following syntax: ENV-LOCA-VNET"
     type:                              string
+    default:                           ""
 
   - name:                              library
     displayName:                       "SAP Library configuration name, use the following syntax: ENV-LOCA-SAP_LIBRARY"
