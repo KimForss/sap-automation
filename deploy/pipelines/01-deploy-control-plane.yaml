@@ -171,7 +171,8 @@ stages:
               SAP_AUTOMATION_REPO_PATH:     ${{ parameters.sap_automation_repo_path }}
               SYSTEM_ACCESSTOKEN:           $(System.AccessToken)
               USE_MSI:                      $(Use_MSI)
-              ZONE:                         ${{ upper(parameters.control_plane_name) }}
+
+              ZONE:                         ${{ upper(replace(parameters.deployer, '-INFRASTRUCTURE', '')) }}
 
   - stage:                             Deploy_controlplane
     dependsOn:
