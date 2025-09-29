@@ -13,12 +13,19 @@ fi
 export DEBUG
 set -euo pipefail
 
+# External helper functions
+#. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 parent_directory="$(dirname "$script_directory")"
+grand_parent_directory="$(dirname "$parent_directory")"
 
-source "${parent_directory}/deploy_utils.sh"
-source "${script_directory}/helper.sh"
+#call stack has full script name when using source
+# shellcheck disable=SC1091
+source "${grand_parent_directory}/deploy_utils.sh"
+
+#call stack has full script name when using source
+source "${parent_directory}/helper.sh"
 
 app_resource_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APP_SERVICE_NAME' | project id, name, subscription" --query data[0].id --output tsv)
 {
