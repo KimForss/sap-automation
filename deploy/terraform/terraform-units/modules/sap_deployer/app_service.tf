@@ -239,7 +239,9 @@ resource "azurerm_app_service_connection" "table" {
   target_resource_id     = var.infrastructure.tfstate_resource_id
   vnet_solution          = "serviceEndpoint"
   authentication {
-    type = "userAssignedIdentity"
+    type             = "userAssignedIdentity"
+    subscription_id  = data.azurerm_client_config.deployer.subscription_id
+    client_id        = length(var.deployer.user_assigned_identity_id) > 0 ? data.azurerm_user_assigned_identity.deployer[0].client_id : azurerm_user_assigned_identity.deployer[0].client_id
   }
 }
 
@@ -252,7 +254,9 @@ resource "azurerm_app_service_connection" "blob" {
   vnet_solution          = "serviceEndpoint"
 
   authentication {
-    type = "userAssignedIdentity"
+    type             = "userAssignedIdentity"
+    subscription_id  = data.azurerm_client_config.deployer.subscription_id
+    client_id        = length(var.deployer.user_assigned_identity_id) > 0 ? data.azurerm_user_assigned_identity.deployer[0].client_id : azurerm_user_assigned_identity.deployer[0].client_id
   }
 
 }
