@@ -26,11 +26,10 @@ namespace SDAFWebApp.Services
         {
 
             string devops_authentication = Environment.GetEnvironmentVariable("AUTHENTICATION_TYPE");
-            // _configuration.GetConnectionString(_settings.ConnectionStringKey).Replace("blob", "table").Replace(".privatelink", "");
+            string accountName = _configuration.GetConnectionString(_settings.ConnectionStringKey).Replace("blob", "table").Replace(".privatelink", "");
 
-            string accountName = Environment.GetEnvironmentVariable("AZURE_STORAGETABLE_RESOURCEENDPOINT");
             string tenantId = Environment.GetEnvironmentVariable("AZURE_TENANT_ID");
-            string managedIdentityClientId = Environment.GetEnvironmentVariable("AZURE_STORAGEBLOB_CLIENTID");
+            string managedIdentityClientId = Environment.GetEnvironmentVariable("OVERRIDE_USE_MI_FIC_ASSERTION_CLIENTID");
 
             DefaultAzureCredential creds = new DefaultAzureCredential(new DefaultAzureCredentialOptions
             {
@@ -52,14 +51,15 @@ namespace SDAFWebApp.Services
 
         public async Task<BlobContainerClient> GetBlobClient(string container)
         {
-            // string accountName = _configuration.GetConnectionString(_settings.ConnectionStringKey);
-            string accountName = Environment.GetEnvironmentVariable("AZURE_STORAGETABLE_RESOURCEENDPOINT");
+            string accountName = _configuration.GetConnectionString(_settings.ConnectionStringKey);
             string devops_authentication = Environment.GetEnvironmentVariable("AUTHENTICATION_TYPE");
+            string tenantId = Environment.GetEnvironmentVariable("AZURE_TENANT_ID");
+            string managedIdentityClientId = Environment.GetEnvironmentVariable("OVERRIDE_USE_MI_FIC_ASSERTION_CLIENTID");
 
             DefaultAzureCredential creds = new DefaultAzureCredential(new DefaultAzureCredentialOptions
             {
-                TenantId = Environment.GetEnvironmentVariable("AZURE_TENANT_ID"),
-                ManagedIdentityClientId = Environment.GetEnvironmentVariable("AZURE_STORAGEBLOB_CLIENTID")
+                TenantId = tenantId,
+                ManagedIdentityClientId = managedIdentityClientId
             });
             if (devops_authentication == "PAT")
             {
