@@ -229,7 +229,7 @@ TF_VAR_tfstate_resource_id="$tfstate_resource_id"
 export TF_VAR_tfstate_resource_id
 
 if [ -z "$tfstate_resource_id" ]; then
-	echo "##vso[task.logissue type=error]Terraform state storage account resource id ('${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId') was not found in the application configuration ( '$application_configuration_name' nor was it defined in ${deployer_environment_file_name})."
+	echo "##vso[task.logissue type=error]Terraform state storage account resource id was not defined in ${deployer_environment_file_name})."
 	exit 2
 fi
 
