@@ -589,6 +589,8 @@ function New-SDAFADOProject {
           }
         }
       }
+      Write-Verbose "Creating JSON input file for service connection"
+      Write-Verbose $PostBody | ConvertTo-Json -Depth 6
       Set-Content -Path $JsonInputFile -Value ($PostBody | ConvertTo-Json -Depth 6)
 
       Write-Verbose "Creating service connection: $ConnectionName"
