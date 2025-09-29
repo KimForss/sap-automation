@@ -116,6 +116,20 @@ resource "azurerm_windows_web_app" "webapp" {
                                                   format("@Microsoft.KeyVault(SecretUri=https://%s.privatelink.vaultcore.azure.net/secrets/PAT/)", local.keyvault_names.user_access)): (
                                                   format("@Microsoft.KeyVault(SecretUri=https://%s.vault.azure.net/secrets/PAT/)", local.keyvault_names.user_access)
                                                  )
+    "AZURE_STORAGETABLE_RESOURCEENDPOINT"      = length(var.infrastructure.tfstate_storage_account_name) > 0 ? (
+                                                  var.use_private_endpoint ? (
+                                                    format("https://%s.table.core.windows.net/", var.infrastructure.tfstate_storage_account_name)) : (
+                                                    format("https://%s.table.core.windows.net/", var.infrastructure.tfstate_storage_account_name)
+                                                  )) : (
+                                                  ""
+                                                 )
+    "AZURE_STORAGEBLOB_RESOURCEENDPOINT"      = length(var.infrastructure.tfstate_storage_account_name) > 0 ? (
+                                                  var.use_private_endpoint ? (
+                                                    format("https://%s.blob.core.windows.net/", var.infrastructure.tfstate_storage_account_name)) : (
+                                                    format("https://%s.blob.core.windows.net/", var.infrastructure.tfstate_storage_account_name)
+                                                  )) : (
+                                                  ""
+                                                 )
   }
 
   sticky_settings {
@@ -212,3 +226,26 @@ resource "azurerm_app_service_virtual_network_swift_connection" "webapp_vnet_con
 #   role_definition_name = "Website Contributor"
 #   principal_id         = azurerm_user_assigned_identity.deployer.principal_id
 # }
+
+
+resource "azurerm_app_service_connection" "table" {
+  count                  = var.app_service.use && length(var.infrastructure.tfstate_resource_id) > 0 ? 1 : 0
+  name                   = "SDAF-table-connection"
+
+  app_service_id         = azurerm_windows_web_app.webapp.id
+  target_resource_id     = var.infrastructure.tfstate_resource_id
+  authentication {
+    type = "userAssignedIdentity"
+  }
+}
+
+resource "azurerm_app_service_connection" "blob" {
+  count                  = var.app_service.use && length(var.infrastructure.tfstate_resource_id) > 0 ? 1 : 0
+  name                   = "SDAF-blob-connection"
+
+  app_service_id         = azurerm_windows_web_app.webapp.id
+  target_resource_id     = var.infrastructure.tfstate_resource_id
+  authentication {
+    type = "userAssignedIdentity"
+  }
+}

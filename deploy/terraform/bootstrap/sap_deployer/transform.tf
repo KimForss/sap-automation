@@ -84,6 +84,9 @@ locals {
                                            tf_version                     = var.tf_version
                                            DevOpsInfrastructure_object_id = var.DevOpsInfrastructure_object_id
                                          }
+    tfstate_resource_id                = ""
+    tfstate_storage_account_name       = ""
+
   }
   deployer                             = {
                                            size = try(
