@@ -167,7 +167,7 @@ resource "azurerm_windows_web_app" "webapp" {
     #                                               )
     # for now set the identity type to "SystemAssigned, UserAssigned" as assigning identities
     # is not supported by the provider when type is "SystemAssigned"
-    type                                        = "SystemAssigned, UserAssigned"
+    type                                        = "UserAssigned"
     identity_ids                                = [length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].id : data.azurerm_user_assigned_identity.deployer[0].id ]
                                              }
   connection_string                          {
