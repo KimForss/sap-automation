@@ -1,11 +1,11 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-#--------------------------------------+---------------------------------------8
+# -------------------------------------+---------------------------------------8
 #                                                                              |
 # Defines the parameters and variables for the Control Plane                   |
 #                                                                              |
-#--------------------------------------+---------------------------------------8
+# -------------------------------------+---------------------------------------8
 
 parameters:
   - name:                              deployer
@@ -15,11 +15,6 @@ parameters:
   - name:                              library
     displayName:                       "SAP Library configuration name, use the following syntax: ENV-LOCA-SAP_LIBRARY"
     type:                              string
-
-  - name:                              control_plane_name
-    displayName:                       "Environment name, MGMT, DEV, QA, etc"
-    type:                              string
-    default:                           MGMT
 
   - name:                              environment
     displayName:                       "Environment name, MGMT, DEV, QA, etc"
@@ -55,7 +50,7 @@ parameters:
 variables:
   - group:                             "SDAF-General"
 
-  - group:                             SDAF-${{ parameters.control_plane_name }}
+  - group:                             SDAF-${{ replace(parameters.deployer, '-INFRASTRUCTURE', '') }}
 
   - name:                              run_on
     value:                             $[replace(replace('True',eq(${{ parameters.use_deployer }}, 'True'), variables['POOL']),'True',variables['AGENT'])]
@@ -64,7 +59,7 @@ variables:
     value:                             SDAF-${{ parameters.environment }}
 
   - name:                              variable_group_control_plane
-    value:                             SDAF-${{ parameters.control_plane_name }}
+    value:                             SDAF-${{ replace(parameters.deployer, '-INFRASTRUCTURE', '') }}
 
   - name:                              use_webapp
     value:                             ${{ lower(parameters.use_webapp_param) }}
