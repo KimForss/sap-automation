@@ -237,7 +237,7 @@ resource "azurerm_app_service_connection" "table" {
 
   app_service_id         = azurerm_windows_web_app.webapp[0].id
   target_resource_id     = var.infrastructure.tfstate_resource_id
-  vnet_solution          = "serviceEndpoint"
+  vnet_solution          = "privateLink"
   authentication {
     type             = "userAssignedIdentity"
     subscription_id  = data.azurerm_client_config.deployer.subscription_id
@@ -251,7 +251,7 @@ resource "azurerm_app_service_connection" "blob" {
 
   app_service_id         = azurerm_windows_web_app.webapp[0].id
   target_resource_id     = var.infrastructure.tfstate_resource_id
-  vnet_solution          = "serviceEndpoint"
+  vnet_solution          = "privateLink"
 
   authentication {
     type             = "userAssignedIdentity"
