@@ -2023,33 +2023,6 @@ function New-SDAFADOWorkloadZone {
 
       if ($AuthenticationMethod -eq "Managed Identity") {
 
-        if ($ManagedIdentityObjectId.Length -eQ 0) {
-
-          $Title = "Choose the subscription that contains the Managed Identity"
-          $subscriptions = $(az account list --query "[].{Name:name}" -o table | Sort-Object)
-          Show-Menu($subscriptions[2..($subscriptions.Length - 1)])
-          $selection = Read-Host $Title
-
-          $selectionOffset = [convert]::ToInt32($selection, 10) + 1
-
-          $subscription = $subscriptions[$selectionOffset]
-          Write-Host "Using subscription:" $subscription
-
-          $Title = "Choose the Managed Identity"
-          $identities = $(az identity list --query "[].{Name:name}" --subscription $subscription --output table | Sort-Object)
-          Show-Menu($identities[2..($identities.Length - 1)])
-          $selection = Read-Host $Title
-          $selectionOffset = [convert]::ToInt32($selection, 10) + 1
-
-          $identity = $identities[$selectionOffset]
-          Write-Host "Using Managed Identity:" $identity
-
-          $id = $(az identity list --query "[?name=='$identity'].id" --subscription $subscription --output tsv)
-          $ManagedIdentityClientId = $(az identity show --ids $id --query "principalId" --output tsv)
-        }
-        else {
-          $ManagedIdentityClientId = $(az identity show --ids $ManagedIdentityObjectId --query "principalId" --output tsv)
-        }
         $ServiceEndpointExists = (az devops service-endpoint list --query "[?name=='$ServiceConnectionName'].name | [0]"  --out tsv)
         if ($ServiceEndpointExists.Length -eq 0) {
           CreateServiceConnection -ConnectionName $ServiceConnectionName `
