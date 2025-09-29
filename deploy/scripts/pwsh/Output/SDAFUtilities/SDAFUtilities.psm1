@@ -2048,7 +2048,7 @@ function New-SDAFADOWorkloadZone {
         else {
           $ManagedIdentityClientId = $(az identity show --ids $ManagedIdentityObjectId --query "principalId" --output tsv)
         }
-        $ServiceEndpointExists = (az devops.service-endpoint list --query "[?name=='$ServiceConnectionName'].name | [0]"  --out tsv)
+        $ServiceEndpointExists = (az devops service-endpoint list --query "[?name=='$ServiceConnectionName'].name | [0]"  --out tsv)
         if ($ServiceEndpointExists.Length -eq 0) {
           CreateServiceConnection -ConnectionName $ServiceConnectionName `
             -ServiceConnectionDescription "$WorkloadZoneCode Service Connection" `
