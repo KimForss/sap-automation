@@ -353,7 +353,7 @@ stages:
               printf "Configure the Web Application authentication using the following script.\n" >"$(Build.Repository.LocalPath)/Web Application Configuration.md"
               printf "\n\n" >>"$(Build.Repository.LocalPath)/Web Application Configuration.md"
 
-              printf "az ad app update --id %s --web-home-page-url https://%s.azurewebsites.net --web-redirect-uris https://%s.azurewebsites.net/ https://%s.azurewebsites.net/.auth/login/aad/callback\n\n" "$(APP_REGISTRATION_APP_ID)" "$(WEBAPP_URL_BASE)" "$(WEBAPP_URL_BASE)" "$(WEBAPP_URL_BASE)" >>"$(Build.Repository.LocalPath)/Web Application Configuration.md"
+              printf "az ad app update --id %s --web-home-page-url https://%s.azurewebsites.net --web-redirect-uris https://%s.azurewebsites.net/ https://%s.azurewebsites.net/.auth/login/aad/callback\n\n" "$APP_REGISTRATION_APP_ID" "$APP_SERVICE_NAME" "$APP_SERVICE_NAME" "$APP_SERVICE_NAME" >>"$(Build.Repository.LocalPath)/Web Application Configuration.md"
 
               printf "\n" >>"$(Build.Repository.LocalPath)/Web Application Configuration.md"
               printf "az role assignment create --assignee %s --role reader --subscription %s --scope /subscriptions/%s\n" "$ARM_OBJECT_ID" "$ARM_SUBSCRIPTION_ID" "$ARM_SUBSCRIPTION_ID" >>"$(Build.Repository.LocalPath)/Web Application Configuration.md"
@@ -365,7 +365,7 @@ stages:
 
               printf "\n" >>"$(Build.Repository.LocalPath)/Web Application Configuration.md"
 
-              printf "az rest --method POST --uri \"https://graph.microsoft.com/beta/applications/%s/federatedIdentityCredentials\" --body \"{'name': 'ManagedIdentityFederation', 'issuer': 'https://login.microsoftonline.com/%s/v2.0', 'subject': '%s', 'audiences': [ 'api://AzureADTokenExchange' ]}\"" $(APP_REGISTRATION_OBJECTID) $(APP_TENANT_ID) $(MSI_ID) >>"$(Build.Repository.LocalPath)/Web Application Configuration.md"
+              printf "az rest --method POST --uri \"https://graph.microsoft.com/beta/applications/%s/federatedIdentityCredentials\" --body \"{'name': 'ManagedIdentityFederation', 'issuer': 'https://login.microsoftonline.com/%s/v2.0', 'subject': '%s', 'audiences': [ 'api://AzureADTokenExchange' ]}\"" $WEBAPP_IDENTITY $ARM_TENANT_ID $ARM_OBJECT_ID >>"$(Build.Repository.LocalPath)/Web Application Configuration.md"
               printf "\n" >>"$(Build.Repository.LocalPath)/Web Application Configuration.md"
 
               printf "az webapp restart --ids %s\n\n $(WEBAPP_ID)" >>"$(Build.Repository.LocalPath)/Web Application Configuration.md"
@@ -379,8 +379,10 @@ stages:
             displayName: "Documentation"
             env:
               ARM_SUBSCRIPTION_ID:     $(ARM_SUBSCRIPTION_ID)
+              ARM_TENANT_ID:           $(ARM_TENANT_ID)
+              ARM_OBJECT_ID:           $(ARM_OBJECT_ID)
               SYSTEM_PIPELINE_ID:      $(SYSTEM_PIPELINE_ID)
               APP_REGISTRATION_APP_ID: $(APP_REGISTRATION_APP_ID)
-              WEBAPP_URL_BASE:         $(WEBAPP_URL_BASE)
+              APP_SERVICE_NAME:        $(APP_SERVICE_NAME)
               WEBAPP_ID:               $(WEBAPP_ID)
-              WEBAPP_IDENTITY:         $(ARM_OBJECT_ID)
+              WEBAPP_IDENTITY:         $(APP_REGISTRATION_OBJECTID)
