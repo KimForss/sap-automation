@@ -116,23 +116,6 @@ resource "azurerm_windows_web_app" "webapp" {
                                                   format("@Microsoft.KeyVault(SecretUri=https://%s.privatelink.vaultcore.azure.net/secrets/PAT/)", local.keyvault_names.user_access)): (
                                                   format("@Microsoft.KeyVault(SecretUri=https://%s.vault.azure.net/secrets/PAT/)", local.keyvault_names.user_access)
                                                  )
-    "AZURE_STORAGETABLE_RESOURCEENDPOINT"      = length(var.infrastructure.tfstate_storage_account_name) > 0 ? (
-                                                  var.use_private_endpoint ? (
-                                                    format("https://%s.table.core.windows.net/", var.infrastructure.tfstate_storage_account_name)) : (
-                                                    format("https://%s.table.core.windows.net/", var.infrastructure.tfstate_storage_account_name)
-                                                  )) : (
-                                                  ""
-                                                 )
-    "AZURE_STORAGEBLOB_RESOURCEENDPOINT"      = length(var.infrastructure.tfstate_storage_account_name) > 0 ? (
-                                                  var.use_private_endpoint ? (
-                                                    format("https://%s.blob.core.windows.net/", var.infrastructure.tfstate_storage_account_name)) : (
-                                                    format("https://%s.blob.core.windows.net/", var.infrastructure.tfstate_storage_account_name)
-                                                  )) : (
-                                                  ""
-                                                 )
-
-    "AZURE_STORAGETABLE_CLIENTID"             = length(var.deployer.user_assigned_identity_id) > 0 ? data.azurerm_user_assigned_identity.deployer[0].client_id : azurerm_user_assigned_identity.deployer[0].client_id
-    "AZURE_STORAGEBLOB_CLIENTID"              = length(var.deployer.user_assigned_identity_id) > 0 ? data.azurerm_user_assigned_identity.deployer[0].client_id : azurerm_user_assigned_identity.deployer[0].client_id
   }
 
   sticky_settings {
