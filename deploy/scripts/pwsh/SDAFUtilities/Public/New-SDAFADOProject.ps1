@@ -88,8 +88,6 @@ function New-SDAFADOProject {
     [string]$TenantId,
 
     [Parameter(Mandatory = $true, HelpMessage = "Control plane code (e.g., MGMT)")]
-    [ValidateLength(2, 8)]
-    [ValidatePattern('^[A-Z0-9]+$')]
     [string]$ControlPlaneCode,
 
     [Parameter(Mandatory = $true, HelpMessage = "Control plane subscription ID")]
@@ -627,7 +625,7 @@ resources:
       Write-Verbose "Initializing variables from parameters"
       $ArmTenantId = $TenantId
       $ControlPlaneSubscriptionIdInternal = $ControlPlaneSubscriptionId
-      $VersionLabel = "v3.16.0.2"
+      $VersionLabel = "v3.16.0.3"
       Write-Verbose "Version label set to: $VersionLabel"
 
       # Set path separator based on OS
