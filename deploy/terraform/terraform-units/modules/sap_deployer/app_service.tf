@@ -232,7 +232,7 @@ resource "azurerm_app_service_connection" "table" {
   count                  = var.app_service.use && length(var.infrastructure.tfstate_resource_id) > 0 ? 1 : 0
   name                   = "SDAF-table-connection"
 
-  app_service_id         = azurerm_windows_web_app[0].webapp.id
+  app_service_id         = azurerm_windows_web_app.webapp[0].id
   target_resource_id     = var.infrastructure.tfstate_resource_id
   vnet_solution          = "serviceEndpoint"
   authentication {
@@ -244,7 +244,7 @@ resource "azurerm_app_service_connection" "blob" {
   count                  = var.app_service.use && length(var.infrastructure.tfstate_resource_id) > 0 ? 1 : 0
   name                   = "SDAF-blob-connection"
 
-  app_service_id         = azurerm_windows_web_app[0].webapp.id
+  app_service_id         = azurerm_windows_web_app.webapp[0].id
   target_resource_id     = var.infrastructure.tfstate_resource_id
   vnet_solution          = "serviceEndpoint"
 
