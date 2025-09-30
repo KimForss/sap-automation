@@ -117,7 +117,7 @@ resource "azurerm_windows_web_app" "webapp" {
                                                   format("@Microsoft.KeyVault(SecretUri=https://%s.vault.azure.net/secrets/PAT/)", local.keyvault_names.user_access)
                                                  )
     "CONTROLPLANE_ENV"                        = var.infrastructure.environment
-    "CONTROLPLANE_LOC"                        = var.infrastructure.region_code
+    "CONTROLPLANE_LOC"                        = var.naming_new.location_short
     "CONTROL_PLANE_NAME"                      = upper(format("%s-%s-%s", var.infrastructure.environment, var.naming_new.location_short, var.infrastructure.virtual_network.logical_name))
   }
 
