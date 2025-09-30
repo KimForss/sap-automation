@@ -13,7 +13,7 @@ parameters:
     type:                              string
     default:                           DEV-WEEU-SAP01-X00
 
-  - name:                              workload_zone_name
+  - name:                              environment
     displayName:                       Workload Zone Name (DEV-WEEU-SAP01-X00)
     type:                              string
     default:                           DEV
@@ -37,7 +37,7 @@ stages:
       - template:                      variables/03-sap-system-deployment-variables.yaml
         parameters:
           sap_system:                  ${{ parameters.sap_system }}
-          workload_zone_name:          ${{ parameters.workload_zone_name }}
+          environment:                 ${{ parameters.environment }}
           test:                        ${{ parameters.test }}
     displayName:                       Deploy SAP infrastructure
     jobs:
@@ -69,7 +69,7 @@ stages:
               CONFIG_REPO_PATH:                ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
               DEPLOYER_KEYVAULT:               $(DEPLOYER_KEYVAULT)
               KEYVAULT:                        $(KEYVAULT)
-              TERRAFORM_STATE_STORAGE_ACCOUNT: $(TERRAFORM_STATE_STORAGE_ACCOUNT)
+              TERRAFORM_STATE_STORAGE_ACCOUNT: $(TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME)
               LOGON_USING_SPN:                 $(Logon_Using_SPN)
               SAP_AUTOMATION_REPO_PATH:        ${{ parameters.sap_automation_repo_path }}
               SYSTEM_ACCESSTOKEN:              $(System.AccessToken)

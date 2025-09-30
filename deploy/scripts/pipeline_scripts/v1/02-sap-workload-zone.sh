@@ -235,6 +235,7 @@ fi
 
 terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 5)
 terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d '/' -f 3)
+saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION" "$terraform_storage_account_subscription_id"
 
 export terraform_storage_account_name
 export terraform_storage_account_resource_group_name
@@ -276,7 +277,7 @@ fi
 
 if [ -n "$terraform_storage_account_name" ]; then
 	echo -e "$green--- Adding variables to the variable group: $VARIABLE_GROUP ---$reset"
-	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "TERRAFORM_STATE_STORAGE_ACCOUNT" "$terraform_storage_account_name"
+	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME" "$terraform_storage_account_name"
 fi
 
 set +o errexit
