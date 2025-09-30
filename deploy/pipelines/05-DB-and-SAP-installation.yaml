@@ -200,7 +200,7 @@ stages:
               AZURE_DEVOPS_EXT_PAT:           $(System.AccessToken)
               BOM_BASE_NAME:                  ${{ parameters.bom_base_name }}
               CONFIG_REPO_PATH:               ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
-              CONTROL_PLANE_SUBSCRIPTION_ID:  $(Terraform_Remote_Storage_Subscription)
+              CONTROL_PLANE_SUBSCRIPTION_ID:  $(TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION)
               EXTRA_PARAMETERS:               $(EXTRA_PARAMETERS)
               KEYVAULT:                       $(KEYVAULT)
               PIPELINE_EXTRA_PARAMETERS:      ${{ parameters.extra_params }}
@@ -227,7 +227,7 @@ stages:
               azureSubscriptionId:            $(ARM_SUBSCRIPTION_ID)
               USE_MSI:                        $(USE_MSI)
               remoteStateStorageAccount:      $(TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME)
-              controlPlaneSubscriptionId:     $(Terraform_Remote_Storage_Subscription)
+              controlPlaneSubscriptionId:     $(TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION)
           - ${{ if eq(parameters.base_os_configuration, true) }}:
               - template:                     templates\run-ansible.yaml
                 parameters:
@@ -248,7 +248,7 @@ stages:
                   azureSubscriptionId:        $(Preparation.ARM_SUBSCRIPTION_ID)
                   USE_MSI:                    $(USE_MSI)
                   remoteStateStorageAccount:  $(TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME)
-                  controlPlaneSubscriptionId: $(Terraform_Remote_Storage_Subscription)
+                  controlPlaneSubscriptionId: $(TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION)
           - ${{ if eq(parameters.sap_os_configuration, true) }}:
               - template:                     templates\run-ansible.yaml
                 parameters:
@@ -269,7 +269,7 @@ stages:
                   azureSubscriptionId:        $(ARM_SUBSCRIPTION_ID)
                   USE_MSI:                    $(USE_MSI)
                   remoteStateStorageAccount:  $(TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME)
-                  controlPlaneSubscriptionId: $(Terraform_Remote_Storage_Subscription)
+                  controlPlaneSubscriptionId: $(TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION)
           - ${{ if eq(parameters.bom_processing, true) }}:
               - template:                     templates\run-ansible.yaml
                 parameters:
@@ -290,7 +290,7 @@ stages:
                   azureSubscriptionId:        $(ARM_SUBSCRIPTION_ID)
                   USE_MSI:                    $(USE_MSI)
                   remoteStateStorageAccount:  $(TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME)
-                  controlPlaneSubscriptionId: $(Terraform_Remote_Storage_Subscription)
+                  controlPlaneSubscriptionId: $(TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION)
           - ${{ if eq(parameters.scs_installation, true) }}:
               - template:                     templates\run-ansible.yaml
                 parameters:
@@ -311,7 +311,7 @@ stages:
                   azureSubscriptionId:        $(ARM_SUBSCRIPTION_ID)
                   USE_MSI:                    $(USE_MSI)
                   remoteStateStorageAccount:  $(TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME)
-                  controlPlaneSubscriptionId: $(Terraform_Remote_Storage_Subscription)
+                  controlPlaneSubscriptionId: $(TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION)
           - ${{ if eq(parameters.database_install, true) }}:
               - template:                     templates\run-ansible.yaml
                 parameters:
@@ -332,7 +332,7 @@ stages:
                   azureSubscriptionId:        $(ARM_SUBSCRIPTION_ID)
                   USE_MSI:                    $(USE_MSI)
                   remoteStateStorageAccount:  $(TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME)
-                  controlPlaneSubscriptionId: $(Terraform_Remote_Storage_Subscription)
+                  controlPlaneSubscriptionId: $(TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION)
           - ${{ if eq(parameters.db_load, true) }}:
               - template:                     templates\run-ansible.yaml
                 parameters:
@@ -353,7 +353,7 @@ stages:
                   azureSubscriptionId:        $(Preparation.ARM_SUBSCRIPTION_ID)
                   USE_MSI:                    $(USE_MSI)
                   remoteStateStorageAccount:  $(TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME)
-                  controlPlaneSubscriptionId: $(Terraform_Remote_Storage_Subscription)
+                  controlPlaneSubscriptionId: $(TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION)
           - ${{ if eq(parameters.high_availability_configuration, true) }}:
               - template:                     templates\run-ansible.yaml
                 parameters:
@@ -374,7 +374,7 @@ stages:
                   azureSubscriptionId:        $(ARM_SUBSCRIPTION_ID)
                   USE_MSI:                    $(USE_MSI)
                   remoteStateStorageAccount:  $(TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME)
-                  controlPlaneSubscriptionId: $(Terraform_Remote_Storage_Subscription)
+                  controlPlaneSubscriptionId: $(TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION)
           - ${{ if eq(parameters.pas_installation, true) }}:
               - template:                     templates\run-ansible.yaml
                 parameters:
@@ -395,7 +395,7 @@ stages:
                   azureSubscriptionId:        $(ARM_SUBSCRIPTION_ID)
                   USE_MSI:                    $(USE_MSI)
                   remoteStateStorageAccount:  $(TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME)
-                  controlPlaneSubscriptionId: $(Terraform_Remote_Storage_Subscription)
+                  controlPlaneSubscriptionId: $(TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION)
           - ${{ if eq(parameters.application_server_installation, true) }}:
               - template:                     templates\run-ansible.yaml
                 parameters:
@@ -416,7 +416,7 @@ stages:
                   azureSubscriptionId:        $(ARM_SUBSCRIPTION_ID)
                   USE_MSI:                    $(USE_MSI)
                   remoteStateStorageAccount:  $(TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME)
-                  controlPlaneSubscriptionId: $(Terraform_Remote_Storage_Subscription)
+                  controlPlaneSubscriptionId: $(TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION)
           - ${{ if eq(parameters.webdispatcher_installation, true) }}:
               - template:                     templates\run-ansible.yaml
                 parameters:
@@ -437,7 +437,7 @@ stages:
                   azureSubscriptionId:        $(ARM_SUBSCRIPTION_ID)
                   USE_MSI:                    $(USE_MSI)
                   remoteStateStorageAccount:  $(TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME)
-                  controlPlaneSubscriptionId: $(Terraform_Remote_Storage_Subscription)
+                  controlPlaneSubscriptionId: $(TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION)
           - ${{ if eq(parameters.post_configuration_actions, true) }}:
               - template:                     templates\run-ansible.yaml
                 parameters:
@@ -458,7 +458,7 @@ stages:
                   azureSubscriptionId:        $(ARM_SUBSCRIPTION_ID)
                   USE_MSI:                    $(USE_MSI)
                   remoteStateStorageAccount:  $(TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME)
-                  controlPlaneSubscriptionId: $(Terraform_Remote_Storage_Subscription)
+                  controlPlaneSubscriptionId: $(TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION)
           - ${{ if eq(parameters.sap_on_azure_quality_checks, true) }}:
               - template:                     templates\run-ansible.yaml
                 parameters:
@@ -479,7 +479,7 @@ stages:
                   azureSubscriptionId:        $(ARM_SUBSCRIPTION_ID)
                   USE_MSI:                    $(USE_MSI)
                   remoteStateStorageAccount:  $(TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME)
-                  controlPlaneSubscriptionId: $(Terraform_Remote_Storage_Subscription)
+                  controlPlaneSubscriptionId: $(TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION)
           - ${{ if eq(parameters.acss_registration, true) }}:
               - template:                     templates\acss-registration.yaml
                 parameters:
@@ -502,7 +502,7 @@ stages:
                   acssSapProduct:             ${{ parameters.acss_sap_product }}
                   USE_MSI:                    $(USE_MSI)
                   remoteStateStorageAccount:  $(TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME)
-                  controlPlaneSubscriptionId: $(Terraform_Remote_Storage_Subscription)
+                  controlPlaneSubscriptionId: $(TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION)
           - ${{ if eq(parameters.ams_provider, true) }}:
               - template:                     templates\run-ansible.yaml
                 parameters:
@@ -522,7 +522,7 @@ stages:
                   azureTenantId:              $(ARM_TENANT_ID)
                   azureSubscriptionId:        $(ARM_SUBSCRIPTION_ID)
                   remoteStateStorageAccount:  $(TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME)
-                  controlPlaneSubscriptionId: $(Terraform_Remote_Storage_Subscription)
+                  controlPlaneSubscriptionId: $(TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION)
           - template:                         templates\collect-log-files.yaml
             parameters:
               logPath:                        ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/logs

@@ -235,6 +235,7 @@ fi
 
 terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 5)
 terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d '/' -f 3)
+saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION" "$terraform_storage_account_subscription_id"
 
 export terraform_storage_account_name
 export terraform_storage_account_resource_group_name
