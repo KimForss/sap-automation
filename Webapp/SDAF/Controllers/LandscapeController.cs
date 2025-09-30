@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Net.Http.Headers;
+using Microsoft.TeamFoundation.Common;
 using Newtonsoft.Json;
 using SDAFWebApp.Models;
 using SDAFWebApp.Services;
@@ -30,6 +31,8 @@ namespace SDAFWebApp.Controllers
         private Dictionary<string, Image> imageMapping;
         private readonly string sdafControlPlaneEnvironment;
         private readonly string sdafControlPlaneLocation;
+        private readonly string sdafControlPlaneName;
+
 
         public LandscapeController(ITableStorageService<LandscapeEntity> landscapeService, ITableStorageService<AppFile> appFileService, IConfiguration configuration)
         {
@@ -42,6 +45,7 @@ namespace SDAFWebApp.Controllers
             InitializeImageOptionsAndMapping();
             sdafControlPlaneEnvironment = configuration["CONTROLPLANE_ENV"];
             sdafControlPlaneLocation = configuration["CONTROLPLANE_LOC"];
+            sdafControlPlaneName = configuration["CONTROL_PLANE_NAME"];
         }
         private FormViewModel<LandscapeModel> SetViewData()
         {
@@ -194,6 +198,11 @@ namespace SDAFWebApp.Controllers
                     landscape.LastModified = currentDateAndTime.ToShortDateString();
                     landscape.subscription_id = landscape.subscription.Replace("/subscriptions/", "");
 
+                    if(landscape.environment.IsNullOrEmpty() && !landscape.workload_zone.IsNullOrEmpty())
+                    {
+                        landscape.environment=landscape.workload_zone.Split('-')[0];
+                    }
+                                            
                     await _landscapeService.CreateAsync(new LandscapeEntity(landscape));
                     TempData["success"] = "Successfully created workload zone " + landscape.Id;
                     string id = landscape.Id;
@@ -223,6 +232,7 @@ namespace SDAFWebApp.Controllers
                 LandscapeModel landscape = await GetById(id, partitionKey);
                 landscape.controlPlaneEnvironment = sdafControlPlaneEnvironment;
                 landscape.controlPlaneLocation = sdafControlPlaneLocation;
+                landscape.controlPlaneName = sdafControlPlaneName;
                 landscapeView.SapObject = landscape;
 
                 List<SelectListItem> environments = restHelper.GetEnvironmentsList().Result;
@@ -248,6 +258,11 @@ namespace SDAFWebApp.Controllers
 
                 string path = $"/LANDSCAPE/{id}/{id}.tfvars";
                 landscape.subscription_id = landscape.subscription.Replace("/subscriptions/", "");
+                if (landscape.environment.IsNullOrEmpty() && !landscape.workload_zone.IsNullOrEmpty())
+                {
+                    landscape.environment = landscape.workload_zone.Split('-')[0];
+                }
+
                 string content = Helper.ConvertToTerraform(landscape);
 
                 await restHelper.UpdateRepo(path, content);
@@ -316,6 +331,11 @@ namespace SDAFWebApp.Controllers
             {
                 ActionResult<LandscapeModel> result = await GetById(id, partitionKey);
                 LandscapeModel landscape = result.Value;
+                if (landscape.environment.IsNullOrEmpty() && !landscape.workload_zone.IsNullOrEmpty())
+                {
+                    landscape.environment = landscape.workload_zone.Split('-')[0];
+                }
+
                 landscapeView.SapObject = landscape;
                 ViewBag.ValidImageOptions = (imagesOffered.Length != 0);
                 ViewBag.ImageOptions = imageOptions;
@@ -369,6 +389,11 @@ namespace SDAFWebApp.Controllers
                         }
                         DateTime currentDateAndTime = DateTime.Now;
                         landscape.LastModified = currentDateAndTime.ToShortDateString();
+                        if (landscape.environment.IsNullOrEmpty() && !landscape.workload_zone.IsNullOrEmpty())
+                        {
+                            landscape.environment = landscape.workload_zone.Split('-')[0];
+                        }
+
 
                         await _landscapeService.UpdateAsync(new LandscapeEntity(landscape));
                         TempData["success"] = "Successfully updated workload zone " + landscape.Id;

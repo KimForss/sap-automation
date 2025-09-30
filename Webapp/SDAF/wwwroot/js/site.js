@@ -275,7 +275,7 @@ function updateAndSetDropdowns(dropdown) {
 
 // populate environment dropdown with values from ADO if pipeline deployment
 function getEnvironmentsFromAdo(isPipelineDeployment) {
-    var id = "environment";
+    var id = "workload";
     if (isPipelineDeployment) {
         $.ajax({
             type: "GET",
@@ -597,30 +597,30 @@ $("#network_arm_id").on("change", function () {
 });
 
 $("#workload_zone").on("change", function () {
-    var workloadzoneid = $(this).val();
-    if (workloadzoneid) {
-        var confirmMessage = "Are you sure? Selecting this value will populate certain inputs with values from the workload zone: " + workloadzoneid;
-        if (confirm(confirmMessage)) {
-            $.ajax({
-                type: "GET",
-                url: "/Landscape/GetByIdJson",
-                data: {
-                    id: workloadzoneid,
-                },
-                success: function (data) {
-                    entireLandscape = JSON.parse(data);
-                    partialLandscape = {};
-                    partialLandscape["location"] = entireLandscape["location"];
-                    partialLandscape["environment"] = entireLandscape["environment"];
-                    partialLandscape["network_logical_name"] = entireLandscape["network_logical_name"];
-                    updateModel(partialLandscape);
-                },
-                error: function () { alert("Error populating data for given workload zone"); }
-            });
-        } else {
-            $("#workload_zone").val(null);
-        }
+  var workloadzoneid = $(this).val();
+  if (workloadzoneid) {
+    var confirmMessage = "Are you sure? Selecting this value will populate certain inputs with values from the workload zone: " + workloadzoneid;
+    if (confirm(confirmMessage)) {
+      $.ajax({
+        type: "GET",
+        url: "/Landscape/GetByIdJson",
+        data: {
+          id: workloadzoneid,
+        },
+        success: function (data) {
+          entireSystem = JSON.parse(data);
+          partialSystem = {};
+          partialSystem["location"] = entireLandscape["location"];
+          partialSystem["environment"] = entireLandscape["environment"];
+          partialSystem["network_logical_name"] = entireLandscape["network_logical_name"];
+          updateModel(partialSystem);
+        },
+        error: function () { alert("Error populating data for given workload zone"); }
+      });
+    } else {
+      $("#workload_zone").val(null);
     }
+  }
 });
 
 $("#database_platform").on("change", function () {

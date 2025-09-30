@@ -15,6 +15,7 @@ using System.IO;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.TeamFoundation.Common;
 
 namespace SDAFWebApp.Controllers
 {
@@ -287,7 +288,10 @@ namespace SDAFWebApp.Controllers
                 }
 
                 string path = $"/SYSTEM/{id}/{id}.tfvars";
-                system.subscription_id = system.subscription.Replace("/subscriptions/", "");
+                if (!system.subscription.IsNullOrEmpty())
+                {
+                    system.subscription_id = system.subscription.Replace("/subscriptions/", "");
+                }
                 string content = Helper.ConvertToTerraform(system);
 
                 await restHelper.UpdateRepo(path, content);

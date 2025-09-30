@@ -34,6 +34,11 @@ namespace SDAFWebApp.Models
         |                                                                            |
         +------------------------------------4--------------------------------------*/
 
+
+        [RequiredIfNotDefault]
+        [DisplayName("Workload zone")]
+        public string workload_zone { get; set; }
+
         [RequiredIfNotDefault]
         [DisplayName("Environment")]
         public string environment { get; set; }
@@ -53,10 +58,11 @@ namespace SDAFWebApp.Models
 
         public string controlPlaneLocation { get; set; }
 
+        public string controlPlaneName { get; set; }
+
         public Tag[] tags { get; set; }
 
-
-        public bool? deploy_monitoring_extension { get; set; } = true;
+        public bool? deploy_monitoring_extension { get; set; } = false;
 
         public bool? deploy_defender_extension { get; set; } = false;
 
@@ -250,7 +256,7 @@ namespace SDAFWebApp.Models
 
         public bool? enable_firewall_for_keyvaults_and_storage { get; set; } = true;
 
-        public bool? public_network_access_enabled { get; set; } = true;
+        public bool? public_network_access_enabled { get; set; } = false;
 
         public bool? ANF_use_existing_pool { get; set; }
 
@@ -326,7 +332,7 @@ namespace SDAFWebApp.Models
         [GuidValidator]
         public string[] additional_users_to_add_to_keyvault_policies { get; set; }
 
-        public bool? enable_rbac_authorization_for_keyvault { get; set; } = false;
+        public bool? enable_rbac_authorization_for_keyvault { get; set; } = true;
 
         public int? soft_delete_retention_days { get; set; } = 14;
 
@@ -376,13 +382,11 @@ namespace SDAFWebApp.Models
 
         public bool? shared_access_key_enabled { get; set; } = false;
 
-        public bool? shared_access_key_enabled_nfs { get; set; } = true;
+        public bool? shared_access_key_enabled_nfs { get; set; } = false;
 
         public bool? install_always_create_fileshares { get; set; } = true;
 
         public bool? install_create_smb_shares { get; set; } = true;
-
-
 
         /*---------------------------------------------------------------------------8
         |                                                                            |
@@ -434,6 +438,7 @@ namespace SDAFWebApp.Models
         public Image iscsi_image { get; set; }
 
         public string iscsi_authentication_type { get; set; } = "key";
+
         public string iscsi_authentication_username { get; set; } = "azureadm";
 
         public string[] iscsi_vm_zones { get; set; }

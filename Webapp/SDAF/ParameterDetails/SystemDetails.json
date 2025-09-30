@@ -61,33 +61,8 @@
         "Name": "environment",
         "Required": true,
         "Description": "Identifier for the workload zone, used for partitioning the environments. For example 'DEV', 'QA', 'PROD', 'TEST', etc.",
-        "Type": "lookup",
-        "Options": [
-          {
-            "Text": "Select an environment...",
-            "Value": ""
-          },
-          {
-            "Text": "Development",
-            "Value": "DEV"
-          },
-          {
-            "Text": "Sandbox",
-            "Value": "SND"
-          },
-          {
-            "Text": "Prototype",
-            "Value": "PROTO"
-          },
-          {
-            "Text": "Non Production",
-            "Value": "NP"
-          },
-          {
-            "Text": "Production",
-            "Value": "PROD"
-          }
-        ],
+        "Type": "textbox",
+        "Options": [],
         "Overrules": "",
         "Display": 1
       },

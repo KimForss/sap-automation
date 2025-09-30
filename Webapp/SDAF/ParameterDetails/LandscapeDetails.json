@@ -34,11 +34,11 @@
     ]
   },
   {
-    "Section": "Environment",
+    "Section": "Workload zone",
     "Link": "https://learn.microsoft.com/en-us/azure/sap/automation/automation-configure-workload-zone#environment-parameters",
     "Parameters": [
       {
-        "Name": "environment",
+        "Name": "workload_zone",
         "Required": true,
         "Description": "Identifier for the workload zone, used for partitioning the environments. For example 'DEV', 'QA', 'PROD', 'TEST', etc.",
         "Type": "lookup",
@@ -68,6 +68,15 @@
             "Value": "PROD"
           }
         ],
+        "Overrules": "",
+        "Display": 1
+      },
+      {
+        "Name": "environment",
+        "Required": false,
+        "Description": "The name of the environment.",
+        "Type": "textbox",
+        "Options": [],
         "Overrules": "",
         "Display": 1
       },
