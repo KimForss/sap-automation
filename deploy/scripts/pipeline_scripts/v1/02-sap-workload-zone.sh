@@ -276,7 +276,7 @@ fi
 
 if [ -n "$terraform_storage_account_name" ]; then
 	echo -e "$green--- Adding variables to the variable group: $VARIABLE_GROUP ---$reset"
-	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "TERRAFORM_STATE_STORAGE_ACCOUNT" "$terraform_storage_account_name"
+	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME" "$terraform_storage_account_name"
 fi
 
 set +o errexit

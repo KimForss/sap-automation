@@ -75,17 +75,12 @@ else
 	fi
 fi
 
-variableGroupName="$VARIABLE_GROUP_WORKLOAD"
+variableGroupName="$VARIABLE_GROUP"
 
 if ! get_variable_group_id "$variableGroupName" "VARIABLE_GROUP_ID"; then
-	echo -e "$cyan--- Variable group $variableGroupName not found ---$reset"
-	variableGroupName="$VARIABLE_GROUP"
-
-	if ! get_variable_group_id "$variableGroupName" "VARIABLE_GROUP_ID"; then
-		echo -e "$bold_red--- Variable group $variableGroupName not found ---$reset"
-		echo "##vso[task.logissue type=error]Variable group $variableGroupName not found."
-		exit 2
-	fi
+	echo -e "$bold_red--- Variable group $variableGroupName not found ---$reset"
+	echo "##vso[task.logissue type=error]Variable group $variableGroupName not found."
+	exit 2
 
 fi
 export VARIABLE_GROUP_ID
