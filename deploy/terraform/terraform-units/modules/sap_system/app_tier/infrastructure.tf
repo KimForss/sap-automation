@@ -215,7 +215,7 @@ resource "azurerm_lb_rule" "scs" {
                                          )
   backend_address_pool_ids             = [azurerm_lb_backend_address_pool.scs[0].id]
   probe_id                             = azurerm_lb_probe.scs[0].id
-  enable_floating_ip                   = true
+  floating_ip_enabled                  = true
   enable_tcp_reset                     = false
   idle_timeout_in_minutes              = var.idle_timeout_scs_ers
 }
@@ -247,7 +247,7 @@ resource "azurerm_lb_rule" "ers" {
                                          )
   backend_address_pool_ids             = [azurerm_lb_backend_address_pool.scs[0].id]
   probe_id                             = azurerm_lb_probe.scs[1].id
-  enable_floating_ip                   = true
+  floating_ip_enabled                  = true
   enable_tcp_reset                     = false
   idle_timeout_in_minutes              = var.idle_timeout_scs_ers
 }
@@ -278,7 +278,7 @@ resource "azurerm_lb_rule" "clst" {
                                          )
   backend_address_pool_ids             = [azurerm_lb_backend_address_pool.scs[0].id]
   probe_id                             = azurerm_lb_probe.clst[0].id
-  enable_floating_ip                   = true
+  floating_ip_enabled                  = true
 }
 
 resource "azurerm_lb_rule" "fs" {
@@ -307,7 +307,7 @@ resource "azurerm_lb_rule" "fs" {
                                          )
   backend_address_pool_ids             = [azurerm_lb_backend_address_pool.scs[0].id]
   probe_id                             = azurerm_lb_probe.fs[0].id
-  enable_floating_ip                   = true
+  floating_ip_enabled                  = true
 }
 
 #######################################4#######################################8
