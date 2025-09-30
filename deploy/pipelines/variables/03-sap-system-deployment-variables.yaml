@@ -27,7 +27,7 @@ parameters:
 variables:
   - group:                             "SDAF-General"
 
-  - group:                             SDAF-${{ upper(format('{0}-{1}-{2}', split('${{ parameters.sap_system }}', '-')[0], split('${{ parameters.sap_system }}', '-')[1], split('${{ parameters.sap_system }}', '-')[2])) }}
+  - group:                             SDAF-${{ parameters.environment }}
 
   - name:                              sap_system_foldername
     value:                             ${{ parameters.sap_system }}
@@ -39,7 +39,7 @@ variables:
     value:                             https://releases.hashicorp.com/terraform/$(tf_version)/terraform_$(tf_version)_linux_amd64.zip
 
   - name:                              variable_group
-    value:                             SDAF-${{ upper(format('{0}-{1}-{2}', split('${{ parameters.sap_system }}', '-')[0], split('${{ parameters.sap_system }}', '-')[1], split('${{ parameters.sap_system }}', '-')[2])) }}
+    value:                             SDAF-${{ parameters.environment }}
 
   - name:                              this_agent
     value:                             $[lower(coalesce(variables['POOL'], variables['AGENT']))]
