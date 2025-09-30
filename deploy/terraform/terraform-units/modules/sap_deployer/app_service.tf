@@ -118,7 +118,7 @@ resource "azurerm_windows_web_app" "webapp" {
                                                  )
     "CONTROLPLANE_ENV"                        = var.infrastructure.environment
     "CONTROLPLANE_LOC"                        = var.infrastructure.region_code
-    "CONTROL_PLANE_NAME"                      = upper(format("%s-%s-%s", var.infrastructure.environment, var.infrastructure.region_code, var.infrastructure.virtual_network.logical_name))
+    "CONTROL_PLANE_NAME"                      = upper(format("%s-%s-%s", var.infrastructure.environment, var.naming_new.location_short, var.infrastructure.virtual_network.logical_name))
   }
 
   sticky_settings {

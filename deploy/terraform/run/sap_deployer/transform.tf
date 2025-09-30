@@ -8,7 +8,6 @@ locals {
                                           try(var.infrastructure.environment, "")
                                           )
     region                             = coalesce(var.location, try(var.infrastructure.region, ""))
-    region_code                        = module.sap_namegenerator.naming_new.location_short
     codename                           = try(var.codename, try(var.infrastructure.codename, ""))
     resource_group                     = {
                                             name = var.resourcegroup_name,
