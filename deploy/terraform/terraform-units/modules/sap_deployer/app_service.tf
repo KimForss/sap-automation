@@ -116,6 +116,9 @@ resource "azurerm_windows_web_app" "webapp" {
                                                   format("@Microsoft.KeyVault(SecretUri=https://%s.privatelink.vaultcore.azure.net/secrets/PAT/)", local.keyvault_names.user_access)): (
                                                   format("@Microsoft.KeyVault(SecretUri=https://%s.vault.azure.net/secrets/PAT/)", local.keyvault_names.user_access)
                                                  )
+    "CONTROLPLANE_ENV"                        = var.infrastructure.environment
+    "CONTROLPLANE_LOC"                        = var.infrastructure.region_code
+    "CONTROL_PLANE_NAME"                      = upper(format("%s-%s-%s", var.infrastructure.environment, var.infrastructure.region_code, var.infrastructure.virtual_network.logical_name))
   }
 
   sticky_settings {
