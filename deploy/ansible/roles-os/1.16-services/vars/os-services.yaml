@@ -105,7 +105,6 @@ services:
 
   oraclelinux9:
     - { tier: 'os',          service: 'auditd',       node_tier: 'all',     state: 'started'   }
-    - { tier: 'os',          service: 'oddjobd',      node_tier: 'all',     state: 'disabled'  }
     - { tier: 'os',          service: 'fstrim.timer', node_tier: 'all',     state: 'stopped'   }
     - { tier: 'os',          service: 'fstrim.timer', node_tier: 'all',     state: 'disabled'  }
     - { tier: 'os',          service: 'firewalld',    node_tier: 'all',     state: 'stopped'   }
