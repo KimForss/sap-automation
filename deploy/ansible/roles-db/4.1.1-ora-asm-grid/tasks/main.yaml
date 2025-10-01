@@ -231,11 +231,11 @@
   loop:                                '{{ reco_disk_list }}'
 
 - name:                                "Oracle ASM: End play"
-  ansible.builtin.meta:                end_play
-
-- name:                                "Oracle ASM: End play"
   ansible.builtin.fail:
     msg:                               "ASM Disks not found, please check the prerequisites and retry."
+
+- name:                                "Oracle ASM: End play"
+  ansible.builtin.meta:                end_play
 
 
 - name:                                "ORACLE ASM: Install Execute gridSetup.sh"
