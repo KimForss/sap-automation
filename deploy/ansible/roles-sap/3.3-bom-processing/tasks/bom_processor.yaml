@@ -62,7 +62,7 @@
     - path: "{{ target_media_location }}/tmp"
     - path: "{{ target_media_location }}/downloads"
     - path: "{{ target_media_location }}/download_basket"
-    - path: "{{ target_media_location }}/rpms"
+    - path: "{{ target_media_location }}/RPM"
 
 
 #   03) Create dynamic extract directories
