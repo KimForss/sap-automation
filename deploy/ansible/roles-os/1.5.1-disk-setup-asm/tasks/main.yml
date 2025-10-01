@@ -202,9 +202,16 @@
     - name:                            "ORACLE ASM: Install Compat Packages"
       ansible.builtin.dnf:
         name:
+          - "{{ target_media_location }}/RPM/libbpf-0.6.0-6.el8.x86_64.rpm"
+        state:                         present
+        disable_gpg_check:             true
+
+    - name:                            "ORACLE ASM: Install Compat Packages"
+      when:                             distribution_id in ['redhat7', 'oraclelinux7']
+      ansible.builtin.dnf:
+        name:
           - "{{ target_media_location }}/downloads/compat-libcap1-1.10-7.el7.x86_64.rpm"
           - "{{ target_media_location }}/downloads/compat-libstdc++-33-3.2.3-72.el7.x86_64.rpm"
-          - "{{ target_media_location }}/downloads/libbpf-0.6.0-6.el8.x86_64.rpm"
         state:                         present
         disable_gpg_check:             true
 
