@@ -725,7 +725,7 @@
             - always
 
         - name:                         "Oracle ASM: Register repositories"
-          ansible.builtin.import_tasks: roles-os/1.3-repository/tasks/1.3.3-repositories-Oracle-ASM.yaml
+          ansible.builtin.import_tasks: roles-os/1.3-repository/tasks/1.3.3-repositories-from-BMM.yaml
 
         - name:                        "Oracle ASM: Install Oracle specific packages"
           ansible.builtin.include_role:
