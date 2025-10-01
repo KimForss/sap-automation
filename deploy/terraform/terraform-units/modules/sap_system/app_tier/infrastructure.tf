@@ -216,7 +216,7 @@ resource "azurerm_lb_rule" "scs" {
   backend_address_pool_ids             = [azurerm_lb_backend_address_pool.scs[0].id]
   probe_id                             = azurerm_lb_probe.scs[0].id
   floating_ip_enabled                  = true
-  enable_tcp_reset                     = false
+  tcp_reset_enabled                    = false
   idle_timeout_in_minutes              = var.idle_timeout_scs_ers
 }
 
@@ -248,7 +248,7 @@ resource "azurerm_lb_rule" "ers" {
   backend_address_pool_ids             = [azurerm_lb_backend_address_pool.scs[0].id]
   probe_id                             = azurerm_lb_probe.scs[1].id
   floating_ip_enabled                  = true
-  enable_tcp_reset                     = false
+  tcp_reset_enabled                    = false
   idle_timeout_in_minutes              = var.idle_timeout_scs_ers
 }
 
