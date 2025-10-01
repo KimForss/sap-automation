@@ -17,7 +17,7 @@
   become:                              true
   become_user:                         root
   ansible.builtin.yum:
-    name:                              "{{ target_media_location }}/download_basket/{{ item.archive }}"
+    name:                              "{{ target_media_location }}/download_basket/RPM/{{ item.archive }}"
     state:                             "present"
     disable_gpg_check:                 true
   loop:                                "{{ bom.materials.media | flatten(levels=1) }}"
