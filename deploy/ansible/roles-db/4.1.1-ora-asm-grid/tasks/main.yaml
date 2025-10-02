@@ -321,7 +321,6 @@
   ansible.builtin.debug:
     msg:                               "./gridSetup.sh -silent -applyRU {{ ApplyRU }} -applyOneOff {{ OneOffs }} -opatchlocation {{ OPatchPath }} -skipOpatchVersionCheck -responseFile ./{{ ansible_hostname }}_{{ db_sid }}_install.rsp"
 
-
 - name:                                "ORACLE ASM: Install Execute gridSetup.sh"
   become:                              true
   become_user:                         oracle
