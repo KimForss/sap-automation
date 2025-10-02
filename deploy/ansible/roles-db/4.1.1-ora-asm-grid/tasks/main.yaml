@@ -274,6 +274,43 @@
       - "OPatchPath:       {{ OPatchPath }}"
       - "ApplyRU:          {{ ApplyRU }}"
 
+# Backup the existing Opatch and then copy the new Opatch from the downloads folder
+
+- name:                                "Oracle ASM: Copy name"
+  ansible.builtin.set_fact:
+    patch_copy_name:                   "/oracle/GRID/{{ ora_version }}/OPatch.{{ '%Y%m%d' | strftime(0) }}"
+
+- name:                                "Oracle ASM: Check if backup exists for GRID"
+  ansible.builtin.stat:
+    path:                              "{{ patch_copy_name }}"
+  register:                            opatchgrid_stat
+
+- name:                                "Oracle ASM: backup OPatch"
+  ansible.builtin.copy:
+    src:                               "/oracle/GRID/{{ ora_version }}/OPatch"
+    dest:                              "{{ patch_copy_name }}"
+    remote_src:                        true
+    mode:                              '0755'
+    owner:                             oracle
+    group:                             oinstall
+  when:
+    - not opatchgrid_stat.stat.exists
+
+- name:                                "Oracle ASM: remove old OPatch"
+  ansible.builtin.file:
+    path:                              "/oracle/GRID/{{ ora_version }}/OPatch"
+    state:                             absent
+  when:
+    - not opatchgrid_stat.stat.exists
+
+- name:                                "Oracle ASM: copy OPatch for GRID"
+  ansible.builtin.copy:
+    src:                               "{{ target_media_location }}/SBP/OPATCH/OPatch"
+    dest:                              "/oracle/GRID/{{ ora_version }}"
+    remote_src:                        true
+    mode:                              '0755'
+    owner:                             oracle
+    group:                             oinstall
 
 # +------------------------------------4--------------------------------------*/
 # |                                                                            |
@@ -316,7 +353,7 @@
 
 - name:                                "gridSetup command"
   ansible.builtin.debug:
-    msg:                               "./gridSetup.sh -silent -applyRU {{ ApplyRU }} -applyOneOff {{ OneOffs }} -opatchlocation {{ OPatchPath }} -skipOpatchVersionCheck -responseFile ./{{ ansible_hostname }}_{{ db_sid }}_install.rsp"
+    msg:                               "Running ./gridSetup.sh -silent -applyRU {{ ApplyRU }} -applyOneOff {{ OneOffs }} -opatchlocation {{ OPatchPath }} -skipOpatchVersionCheck -responseFile ./{{ ansible_hostname }}_{{ db_sid }}_install.rsp"
 
 - name:                                "ORACLE ASM: Install Execute gridSetup.sh"
   become:                              true
