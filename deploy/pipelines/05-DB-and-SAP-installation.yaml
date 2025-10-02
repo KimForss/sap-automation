@@ -165,6 +165,7 @@ stages:
                    'pywinrm>=0.3.0' \
                    netaddr \
                    wheel \
+                   pywinrm[credssp] \
                    setuptools --force
                   ansible-galaxy collection install --force ansible.windows ansible.posix ansible.utils community.windows microsoft.ad community.general
                   ansible --version
