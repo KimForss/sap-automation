@@ -466,7 +466,7 @@
   become:                              true
   become_user:                         oracle
   ansible.builtin.shell: |
-                                       ./asmca -silent -configureASM -sysAsmPassword {{ main_password }} -asmsnmpPassword {{ main_password }}'
+                                       "./asmca -silent -configureASM -sysAsmPassword {{ main_password }} -asmsnmpPassword {{ main_password }}"
   register:                            asm_creation_results
   environment:
     DB_SID:                            "{{ db_sid | upper }}"
@@ -486,7 +486,7 @@
   become:                              true
   become_user:                         oracle
   ansible.builtin.shell: |
-                                       ./asmca -silent -configureASM -sysAsmPassword {{ main_password }} -asmsnmpPassword {{ main_password }} -createDiskGroup -diskGroupName DATA -diskList '{{ asm_datadisklist }}'
+                                       ./asmca -silent -createDiskGroup -diskGroupName DATA -diskList '{{ asm_datadisklist }}'
   register:                            data_diskgroup_creation_results
   environment:
     DB_SID:                            "{{ db_sid | upper }}"
