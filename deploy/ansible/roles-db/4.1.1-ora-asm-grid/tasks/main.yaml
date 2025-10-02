@@ -196,46 +196,7 @@
 
 # +------------------------------------4--------------------------------------*/
 # |                                                                            |
-# |                       Oracle Grid: Perform installation                    |
-# |                                                                            |
-# +------------------------------------4--------------------------------------*/
-
-- name:                                "ORACLE ASM: Make oracle:oinstall are the owners for ASM Data Disks "
-  become:                              true
-  become_user:                         root
-  ansible.builtin.file:
-    recurse:                           true
-    path:                              '{{ item }}'
-    owner:                             oracle
-    group:                             oinstall
-    mode:                              '755'
-  loop:                                '{{ data_disk_list }}'
-
-- name:                                "ORACLE ASM: Make oracle:oinstall are the owners for ASM Archive Disks "
-  become:                              true
-  become_user:                         root
-  ansible.builtin.file:
-    recurse:                           true
-    path:                              '{{ item }}'
-    owner:                             oracle
-    group:                             oinstall
-    mode:                              '755'
-  loop:                                '{{ arch_disk_list }}'
-
-- name:                                "ORACLE ASM: Make oracle:oinstall are the owners for ASM Recovery Disks "
-  become:                              true
-  become_user:                         root
-  ansible.builtin.file:
-    recurse:                           true
-    path:                              '{{ item }}'
-    owner:                             oracle
-    group:                             oinstall
-    mode:                              '755'
-  loop:                                '{{ reco_disk_list }}'
-
-# +------------------------------------4--------------------------------------*/
-# |                                                                            |
-# |                       Oracle Grid: PAtch installation media                |
+# |                       Oracle Grid: Patch installation media                |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
@@ -300,6 +261,47 @@
     mode:                              '0755'
     owner:                             oracle
     group:                             oinstall
+
+
+# +------------------------------------4--------------------------------------*/
+# |                                                                            |
+# |                       Oracle Grid: Perform installation                    |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+- name:                                "ORACLE ASM: Make oracle:oinstall are the owners for ASM Data Disks "
+  become:                              true
+  become_user:                         root
+  ansible.builtin.file:
+    recurse:                           true
+    path:                              '{{ item }}'
+    owner:                             oracle
+    group:                             oinstall
+    mode:                              '755'
+  loop:                                '{{ data_disk_list }}'
+
+- name:                                "ORACLE ASM: Make oracle:oinstall are the owners for ASM Archive Disks "
+  become:                              true
+  become_user:                         root
+  ansible.builtin.file:
+    recurse:                           true
+    path:                              '{{ item }}'
+    owner:                             oracle
+    group:                             oinstall
+    mode:                              '755'
+  loop:                                '{{ arch_disk_list }}'
+
+- name:                                "ORACLE ASM: Make oracle:oinstall are the owners for ASM Recovery Disks "
+  become:                              true
+  become_user:                         root
+  ansible.builtin.file:
+    recurse:                           true
+    path:                              '{{ item }}'
+    owner:                             oracle
+    group:                             oinstall
+    mode:                              '755'
+  loop:                                '{{ reco_disk_list }}'
+
 
 
 - name:                                "Oracle ASM: End play"
