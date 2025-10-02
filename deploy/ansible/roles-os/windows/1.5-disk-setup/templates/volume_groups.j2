@@ -34,7 +34,7 @@
 {% elif disktype == 'backup' %}
 {%     set startlettercharacter = "T" %}
 {% elif disktype == 'tempdb' %}
-{%     set startlettercharacter = "abcdefghijklmnopqrstuvwxyz"[startletter.value - 97]  | upper %}
+{%     set startlettercharacter = "uvwxyz"[startletter.value - 116]  | upper %}
 {% else %}
 {%     set startlettercharacter = "V" %}
 {% endif %}
