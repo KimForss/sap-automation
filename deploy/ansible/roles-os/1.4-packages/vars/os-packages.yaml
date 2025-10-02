@@ -582,6 +582,7 @@ packages:
     - { tier: 'os',     package: 'bind-utils',                                   node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'bc',                                           node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'binutils',                                     node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'csh',                                          node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'compat-openssl11',                             node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'elfutils-libelf',                              node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'fontconfig',                                   node_tier: 'all',            state: 'present' }
