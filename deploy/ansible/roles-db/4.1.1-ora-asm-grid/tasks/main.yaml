@@ -285,7 +285,9 @@
   become:                              true
   become_user:                         root
   ansible.builtin.file:
+    recurse:                           true
     path:                              '{{ item }}'
+    state:                             directory
     owner:                             oracle
     group:                             oinstall
     mode:                              '755'
@@ -295,7 +297,9 @@
   become:                              true
   become_user:                         root
   ansible.builtin.file:
+    recurse:                           true
     path:                              '{{ item }}'
+    state:                             directory
     owner:                             oracle
     group:                             oinstall
     mode:                              '755'
@@ -305,7 +309,9 @@
   become:                              true
   become_user:                         root
   ansible.builtin.file:
+    recurse:                           true
     path:                              '{{ item }}'
+    state:                             directory
     owner:                             oracle
     group:                             oinstall
     mode:                              '755'
@@ -346,15 +352,6 @@
     path:                              "/etc/sap_deployment_automation/oracle/grid_install.txt"
     state:                             touch
     mode:                              '0755'
-
-- name:                                "Oracle ASM: End play"
-  ansible.builtin.fail:
-    msg:                               "ASM Disks not found, please check the prerequisites and retry."
-
-- name:                                "Oracle ASM: End play"
-  ansible.builtin.meta:                end_play
-
-
 
 # - fail:
 #     msg:   "check before grid post processing"
@@ -422,38 +419,38 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-- name:                                "ORACLE ASM: Execute ASM Config tools"
-  become:                              true
-  become_user:                         oracle
-  ansible.builtin.shell: |
-                                       ./gridSetup.sh -executeConfigTools -silent -responseFile ./{{ ansible_hostname }}_{{ db_sid }}_install.rsp
-  register:                            tools_installer_results
-  failed_when:                         tools_installer_results.rc >= 2              # installer returns rc=1 (exited with warning) by default when run is silent mode as the oratab file is created only after running the root.sh
-  environment:
-    DB_SID:                            "{{ db_sid }}"
-    CV_ASSUME_DISTID:                  "{{ CV_ASSUME_DISTID }}"
-    ORACLE_SID:                       "{{ db_sid | upper }}"
-    ORACLE_BASE:                      /oracle/BASE
-    ORACLE_HOME:                      /oracle/GRID/{{ ora_version }}
+# - name:                                "ORACLE ASM: Execute ASM Config tools"
+#   become:                              true
+#   become_user:                         oracle
+#   ansible.builtin.shell: |
+#                                        ./gridSetup.sh -executeConfigTools -silent -responseFile ./{{ ansible_hostname }}_{{ db_sid }}_install.rsp
+#   register:                            tools_installer_results
+#   failed_when:                         tools_installer_results.rc >= 2              # installer returns rc=1 (exited with warning) by default when run is silent mode as the oratab file is created only after running the root.sh
+#   environment:
+#     DB_SID:                            "{{ db_sid }}"
+#     CV_ASSUME_DISTID:                  "{{ CV_ASSUME_DISTID }}"
+#     ORACLE_SID:                       "{{ db_sid | upper }}"
+#     ORACLE_BASE:                      /oracle/BASE
+#     ORACLE_HOME:                      /oracle/GRID/{{ ora_version }}
 
-  args:
-    executable:                        /bin/csh
-    # chdir:                             "/oracle/GRID/{{ ora_version }}"
-    chdir:                             /oracle/GRID/{{ ora_version }}/
-    creates:                           /etc/sap_deployment_automation/oracle/asm_tools_install.txt
+#   args:
+#     executable:                        /bin/csh
+#     # chdir:                             "/oracle/GRID/{{ ora_version }}"
+#     chdir:                             /oracle/GRID/{{ ora_version }}/
+#     creates:                           /etc/sap_deployment_automation/oracle/asm_tools_install.txt
 
-- name:                                "ORACLE ASM: Debug: gridSetup.sh executeConfigTools output"
-  ansible.builtin.copy:
-    dest:                              "/etc/sap_deployment_automation/oracle/asm_tools_install.log"
-    content:                           "{{ tools_installer_results.stdout }}"
-    mode:                              0777
-  when:                                tools_installer_results.stdout is defined
+# - name:                                "ORACLE ASM: Debug: gridSetup.sh executeConfigTools output"
+#   ansible.builtin.copy:
+#     dest:                              "/etc/sap_deployment_automation/oracle/asm_tools_install.log"
+#     content:                           "{{ tools_installer_results.stdout }}"
+#     mode:                              0777
+#   when:                                tools_installer_results.stdout is defined
 
-- name:                                "ORACLE ASM: Create after a successful Config tool execution"
-  ansible.builtin.file:
-    path:                              "/etc/sap_deployment_automation/oracle/asm_tools_install.txt"
-    state:                             touch
-    mode:                              '0755'
+# - name:                                "ORACLE ASM: Create after a successful Config tool execution"
+#   ansible.builtin.file:
+#     path:                              "/etc/sap_deployment_automation/oracle/asm_tools_install.txt"
+#     state:                             touch
+#     mode:                              '0755'
 
 
 # - fail:
@@ -464,6 +461,20 @@
 # |           Oracle Grid: Create ARCH and RECO disk groups using ASMCA        |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
+
+- name:                                "ORACLE ASM: Create ASM Disk groups DATA"
+  become:                              true
+  become_user:                         oracle
+  ansible.builtin.shell: |
+                                       ./asmca -silent -createDiskGroup -diskGroupName DATA -diskList '{{ asm_datadisklist }}'
+  register:                            data_diskgroup_creation_results
+  environment:
+    DB_SID:                            "{{ db_sid | upper }}"
+    CV_ASSUME_DISTID:                  "{{ CV_ASSUME_DISTID }}"
+  args:
+    executable:                        /bin/csh
+    chdir:                             "/oracle/GRID/{{ ora_version }}/bin"
+    creates:                           /etc/sap_deployment_automation/oracle/diskgroups_created.txt
 
 
 - name:                                "ORACLE ASM: Create ASM Disk groups ARCH"
