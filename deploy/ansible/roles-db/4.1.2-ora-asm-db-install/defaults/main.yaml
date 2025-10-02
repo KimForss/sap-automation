@@ -1,14 +1,5 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-
-- name:                                "ORACLE ASM: - Check UEK Kernel version"
-  ansible.builtin.set_fact:
-    is_UEK6:                           "{{ ansible_kernel is version('5.5', '<') }}"
-    CV_ASSUME_DISTID:                   OEL8.1
-
-- name:                                "ORACLE ASM: Set Distro Id for UEK6"
-  ansible.builtin.set_fact:
-    CV_ASSUME_DISTID:                  OL7
-  when:
-    - is_UEK6
+is_UEK6:                           "{{ ansible_kernel is version('5.5', '<') }}"
+CV_ASSUME_DISTID:                  "{{ if ansible_kernel is version('5.5', '<') }} OEL7 {{ else }} OL8.1 {{ endif }}"
