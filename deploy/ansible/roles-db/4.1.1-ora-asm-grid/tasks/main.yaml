@@ -461,11 +461,32 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
+
+- name:                                "ORACLE ASM: Configure ASM"
+  become:                              true
+  become_user:                         oracle
+  ansible.builtin.shell: |
+                                       ./asmca -silent -configureASM -sysAsmPassword {{ main_password }} -asmsnmpPassword {{ main_password }}'
+  register:                            asm_creation_results
+  environment:
+    DB_SID:                            "{{ db_sid | upper }}"
+    CV_ASSUME_DISTID:                  "{{ CV_ASSUME_DISTID }}"
+  args:
+    executable:                        /bin/csh
+    chdir:                             "/oracle/GRID/{{ ora_version }}/bin"
+    creates:                           /etc/sap_deployment_automation/oracle/asm_created.txt
+
+- name:                                "ORACLE ASM: Created after ASM creation"
+  ansible.builtin.file:
+    path:                             "/etc/sap_deployment_automation/oracle/asm_created.txt"
+    state:                            touch
+    mode:                             '0755'
+
 - name:                                "ORACLE ASM: Create ASM Disk groups DATA"
   become:                              true
   become_user:                         oracle
   ansible.builtin.shell: |
-                                       ./asmca -silent -createDiskGroup -diskGroupName DATA -diskList '{{ asm_datadisklist }}'
+                                       ./asmca -silent -configureASM -sysAsmPassword {{ main_password }} -asmsnmpPassword {{ main_password }} -createDiskGroup -diskGroupName DATA -diskList '{{ asm_datadisklist }}'
   register:                            data_diskgroup_creation_results
   environment:
     DB_SID:                            "{{ db_sid | upper }}"
@@ -474,7 +495,6 @@
     executable:                        /bin/csh
     chdir:                             "/oracle/GRID/{{ ora_version }}/bin"
     creates:                           /etc/sap_deployment_automation/oracle/diskgroups_created.txt
-
 
 - name:                                "ORACLE ASM: Create ASM Disk groups ARCH"
   become:                              true
@@ -505,13 +525,11 @@
     chdir:                             "/oracle/GRID/{{ ora_version }}/bin"
     creates:                           /etc/sap_deployment_automation/oracle/diskgroups_created.txt
 
-
 - name:                                "ORACLE ASM: Created after a successful disk group creation"
   ansible.builtin.file:
     path:                             "/etc/sap_deployment_automation/oracle/diskgroups_created.txt"
     state:                            touch
     mode:                             '0755'
-
 
 - name:                               "SAP Oracle DB ASM: Update ASM Disk groups ARCH and RECO for DBLOAD"
   become:                             true
