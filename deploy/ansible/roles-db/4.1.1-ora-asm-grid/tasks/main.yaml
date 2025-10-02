@@ -202,8 +202,10 @@
 
 
 - name:                                "Oracle ASM: Find Patch ID for GRID"
+  become:                              true
+  become_user:                         root
   ansible.builtin.find:
-    paths:                             "{{ target_media_location }}/SBP/SBP/GIRU19P"
+    paths:                             "{{ target_media_location }}/SBP/GIRU19P"
     patterns:                          ["bundle.xml"]
     file_type:                         file
     recurse:                           true
