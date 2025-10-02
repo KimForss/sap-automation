@@ -486,7 +486,7 @@
   become:                              true
   become_user:                         oracle
   ansible.builtin.shell: |
-                                       ./asmca -silent -createDiskGroup -diskGroupName DATA -diskList '{{ asm_datadisklist }}'
+                                       ./asmca -silent -createDiskGroup -diskGroupName DATA -redundancy EXTERNAL -diskList '{{ asm_datadisklist }}'
   register:                            data_diskgroup_creation_results
   environment:
     DB_SID:                            "{{ db_sid | upper }}"
@@ -500,7 +500,7 @@
   become:                              true
   become_user:                         oracle
   ansible.builtin.shell: |
-                                       ./asmca -silent -createDiskGroup -diskGroupName ARCH -diskList '{{ asm_archdisklist }}'
+                                       ./asmca -silent -createDiskGroup -diskGroupName ARCH -redundancy EXTERNAL -diskList '{{ asm_archdisklist }}'
   register:                            arch_diskgroup_creation_results
   environment:
     DB_SID:                            "{{ db_sid | upper }}"
@@ -515,7 +515,7 @@
   become_user:                         oracle
   ansible.builtin.shell: |
                                        set -o errexit
-                                       ./asmca -silent -createDiskGroup -diskGroupName RECO -diskList '{{ asm_recodisklist }}'
+                                       ./asmca -silent -createDiskGroup -diskGroupName RECO -redundancy EXTERNAL -diskList '{{ asm_recodisklist }}'
   register:                            reco_diskgroup_creation_results
   environment:
     DB_SID:                            "{{ db_sid | upper }}"
