@@ -204,6 +204,7 @@
   become:                              true
   become_user:                         root
   ansible.builtin.file:
+    recurse:                           true
     path:                              '{{ item }}'
     owner:                             oracle
     group:                             oinstall
@@ -214,6 +215,7 @@
   become:                              true
   become_user:                         root
   ansible.builtin.file:
+    recurse:                           true
     path:                              '{{ item }}'
     owner:                             oracle
     group:                             oinstall
@@ -224,11 +226,81 @@
   become:                              true
   become_user:                         root
   ansible.builtin.file:
+    recurse:                           true
     path:                              '{{ item }}'
     owner:                             oracle
     group:                             oinstall
     mode:                              '755'
   loop:                                '{{ reco_disk_list }}'
+
+# +------------------------------------4--------------------------------------*/
+# |                                                                            |
+# |                       Oracle Grid: PAtch installation media                |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+
+- name:                                "Oracle ASM: Find Patch ID for GRID"
+  ansible.builtin.find:
+    paths:                             "{{ target_media_location }}/SBP/SBP/GIRU19P"
+    patterns:                          ["bundle.xml"]
+    file_type:                         file
+    recurse:                           true
+  register:                            patch_grid_id_directory
+
+- name:                                "Oracle ASM: Find Patch ID for GRID"
+  ansible.builtin.fail:
+    msg:                               "No Patch Ids"
+  when:                                patch_grid_id_directory.matched != 1
+
+- name:                                "Oracle ASM: OPatch ID"
+  ansible.builtin.set_fact:
+    patch_grid_path:                   "{{ patch_grid_id_directory.files[0].path | dirname}}"
+  when:                                 patch_grid_id_directory.matched == 1
+
+- name:                                "Oracle ASM: OPatch ID"
+  ansible.builtin.debug:
+    msg:                               "Patch GRID path {{ patch_grid_path }}"
+
+# Backup the existing Opatch and then copy the new Opatch from the downloads folder
+
+- name:                                "Oracle ASM: Copy name"
+  ansible.builtin.set_fact:
+    patch_copy_name:                   "/oracle/GRID/{{ ora_version }}/OPatch.{{ '%Y%m%d' | strftime(0) }}"
+  when:                                 patch_grid_id_directory.matched == 1
+
+- name:                                "Oracle ASM: Check if backup exists for GRID"
+  ansible.builtin.stat:
+    path:                              {{ patch_copy_name }}
+  register:                            opatchgrid_stat
+
+- name:                                "Oracle ASM: backup OPatch"
+  ansible.builtin.copy:
+    src:                               /oracle/GRID/{{ ora_version }}/OPatch
+    dest:                              {{ patch_copy_name }}
+    remote_src:                        true
+    mode:                              '0755'
+    owner:                             oracle
+    group:                             oinstall
+  when:
+    - not opatchgrid_stat.stat.exists
+
+- name:                                "Oracle ASM: remove old OPatch"
+  ansible.builtin.file:
+    path:                              /oracle/GRID/{{ ora_version }}/OPatch
+    state:                             absent
+  when:
+    - not opatchgrid_stat.stat.exists
+
+- name:                                "Oracle ASM: copy OPatch for GRID"
+  ansible.builtin.copy:
+    src:                               "{{ target_media_location }}/SBP/OPATCH/OPatch"
+    dest:                              /oracle/GRID/{{ ora_version }}
+    remote_src:                        true
+    mode:                              '0755'
+    owner:                             oracle
+    group:                             oinstall
+
 
 - name:                                "Oracle ASM: End play"
   ansible.builtin.fail:
