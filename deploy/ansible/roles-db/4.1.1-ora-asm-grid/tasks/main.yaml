@@ -275,7 +275,6 @@
   become:                              true
   become_user:                         root
   ansible.builtin.file:
-    recurse:                           true
     path:                              '{{ item }}'
     owner:                             oracle
     group:                             oinstall
@@ -286,7 +285,6 @@
   become:                              true
   become_user:                         root
   ansible.builtin.file:
-    recurse:                           true
     path:                              '{{ item }}'
     owner:                             oracle
     group:                             oinstall
@@ -297,7 +295,6 @@
   become:                              true
   become_user:                         root
   ansible.builtin.file:
-    recurse:                           true
     path:                              '{{ item }}'
     owner:                             oracle
     group:                             oinstall
