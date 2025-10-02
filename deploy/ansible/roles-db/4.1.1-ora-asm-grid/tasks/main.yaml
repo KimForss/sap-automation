@@ -258,7 +258,7 @@
 - name:                                "Oracle ASM: set OneOffs"
   ansible.builtin.set_fact:
     OPatchPath:                        "{{ target_media_location }}/SBP/OPATCH/OPatch"
-    ApplyRU:                           "{{ patch_grid_path }}/{{ STAGE_SBP_DBRU }}"
+    ApplyRU:                           "{{ STAGE_SBP_DBRU }}"
 
 - name:                                "Oracle ASM: OPatch ID"
   ansible.builtin.debug:
