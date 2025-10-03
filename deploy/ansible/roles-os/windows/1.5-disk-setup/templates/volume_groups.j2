@@ -14,10 +14,9 @@
  #}
 {% set vgs = [] %}
 {#
-    Outer Loop: Loop over disk types
+    Initialize counters and common variables
 #}
 {%     set startletter = namespace(value=101) %}
-{%     set pvlist = [] %}
 {%     set data_disk_counter = namespace(value=0) %}
 {%     set log_disk_counter = namespace(value=0) %}
 {%     set tempdb_disk_counter = namespace(value=0) %}
@@ -25,7 +24,11 @@
 {%     set disks_list = disks | default([]) %}
 {%     set disktypes_list = disktypes | default([]) %}
 {%     set current_host = inventory_hostname | default('') %}
+{#
+    Outer Loop: Loop over disk types
+#}
 {% for disktype in disktypes_list %}
+{%     set pvlist = [] %}
 {#
     Initialize VG dictionary with VG name derived from disk type
 #}
