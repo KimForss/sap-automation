@@ -10,6 +10,7 @@
  # - Azure LUN != Windows Disk Number (they are independent numbering systems)
  # - Matching is performed using physical_location string which contains LUN info
  # - Fallback identifiers prevent template failures when matches aren't found
+ # - Safe null handling using .get() to avoid "null is undefined" errors
  #}
 {% set vgs = [] %}
 {#
@@ -108,14 +109,18 @@
 {%     endfor %}
 
 {#
-    Handle match results:
-    - If we found exactly one match: use its unique_id
-    - If we found multiple matches: use first one (should not happen in normal Azure deployments)
-    - If we found no match: create synthetic identifier to prevent JSON serialization failure
+    Handle match results with SAFE null handling:
+    - Use .get() method to safely access dictionary values that might be null
+    - Default to empty dict {} instead of none to enable safe .get() usage
+    - Check both existence and non-null value before using unique_id
+
+    This prevents "'null' is undefined" errors when disk properties are None
 #}
-{%     set matched_disk = matched_disks | first | default(none) %}
-{%     if matched_disk %}
-{%         set os_disk_id = matched_disk.unique_id | default('DISK_' ~ matched_disk.number | default('UNKNOWN')) %}
+{%     set matched_disk = matched_disks | first | default({}) %}
+{%     if matched_disk and matched_disk.get('unique_id') %}
+{%         set os_disk_id = matched_disk.get('unique_id', '') %}
+{%     elif matched_disk and matched_disk.get('number') is not none %}
+{%         set os_disk_id = 'DISK_' ~ matched_disk.get('number', 'UNKNOWN') %}
 {%     else %}
 {#         No match found - create deterministic fallback identifier #}
 {%         set os_disk_id = 'UNMATCHED_LUN_' ~ disk_lun ~ '_TYPE_' ~ disktype %}
