@@ -11,7 +11,9 @@
 {%     set log_disk_counter = namespace(value=0) %}
 {%     set tempdb_disk_counter = namespace(value=0) %}
 {%     set backup_disk_counter = namespace(value=0) %}
-{% for disktype in disktypes %}
+{%     set disks_list = disks | default([]) %}
+{%     set disktypes_list = disktypes | default([]) %}
+{% for disktype in disktypes_list %}
 {#
     Initialise VG dictionary with VG name derived from disk type
 #}
@@ -28,7 +30,7 @@
     Inner Loop: Loop over list of disks that match the execution host and the disk type
     Note: '_' used as dummy variable that can be ignored | selectattr('device_id', 'defined') | selectattr('device_id', 'ne', '0')
 #}
-{%     for disk in disks if (disk.host == inventory_hostname) and (disk.type == disktype) %}
+{%     for disk in disks_list if (disk.host == inventory_hostname) and (disk.type == disktype) %}
 {%     set startletter.value = startletter.value + 1 %}
 {%     set regex_string = '^Integrated.+LUN\s('~ disk.LUN ~ ')$' %}
 {%     set use_mount_point = disk_mount_strategy | default('driveletter') == 'mountpoint' %}
@@ -193,6 +195,6 @@
 {%     set _ = vgs.append(vg) %}
 {% endfor %}
 {#
-    Output List of Dictionaries
+    Output List of Dictionaries - convert to JSON for safe parsing
 #}
-{{ pvlist }}
+{{ pvlist | tojson }}

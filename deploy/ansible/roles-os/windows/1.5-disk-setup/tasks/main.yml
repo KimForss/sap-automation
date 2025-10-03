@@ -35,7 +35,7 @@
 - name:                                "1.5 Disk setup - Get disk facts"
   community.windows.win_disk_facts:
 
-- name:                                "1.5 Disk setup - Show disk info"
+- name:                                "1.5 Disk setup - Show disk info from facts"
   ansible.builtin.debug:
     msg:
       - "Disks:                        {{ ansible_facts.disks }} "
@@ -46,11 +46,18 @@
 - name:                                "1.5 Disk setup - Load the disk configuration settings"
   ansible.builtin.include_vars:        disks_config.yml
 
+- name:                                "1.5 Disk setup - Debug volume_groups type"
+  ansible.builtin.debug:
+    msg:
+      - "Volume groups type:           {{ volume_groups | type_debug }}"
+      - "Volume groups content:        {{ volume_groups }}"
+    verbosity:                         2
+
 - name:                                "1.5 Disk setup - Show disk info"
   ansible.builtin.debug:
     msg:
       - "Unique disks:                 {{ disktypes }} "
-      - "Volume groups:                {{ volume_groups }} "
+      - "Volume groups count:          {{ volume_groups | length if volume_groups is iterable and volume_groups is not string else 'N/A' }} "
     verbosity:                         2
 
 - name:                                "1.5 Disk setup - Create base mount point directories"
