@@ -264,6 +264,14 @@
   ansible.builtin.debug:
     msg:                               "Patch GRID path {{ patch_grid_path }}"
 
+- name:                                "Oracle ASM: Get OPatch version"
+  ansible.builtin.command:             "{{ OPatchPath }}/opatch version"
+  register:                            opatch_version
+  changed_when:                        false
+  failed_when:                         opatch_version.rc != 0
+  when:                                OPatchPath is defined
+
+
 - name:                                "Oracle ASM: Debug"
   ansible.builtin.debug:
     msg:
@@ -312,6 +320,39 @@
     owner:                             oracle
     group:                             oinstall
 
+- name:                                "ORACLE ASM: Find MOPatch"
+  ansible.builtin.find:
+    paths:                             "{{ target_media_location }}/SBP/SGR19P"
+    patterns:                          ["MOPatch"]
+    file_type:                         directory
+    recurse:                           true
+  register:                            mopatch_directory
+
+- name:                                "ORACLE ASM: Find MOPatch"
+  ansible.builtin.fail:
+    msg:                               "Too many MOPatches found"
+  when:                                mopatch_directory ASM.matched > 1
+
+- name:                                "ORACLE ASM: Find MOPatch"
+  ansible.builtin.fail:
+    msg:                               "No MOPatches found"
+  when:                                mopatch_directory.matched == 0
+
+- name:                                "ORACLE ASM: MOPatch path"
+  ansible.builtin.set_fact:
+    mopatch_path:                      "{{ mopatch_directory.files[0].path }}"
+  when:                                mopatch_directory.matched == 1
+
+- name:                                "Oracle ASM: copy MOPatch for GRID"
+  ansible.builtin.copy:
+    src:                               "{{ mopatch_path }}"
+    dest:                              "/oracle/GRID/{{ ora_version }}"
+    remote_src:                        true
+    mode:                              '0755'
+    owner:                             oracle
+    group:                             oinstall
+
+
 # +------------------------------------4--------------------------------------*/
 # |                                                                            |
 # |                       Oracle Grid: Perform installation                    |
@@ -350,6 +391,57 @@
     mode:                              '755'
     state:                             link
   loop:                                '{{ reco_disk_list }}'
+
+- name:                                "ORACLE ASM: Install Execute ./roothas.sh -prepatch"
+  become:                              true
+  become_user:                         oracle
+  ansible.builtin.shell: |
+                                       ./roothas.sh -prepatch
+  environment:
+    CV_ASSUME_DISTID:                  "{{ CV_ASSUME_DISTID }}"
+    ORACLE_SID:                        "{{ db_sid | upper }}"
+    ORACLE_BASE:                       /oracle/BASE
+    ORACLE_HOME:                       /oracle/GRID/{{ ora_version }}
+    DB_SID:                            "{{ db_sid | upper }}"
+  args:
+    executable:                        /bin/csh
+    chdir:                             "/oracle/GRID/{{ ora_version }}//crs/install"
+
+- name:                                "ORACLE ASM: Make oracle:oinstall are the owners for oradism "
+  become:                              true
+  become_user:                         root
+  ansible.builtin.file:
+    path:                              "/oracle/GRID/{{ ora_version }}/bin/oradism"
+    owner:                             oracle
+    group:                             oinstall
+    mode:                              '755'
+    state:                             link
+
+- name:                                "gridSetup command"
+  ansible.builtin.debug:
+    msg:                               "Running ./gridSetup.sh -silent -applyRU {{ ApplyRU }} -applyOneOffs {{ OneOffs }} -opatchlocation /oracle/GRID/{{ ora_version }}/OPatch -skipOpatchVersionCheck -responseFile ./{{ ansible_hostname }}_{{ db_sid }}_install.rsp"
+
+- name:                                "MOPatch command"
+  ansible.builtin.debug:
+    msg:                               "Running env ORACLE_HOME=$OHGRID $OHGRID/MOPatch/mopatch.sh -v -s {{ target_media_location }}/SBP/{{ oraclegrid_sbp_patch}}"
+
+- name:                                "ORACLE ASM: Install the patches of the SAP Bundle Patch into the grid home"
+  become:                              true
+  become_user:                         oracle
+  ansible.builtin.shell: |
+                                       "env ORACLE_HOME=$OHGRID $OHGRID/MOPatch/mopatch.sh -v -s {{ target_media_location }}/SBP/{{ oraclegrid_sbp_patch}}"
+  register:                            gridinstaller_results
+  failed_when:                         gridinstaller_results.rc >= 2              # installer returns rc=1 (exited with warning) by default when run is silent mode as the oratab file is created only after running the root.sh
+  environment:
+    CV_ASSUME_DISTID:                  "{{ CV_ASSUME_DISTID }}"
+    ORACLE_SID:                        "{{ db_sid | upper }}"
+    ORACLE_BASE:                       /oracle/BASE
+    OHGRID:                            /oracle/GRID/{{ ora_version }}
+    DB_SID:                            "{{ db_sid | upper }}"
+  args:
+    executable:                        /bin/csh
+    chdir:                             "/oracle/GRID/{{ ora_version }}"
+    creates:                           /etc/sap_deployment_automation/oracle/grid_mopatch_install.txt
 
 - name:                                "gridSetup command"
   ansible.builtin.debug:
