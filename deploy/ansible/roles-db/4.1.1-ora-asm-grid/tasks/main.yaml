@@ -442,6 +442,28 @@
     state:                             touch
     mode:                              '0755'
 
+- name:                                "Oracle ASM: Run roothas"
+  become:                              true
+  become_user:                         "root"
+  ansible.builtin.shell:               /oracle/GRID/{{ ora_version }}/crs/install/roothas.sh
+  register:                            gridroothas_results
+  args:
+    creates:                           /etc/sap_deployment_automation/{{ sap_sid | upper }}/gridroothas.txt
+
+- name:                                "ORACLE ASM: Debug: roothas.sh output"
+  ansible.builtin.copy:
+    dest:                              "/etc/sap_deployment_automation/oracle/roothas.log"
+    content:                           "{{ gridroothas_results.stdout }}"
+    mode:                              0777
+  when:                                gridroothas_results.stdout is defined
+
+- name:                                "ORACLE ASM: creates after a successful roothas execution"
+  ansible.builtin.file:
+    path:                              "/etc/sap_deployment_automation/oracle/gridroothas.txt"
+    state:                             touch
+    mode:                              '0755'
+
+
 # - name:                               "SAP Oracle DB ASM: Sleep for 30 seconds and continue with play"
 #   ansible.builtin.wait_for:
 #     timeout:                          60
@@ -500,7 +522,8 @@
   become:                              true
   become_user:                         oracle
   ansible.builtin.shell: |
-                                       "./asmca -silent -configureASM -sysAsmPassword {{ main_password }} -asmsnmpPassword {{ main_password }}"
+                                       "./asmca -silent -configureASM -sysAsmPassword {{ main_password }} -asmsnmpPassword {{ main_password }} \
+                                        -createDiskGroup -diskGroupName DATA -redundancy EXTERNAL -diskList '{{ asm_datadisklist }}'"
   register:                            asm_creation_results
   environment:
     DB_SID:                            "{{ db_sid | upper }}"
@@ -516,19 +539,19 @@
     state:                            touch
     mode:                             '0755'
 
-- name:                                "ORACLE ASM: Create ASM Disk groups DATA"
-  become:                              true
-  become_user:                         oracle
-  ansible.builtin.shell: |
-                                       ./asmca -silent -createDiskGroup -diskGroupName DATA -redundancy EXTERNAL -diskList '{{ asm_datadisklist }}'
-  register:                            data_diskgroup_creation_results
-  environment:
-    DB_SID:                            "{{ db_sid | upper }}"
-    CV_ASSUME_DISTID:                  "{{ CV_ASSUME_DISTID }}"
-  args:
-    executable:                        /bin/csh
-    chdir:                             "/oracle/GRID/{{ ora_version }}/bin"
-    creates:                           /etc/sap_deployment_automation/oracle/diskgroups_created.txt
+# - name:                                "ORACLE ASM: Create ASM Disk groups DATA"
+#   become:                              true
+#   become_user:                         oracle
+#   ansible.builtin.shell: |
+#                                        ./asmca -silent -createDiskGroup -diskGroupName DATA -redundancy EXTERNAL -diskList '{{ asm_datadisklist }}'
+#   register:                            data_diskgroup_creation_results
+#   environment:
+#     DB_SID:                            "{{ db_sid | upper }}"
+#     CV_ASSUME_DISTID:                  "{{ CV_ASSUME_DISTID }}"
+#   args:
+#     executable:                        /bin/csh
+#     chdir:                             "/oracle/GRID/{{ ora_version }}/bin"
+#     creates:                           /etc/sap_deployment_automation/oracle/diskgroups_created.txt
 
 - name:                                "ORACLE ASM: Create ASM Disk groups ARCH"
   become:                              true
