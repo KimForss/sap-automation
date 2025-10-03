@@ -1,0 +1,59 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+---
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |              Windows Disk Setup - Role Variables                           |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+# Windows Disk Configuration
+#
+# NOTE: This file is for Windows-specific disk configuration overrides.
+# The primary disk configuration comes from the 'disks' parameter passed
+# to the playbook, and volume_groups are dynamically generated from the
+# volume_groups.j2 template.
+#
+# Unlike Linux systems that use LVM (volume groups, logical volumes),
+# Windows uses drive letters or mount points with NTFS/ReFS formatting.
+
+# NOTE: These variables are automatically loaded when the role is executed.
+# Unlike defaults/main.yml, these take precedence over defaults and cannot
+# be easily overridden at playbook level (by design - they're calculated values).
+
+
+# Dynamically determine list of unique disk types associated with current node
+# This filters the 'disks' parameter to only include disks for this host,
+# then extracts unique disk types (data, log, tempdb, backup, sap, etc.)
+disktypes: >-
+  {{ disks | selectattr('host', 'defined') |
+      selectattr('host', 'equalto', inventory_hostname) |
+      map(attribute='type') | sort | unique |
+      list }}
+
+# Dynamically determine list of volume groups (Windows disk configurations)
+# associated with the current node
+volume_groups: "{{ lookup('template', 'volume_groups.j2') | from_json }}"
+
+# Disk mount strategy:
+# The above is the core data structure that maps Azure LUNs to Windows disk configuration
+# The template handles the complex logic of:
+#   1. Matching Azure LUN identifiers to Windows disk numbers via physical_location
+#   2. Generating appropriate mount points or drive letters based on strategy
+#   3. Handling unmatched disks gracefully with synthetic identifiers
+#
+# Output structure: List of volume group dictionaries, each containing:
+#   - disktype: The type of disk (data, log, tempdb, backup, sap)
+#   - sector_size: Allocation unit size for formatting (bytes)
+#   - disks: List of disk configurations with:
+#       - diskname: Logical name for the disk
+#       - LUN: Azure LUN identifier
+#       - driveletter: Windows drive letter (if using drive letter mode) or null
+#       - mount_point: Full mount path (if using mount point mode)
+#       - mount_base_path: Base path for mount (if using mount point mode)
+#       - mount_folder_name: Folder name under base path (if using mount point mode)
+#       - sector_size: Allocation unit size
+#       - disk_type: Disk type
+#       - osdisk_id: Windows unique_id for the physical disk (or synthetic ID if unmatched)
+#       - use_mount_point: Boolean indicating mount strategy
