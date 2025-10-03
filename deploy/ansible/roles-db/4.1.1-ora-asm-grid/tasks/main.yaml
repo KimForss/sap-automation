@@ -386,8 +386,10 @@
     state:                             touch
     mode:                              '0755'
 
-# - fail:
-#     msg:   "check before grid post processing"
+
+- name:                                "ORACLE ASM: Check before grid post processing"
+  ansible.builtin.fail:
+    msg:   "check before grid post processing"
 
 # +------------------------------------4--------------------------------------*/
 # |                                                                            |
