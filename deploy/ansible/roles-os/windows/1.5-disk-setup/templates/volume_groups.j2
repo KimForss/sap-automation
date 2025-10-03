@@ -13,6 +13,7 @@
 {%     set backup_disk_counter = namespace(value=0) %}
 {%     set disks_list = disks | default([]) %}
 {%     set disktypes_list = disktypes | default([]) %}
+{%     set current_host = inventory_hostname | default('') %}
 {% for disktype in disktypes_list %}
 {#
     Initialise VG dictionary with VG name derived from disk type
@@ -30,9 +31,9 @@
     Inner Loop: Loop over list of disks that match the execution host and the disk type
     Note: '_' used as dummy variable that can be ignored | selectattr('device_id', 'defined') | selectattr('device_id', 'ne', '0')
 #}
-{%     for disk in disks_list if (disk.host == inventory_hostname) and (disk.type == disktype) %}
+{%     for disk in disks_list if (disk.host == current_host) and (disk.type == disktype) %}
 {%     set startletter.value = startletter.value + 1 %}
-{%     set regex_string = '^Integrated.+LUN\s('~ disk.LUN ~ ')$' %}
+{%     set disk_lun = disk.LUN | default(0) %}
 {%     set use_mount_point = disk_mount_strategy | default('driveletter') == 'mountpoint' %}
 {%     set base_mount_path = disk_base_mount_path | default('C:\\SQLServerDisks') %}
 
@@ -67,14 +68,25 @@
 {%     set mount_base_path = base_mount_path ~ "\\" ~ disktype | upper %}
 {% endif %}
 
-{%     set os_disk_id = ansible_facts.disks | selectattr('location', 'match', regex_string) | rejectattr('partition_style', 'equalto', 'MBR') | map(attribute='unique_id') | list | first %}
+{# Safe disk matching using Windows disk number #}
+{%     set ansible_disks = ansible_facts.disks | default([]) %}
+{%     set matched_disks = [] %}
+{%     for ad in ansible_disks %}
+{%         if ad.number is defined and ad.number == disk_lun %}
+{%             if ad.partition_style is defined and ad.partition_style != 'MBR' %}
+{%                 set _ = matched_disks.append(ad) %}
+{%             endif %}
+{%         endif %}
+{%     endfor %}
+{%     set matched_disk = matched_disks | first | default({}) %}
+{%     set os_disk_id = matched_disk.get('unique_id', '') if matched_disk else '' %}
 
 {# Build disk configuration based on mount strategy #}
 {% if use_mount_point %}
 {%     if disktype == 'data' %}
 {%         set _ = pvlist.append({
              'diskname': 'SQL' ~ disktype ~ data_disk_counter.value,
-             'LUN': disk.LUN,
+             'LUN': disk_lun,
              'driveletter': null,
              'mount_point': mount_base_path ~ "\\" ~ mount_folder_name,
              'mount_base_path': mount_base_path,
@@ -87,7 +99,7 @@
 {%     elif disktype == 'log' %}
 {%         set _ = pvlist.append({
              'diskname': 'SQL' ~ disktype ~ log_disk_counter.value,
-             'LUN': disk.LUN,
+             'LUN': disk_lun,
              'driveletter': null,
              'mount_point': mount_base_path ~ "\\" ~ mount_folder_name,
              'mount_base_path': mount_base_path,
@@ -100,7 +112,7 @@
 {%     elif disktype == 'tempdb' %}
 {%         set _ = pvlist.append({
              'diskname': 'SQL' ~ disktype ~ tempdb_disk_counter.value,
-             'LUN': disk.LUN,
+             'LUN': disk_lun,
              'driveletter': null,
              'mount_point': mount_base_path ~ "\\" ~ mount_folder_name,
              'mount_base_path': mount_base_path,
@@ -113,7 +125,7 @@
 {%     elif disktype == 'backup' %}
 {%         set _ = pvlist.append({
              'diskname': disktype ~ backup_disk_counter.value,
-             'LUN': disk.LUN,
+             'LUN': disk_lun,
              'driveletter': null,
              'mount_point': mount_base_path ~ "\\" ~ mount_folder_name,
              'mount_base_path': mount_base_path,
@@ -126,7 +138,7 @@
 {%     else %}
 {%         set _ = pvlist.append({
              'diskname': disktype ~ loop.index,
-             'LUN': disk.LUN,
+             'LUN': disk_lun,
              'driveletter': null,
              'mount_point': mount_base_path ~ "\\" ~ mount_folder_name,
              'mount_base_path': mount_base_path,
@@ -142,7 +154,7 @@
 {%     if disktype == 'data' %}
 {%         set _ = pvlist.append({
              'diskname': 'SQL' ~ disktype ~ loop.index,
-             'LUN': disk.LUN,
+             'LUN': disk_lun,
              'driveletter': startlettercharacter,
              'sector_size': size,
              'disk_type': disktype,
@@ -152,7 +164,7 @@
 {%     elif disktype == 'log' %}
 {%         set _ = pvlist.append({
              'diskname': 'SQL' ~ disktype ~ loop.index,
-             'LUN': disk.LUN,
+             'LUN': disk_lun,
              'driveletter': startlettercharacter,
              'sector_size': size,
              'disk_type': disktype,
@@ -162,7 +174,7 @@
 {%     elif disktype == 'tempdb' %}
 {%         set _ = pvlist.append({
              'diskname': 'SQL' ~ disktype ~ loop.index,
-             'LUN': disk.LUN,
+             'LUN': disk_lun,
              'driveletter': startlettercharacter,
              'sector_size': size,
              'disk_type': disktype,
@@ -172,7 +184,7 @@
 {%     else %}
 {%         set _ = pvlist.append({
              'diskname': disktype ~ loop.index,
-             'LUN': disk.LUN,
+             'LUN': disk_lun,
              'driveletter': startlettercharacter,
              'sector_size': size,
              'disk_type': disktype,
