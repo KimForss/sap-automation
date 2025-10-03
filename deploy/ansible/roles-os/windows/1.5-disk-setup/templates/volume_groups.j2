@@ -96,7 +96,7 @@
 {%     set matched_disks = [] %}
 {%     for ad in ansible_disks %}
 {#         First, try matching via physical_disk.physical_location (most reliable) #}
-{%         if ad.physical_disk is defined and ad.physical_disk.physical_location is defined %}
+{%         if ad.physical_disk is defined and ad.physical_disk is not none and ad.physical_disk.physical_location is defined and ad.physical_disk.physical_location is not none %}
 {%             set location = ad.physical_disk.physical_location | string %}
 {#             Check if "LUN X" appears in the location string where X is our target LUN #}
 {%             if ('LUN ' ~ disk_lun) in location or ('LUN ' ~ disk_lun | string) in location %}
