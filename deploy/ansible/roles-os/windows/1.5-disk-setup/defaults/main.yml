@@ -44,7 +44,8 @@ mount_point_naming:
   sap: 'SAP'
 
 # Enable verbose disk configuration output
-disk_setup_verbose: false
+# temporarily enable for debug
+disk_setup_verbose: true
 
 # Retry configuration for disk initialization
 # Windows may need time for disks to become available after VM provisioning

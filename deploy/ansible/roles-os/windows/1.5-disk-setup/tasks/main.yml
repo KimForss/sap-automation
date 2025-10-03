@@ -47,6 +47,16 @@
 # The volume_groups variable is defined in vars/main.yml and uses the
 # volume_groups.j2 template with corrected LUN matching logic
 
+- name: "1.5 Disk setup - DEBUG template output"
+  ansible.builtin.debug:
+    msg: "{{ lookup('template', 'volume_groups.j2') }}"
+  when: disk_setup_verbose | default(false)
+
+- name: "1.5 Disk setup - DEBUG parsed volume_groups"
+  ansible.builtin.debug:
+    var: volume_groups
+  when: disk_setup_verbose | default(false)
+
 - name:                                "1.5 Disk setup - Debug volume_groups type"
   ansible.builtin.debug:
     msg:
