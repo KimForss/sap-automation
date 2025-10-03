@@ -112,18 +112,16 @@
 {%     endfor %}
 
 {#
-    Handle match results with SAFE null handling:
-    - Use .get() method to safely access dictionary values that might be null
-    - Default to empty dict {} instead of none to enable safe .get() usage
-    - Check both existence and non-null value before using unique_id
-
-    This prevents "'null' is undefined" errors when disk properties are None
+    Handle match results with PURE Jinja2 null handling:
+    - Use 'is defined' and 'is not none' to check existence
+    - Access properties only after confirming object validity
+    - Use string concatenation for fallback identifiers
 #}
-{%     set matched_disk = matched_disks | first | default({}) %}
-{%     if matched_disk and matched_disk.get('unique_id') %}
-{%         set os_disk_id = matched_disk.get('unique_id', '') %}
-{%     elif matched_disk and matched_disk.get('number') is not none %}
-{%         set os_disk_id = 'DISK_' ~ matched_disk.get('number', 'UNKNOWN') %}
+{%     set matched_disk = matched_disks | first | default(none) %}
+{%     if matched_disk is not none and matched_disk.unique_id is defined and matched_disk.unique_id is not none %}
+{%         set os_disk_id = matched_disk.unique_id %}
+{%     elif matched_disk is not none and matched_disk.number is defined and matched_disk.number is not none %}
+{%         set os_disk_id = 'DISK_' ~ matched_disk.number %}
 {%     else %}
 {#         No match found - create deterministic fallback identifier #}
 {%         set os_disk_id = 'UNMATCHED_LUN_' ~ disk_lun ~ '_TYPE_' ~ disktype %}
