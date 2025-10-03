@@ -353,13 +353,13 @@
 
 - name:                                "gridSetup command"
   ansible.builtin.debug:
-    msg:                               "Running ./gridSetup.sh -silent -applyRU {{ ApplyRU }} -applyOneOff {{ OneOffs }} -opatchlocation /oracle/GRID/{{ ora_version }}/OPatch -skipOpatchVersionCheck -responseFile ./{{ ansible_hostname }}_{{ db_sid }}_install.rsp"
+    msg:                               "Running ./gridSetup.sh -silent -applyRU {{ ApplyRU }} -applyOneOffs {{ OneOffs }} -opatchlocation /oracle/GRID/{{ ora_version }}/OPatch -skipOpatchVersionCheck -responseFile ./{{ ansible_hostname }}_{{ db_sid }}_install.rsp"
 
 - name:                                "ORACLE ASM: Install Execute gridSetup.sh"
   become:                              true
   become_user:                         oracle
   ansible.builtin.shell: |
-                                       ./gridSetup.sh -silent -applyRU {{ ApplyRU }} -applyOneOff {{ OneOffs }} -opatchlocation /oracle/GRID/{{ ora_version }}/OPatch -skipOpatchVersionCheck -responseFile ./{{ ansible_hostname }}_{{ db_sid }}_install.rsp
+                                       ./gridSetup.sh -silent -applyRU {{ ApplyRU }} -applyOneOffs {{ OneOffs }} -opatchlocation /oracle/GRID/{{ ora_version }}/OPatch -skipOpatchVersionCheck -responseFile ./{{ ansible_hostname }}_{{ db_sid }}_install.rsp
   register:                            gridinstaller_results
   failed_when:                         gridinstaller_results.rc >= 2              # installer returns rc=1 (exited with warning) by default when run is silent mode as the oratab file is created only after running the root.sh
   environment:
