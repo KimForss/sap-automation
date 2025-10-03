@@ -389,7 +389,8 @@
 
 - name:                                "ORACLE ASM: Check before grid post processing"
   ansible.builtin.fail:
-    msg:   "check before grid post processing"
+    msg:   "check before grid post processing run: /oracle/oraInventory/orainstRoot.sh and /oracle/GRID/{{ ora_version }}/root.sh and /oracle/GRID/{{ ora_version }}/crs/install/roothas.sh and ./asmca -silent -configureASM -sysAsmPassword {{ main_password }} -asmsnmpPassword {{ main_password }} \
+                                        -createDiskGroup -diskGroupName DATA -redundancy EXTERNAL -diskList '{{ asm_datadisklist }}'"
 
 # +------------------------------------4--------------------------------------*/
 # |                                                                            |
