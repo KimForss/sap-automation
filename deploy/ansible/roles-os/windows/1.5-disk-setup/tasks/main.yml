@@ -38,9 +38,9 @@
 - name:                                "1.5 Disk setup - Show disk info"
   ansible.builtin.debug:
     msg:
-      - "Disks:    {{ ansible_facts.disks }} "
-      - "Mount Strategy: {{ disk_mount_strategy }}"
-      - "Base Mount Path: {{ disk_base_mount_path }}"
+      - "Disks:                        {{ ansible_facts.disks }} "
+      - "Mount Strategy:               {{ disk_mount_strategy }}"
+      - "Base Mount Path:              {{ disk_base_mount_path }}"
     verbosity:                         2
 
 - name:                                "1.5 Disk setup - Load the disk configuration settings"
@@ -49,24 +49,25 @@
 - name:                                "1.5 Disk setup - Show disk info"
   ansible.builtin.debug:
     msg:
-      - "Unique disks:    {{ disktypes }} "
-      - "Volume groups:   {{ volume_groups }} "
+      - "Unique disks:                 {{ disktypes }} "
+      - "Volume groups:                {{ volume_groups }} "
     verbosity:                         2
 
 - name:                                "1.5 Disk setup - Create base mount point directories"
   when:
     - disk_mount_strategy == 'mountpoint'
-    - volume_groups | selectattr('use_mount_point', 'defined') | selectattr('use_mount_point', 'equalto', true) | list | length > 0
   block:
     - name:                            "1.5 Disk setup - Get unique mount base paths"
       ansible.builtin.set_fact:
         unique_mount_base_paths:       "{{ volume_groups | selectattr('mount_base_path', 'defined') | map(attribute='mount_base_path') | unique | list }}"
+      when: volume_groups | selectattr('mount_base_path', 'defined') | list | length > 0
 
     - name:                            "1.5 Disk setup - Create base mount directories"
       ansible.windows.win_file:
         path:                          "{{ item }}"
         state:                         directory
-      loop:                            "{{ unique_mount_base_paths }}"
+      loop:                            "{{ unique_mount_base_paths | default([]) }}"
+      when: unique_mount_base_paths is defined and unique_mount_base_paths | length > 0
 
 - name:                                "1.5 Disk setup - Wait for disks to be available"
   ansible.windows.win_dsc:
@@ -79,9 +80,10 @@
 
 - name:                                "1.5 Disk setup - Initialize disks with drive letters"
   when:
-    - disk_mount_strategy == 'driveletter' or not item.use_mount_point | default(false)
+    - disk_mount_strategy == 'driveletter' or (item.use_mount_point is defined and not item.use_mount_point)
     - item.driveletter is defined
     - item.driveletter is not none
+    - item.driveletter | length > 0
   ansible.windows.win_dsc:
     resource_name:                     "Disk"
     DiskId:                            "{{ item.osdisk_id }}"
@@ -97,8 +99,10 @@
 - name:                                "1.5 Disk setup - Initialize disks with mount points"
   when:
     - disk_mount_strategy == 'mountpoint'
+    - item.use_mount_point is defined
     - item.use_mount_point | default(false)
     - item.mount_point is defined
+    - item.mount_point | length > 0
   ansible.windows.win_dsc:
     resource_name:                     "Disk"
     DiskId:                            "{{ item.osdisk_id }}"
@@ -113,52 +117,35 @@
 
 - name:                                "1.5 Disk setup - Verify disk configuration (drive letters)"
   when:
-    - disk_mount_strategy == 'driveletter'
-    - win_disk_driveletter_results is defined
+                                       - disk_mount_strategy == 'driveletter'
+                                       - win_disk_driveletter_results is defined
   ansible.builtin.debug:
     msg:
       - "Drive letter disk configuration completed"
-      - "Results: {{ win_disk_driveletter_results }}"
+      - "Results:                      {{ win_disk_driveletter_results }}"
     verbosity:                         1
 
 - name:                                "1.5 Disk setup - Verify disk configuration (mount points)"
   when:
-    - disk_mount_strategy == 'mountpoint'
-    - win_disk_mountpoint_results is defined
+                                       - disk_mount_strategy == 'mountpoint'
+                                       - win_disk_mountpoint_results is defined
   ansible.builtin.debug:
     msg:
       - "Mount point disk configuration completed"
-      - "Results: {{ win_disk_mountpoint_results }}"
+      - "Results:                      {{ win_disk_mountpoint_results }}"
     verbosity:                         1
 
 - name:                                "1.5 Disk setup - Show final disk configuration"
   ansible.builtin.debug:
     msg:
       - "Disk configuration summary:"
-      - "  Strategy: {{ disk_mount_strategy }}"
-      - "  Total disks configured: {{ volume_groups | length }}"
-      - "  DATA disks: {{ volume_groups | selectattr('disk_type', 'defined') | selectattr('disk_type', 'equalto', 'data') | list | length }}"
-      - "  LOG disks: {{ volume_groups | selectattr('disk_type', 'defined') | selectattr('disk_type', 'equalto', 'log') | list | length }}"
-      - "  TEMPDB disks: {{ volume_groups | selectattr('disk_type', 'defined') | selectattr('disk_type', 'equalto', 'tempdb') | list | length }}"
-      - "  BACKUP disks: {{ volume_groups | selectattr('disk_type', 'defined') | selectattr('disk_type', 'equalto', 'backup') | list | length }}"
+      - "  Strategy:                   {{ disk_mount_strategy }}"
+      - "  Total disks configured:     {{ volume_groups | length }}"
+      - "  DATA disks:                 {{ volume_groups | selectattr('disk_type', 'defined') | selectattr('disk_type', 'equalto', 'data') | list | length }}"
+      - "  LOG disks:                  {{ volume_groups | selectattr('disk_type', 'defined') | selectattr('disk_type', 'equalto', 'log') | list | length }}"
+      - "  TEMPDB disks:               {{ volume_groups | selectattr('disk_type', 'defined') | selectattr('disk_type', 'equalto', 'tempdb') | list | length }}"
+      - "  BACKUP disks:               {{ volume_groups | selectattr('disk_type', 'defined') | selectattr('disk_type', 'equalto', 'backup') | list | length }}"
     verbosity:                         1
-
-# - name: select disk unique id
-#   vars:
-#     regex: '^Integrated.+LUN\s({{ item.LUN }})$'
-#   set_fact:
-#     disk_id: "{{ ansible_facts.disks |
-#               selectattr('location', 'match', regex) |
-#               map(attribute='unique_id') |
-#               list | first }}"
-#   loop:       "{{ disks }}"
-#   when: item.host == ansible_hostname
-
-# - name:                                "1.5 Disk setup - Show disk info"
-#   ansible.builtin.debug:
-#     msg:
-#       - "Disk ids:    {{ disk_id }} "
-#       - "disk facts: {{ ansible_facts.disks}}"
 
 ...
 # /*---------------------------------------------------------------------------8
