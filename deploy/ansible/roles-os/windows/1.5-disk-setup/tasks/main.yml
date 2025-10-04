@@ -12,18 +12,12 @@
 # Task: 1.5     disk-setup
 #
 # Description:  This role supports two disk mounting strategies:
-#               1. Drive Letters (default) - Traditional Windows drive letters
+#               1. Drive Letters - Traditional Windows drive letters
 #               2. Mount Points - Mount disks under folder paths
 #
 # Variables:
-#   disk_mount_strategy: 'driveletter' or 'mountpoint' (default: 'mountpoint')
+#   disk_mount_strategy: 'driveletter' or 'mountpoint' (default: 'driveletter')
 #   disk_base_mount_path: Base path for mount points (default: 'C:\SQLServerDisks')
-#
-# Mount Point Structure:
-#   C:\SQLServerDisks\DATA\DATA1, DATA2, DATA3, etc.
-#   C:\SQLServerDisks\LOG\LOG1, LOG2, LOG3, etc.
-#   C:\SQLServerDisks\TEMPDB\TEMPDB1, TEMPDB2, TEMPDB3, etc.
-#   C:\SQLServerDisks\BACKUP\BACKUP1, BACKUP2, etc.
 #
 # -------------------------------------+---------------------------------------8
 
@@ -43,263 +37,140 @@
       - "Base Mount Path:              {{ disk_base_mount_path }}"
     verbosity:                         2
 
-# NOTE: No include_vars task needed - vars/main.yml is automatically loaded
-# The volume_groups variable is defined in vars/main.yml and uses the
-# volume_groups.j2 template with corrected LUN matching logic
+- name:                                "1.5 Disk setup - Load the disk configuration settings"
+  ansible.builtin.include_vars:
+    file:                              "{{ role_path }}/vars/main.yml"
+    name:                              disk_config_vars
 
-- name: "1.5 Disk setup - DEBUG template output"
+- name:                                "[DEBUG] 1.5 Disk setup - Show loaded disk configuration variables"
   ansible.builtin.debug:
-    msg: "{{ lookup('template', 'volume_groups.j2') }}"
-  when: disk_setup_verbose | default(false)
-
-- name: "1.5 Disk setup - DEBUG parsed volume_groups"
-  ansible.builtin.debug:
-    var: volume_groups
-  when: disk_setup_verbose | default(false)
-
-- name:                                "1.5 Disk setup - Debug volume_groups type"
-  ansible.builtin.debug:
-    msg:
-      - "Volume groups type:           {{ volume_groups | type_debug }}"
-      - "Volume groups content:        {{ volume_groups }}"
+    var:                               disk_config_vars
     verbosity:                         2
 
-- name:                                "1.5 Disk setup - Show disk info"
+- name:                                "1.5 Disk setup - Show disk configuration"
   ansible.builtin.debug:
     msg:
       - "Unique disks:                 {{ disktypes }} "
-      - "Volume groups count:          {{ volume_groups | length if volume_groups is iterable and volume_groups is not string else 'N/A' }} "
+      - "Volume groups count:          {{ volume_groups | length }} "
+      - "Volume groups:                {{ volume_groups }}"
     verbosity:                         2
 
-- name:                                "1.5 Disk setup - Validate volume_groups structure"
-  ansible.builtin.assert:
-    that:
-      - volume_groups is defined
-      - volume_groups is iterable
-      - volume_groups is not string
-    fail_msg:                          "volume_groups is not properly defined or is not a list"
-    success_msg:                       "volume_groups validation passed"
+# ----------------------------------------
+# Mount Point Strategy: Create directory structure
+# ----------------------------------------
 
-- name:                                "1.5 Disk setup - Check for unmatched disks"
-  ansible.builtin.debug:
-    msg:
-      - "WARNING: Found unmatched disk - LUN {{ item.LUN }} Type {{ item.disk_type }}"
-      - "Disk ID: {{ item.osdisk_id }}"
-  loop:                                "{{ volume_groups | map(attribute='disks') | flatten }}"
+- name:                                "1.5 Disk setup - Create base mount point directory"
   when:
-                                       - item.osdisk_id is defined
-                                       - item.osdisk_id is match('^UNMATCHED_.*')
+    - disk_mount_strategy == 'mountpoint'
+  ansible.windows.win_file:
+    path:                              "{{ disk_base_mount_path }}"
+    state:                             directory
+
+- name:                                "1.5 Disk setup - Create type-level mount directories"
+  when:
+    - disk_mount_strategy == 'mountpoint'
+    - item.use_mount_point | default(false)
+  ansible.windows.win_file:
+    path:                              "{{ item.mount_base_path }}"
+    state:                             directory
+  loop:                                "{{ volume_groups }}"
   loop_control:
-    label:                             "LUN {{ item.LUN }} ({{ item.disk_type }})"
+    label:                             "{{ item.mount_base_path }}"
 
-- name:                                "1.5 Disk setup - Create base mount point directories"
+- name:                                "1.5 Disk setup - Create disk-level mount directories"
   when:
-                                       - disk_mount_strategy == 'mountpoint'
-  block:
-    - name:                            "1.5 Disk setup - Create root mount point directory"
-      ansible.windows.win_file:
-        path:                          "{{ disk_base_mount_path }}"
-        state:                         directory
+    - disk_mount_strategy == 'mountpoint'
+    - item.use_mount_point | default(false)
+  ansible.windows.win_file:
+    path:                              "{{ item.mount_point }}"
+    state:                             directory
+  loop:                                "{{ volume_groups }}"
+  loop_control:
+    label:                             "{{ item.mount_point }}"
 
-    - name:                            "1.5 Disk setup - Create disk type directories"
-      ansible.windows.win_file:
-        path:                          "{{ disk_base_mount_path }}\\{{ item | upper }}"
-        state:                         directory
-      loop:
-        - DATA
-        - LOG
-        - TEMPDB
-        - BACKUP
-        - SAP
-      when:                            item | lower in disktypes
+# ----------------------------------------
+# Disk Initialization (both strategies)
+# ----------------------------------------
 
-- name:                                "1.5 Disk setup - Initialize and format disks (drive letter mode)"
+- name:                                "1.5 Disk setup - Wait for disks to be available"
+  ansible.windows.win_dsc:
+    resource_name:                     "WaitForDisk"
+    DiskId:                            "{{ item.osdisk_id }}"
+    DiskIdType:                        'UniqueId'
+    RetryIntervalSec:                  60
+    RetryCount:                        10
+  loop:                                "{{ volume_groups }}"
+  loop_control:
+    label:                             "{{ item.diskname }} (LUN {{ item.LUN }})"
+  when:                                item.osdisk_id != ''
+
+# ----------------------------------------
+# Drive Letter Strategy: Use DriveLetter parameter
+# ----------------------------------------
+
+- name:                                "1.5 Disk setup - Initialize disks with drive letters"
   when:
-                                       - disk_mount_strategy == 'driveletter'
-                                       - volume_groups is defined
-                                       - volume_groups | length > 0
-  block:
-    - name:                            "1.5 Disk setup - Configure disks with drive letters"
-      community.windows.win_initialize_disk:
-        disk_number:                   "{{ outer_item.number }}"
-        style:                         "{{ disk_partition_style }}"
-      loop:                            "{{ volume_groups | map(attribute='disks') | flatten }}"
-      loop_control:
-        loop_var:                      outer_item
-        label:                         "Disk LUN {{ outer_item.LUN }} - {{ outer_item.diskname }}"
-      vars:
-        matched_disk:                  "{{ ansible_facts.disks | selectattr('unique_id', 'defined') | selectattr('unique_id', 'equalto', outer_item.osdisk_id) | first | default(none) }}"
-      when:
-                                       - matched_disk is not none
-                                       - matched_disk.partition_style == 'RAW' or matched_disk.partition_count == 0
-                                       - not outer_item.osdisk_id is match('^UNMATCHED_.*')
-      register:                        win_disk_driveletter_init_results
+    - disk_mount_strategy == 'driveletter'
+    - not item.use_mount_point | default(false)
+    - item.osdisk_id != ''
+  ansible.windows.win_dsc:
+    resource_name:                     "Disk"
+    DiskId:                            "{{ item.osdisk_id }}"
+    DiskIdType:                        'UniqueId'
+    DriveLetter:                       "{{ item.driveletter }}"
+    PartitionStyle:                    "GPT"
+    FSLabel:                           "{{ item.diskname }}"
+    FSFormat:                          'NTFS'
+    AllocationUnitSize:                "{{ item.sector_size }}"
+  loop:                                "{{ volume_groups }}"
+  loop_control:
+    label:                             "{{ item.diskname }} -> {{ item.driveletter }}:"
+  register:                            win_disk_driveletter_results
 
-    - name:                            "1.5 Disk setup - Create partitions with drive letters"
-      community.windows.win_partition:
-        disk_number:                   "{{ outer_item.number }}"
-        partition_size:                -1
-        drive_letter:                  "{{ outer_item.driveletter }}"
-      loop:                            "{{ volume_groups | map(attribute='disks') | flatten }}"
-      loop_control:
-        loop_var:                      outer_item
-        label:                         "Disk LUN {{ outer_item.LUN }} - Drive {{ outer_item.driveletter }}"
-      vars:
-        matched_disk:                  "{{ ansible_facts.disks | selectattr('unique_id', 'defined') | selectattr('unique_id', 'equalto', outer_item.osdisk_id) | first | default(none) }}"
-      when:
-                                       - matched_disk is not none
-                                       - outer_item.driveletter is defined
-                                       - outer_item.driveletter is not none
-                                       - not outer_item.osdisk_id is match('^UNMATCHED_.*')
-      register:                        win_disk_driveletter_partition_results
+# ----------------------------------------
+# Mount Point Strategy: Use AccessPath parameter
+# ----------------------------------------
 
-    - name:                            "1.5 Disk setup - Format volumes with drive letters"
-      community.windows.win_format:
-        drive_letter:                  "{{ outer_item.driveletter }}"
-        file_system:                   "{{ disk_fs_format }}"
-        allocation_unit_size:          "{{ outer_item.sector_size }}"
-        label:                         "{{ outer_item.diskname }}"
-        force:                         false
-      loop:                            "{{ volume_groups | map(attribute='disks') | flatten }}"
-      loop_control:
-        loop_var:                      outer_item
-        label:                         "Drive {{ outer_item.driveletter }} - {{ outer_item.diskname }}"
-      when:
-                                       - outer_item.driveletter is defined
-                                       - outer_item.driveletter is not none
-                                       - not outer_item.osdisk_id is match('^UNMATCHED_.*')
-      register:                        win_disk_driveletter_format_results
-
-- name:                                "1.5 Disk setup - Initialize and format disks (mount point mode)"
+- name:                                "1.5 Disk setup - Initialize disks with mount points"
   when:
-                                       - disk_mount_strategy == 'mountpoint'
-                                       - volume_groups is defined
-                                       - volume_groups | length > 0
-  block:
-    - name:                            "1.5 Disk setup - Configure disks for mount points"
-      community.windows.win_initialize_disk:
-        disk_number:                   "{{ matched_disk.number }}"
-        style:                         "{{ disk_partition_style }}"
-      loop:                            "{{ volume_groups | map(attribute='disks') | flatten }}"
-      loop_control:
-        loop_var:                      outer_item
-        label:                         "Disk LUN {{ outer_item.LUN }} - {{ outer_item.diskname }}"
-      vars:
-        matched_disk:                  "{{ ansible_facts.disks | selectattr('unique_id', 'defined') | selectattr('unique_id', 'equalto', outer_item.osdisk_id) | first | default(none) }}"
-      when:
-                                       - matched_disk is not none
-                                       - matched_disk.partition_style == 'RAW' or matched_disk.partition_count == 0
-                                       - not outer_item.osdisk_id is match('^UNMATCHED_.*')
-      register:                        win_disk_mountpoint_init_results
+    - disk_mount_strategy == 'mountpoint'
+    - item.use_mount_point | default(false)
+    - item.osdisk_id != ''
+  ansible.windows.win_dsc:
+    resource_name:                     "Disk"
+    DiskId:                            "{{ item.osdisk_id }}"
+    DiskIdType:                        'UniqueId'
+    AccessPath:                        "{{ item.mount_point }}"
+    PartitionStyle:                    "GPT"
+    FSLabel:                           "{{ item.diskname }}"
+    FSFormat:                          'NTFS'
+    AllocationUnitSize:                "{{ item.sector_size }}"
+  loop:                                "{{ volume_groups }}"
+  loop_control:
+    label:                             "{{ item.diskname }} -> {{ item.mount_point }}"
+  register:                            win_disk_mountpoint_results
 
-    - name:                            "1.5 Disk setup - Create mount point directories"
-      ansible.windows.win_file:
-        path:                          "{{ outer_item.mount_point }}"
-        state:                         directory
-      loop:                            "{{ volume_groups | map(attribute='disks') | flatten }}"
-      loop_control:
-        loop_var:                      outer_item
-        label:                         "Mount point {{ outer_item.mount_point }}"
-      when:
-                                       - outer_item.mount_point is defined
-                                       - outer_item.mount_point is not none
-                                       - not outer_item.osdisk_id is match('^UNMATCHED_.*')
+# ----------------------------------------
+# Debug output
+# ----------------------------------------
 
-    - name:                            "1.5 Disk setup - Create partitions without drive letters"
-      community.windows.win_partition:
-        disk_number:                   "{{ matched_disk.number }}"
-        partition_size:                -1
-        drive_letter:                  auto
-      loop:                            "{{ volume_groups | map(attribute='disks') | flatten }}"
-      loop_control:
-        loop_var:                      outer_item
-        label:                         "Disk LUN {{ outer_item.LUN }} - {{ outer_item.diskname }}"
-      vars:
-        matched_disk:                  "{{ ansible_facts.disks | selectattr('unique_id', 'defined') | selectattr('unique_id', 'equalto', outer_item.osdisk_id) | first | default(none) }}"
-      when:
-                                       - matched_disk is not none
-                                       - not outer_item.osdisk_id is match('^UNMATCHED_.*')
-      register:                        win_disk_mountpoint_partition_results
-
-    - name:                            "1.5 Disk setup - Format volumes for mount points"
-      ansible.windows.win_shell: |
-                                       $disk = Get-Disk | Where-Object { $_.UniqueId -eq '{{ outer_item.osdisk_id }}' }
-                                       if ($disk) {
-                                         $partition = Get-Partition -DiskNumber $disk.Number | Where-Object { $_.Type -eq 'Basic' }
-                                         if ($partition) {
-                                           $volume = Get-Volume -Partition $partition
-                                           if ($volume.FileSystem -ne '{{ disk_fs_format }}') {
-                                             Format-Volume -Partition $partition -FileSystem {{ disk_fs_format }} -AllocationUnitSize {{ outer_item.sector_size }} -NewFileSystemLabel '{{ outer_item.diskname }}' -Confirm:$false
-                                           }
-                                         }
-                                       }
-      loop:                            "{{ volume_groups | map(attribute='disks') | flatten }}"
-      loop_control:
-        loop_var:                      outer_item
-        label:                         "Format {{ outer_item.diskname }}"
-      when:
-                                       - not outer_item.osdisk_id is match('^UNMATCHED_.*')
-      register:                        win_disk_mountpoint_format_results
-
-    - name:                            "1.5 Disk setup - Mount volumes to directories"
-      ansible.windows.win_shell: |
-                                       $disk = Get-Disk | Where-Object { $_.UniqueId -eq '{{ outer_item.osdisk_id }}' }
-                                       if ($disk) {
-                                         $partition = Get-Partition -DiskNumber $disk.Number | Where-Object { $_.Type -eq 'Basic' }
-                                         if ($partition) {
-                                           # Remove any existing drive letter
-                                           if ($partition.DriveLetter) {
-                                             Remove-PartitionAccessPath -DiskNumber $disk.Number -PartitionNumber $partition.PartitionNumber -AccessPath "$($partition.DriveLetter):"
-                                           }
-                                           # Add mount point access path
-                                           $mountPoint = '{{ outer_item.mount_point }}'
-                                           if (-not (Test-Path $mountPoint)) {
-                                             New-Item -Path $mountPoint -ItemType Directory -Force
-                                           }
-                                           Add-PartitionAccessPath -DiskNumber $disk.Number -PartitionNumber $partition.PartitionNumber -AccessPath $mountPoint
-                                         }
-                                       }
-      loop:                            "{{ volume_groups | map(attribute='disks') | flatten }}"
-      loop_control:
-        loop_var:                      outer_item
-        label:                         "Mount {{ outer_item.mount_point }}"
-      when:
-                                       - outer_item.mount_point is defined
-                                       - outer_item.mount_point is not none
-                                       - not outer_item.osdisk_id is match('^UNMATCHED_.*')
-      register:                        win_disk_mountpoint_results
-
-- name:                                "1.5 Disk setup - Show drive letter disk configuration results"
+- name:                               "1.5 Disk setup - Show disk initialization results (drive letters)"
   when:
-                                       - disk_mount_strategy == 'driveletter'
-                                       - win_disk_driveletter_format_results is defined
+    - disk_mount_strategy == 'driveletter'
+    - win_disk_driveletter_results is defined
   ansible.builtin.debug:
     msg:
-      - "Drive letter disk configuration completed"
-      - "Results:                      {{ win_disk_driveletter_format_results }}"
-    verbosity:                         1
+      - "Drive letter results:         {{ win_disk_driveletter_results }}"
+    verbosity:                        2
 
-- name:                                "1.5 Disk setup - Show mount point disk configuration results"
+- name:                               "1.5 Disk setup - Show disk initialization results (mount points)"
   when:
-                                       - disk_mount_strategy == 'mountpoint'
-                                       - win_disk_mountpoint_results is defined
+    - disk_mount_strategy == 'mountpoint'
+    - win_disk_mountpoint_results is defined
   ansible.builtin.debug:
     msg:
-      - "Mount point disk configuration completed"
-      - "Results:                      {{ win_disk_mountpoint_results }}"
-    verbosity:                         1
-
-- name:                                "1.5 Disk setup - Show final disk configuration"
-  ansible.builtin.debug:
-    msg:
-      - "Disk configuration summary:"
-      - "  Strategy:                   {{ disk_mount_strategy }}"
-      - "  Total disks configured:     {{ volume_groups | length }}"
-      - "  DATA disks:                 {{ volume_groups | selectattr('disktype', 'defined') | selectattr('disktype', 'equalto', 'data') | list | length }}"
-      - "  LOG disks:                  {{ volume_groups | selectattr('disktype', 'defined') | selectattr('disktype', 'equalto', 'log') | list | length }}"
-      - "  TEMPDB disks:               {{ volume_groups | selectattr('disktype', 'defined') | selectattr('disktype', 'equalto', 'tempdb') | list | length }}"
-      - "  BACKUP disks:               {{ volume_groups | selectattr('disktype', 'defined') | selectattr('disktype', 'equalto', 'backup') | list | length }}"
-    verbosity:                         1
+      - "Mount point results:          {{ win_disk_mountpoint_results }}"
+    verbosity:                        2
 
 ...
 # /*---------------------------------------------------------------------------8
