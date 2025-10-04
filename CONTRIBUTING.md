@@ -1,15 +1,19 @@
 
 # Table of contents
 
-- [Building "in the Open"](#building-in-the-open)
-- [Fully Maintained](#fully-maintained)
-- [Execution-focused](#execution-focused)
-- [Coding Guidelines](#coding-guidelines)
-  - [PR Basics](#pr-basics)
-    - [PR guidelines](#pr-guidelines)
-    - [Terraform guidelines](#terraform-guidelines)
-  - [PR reviews guidelines](#pr-reviews-guidelines)
-  - [Release strategy](#release-strategy)
+- [Table of contents](#table-of-contents)
+  - [Building 'in the open'](#building-in-the-open)
+  - [Fully Maintained](#fully-maintained)
+  - [Execution-focused](#execution-focused)
+  - [Coding Guidelines](#coding-guidelines)
+    - [PR Basics](#pr-basics)
+    - [PR Guidelines](#pr-guidelines)
+      - [Technical Requirements](#technical-requirements)
+      - [Content Requirements](#content-requirements)
+      - [Review Process Expectations](#review-process-expectations)
+      - [Terraform guidelines](#terraform-guidelines)
+    - [PR reviews guidelines](#pr-reviews-guidelines)
+    - [Release strategy](#release-strategy)
 
 Thanks for taking the time to contribute!
 This document summarizes the deployment principles which govern our project.
@@ -52,20 +56,74 @@ This section captures fundamentals on how new features should be developed and f
 - The design has to make sure it is independent and has minimum impact on other modules.
 - There should be a set of test cases in place to prove the design works and will not break existing code.
 
-### PR guidelines
+### PR Guidelines
 
-1. Required information in PR ([example](https://github.com/Azure/sap-automation/pull/480)):
-     - Always link to the issue that is is trying to resolve with tag **Closes**.
+#### Technical Requirements
 
-- Describe the **Problem** that it tries to resolve.
-- Provide the **Solution** that this PR contains.
-- Provide **Tests** that have been done to make sure this PR does not break existing code (either in master or branch). If the test requires certain instructions, please add that information as well.
+All pull requests must meet the following technical standards before requesting review:
 
-1. The PRs should be easily tested independent of other projects in progress.
+1. **Branch must be current with target branch**
+   - Rebase your branch on the latest version of the target branch (e.g., `main`, `release/august2025`) immediately before opening your PR
+   - PRs that are behind the base branch will not be reviewed until updated
+   - As the base branch evolves during review, you are responsible for keeping your PR current
 
-1. Submit PRs with small commits with **descriptive but not random comments**, so that make it easier to rollback in case of problem.
+2. **Linear commit history required**
+   - This repository enforces linear commit history
+   - Use `git rebase` to incorporate upstream changes - never `git merge`
+   - PRs containing merge commits will be rejected and must be rebased before review
 
-1. While the commits being small, please also make sure **do not stack up too many commits** (do squash if needed).
+3. **Resolve all conflicts before submission**
+   - All merge conflicts must be resolved locally before requesting review
+   - PRs with unresolved conflicts will be closed with a request to rebase and resubmit
+   - Maintainers will not resolve conflicts on behalf of contributors
+
+4. **Verification workflow before opening PR**
+   ```bash
+   # Fetch latest changes from upstream
+   git fetch upstream
+   
+   # Rebase your branch on the target branch
+   git rebase upstream/<target-branch>
+   
+   # Resolve any conflicts that arise during rebase
+   # After resolving, continue the rebase
+   git rebase --continue
+   
+   # Verify clean working tree
+   git status
+   
+   # Update your fork with rebased changes
+   git push --force-with-lease origin <your-branch>
+   ```
+
+#### Content Requirements
+
+1. **Required information in PR** ([example](https://github.com/Azure/sap-automation/pull/480)):
+   - Always link to the issue that is being resolved using the **Closes** tag
+   - Describe the **Problem** that the PR resolves
+   - Provide the **Solution** that this PR contains
+   - Provide **Tests** that have been performed to verify this PR does not break existing code (either in master or branch). 
+   - If tests require specific instructions, include that information
+
+2. **PRs must be independently testable**
+   - PRs should be easily tested independent of other projects in progress
+   - Include any necessary setup or configuration instructions
+
+3. **Commit hygiene**
+   - Submit PRs with small, logical commits with **descriptive commit messages**
+   - Avoid random or uninformative commit messages
+   - Commits should be small enough to facilitate easy rollback if problems occur
+
+4. **Squash when appropriate**
+   - While keeping commits small and logical, **avoid stacking excessive commits**
+   - Squash fixup commits, typo corrections, and work-in-progress commits before requesting review
+   - Final PR should tell a clear story of the changes being made
+
+#### Review Process Expectations
+
+- **Contributor responsibility**: You are responsible for maintaining your PR in a mergeable state throughout the review process
+- **Maintainer focus**: Maintainers will review code quality, architecture, and functionality - not resolve technical conflicts or history issues
+- **Failed requirements**: PRs failing technical requirements will be marked with `needs-rebase` label and review will be blocked until corrected
 
 #### Terraform guidelines
 
