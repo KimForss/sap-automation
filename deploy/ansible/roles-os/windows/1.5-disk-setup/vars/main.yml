@@ -64,7 +64,7 @@ disktypes: >-
 
 # Dynamically determine list of volume groups (Windows disk configurations)
 # associated with the current node
-volume_groups: "{{ lookup('template', 'volume_groups.j2') | from_json }}"
+volume_groups: "{{ lookup('template', 'volume_groups.j2') }}"
 
 # Disk mount strategy:
 # The above is the core data structure that maps Azure LUNs to Windows disk configuration
