@@ -392,6 +392,17 @@
     state:                             link
   loop:                                '{{ reco_disk_list }}'
 
+- name:                                "MOPatch command"
+  ansible.builtin.debug:
+    msg:                               "Running env ORACLE_HOME=$OHGRID $OHGRID/MOPatch/mopatch.sh -v -s {{ target_media_location }}/SBP/{{ oraclegrid_sbp_patch}} -F mopatch_patchgen"
+
+
+- name:                                "ORACLE ASM: Check before grid post processing"
+  ansible.builtin.fail:
+    msg:   "check before grid post processing run: /oracle/oraInventory/orainstRoot.sh and /oracle/GRID/{{ ora_version }}/root.sh and /oracle/GRID/{{ ora_version }}/crs/install/roothas.sh and ./asmca -silent -configureASM -sysAsmPassword {{ main_password }} -asmsnmpPassword {{ main_password }} \
+                                        -createDiskGroup -diskGroupName DATA -redundancy EXTERNAL -diskList '{{ asm_datadisklist }}'"
+
+
 - name:                                "ORACLE ASM: Install Execute ./roothas.sh -prepatch"
   become:                              true
   become_user:                         oracle
@@ -417,21 +428,34 @@
     mode:                              '755'
     state:                             link
 
-- name:                                "gridSetup command"
-  ansible.builtin.debug:
-    msg:                               "Running ./gridSetup.sh -silent -applyRU {{ ApplyRU }} -applyOneOffs {{ OneOffs }} -opatchlocation /oracle/GRID/{{ ora_version }}/OPatch -skipOpatchVersionCheck -responseFile ./{{ ansible_hostname }}_{{ db_sid }}_install.rsp"
+- name:                                "ORACLE ASM: Install the patches of the SAP Bundle Patch into the grid home"
+  become:                              true
+  become_user:                         oracle
+  ansible.builtin.shell: |
+                                       "./prepatch.sh -dbhome $OHGRID"
+  register:                            prepatchinstaller_results
+  failed_when:                         prepatchinstaller_results.rc >= 2
+  environment:
+    CV_ASSUME_DISTID:                  "{{ CV_ASSUME_DISTID }}"
+    ORACLE_SID:                        "{{ db_sid | upper }}"
+    ORACLE_BASE:                       /oracle/BASE
+    OHGRID:                            /oracle/GRID/{{ ora_version }}
+    DB_SID:                            "{{ db_sid | upper }}"
+  args:
+    executable:                        /bin/csh
+    chdir:                             "{{ STAGE_SBP_OCWRU }}/custom/scripts"
 
 - name:                                "MOPatch command"
   ansible.builtin.debug:
-    msg:                               "Running env ORACLE_HOME=$OHGRID $OHGRID/MOPatch/mopatch.sh -v -s {{ target_media_location }}/SBP/{{ oraclegrid_sbp_patch}}"
+    msg:                               "Running env ORACLE_HOME=$OHGRID $OHGRID/MOPatch/mopatch.sh -v -s {{ target_media_location }}/SBP/{{ oraclegrid_sbp_patch}} -F mopatch_patchgen"
 
 - name:                                "ORACLE ASM: Install the patches of the SAP Bundle Patch into the grid home"
   become:                              true
   become_user:                         oracle
   ansible.builtin.shell: |
-                                       "env ORACLE_HOME=$OHGRID $OHGRID/MOPatch/mopatch.sh -v -s {{ target_media_location }}/SBP/{{ oraclegrid_sbp_patch}}"
-  register:                            gridinstaller_results
-  failed_when:                         gridinstaller_results.rc >= 2              # installer returns rc=1 (exited with warning) by default when run is silent mode as the oratab file is created only after running the root.sh
+                                       "env ORACLE_HOME=$OHGRID $OHGRID/MOPatch/mopatch.sh -v -s {{ target_media_location }}/SBP/{{ oraclegrid_sbp_patch}} -F mopatch_patchgen"
+  register:                            gridmopatchinstaller_results
+  failed_when:                         gridmopatchinstaller_results.rc >= 2
   environment:
     CV_ASSUME_DISTID:                  "{{ CV_ASSUME_DISTID }}"
     ORACLE_SID:                        "{{ db_sid | upper }}"
@@ -442,6 +466,48 @@
     executable:                        /bin/csh
     chdir:                             "/oracle/GRID/{{ ora_version }}"
     creates:                           /etc/sap_deployment_automation/oracle/grid_mopatch_install.txt
+
+- name:                                "Oracle ASM: Oracle Post Processing - GRID SBP GRID Patching Post-Processing"
+  become:                              true
+  become_user:                         root
+  ansible.builtin.shell: |
+                                       /oracle/GRID/{{ ora_version }}/rdbms/install/rootadd_rdbms.sh
+
+  register:                            rootadd_rdbms_results
+  args:
+    chdir:                             /oracle/GRID/{{ ora_version }}
+    creates:                           /etc/sap_deployment_automation/{{ sap_sid | upper }}/sbp-grid-rootadd.txt
+  when:
+    - gridmopatchinstaller_results.rc >= 1
+
+
+- name:                                "Oracle ASM: Oracle Post Processing - GRID SBP GRID Patching Post-Processing"
+  become:                              true
+  become_user:                         root
+  ansible.builtin.shell: |
+                                        /oracle/GRID/{{ ora_version }}/crs/install/roothas.sh -postpatch
+  register:                             roothas_results
+  args:
+    chdir:                              /oracle/GRID/{{ ora_version }}
+    creates:                            /etc/sap_deployment_automation/{{ sap_sid | upper }}/sbp-grid-roothas.txt
+  when:
+    - gridmopatchinstaller_results.rc >= 1
+
+- name:                                "Oracle ASM: Create flag after a successful change"
+  ansible.builtin.file:
+    path:                              /etc/sap_deployment_automation/{{ sap_sid | upper }}/sbp-grid-rootadd.txt
+    state:                             touch
+    mode:                              '0755'
+  when:
+                                       - rootadd_rdbms_results.rc >= 1
+
+- name:                                "Oracle ASM: Create flag after a successful change"
+  ansible.builtin.file:
+    path:                              /etc/sap_deployment_automation/{{ sap_sid | upper }}/sbp-grid-roothas.txt
+    state:                             touch
+    mode:                              '0755'
+  when:
+                                       - roothas_results.rc >= 1
 
 - name:                                "gridSetup command"
   ansible.builtin.debug:
