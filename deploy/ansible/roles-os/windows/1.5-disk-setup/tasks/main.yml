@@ -56,20 +56,20 @@
     verbosity:                         2
 
 # ----------------------------------------
-# Mount Point Strategy: Create directory structure
+# Mount Point : Create directory structure
 # ----------------------------------------
 
 - name:                                "1.5 Disk setup - Create base mount point directory"
   when:
-    - disk_mount_strategy == 'mountpoint'
+                                       - disk_mount_strategy == 'mountpoint'
   ansible.windows.win_file:
     path:                              "{{ disk_base_mount_path }}"
     state:                             directory
 
 - name:                                "1.5 Disk setup - Create type-level mount directories"
   when:
-    - disk_mount_strategy == 'mountpoint'
-    - item.use_mount_point | default(false)
+                                       - disk_mount_strategy == 'mountpoint'
+                                       - item.use_mount_point | default(false)
   ansible.windows.win_file:
     path:                              "{{ item.mount_base_path }}"
     state:                             directory
@@ -79,8 +79,8 @@
 
 - name:                                "1.5 Disk setup - Create disk-level mount directories"
   when:
-    - disk_mount_strategy == 'mountpoint'
-    - item.use_mount_point | default(false)
+                                       - disk_mount_strategy == 'mountpoint'
+                                       - item.use_mount_point | default(false)
   ansible.windows.win_file:
     path:                              "{{ item.mount_point }}"
     state:                             directory
@@ -89,10 +89,11 @@
     label:                             "{{ item.mount_point }}"
 
 # ----------------------------------------
-# Disk Initialization (both strategies)
+# Disk Initialization
 # ----------------------------------------
 
 - name:                                "1.5 Disk setup - Wait for disks to be available"
+  when:                                item.osdisk_id != ''
   ansible.windows.win_dsc:
     resource_name:                     "WaitForDisk"
     DiskId:                            "{{ item.osdisk_id }}"
@@ -102,17 +103,16 @@
   loop:                                "{{ volume_groups }}"
   loop_control:
     label:                             "{{ item.diskname }} (LUN {{ item.LUN }})"
-  when:                                item.osdisk_id != ''
 
 # ----------------------------------------
-# Drive Letter Strategy: Use DriveLetter parameter
+# Drive Letter : Use DriveLetter parameter
 # ----------------------------------------
 
 - name:                                "1.5 Disk setup - Initialize disks with drive letters"
   when:
-    - disk_mount_strategy == 'driveletter'
-    - not item.use_mount_point | default(false)
-    - item.osdisk_id != ''
+                                       - disk_mount_strategy == 'driveletter'
+                                       - not item.use_mount_point | default(false)
+                                       - item.osdisk_id != ''
   ansible.windows.win_dsc:
     resource_name:                     "Disk"
     DiskId:                            "{{ item.osdisk_id }}"
@@ -128,23 +128,53 @@
   register:                            win_disk_driveletter_results
 
 # ----------------------------------------
-# Mount Point Strategy: Use AccessPath parameter
+# Mount Point : Use AccessPath parameter
 # ----------------------------------------
 
-- name:                                "1.5 Disk setup - Initialize disks with mount points"
+# TODO: Upgrade to StorageDSC 6.1.0 or later to use the native AccessPath parameter
+#       Currently the StorageDSC module 6.1.0 is in preview.
+# - name: "1.4-Packages: Ensure DSC modules are installed"
+#   ansible.windows.win_psmodule:
+#    name:                               StorageDsc
+#    state:                              present
+#    required_version:                   "6.1.0"  # or minimum_version: "6.1.0"
+#
+# - name:                                "1.5 Disk setup - Initialize disks with mount points"
+#   when:
+#                                        - disk_mount_strategy == 'mountpoint'
+#                                        - item.use_mount_point | default(false)
+#                                        - item.osdisk_id != ''
+#   ansible.windows.win_dsc:
+#     resource_name:                     "Disk"
+#     DiskId:                            "{{ item.osdisk_id }}"
+#     DiskIdType:                        'UniqueId'
+#     AccessPath:                        "{{ item.mount_point }}"
+#     PartitionStyle:                    "GPT"
+#     FSLabel:                           "{{ item.diskname }}"
+#     FSFormat:                          'NTFS'
+#     AllocationUnitSize:                "{{ item.sector_size }}"
+#   loop:                                "{{ volume_groups }}"
+#   loop_control:
+#     label:                             "{{ item.diskname }} -> {{ item.mount_point }}"
+#   register:                            win_disk_mountpoint_results
+
+- name:                                "1.5 Disk setup - Initialize and mount disks with PowerShell"
   when:
-    - disk_mount_strategy == 'mountpoint'
-    - item.use_mount_point | default(false)
-    - item.osdisk_id != ''
-  ansible.windows.win_dsc:
-    resource_name:                     "Disk"
-    DiskId:                            "{{ item.osdisk_id }}"
-    DiskIdType:                        'UniqueId'
-    AccessPath:                        "{{ item.mount_point }}"
-    PartitionStyle:                    "GPT"
-    FSLabel:                           "{{ item.diskname }}"
-    FSFormat:                          'NTFS'
-    AllocationUnitSize:                "{{ item.sector_size }}"
+                                       - disk_mount_strategy == 'mountpoint'
+                                       - item.use_mount_point | default(false)
+                                       - item.osdisk_id != ''
+  ansible.windows.win_powershell:
+    script: |
+                                       $ErrorActionPreference = 'Stop'
+
+                                       $disk = Get-Disk | Where-Object { $_.UniqueId -eq '{{ item.osdisk_id }}' }
+
+                                       if ($disk.PartitionStyle -eq 'RAW') {
+                                         Initialize-Disk -Number $disk.Number -PartitionStyle GPT
+                                         $partition = New-Partition -DiskNumber $disk.Number -UseMaximumSize
+                                         Format-Volume -Partition $partition -FileSystem NTFS -NewFileSystemLabel '{{ item.diskname }}' -AllocationUnitSize {{ item.sector_size }} -Confirm:$false
+                                         Add-PartitionAccessPath -DiskNumber $disk.Number -PartitionNumber $partition.PartitionNumber -AccessPath '{{ item.mount_point }}'
+                                       }
   loop:                                "{{ volume_groups }}"
   loop_control:
     label:                             "{{ item.diskname }} -> {{ item.mount_point }}"
@@ -156,21 +186,21 @@
 
 - name:                               "1.5 Disk setup - Show disk initialization results (drive letters)"
   when:
-    - disk_mount_strategy == 'driveletter'
-    - win_disk_driveletter_results is defined
+                                       - disk_mount_strategy == 'driveletter'
+                                       - win_disk_driveletter_results is defined
   ansible.builtin.debug:
     msg:
       - "Drive letter results:         {{ win_disk_driveletter_results }}"
-    verbosity:                        2
+    verbosity:                         2
 
 - name:                               "1.5 Disk setup - Show disk initialization results (mount points)"
   when:
-    - disk_mount_strategy == 'mountpoint'
-    - win_disk_mountpoint_results is defined
+                                       - disk_mount_strategy == 'mountpoint'
+                                       - win_disk_mountpoint_results is defined
   ansible.builtin.debug:
     msg:
       - "Mount point results:          {{ win_disk_mountpoint_results }}"
-    verbosity:                        2
+    verbosity:                         2
 
 ...
 # /*---------------------------------------------------------------------------8
