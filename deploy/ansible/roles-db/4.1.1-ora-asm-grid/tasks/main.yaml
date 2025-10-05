@@ -331,7 +331,7 @@
 - name:                                "ORACLE ASM: Find MOPatch"
   ansible.builtin.fail:
     msg:                               "Too many MOPatches found"
-  when:                                mopatch_directory ASM.matched > 1
+  when:                                mopatch_directory.matched > 1
 
 - name:                                "ORACLE ASM: Find MOPatch"
   ansible.builtin.fail:
