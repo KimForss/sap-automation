@@ -396,6 +396,9 @@
   ansible.builtin.debug:
     msg:                               "Running env ORACLE_HOME=$OHGRID $OHGRID/MOPatch/mopatch.sh -v -s {{ target_media_location }}/SBP/{{ oraclegrid_sbp_patch}} -F mopatch_patchgen"
 
+- name:                                "gridSetup command"
+  ansible.builtin.debug:
+    msg:                               "Running ./gridSetup.sh -silent -applyRU {{ ApplyRU }} -applyOneOffs {{ OneOffs }} -opatchlocation /oracle/GRID/{{ ora_version }}/OPatch -skipOpatchVersionCheck -responseFile ./{{ ansible_hostname }}_{{ db_sid }}_install.rsp"
 
 - name:                                "ORACLE ASM: Check before grid post processing"
   ansible.builtin.fail:
