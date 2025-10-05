@@ -264,12 +264,12 @@
   ansible.builtin.debug:
     msg:                               "Patch GRID path {{ patch_grid_path }}"
 
-- name:                                "Oracle ASM: Get OPatch version"
-  ansible.builtin.command:             "{{ OPatchPath }}/opatch version"
-  register:                            opatch_version
-  changed_when:                        false
-  failed_when:                         false
-  when:                                OPatchPath is defined
+# - name:                                "Oracle ASM: Get OPatch version"
+#   ansible.builtin.command:             "{{ OPatchPath }}/opatch version"
+#   register:                            opatch_version
+#   changed_when:                        false
+#   failed_when:                         false
+#   when:                                OPatchPath is defined
 
 
 - name:                                "Oracle ASM: Debug"
