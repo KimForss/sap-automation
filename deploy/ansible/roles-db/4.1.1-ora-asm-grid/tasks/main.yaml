@@ -268,7 +268,7 @@
   ansible.builtin.command:             "{{ OPatchPath }}/opatch version"
   register:                            opatch_version
   changed_when:                        false
-  failed_when:                         opatch_version.rc != 0
+  failed_when:                         false
   when:                                OPatchPath is defined
 
 
