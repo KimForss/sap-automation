@@ -143,9 +143,9 @@
 
 - name:                               "ORACLE ASM: Prepend /dev/disk/by-label to each of of the disk"
   ansible.builtin.set_fact:
-    asm_datadisklist:     "{{ asm_dlist1 | map('regex_replace', '^(.*)$', 'ORCL:/\\1') | join(',') }}"
-    asm_archdisklist:     "{{ asm_alist1 | map('regex_replace', '^(.*)$', 'ORCL:/\\1') | join(',') }}"
-    asm_recodisklist:     "{{ asm_rlist1 | map('regex_replace', '^(.*)$', 'ORCL:/\\1') | join(',') }}"
+    asm_datadisklist:     "{{ asm_dlist1 | map('regex_replace', '^(.*)$', 'ORCL:\\1') | join(',') }}"
+    asm_archdisklist:     "{{ asm_alist1 | map('regex_replace', '^(.*)$', 'ORCL:\\1') | join(',') }}"
+    asm_recodisklist:     "{{ asm_rlist1 | map('regex_replace', '^(.*)$', 'ORCL:\\1') | join(',') }}"
   when:
     - not is_UEK6
 
