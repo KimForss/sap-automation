@@ -143,9 +143,9 @@
 
 - name:                               "ORACLE ASM: Prepend /dev/disk/by-label to each of of the disk"
   ansible.builtin.set_fact:
-    asm_datadisklist:     "{{ asm_dlist1 | map('regex_replace', '^(.*)$', '/dev/disk/by-label/\\1') | join(',') }}"
-    asm_archdisklist:     "{{ asm_alist1 | map('regex_replace', '^(.*)$', '/dev/disk/by-label/\\1') | join(',') }}"
-    asm_recodisklist:     "{{ asm_rlist1 | map('regex_replace', '^(.*)$', '/dev/disk/by-label/\\1') | join(',') }}"
+    asm_datadisklist:     "{{ asm_dlist1 | map('regex_replace', '^(.*)$', 'ORCL:/\\1') | join(',') }}"
+    asm_archdisklist:     "{{ asm_alist1 | map('regex_replace', '^(.*)$', 'ORCL:/\\1') | join(',') }}"
+    asm_recodisklist:     "{{ asm_rlist1 | map('regex_replace', '^(.*)$', 'ORCL:/\\1') | join(',') }}"
   when:
     - not is_UEK6
 
@@ -186,17 +186,10 @@
   ansible.builtin.unarchive:
     src:                               /usr/sap/install/oraserver/LINUX_X86_64/grid_home/LINUX.X64_193000_grid_home.zip
     dest:                              /oracle/GRID/{{ ora_version }}
-    creates:                           /etc/sap_deployment_automation/oracle/grids_unzip.txt
+    creates:                           "/oracle/GRID/{{ ora_version }}/SIGNATURE.SMF"
     owner:                             oracle
     group:                             oinstall
     remote_src:                        true
-
-
-- name:                                "ORACLE ASM: create after a successful unzip"
-  ansible.builtin.file:
-    path:                              "/etc/sap_deployment_automation/oracle/grids_unzip.txt"
-    state:                             touch
-    mode:                              '0755'
 
 - name:                                "ORACLE ASM: Install RPM Packages"
   ansible.builtin.dnf:
