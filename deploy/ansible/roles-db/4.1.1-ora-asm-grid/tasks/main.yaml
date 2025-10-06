@@ -352,38 +352,38 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-- name:                                "ORACLE ASM: Make oracle:oinstall are the owners for ASM Data Disks "
-  become:                              true
-  become_user:                         root
-  ansible.builtin.file:
-    path:                              '{{ item }}'
-    owner:                             oracle
-    group:                             oinstall
-    mode:                              '755'
-    state:                             link
-  loop:                                '{{ data_disk_list }}'
+# - name:                                "ORACLE ASM: Make oracle:oinstall are the owners for ASM Data Disks "
+#   become:                              true
+#   become_user:                         root
+#   ansible.builtin.file:
+#     path:                              '{{ item }}'
+#     owner:                             oracle
+#     group:                             oinstall
+#     mode:                              '755'
+#     state:                             link
+#   loop:                                '{{ data_disk_list }}'
 
-- name:                                "ORACLE ASM: Make oracle:oinstall are the owners for ASM Archive Disks "
-  become:                              true
-  become_user:                         root
-  ansible.builtin.file:
-    path:                              '{{ item }}'
-    owner:                             oracle
-    group:                             oinstall
-    mode:                              '755'
-    state:                             link
-  loop:                                '{{ arch_disk_list }}'
+# - name:                                "ORACLE ASM: Make oracle:oinstall are the owners for ASM Archive Disks "
+#   become:                              true
+#   become_user:                         root
+#   ansible.builtin.file:
+#     path:                              '{{ item }}'
+#     owner:                             oracle
+#     group:                             oinstall
+#     mode:                              '755'
+#     state:                             link
+#   loop:                                '{{ arch_disk_list }}'
 
-- name:                                "ORACLE ASM: Make oracle:oinstall are the owners for ASM Recovery Disks "
-  become:                              true
-  become_user:                         root
-  ansible.builtin.file:
-    path:                              '{{ item }}'
-    owner:                             oracle
-    group:                             oinstall
-    mode:                              '755'
-    state:                             link
-  loop:                                '{{ reco_disk_list }}'
+# - name:                                "ORACLE ASM: Make oracle:oinstall are the owners for ASM Recovery Disks "
+#   become:                              true
+#   become_user:                         root
+#   ansible.builtin.file:
+#     path:                              '{{ item }}'
+#     owner:                             oracle
+#     group:                             oinstall
+#     mode:                              '755'
+#     state:                             link
+#   loop:                                '{{ reco_disk_list }}'
 
 - name:                                "MOPatch command"
   ansible.builtin.debug:
