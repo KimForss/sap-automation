@@ -72,7 +72,7 @@ INVENTORY_LOCATION=/oracle/oraInventory
 #   - CRS_ADDNODE : To add more nodes to the cluster
 #   - CRS_DELETE_NODE : To delete nodes to the cluster
 #-------------------------------------------------------------------------------
-oracle.install.option=CRS_SWONLY
+oracle.install.option=HA_SWONLY
 
 #-------------------------------------------------------------------------------
 # Specify the complete path of the Oracle Base.
@@ -352,8 +352,7 @@ oracle.install.asm.SYSASMPassword={{ main_password }}
 # Example: oracle.install.asm.diskGroup.name=data
 #
 #-------------------------------------------------------------------------------
-oracle.install.asm.diskGroup.name=
-#DATA
+oracle.install.asm.diskGroup.name=DATA
 #-------------------------------------------------------------------------------
 # Redundancy level to be used by ASM.
 # It can be one of the following
@@ -364,8 +363,7 @@ oracle.install.asm.diskGroup.name=
 # Example: oracle.install.asm.diskGroup.redundancy=NORMAL
 #
 #-------------------------------------------------------------------------------
-oracle.install.asm.diskGroup.redundancy=
-# EXTERNAL
+oracle.install.asm.diskGroup.redundancy=EXTERNAL
 
 #-------------------------------------------------------------------------------
 # Allocation unit size to be used by ASM.
@@ -412,8 +410,7 @@ oracle.install.asm.diskGroup.AUSize=4
 #     oracle.install.asm.diskGroup.disks=\\.\ORCLDISKDATA0,\\.\ORCLDISKDATA1
 #
 #-------------------------------------------------------------------------------
-oracle.install.asm.diskGroup.disks=
-# {{ asm_datadisklist }}
+oracle.install.asm.diskGroup.disks={{ asm_datadisklist }}
 
 #-------------------------------------------------------------------------------
 # List of failure groups to be marked as QUORUM.
@@ -435,8 +432,7 @@ oracle.install.asm.diskGroup.quorumFailureGroupNames=
 {% if _is_UEK6 %}
 oracle.install.asm.diskGroup.diskDiscoveryString=/dev/oracleasm/disks/*
 {% else %}
-oracle.install.asm.diskGroup.diskDiscoveryString=
-# /dev/disk/by-label/*
+oracle.install.asm.diskGroup.diskDiscoveryString=/dev/disk/by-label/*
 {% endif %}
 
 
