@@ -63,14 +63,6 @@
     owner:                             oracle
     group:                             oinstall
 
-# - name:                                "ORACLE ASM: Create Grid extract software directory"
-#   ansible.builtin.file:
-#     path:                              /oracle/GRID/{{ ora_version }}
-#     state:                             directory
-#     owner:                             oracle
-#     group:                             oinstall
-#     mode:                              0755
-
 - name:                                "ORACLE ASM: Create Grid software directory"
   ansible.builtin.file:
     path:                              /oracle/GRID/{{ ora_version }}
@@ -121,9 +113,9 @@
 
 - name:                                "ORACLE ASM: Prepare the Data disk list"
   ansible.builtin.set_fact:
-    asm_dlist1:                    "{{ asm_dlist.stdout_lines | list }}"
-    asm_alist1:                    "{{ asm_alist.stdout_lines | list }}"
-    asm_rlist1:                    "{{ asm_rlist.stdout_lines | list }}"
+    asm_dlist1:                        "{{ asm_dlist.stdout_lines | list }}"
+    asm_alist1:                        "{{ asm_alist.stdout_lines | list }}"
+    asm_rlist1:                        "{{ asm_rlist.stdout_lines | list }}"
 
 
 - name:                                "ORACLE ASM: DISPLAY Oracle lists"
@@ -133,36 +125,36 @@
       - "Archive:  {{ asm_alist1 }}"
       - "Recovery: {{ asm_rlist1 }}"
 
-- name:                               "ORACLE ASM: Prepend /dev/oracleasm/disk to each of of the disk"
+- name:                                "ORACLE ASM: Prepend /dev/oracleasm/disk to each of of the disk"
   ansible.builtin.set_fact:
-    asm_datadisklist:     "{{ asm_dlist1 | map('regex_replace', '^(.*)$', '/dev/oracleasm/disks/\\1') | join(',') }}"
-    asm_archdisklist:     "{{ asm_alist1 | map('regex_replace', '^(.*)$', '/dev/oracleasm/disks/\\1') | join(',') }}"
-    asm_recodisklist:     "{{ asm_rlist1 | map('regex_replace', '^(.*)$', '/dev/oracleasm/disks/\\1') | join(',') }}"
+    asm_datadisklist:                  "{{ asm_dlist1 | map('regex_replace', '^(.*)$', '/dev/oracleasm/disks/\\1') | join(',') }}"
+    asm_archdisklist:                  "{{ asm_alist1 | map('regex_replace', '^(.*)$', '/dev/oracleasm/disks/\\1') | join(',') }}"
+    asm_recodisklist:                  "{{ asm_rlist1 | map('regex_replace', '^(.*)$', '/dev/oracleasm/disks/\\1') | join(',') }}"
   when:
     - is_UEK6
 
 - name:                               "ORACLE ASM: Prepend /dev/disk/by-label to each of of the disk"
   ansible.builtin.set_fact:
-    asm_datadisklist:     "{{ asm_dlist1 | map('regex_replace', '^(.*)$', 'ORCL:\\1') | join(',') }}"
-    asm_archdisklist:     "{{ asm_alist1 | map('regex_replace', '^(.*)$', 'ORCL:\\1') | join(',') }}"
-    asm_recodisklist:     "{{ asm_rlist1 | map('regex_replace', '^(.*)$', 'ORCL:\\1') | join(',') }}"
+    asm_datadisklist:                 "{{ asm_dlist1 | map('regex_replace', '^(.*)$', 'ORCL:\\1') | join(',') }}"
+    asm_archdisklist:                 "{{ asm_alist1 | map('regex_replace', '^(.*)$', 'ORCL:\\1') | join(',') }}"
+    asm_recodisklist:                 "{{ asm_rlist1 | map('regex_replace', '^(.*)$', 'ORCL:\\1') | join(',') }}"
   when:
     - not is_UEK6
 
 - name:                               "ORACLE ASM: Store the disk lists as arrays"
   ansible.builtin.set_fact:
-    data_disk_list:   "{{ asm_datadisklist | split(',') | list }}"
-    arch_disk_list:   "{{ asm_archdisklist | split(',') | list }}"
-    reco_disk_list:   "{{ asm_recodisklist | split(',') | list }}"
+    data_disk_list:                   "{{ asm_datadisklist | split(',') | list }}"
+    arch_disk_list:                   "{{ asm_archdisklist | split(',') | list }}"
+    reco_disk_list:                   "{{ asm_recodisklist | split(',') | list }}"
 
-- name:                                "ORACLE ASM: DISPLAY Oracle lists with prefix"
+- name:                               "ORACLE ASM: DISPLAY Oracle lists with prefix"
   ansible.builtin.debug:
     msg:
       - "Data:     {{ data_disk_list }}"
       - "Archive:  {{ arch_disk_list }}"
       - "Recovery: {{ reco_disk_list }}"
 
-- name:                                "ORACLE ASM: deploy Grid install response file"
+- name:                                "ORACLE ASM: Create Grid install response file"
   become:                              true
   become_user:                         oracle
   ansible.builtin.template:
@@ -171,7 +163,7 @@
     mode:                              '0644'
     force:                             true
   vars:
-    _is_UEK6:                           "{{ is_UEK6 | default(false) }}"
+    _is_UEK6:                          "{{ is_UEK6 | default(false) }}"
 
 
 # +------------------------------------4--------------------------------------*/
@@ -193,8 +185,7 @@
 
 - name:                                "ORACLE ASM: Install RPM Packages"
   ansible.builtin.dnf:
-    name:
-      - "/oracle/GRID/{{ ora_version }}/cv/rpm/cvuqdisk-1.0.10-1.rpm"
+    name:                              "/oracle/GRID/{{ ora_version }}/cv/rpm/cvuqdisk-1.0.10-1.rpm"
     state:                             present
     disable_gpg_check:                 true
 
@@ -223,49 +214,40 @@
 - name:                                "Oracle ASM: OPatch ID"
   ansible.builtin.set_fact:
     patch_grid_path:                   "{{ patch_grid_id_directory.files[0].path | dirname }}"
-  when:                                 patch_grid_id_directory.matched == 1
-
-- name:                                "Oracle ASM: set STAGE_SBP_DBRU"
-  ansible.builtin.set_fact:
-    STAGE_SBP_DBRU:                    "{{ patch_grid_path }}/{{ bom.patch.SBP_DBRU }}"
-  when:                                 patch_grid_path is defined and bom.patch.SBP_DBRU is defined
-
-- name:                                "Oracle ASM: set STAGE_SBP_OCWRU"
-  ansible.builtin.set_fact:
-    STAGE_SBP_OCWRU:                    "{{ patch_grid_path }}/{{ bom.patch.SBP_OCWRU }}"
-  when:                                 patch_grid_path is defined and bom.patch.SBP_OCWRU is defined
-
-- name:                                "Oracle ASM: set STAGE_SBP_ACFSRU"
-  ansible.builtin.set_fact:
-    STAGE_SBP_ACFSRU:                    "{{ patch_grid_path }}/{{ bom.patch.SBP_ACFSRU }}"
-  when:                                 patch_grid_path is defined and bom.patch.SBP_ACFSRU is defined
-
-- name:                                "Oracle ASM: set OneOffs"
-  ansible.builtin.set_fact:
-    OneOffs:                           "{{ STAGE_SBP_OCWRU }},{{ STAGE_SBP_ACFSRU }}"
-  when:
-                                       - STAGE_SBP_DBRU is defined
-                                       - STAGE_SBP_OCWRU is defined
-                                       - STAGE_SBP_ACFSRU is defined
-
-- name:                                "Oracle ASM: set OneOffs"
-  ansible.builtin.set_fact:
-    OPatchPath:                        "{{ target_media_location }}/SBP/OPATCH/OPatch"
-    ApplyRU:                           "{{ STAGE_SBP_DBRU }}"
+  when:                                patch_grid_id_directory.matched == 1
 
 - name:                                "Oracle ASM: OPatch ID"
   ansible.builtin.debug:
     msg:                               "Patch GRID path {{ patch_grid_path }}"
 
-# - name:                                "Oracle ASM: Get OPatch version"
-#   ansible.builtin.command:             "{{ OPatchPath }}/opatch version"
-#   register:                            opatch_version
-#   changed_when:                        false
-#   failed_when:                         false
-#   when:                                OPatchPath is defined
+- name:                                "Oracle ASM: set STAGE_SBP_DBRU"
+  ansible.builtin.set_fact:
+    STAGE_SBP_DBRU:                    "{{ patch_grid_path }}/{{ bom.patch.SBP_DBRU }}"
+  when:                                patch_grid_path is defined and bom.patch.SBP_DBRU is defined
 
+- name:                                "Oracle ASM: set STAGE_SBP_OCWRU"
+  ansible.builtin.set_fact:
+    STAGE_SBP_OCWRU:                   "{{ patch_grid_path }}/{{ bom.patch.SBP_OCWRU }}"
+  when:                                patch_grid_path is defined and bom.patch.SBP_OCWRU is defined
 
-- name:                                "Oracle ASM: Debug"
+- name:                                "Oracle ASM: set STAGE_SBP_ACFSRU"
+  ansible.builtin.set_fact:
+    STAGE_SBP_ACFSRU:                  "{{ patch_grid_path }}/{{ bom.patch.SBP_ACFSRU }}"
+  when:                                patch_grid_path is defined and bom.patch.SBP_ACFSRU is defined
+
+- name:                                "Oracle ASM: set OneOffs"
+  ansible.builtin.set_fact:
+    OneOffs:                           "{{ STAGE_SBP_OCWRU }},{{ STAGE_SBP_ACFSRU }}"
+  when:
+                                       - STAGE_SBP_OCWRU is defined
+                                       - STAGE_SBP_ACFSRU is defined
+
+- name:                                "Oracle ASM: set ApplyRU and OPatchPath"
+  ansible.builtin.set_fact:
+    OPatchPath:                        "{{ target_media_location }}/SBP/OPATCH/OPatch"
+    ApplyRU:                           "{{ STAGE_SBP_DBRU }}"
+
+- name:                                "Oracle ASM: Installation parameters"
   ansible.builtin.debug:
     msg:
       - "STAGE_SBP_DBRU :  {{ STAGE_SBP_DBRU }}"
@@ -275,9 +257,9 @@
       - "OPatchPath:       {{ OPatchPath }}"
       - "ApplyRU:          {{ ApplyRU }}"
 
-# Backup the existing Opatch and then copy the new Opatch from the downloads folder
+# Backup the existing OPatch and then copy the new Patch from the downloads folder
 
-- name:                                "Oracle ASM: Copy name"
+- name:                                "Oracle ASM: Create unique name for OPatch backup"
   ansible.builtin.set_fact:
     patch_copy_name:                   "/oracle/GRID/{{ ora_version }}/OPatch.{{ '%Y%m%d' | strftime(0) }}"
 
@@ -304,7 +286,7 @@
   when:
     - not opatchgrid_stat.stat.exists
 
-- name:                                "Oracle ASM: copy OPatch for GRID"
+- name:                                "Oracle ASM: copy OPatch for GRID from downloads"
   ansible.builtin.copy:
     src:                               "{{ target_media_location }}/SBP/OPATCH/OPatch"
     dest:                              "/oracle/GRID/{{ ora_version }}"
@@ -352,160 +334,19 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-# - name:                                "ORACLE ASM: Make oracle:oinstall are the owners for ASM Data Disks "
-#   become:                              true
-#   become_user:                         root
-#   ansible.builtin.file:
-#     path:                              '{{ item }}'
-#     owner:                             oracle
-#     group:                             oinstall
-#     mode:                              '755'
-#     state:                             link
-#   loop:                                '{{ data_disk_list }}'
-
-# - name:                                "ORACLE ASM: Make oracle:oinstall are the owners for ASM Archive Disks "
-#   become:                              true
-#   become_user:                         root
-#   ansible.builtin.file:
-#     path:                              '{{ item }}'
-#     owner:                             oracle
-#     group:                             oinstall
-#     mode:                              '755'
-#     state:                             link
-#   loop:                                '{{ arch_disk_list }}'
-
-# - name:                                "ORACLE ASM: Make oracle:oinstall are the owners for ASM Recovery Disks "
-#   become:                              true
-#   become_user:                         root
-#   ansible.builtin.file:
-#     path:                              '{{ item }}'
-#     owner:                             oracle
-#     group:                             oinstall
-#     mode:                              '755'
-#     state:                             link
-#   loop:                                '{{ reco_disk_list }}'
 
 - name:                                "MOPatch command"
   ansible.builtin.debug:
     msg:                               "Running env ORACLE_HOME=$OHGRID $OHGRID/MOPatch/mopatch.sh -v -s {{ target_media_location }}/SBP/{{ oraclegrid_sbp_patch}} -F mopatch_patchgen"
+    verbosity:                         2
 
 - name:                                "gridSetup command"
   ansible.builtin.debug:
     msg:                               "Running ./gridSetup.sh -silent -applyRU {{ ApplyRU }} -applyOneOffs {{ OneOffs }} -opatchlocation /oracle/GRID/{{ ora_version }}/OPatch -skipOpatchVersionCheck -responseFile ./{{ ansible_hostname }}_{{ db_sid }}_install.rsp"
-
-- name:                                "ORACLE ASM: Check before grid post processing"
-  ansible.builtin.fail:
-    msg:   "check before grid post processing run: /oracle/oraInventory/orainstRoot.sh and /oracle/GRID/{{ ora_version }}/root.sh and /oracle/GRID/{{ ora_version }}/crs/install/roothas.sh and ./asmca -silent -configureASM -sysAsmPassword {{ main_password }} -asmsnmpPassword {{ main_password }} \
-                                        -createDiskGroup -diskGroupName DATA -redundancy EXTERNAL -diskList '{{ asm_datadisklist }}'"
+    verbosity:                         2
 
 
-- name:                                "ORACLE ASM: Install Execute ./roothas.sh -prepatch"
-  become:                              true
-  become_user:                         oracle
-  ansible.builtin.shell: |
-                                       ./roothas.sh -prepatch
-  environment:
-    CV_ASSUME_DISTID:                  "{{ CV_ASSUME_DISTID }}"
-    ORACLE_SID:                        "{{ db_sid | upper }}"
-    ORACLE_BASE:                       /oracle/BASE
-    ORACLE_HOME:                       /oracle/GRID/{{ ora_version }}
-    DB_SID:                            "{{ db_sid | upper }}"
-  args:
-    executable:                        /bin/csh
-    chdir:                             "/oracle/GRID/{{ ora_version }}//crs/install"
-
-- name:                                "ORACLE ASM: Make oracle:oinstall are the owners for oradism "
-  become:                              true
-  become_user:                         root
-  ansible.builtin.file:
-    path:                              "/oracle/GRID/{{ ora_version }}/bin/oradism"
-    owner:                             oracle
-    group:                             oinstall
-    mode:                              '755'
-    state:                             link
-
-- name:                                "ORACLE ASM: Install the patches of the SAP Bundle Patch into the grid home"
-  become:                              true
-  become_user:                         oracle
-  ansible.builtin.shell: |
-                                       "./prepatch.sh -dbhome $OHGRID"
-  register:                            prepatchinstaller_results
-  failed_when:                         prepatchinstaller_results.rc >= 2
-  environment:
-    CV_ASSUME_DISTID:                  "{{ CV_ASSUME_DISTID }}"
-    ORACLE_SID:                        "{{ db_sid | upper }}"
-    ORACLE_BASE:                       /oracle/BASE
-    OHGRID:                            /oracle/GRID/{{ ora_version }}
-    DB_SID:                            "{{ db_sid | upper }}"
-  args:
-    executable:                        /bin/csh
-    chdir:                             "{{ STAGE_SBP_OCWRU }}/custom/scripts"
-
-- name:                                "MOPatch command"
-  ansible.builtin.debug:
-    msg:                               "Running env ORACLE_HOME=$OHGRID $OHGRID/MOPatch/mopatch.sh -v -s {{ target_media_location }}/SBP/{{ oraclegrid_sbp_patch}} -F mopatch_patchgen"
-
-- name:                                "ORACLE ASM: Install the patches of the SAP Bundle Patch into the grid home"
-  become:                              true
-  become_user:                         oracle
-  ansible.builtin.shell: |
-                                       "env ORACLE_HOME=$OHGRID $OHGRID/MOPatch/mopatch.sh -v -s {{ target_media_location }}/SBP/{{ oraclegrid_sbp_patch}} -F mopatch_patchgen"
-  register:                            gridmopatchinstaller_results
-  failed_when:                         gridmopatchinstaller_results.rc >= 2
-  environment:
-    CV_ASSUME_DISTID:                  "{{ CV_ASSUME_DISTID }}"
-    ORACLE_SID:                        "{{ db_sid | upper }}"
-    ORACLE_BASE:                       /oracle/BASE
-    OHGRID:                            /oracle/GRID/{{ ora_version }}
-    DB_SID:                            "{{ db_sid | upper }}"
-  args:
-    executable:                        /bin/csh
-    chdir:                             "/oracle/GRID/{{ ora_version }}"
-    creates:                           /etc/sap_deployment_automation/oracle/grid_mopatch_install.txt
-
-- name:                                "Oracle ASM: Oracle Post Processing - GRID SBP GRID Patching Post-Processing"
-  become:                              true
-  become_user:                         root
-  ansible.builtin.shell: |
-                                       /oracle/GRID/{{ ora_version }}/rdbms/install/rootadd_rdbms.sh
-
-  register:                            rootadd_rdbms_results
-  args:
-    chdir:                             /oracle/GRID/{{ ora_version }}
-    creates:                           /etc/sap_deployment_automation/{{ sap_sid | upper }}/sbp-grid-rootadd.txt
-  when:
-    - gridmopatchinstaller_results.rc >= 1
-
-
-- name:                                "Oracle ASM: Oracle Post Processing - GRID SBP GRID Patching Post-Processing"
-  become:                              true
-  become_user:                         root
-  ansible.builtin.shell: |
-                                        /oracle/GRID/{{ ora_version }}/crs/install/roothas.sh -postpatch
-  register:                             roothas_results
-  args:
-    chdir:                              /oracle/GRID/{{ ora_version }}
-    creates:                            /etc/sap_deployment_automation/{{ sap_sid | upper }}/sbp-grid-roothas.txt
-  when:
-    - gridmopatchinstaller_results.rc >= 1
-
-- name:                                "Oracle ASM: Create flag after a successful change"
-  ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation/{{ sap_sid | upper }}/sbp-grid-rootadd.txt
-    state:                             touch
-    mode:                              '0755'
-  when:
-                                       - rootadd_rdbms_results.rc >= 1
-
-- name:                                "Oracle ASM: Create flag after a successful change"
-  ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation/{{ sap_sid | upper }}/sbp-grid-roothas.txt
-    state:                             touch
-    mode:                              '0755'
-  when:
-                                       - roothas_results.rc >= 1
-
-- name:                                "gridSetup command"
+- name:                                "ORACLE ASM: gridSetup command"
   ansible.builtin.debug:
     msg:                               "Running ./gridSetup.sh -silent -applyRU {{ ApplyRU }} -applyOneOffs {{ OneOffs }} -opatchlocation /oracle/GRID/{{ ora_version }}/OPatch -skipOpatchVersionCheck -responseFile ./{{ ansible_hostname }}_{{ db_sid }}_install.rsp"
 
@@ -540,18 +381,11 @@
     state:                             touch
     mode:                              '0755'
 
-
-- name:                                "ORACLE ASM: Check before grid post processing"
-  ansible.builtin.fail:
-    msg:   "check before grid post processing run: /oracle/oraInventory/orainstRoot.sh and /oracle/GRID/{{ ora_version }}/root.sh and /oracle/GRID/{{ ora_version }}/crs/install/roothas.sh and ./asmca -silent -configureASM -sysAsmPassword {{ main_password }} -asmsnmpPassword {{ main_password }} \
-                                        -createDiskGroup -diskGroupName DATA -redundancy EXTERNAL -diskList '{{ asm_datadisklist }}'"
-
 # +------------------------------------4--------------------------------------*/
 # |                                                                            |
 # |                       Oracle Grid: Post processing                         |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
-
 
 - name:                                "ORACLE ASM: Oracle Post Processing - Run root.sh"
   become:                              true
@@ -563,9 +397,9 @@
     executable:                        /bin/csh
     creates:                           "/etc/sap_deployment_automation/oracle/orainstRoot_rootscript.txt"
 
-- name:                                "ORACLE ASM: Debug: root.sh output"
+- name:                                "ORACLE ASM: Debug: orainstRoot.sh output"
   ansible.builtin.copy:
-    dest:                              "/etc/sap_deployment_automation/oracle/orainst.log"
+    dest:                              "/etc/sap_deployment_automation/oracle/orainstRoot.log"
     content:                           "{{ orainstRoot_results.stdout }}"
     mode:                              0777
   when:                                orainstRoot_results.stdout is defined
@@ -588,7 +422,7 @@
 
 - name:                                "ORACLE ASM: Debug: GRID root.sh output"
   ansible.builtin.copy:
-    dest:                              "/etc/sap_deployment_automation/oracle/gridrootexec.log"
+    dest:                              "/etc/sap_deployment_automation/oracle/gridroot.log"
     content:                           "{{ grid_rootscript_results.stdout }}"
     mode:                              0777
   when:                                grid_rootscript_results.stdout is defined
@@ -599,70 +433,42 @@
     state:                             touch
     mode:                              '0755'
 
-- name:                                "Oracle ASM: Run roothas"
-  become:                              true
-  become_user:                         "root"
-  ansible.builtin.shell:               /oracle/GRID/{{ ora_version }}/crs/install/roothas.sh
-  register:                            gridroothas_results
-  args:
-    creates:                           /etc/sap_deployment_automation/{{ sap_sid | upper }}/gridroothas.txt
-
-- name:                                "ORACLE ASM: Debug: roothas.sh output"
-  ansible.builtin.copy:
-    dest:                              "/etc/sap_deployment_automation/oracle/roothas.log"
-    content:                           "{{ gridroothas_results.stdout }}"
-    mode:                              0777
-  when:                                gridroothas_results.stdout is defined
-
-- name:                                "ORACLE ASM: creates after a successful roothas execution"
-  ansible.builtin.file:
-    path:                              "/etc/sap_deployment_automation/oracle/gridroothas.txt"
-    state:                             touch
-    mode:                              '0755'
-
-
-# - name:                               "SAP Oracle DB ASM: Sleep for 30 seconds and continue with play"
-#   ansible.builtin.wait_for:
-#     timeout:                          60
-
 # +------------------------------------4--------------------------------------*/
 # |                                                                            |
 # |                       Oracle Grid: Execute Config tools                    |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-# - name:                                "ORACLE ASM: Execute ASM Config tools"
-#   become:                              true
-#   become_user:                         oracle
-#   ansible.builtin.shell: |
-#                                        ./gridSetup.sh -executeConfigTools -silent -responseFile ./{{ ansible_hostname }}_{{ db_sid }}_install.rsp
-#   register:                            tools_installer_results
-#   failed_when:                         tools_installer_results.rc >= 2              # installer returns rc=1 (exited with warning) by default when run is silent mode as the oratab file is created only after running the root.sh
-#   environment:
-#     DB_SID:                            "{{ db_sid }}"
-#     CV_ASSUME_DISTID:                  "{{ CV_ASSUME_DISTID }}"
-#     ORACLE_SID:                       "{{ db_sid | upper }}"
-#     ORACLE_BASE:                      /oracle/BASE
-#     ORACLE_HOME:                      /oracle/GRID/{{ ora_version }}
+- name:                                "ORACLE ASM: Execute ASM Config tools"
+  become:                              true
+  become_user:                         oracle
+  ansible.builtin.shell: |
+                                       ./gridSetup.sh -executeConfigTools -silent -responseFile ./{{ ansible_hostname }}_{{ db_sid }}_install.rsp
+  register:                            tools_installer_results
+  failed_when:                         tools_installer_results.rc >= 2              # installer returns rc=1 (exited with warning) by default when run is silent mode as the oratab file is created only after running the root.sh
+  environment:
+    DB_SID:                            "{{ db_sid }}"
+    CV_ASSUME_DISTID:                  "{{ CV_ASSUME_DISTID }}"
+    ORACLE_SID:                        "{{ db_sid | upper }}"
+    ORACLE_BASE:                       /oracle/BASE
+    ORACLE_HOME:                       /oracle/GRID/{{ ora_version }}
+  args:
+    executable:                        /bin/csh
+    chdir:                             /oracle/GRID/{{ ora_version }}/
+    creates:                           /etc/sap_deployment_automation/oracle/asm_tools_install.txt
 
-#   args:
-#     executable:                        /bin/csh
-#     # chdir:                             "/oracle/GRID/{{ ora_version }}"
-#     chdir:                             /oracle/GRID/{{ ora_version }}/
-#     creates:                           /etc/sap_deployment_automation/oracle/asm_tools_install.txt
+- name:                                "ORACLE ASM: Debug: gridSetup.sh executeConfigTools output"
+  ansible.builtin.copy:
+    dest:                              "/etc/sap_deployment_automation/oracle/asm_tools_install.log"
+    content:                           "{{ tools_installer_results.stdout }}"
+    mode:                              0755
+  when:                                tools_installer_results.stdout is defined
 
-# - name:                                "ORACLE ASM: Debug: gridSetup.sh executeConfigTools output"
-#   ansible.builtin.copy:
-#     dest:                              "/etc/sap_deployment_automation/oracle/asm_tools_install.log"
-#     content:                           "{{ tools_installer_results.stdout }}"
-#     mode:                              0777
-#   when:                                tools_installer_results.stdout is defined
-
-# - name:                                "ORACLE ASM: Create after a successful Config tool execution"
-#   ansible.builtin.file:
-#     path:                              "/etc/sap_deployment_automation/oracle/asm_tools_install.txt"
-#     state:                             touch
-#     mode:                              '0755'
+- name:                                "ORACLE ASM: Create after a successful Config tool execution"
+  ansible.builtin.file:
+    path:                              "/etc/sap_deployment_automation/oracle/asm_tools_install.txt"
+    state:                             touch
+    mode:                              '0755'
 
 
 # - fail:
@@ -673,42 +479,6 @@
 # |           Oracle Grid: Create ARCH and RECO disk groups using ASMCA        |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
-
-
-- name:                                "ORACLE ASM: Configure ASM"
-  become:                              true
-  become_user:                         oracle
-  ansible.builtin.shell: |
-                                       "./asmca -silent -configureASM -sysAsmPassword {{ main_password }} -asmsnmpPassword {{ main_password }} \
-                                        -createDiskGroup -diskGroupName DATA -redundancy EXTERNAL -diskList '{{ asm_datadisklist }}'"
-  register:                            asm_creation_results
-  environment:
-    DB_SID:                            "{{ db_sid | upper }}"
-    CV_ASSUME_DISTID:                  "{{ CV_ASSUME_DISTID }}"
-  args:
-    executable:                        /bin/csh
-    chdir:                             "/oracle/GRID/{{ ora_version }}/bin"
-    creates:                           /etc/sap_deployment_automation/oracle/asm_created.txt
-
-- name:                                "ORACLE ASM: Created after ASM creation"
-  ansible.builtin.file:
-    path:                             "/etc/sap_deployment_automation/oracle/asm_created.txt"
-    state:                            touch
-    mode:                             '0755'
-
-# - name:                                "ORACLE ASM: Create ASM Disk groups DATA"
-#   become:                              true
-#   become_user:                         oracle
-#   ansible.builtin.shell: |
-#                                        ./asmca -silent -createDiskGroup -diskGroupName DATA -redundancy EXTERNAL -diskList '{{ asm_datadisklist }}'
-#   register:                            data_diskgroup_creation_results
-#   environment:
-#     DB_SID:                            "{{ db_sid | upper }}"
-#     CV_ASSUME_DISTID:                  "{{ CV_ASSUME_DISTID }}"
-#   args:
-#     executable:                        /bin/csh
-#     chdir:                             "/oracle/GRID/{{ ora_version }}/bin"
-#     creates:                           /etc/sap_deployment_automation/oracle/diskgroups_created.txt
 
 - name:                                "ORACLE ASM: Create ASM Disk groups ARCH"
   become:                              true
@@ -741,9 +511,9 @@
 
 - name:                                "ORACLE ASM: Created after a successful disk group creation"
   ansible.builtin.file:
-    path:                             "/etc/sap_deployment_automation/oracle/diskgroups_created.txt"
-    state:                            touch
-    mode:                             '0755'
+    path:                              "/etc/sap_deployment_automation/oracle/diskgroups_created.txt"
+    state:                             touch
+    mode:                              '0755'
 
 - name:                               "SAP Oracle DB ASM: Update ASM Disk groups ARCH and RECO for DBLOAD"
   become:                             true
