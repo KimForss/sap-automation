@@ -768,6 +768,15 @@
           ansible.builtin.include_role:
             name:                      roles-db/4.1.2-ora-asm-db-install
 
+        - name:                        "Oracle ASM: Updating Oracle ASM Grid"
+          ansible.builtin.import_tasks: roles-db/4.1.1-ora-asm-grid/tasks/update.yaml
+
+        - name:                        "Oracle ASM: Updating Oracle ASM Grid"
+          ansible.builtin.import_tasks: roles-db/4.1.1-ora-asm-db-install/tasks/update.yaml
+          tags:                        4.1.1-ora-asm-grid
+
+
+
         - name:                        "Database Installation Playbook: - Create db-install-done flag"
           delegate_to:                 localhost
           become:                      false

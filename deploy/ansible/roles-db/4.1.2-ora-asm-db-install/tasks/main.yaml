@@ -106,7 +106,8 @@
 - name:                                "Oracle ASM: set ApplyRU and OPatchPath"
   ansible.builtin.set_fact:
     OPatchPath:                        "{{ target_media_location }}/SBP/OPATCH/OPatch"
-    ApplyRU:                           "{{ STAGE_SBP_DBRU }}"
+    ApplyRU:                           "{{ patch_grid_id_directory }}"
+    OracleImage:                       "{{ target_media_location }}/oraserver/LINUX_X86_64/db_home/LINUX.X64_193000_db_home.zip"
 
 - name:                                "Oracle ASM: OPatch ID"
   ansible.builtin.debug:
@@ -116,66 +117,10 @@
       - "ApplyRU:      {{ ApplyRU }}"
       - "OPatchPath    {{ OPatchPath }}"
 
-
-- name:                               "SAP Oracle Fail before DB Install"
-  ansible.builtin.fail:
-    msg:   "check before DB install"
-
-
 - name:                                "Oracle ASM: check if installed"
   ansible.builtin.stat:
-    path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/grid_sbp_installed.txt"
+    path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/oracle_installed.txt"
   register:                            oracle_installed
-
-- name:                                "ORACLE ASM: Unzip the Database software"
-  become:                              true
-  become_user:                         root
-  ansible.builtin.unarchive:
-    src:                               "{{ target_media_location }}/oraserver/LINUX_X86_64/db_home/LINUX.X64_193000_db_home.zip"
-    dest:                              /oracle/{{ db_sid | upper }}/{{ ora_version }}
-    creates:                           "/oracle/{{ db_sid | upper }}/{{ ora_version }}/SIGNATURE.SMF"
-    owner:                             oracle
-    group:                             oinstall
-    remote_src:                        true
-
-# +------------------------------------4--------------------------------------*/
-# |                                                                            |
-# |                       Oracle Grid: Patch installation media                |
-# |                                                                            |
-# +------------------------------------4--------------------------------------*/
-
-- name:                                "Oracle ASM: Check if 'OPatch.bck' exists"
-  ansible.builtin.stat:
-    path:                              "{{ tmp_directory }}/{{ db_sid | upper }}/{{ ora_version }}/OPatch.bck"
-  register:                            opatch_stat
-
-- name:                                "Oracle ASM: backup OPatch"
-  ansible.builtin.copy:
-    src:                               "/oracle/{{ db_sid | upper }}/{{ ora_version }}/OPatch"
-    dest:                              "{{ tmp_directory }}/{{ db_sid | upper }}/{{ ora_version }}/OPatch.bck"
-    remote_src:                        true
-    mode:                              '0755'
-  when:
-    - not opatch_stat.stat.exists
-
-- name:                                "Oracle ASM: remove old OPatch"
-  ansible.builtin.file:
-    path:                              "/oracle/{{ db_sid | upper }}/{{ ora_version }}/OPatch"
-    state:                             absent
-  when:
-    - not opatch_stat.stat.exists
-
-- name:                                "ORACLE ASM: copy OPatch from {{ target_media_location }}/SBP/OPATCH/OPatch to /oracle/{{ db_sid | upper }}/{{ ora_version }}"
-  ansible.builtin.copy:
-    src:                               "{{ target_media_location }}/SBP/OPATCH/OPatch"
-    dest:                              "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
-    remote_src:                        true
-    mode:                              0755
-    owner:                             oracle
-    group:                             oinstall
-
-
-
 
 # /*---------------------------------------------------------------------------8
 # | Start of Oracle software installation using SAP RUNINSTALLER wrapper.      |
@@ -185,6 +130,8 @@
 # | Step 1 run the pre-installation check                                      |
 # +------------------------------------4--------------------------------------*/
 - name:                                "Oracle ASM: Installation"
+  when:
+    - not oracle_installed.stat.exists
   block:
 
 # /*---------------------------------------------------------------------------8
@@ -198,7 +145,12 @@
     - name:                            "Oracle ASM: Execute RUNINSTALLER"
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
-      ansible.builtin.shell:           ./RUNINSTALLER -silent
+      ansible.builtin.shell: |
+                                       "{{ target_media_location }}/RUNINSTALLER/SAP/RUNINSTALLER \
+                                       -oracle_image {{ OracleImage }}                            \
+                                       -applyRU {{ ApplyRU }}                                     \
+                                       -opatchPath {{ OPatchPath }}                               \
+                                       -silent -ignorePrereqWarnings
       register:                        orainstaller_results
       failed_when:                     orainstaller_results.rc >= 2              # installer returns rc=1 (exited with warning) by default when run is silent mode as the oratab file is created only after running the root.sh
       environment:
@@ -302,6 +254,10 @@
 # | Step 4 SBP Patching for Oracle  RDBMS                                           |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
+
+    - name:                               "SAP Oracle Fail before DB Install"
+      ansible.builtin.fail:
+        msg:   "check before DB install"
 
 #  MOPATCH for SBP
     - name:                            "Oracle ASM: Find MOPatch"
@@ -474,8 +430,6 @@
         - not db_arm_deployment_done.stat.exists
 
 
-  when:
-    - not oracle_installed.stat.exists
 
 - name:                                "Oracle ASM: Install status"
   block:

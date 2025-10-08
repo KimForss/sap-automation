@@ -611,6 +611,8 @@ packages:
     - { tier: 'os',     package: 'smartmontools',                                node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'sysstat',                                      node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'tuned-profiles-oracle.noarch',                 node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'libnsl2',                                      node_tier: 'all',            state: 'present' }
+
   oraclelinux8.1:
   oraclelinux8.2:
   oraclelinux8.3:
