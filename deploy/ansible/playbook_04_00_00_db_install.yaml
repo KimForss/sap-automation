@@ -772,8 +772,8 @@
           ansible.builtin.import_tasks: roles-db/4.1.1-ora-asm-grid/tasks/update.yaml
 
         - name:                        "Oracle ASM: Updating Oracle ASM Grid"
-          ansible.builtin.import_tasks: roles-db/4.1.1-ora-asm-db-install/tasks/update.yaml
-          tags:                        4.1.1-ora-asm-grid
+          ansible.builtin.import_tasks: roles-db/4.1.2-ora-asm-db-install/tasks/update.yaml
+          tags:                        4.1.2-ora-asm-db-install
 
 
 
