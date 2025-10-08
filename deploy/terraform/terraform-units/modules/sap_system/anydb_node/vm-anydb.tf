@@ -421,7 +421,7 @@ resource "azurerm_managed_disk" "disks" {
   tier                                 = local.anydb_disks[count.index].tier
   disk_encryption_set_id               = try(var.options.disk_encryption_set_id, null)
 
-    # Only set disk_iops_read_write, disk_mbps_read_write for UltraSSD_LRS and
+  # Only set disk_iops_read_write, disk_mbps_read_write for UltraSSD_LRS and
   # PremiumV2_LRS disk types, as other types do not support these properties.
   disk_iops_read_write                 = contains(["UltraSSD_LRS", "PremiumV2_LRS"], local.anydb_disks[count.index].storage_account_type) ? (
                                             local.anydb_disks[count.index].disk_iops_read_write) : (
