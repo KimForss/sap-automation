@@ -540,7 +540,7 @@
     mode:                             '0755'
 
 
-- name:                               "SAP Oracle Fail befor DB Install
+- name:                               "SAP Oracle Fail befor DB Install"
   ansible.builtin.fail:
     msg:   "check before DB install"
 ...
