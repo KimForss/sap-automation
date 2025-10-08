@@ -176,7 +176,7 @@
   become:                              true
   become_user:                         root
   ansible.builtin.unarchive:
-    src:                               /usr/sap/install/oraserver/LINUX_X86_64/grid_home/LINUX.X64_193000_grid_home.zip
+    src:                               "{{ target_media_location }}/oraserver/LINUX_X86_64/grid_home/LINUX.X64_193000_grid_home.zip"
     dest:                              /oracle/GRID/{{ ora_version }}
     creates:                           "/oracle/GRID/{{ ora_version }}/SIGNATURE.SMF"
     owner:                             oracle
@@ -540,8 +540,9 @@
     mode:                             '0755'
 
 
-# - fail:
-#     msg:   "check before DB install"
+- name:                               "SAP Oracle Fail befor DB Install
+  ansible.builtin.fail:
+    msg:   "check before DB install"
 ...
 # /*---------------------------------------------------------------------------8
 # |                                   END                                      |

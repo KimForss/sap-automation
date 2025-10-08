@@ -87,6 +87,88 @@
     path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/grid_sbp_installed.txt"
   register:                            oracle_installed
 
+- name:                                "ORACLE ASM: Unzip the Database software"
+  become:                              true
+  become_user:                         root
+  ansible.builtin.unarchive:
+    src:                               "{{ target_media_location }}/oraserver/LINUX_X86_64/db_home/LINUX.X64_193000_db_home.zip"
+    dest:                              /oracle/{{ db_sid | upper }}/{{ ora_version }}
+    creates:                           "/oracle/{{ db_sid | upper }}/{{ ora_version }}/SIGNATURE.SMF"
+    owner:                             oracle
+    group:                             oinstall
+    remote_src:                        true
+
+# +------------------------------------4--------------------------------------*/
+# |                                                                            |
+# |                       Oracle Grid: Patch installation media                |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+
+- name:                                "Oracle ASM: Find Patch ID for GRID"
+  become:                              true
+  become_user:                         root
+  ansible.builtin.find:
+    paths:                             "{{ target_media_location }}/SBP/GIRU19P"
+    patterns:                          ["bundle.xml"]
+    file_type:                         file
+    recurse:                           true
+  register:                            patch_grid_id_directory
+
+- name:                                "Oracle ASM: Find Patch ID for GRID"
+  ansible.builtin.fail:
+    msg:                               "No Patch Ids"
+  when:                                patch_grid_id_directory.matched != 1
+
+- name:                                "Oracle ASM: OPatch ID"
+  ansible.builtin.set_fact:
+    patch_grid_path:                   "{{ patch_grid_id_directory.files[0].path | dirname }}"
+  when:                                patch_grid_id_directory.matched == 1
+
+- name:                                "Oracle ASM: OPatch ID"
+  ansible.builtin.debug:
+    msg:                               "Patch GRID path {{ patch_grid_path }}"
+
+
+- name:                                "Oracle ASM: set ApplyRU and OPatchPath"
+  ansible.builtin.set_fact:
+    OPatchPath:                        "{{ target_media_location }}/SBP/OPATCH/OPatch"
+    ApplyRU:                           "{{ STAGE_SBP_DBRU }}"
+
+
+
+- name:                                "Oracle ASM: Check if 'OPatch.bck' exists"
+  ansible.builtin.stat:
+    path:                              "{{ tmp_directory }}/{{ db_sid | upper }}/{{ ora_version }}/OPatch.bck"
+  register:                            opatch_stat
+
+- name:                                "Oracle ASM: backup OPatch"
+  ansible.builtin.copy:
+    src:                               "/oracle/{{ db_sid | upper }}/{{ ora_version }}/OPatch"
+    dest:                              "{{ tmp_directory }}/{{ db_sid | upper }}/{{ ora_version }}/OPatch.bck"
+    remote_src:                        true
+    mode:                              '0755'
+  when:
+    - not opatch_stat.stat.exists
+
+- name:                                "Oracle ASM: remove old OPatch"
+  ansible.builtin.file:
+    path:                              "/oracle/{{ db_sid | upper }}/{{ ora_version }}/OPatch"
+    state:                             absent
+  when:
+    - not opatch_stat.stat.exists
+
+- name:                                "ORACLE ASM: copy OPatch from {{ target_media_location }}/SBP/OPATCH/OPatch to /oracle/{{ db_sid | upper }}/{{ ora_version }}"
+  ansible.builtin.copy:
+    src:                               "{{ target_media_location }}/SBP/OPATCH/OPatch"
+    dest:                              "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
+    remote_src:                        true
+    mode:                              0755
+    owner:                             oracle
+    group:                             oinstall
+
+
+
 
 # /*---------------------------------------------------------------------------8
 # | Start of Oracle software installation using SAP RUNINSTALLER wrapper.      |
@@ -97,41 +179,6 @@
 # +------------------------------------4--------------------------------------*/
 - name:                                "Oracle ASM: Installation"
   block:
-
-    - name:                            "Oracle ASM: Execute RUNINSTALLER PreCheck"
-      become:                          true
-      become_user:                     "{{ oracle_user_name }}"
-      ansible.builtin.shell:           ./RUNINSTALLER -ohcheck -silent
-      register:                        oraprecheck_results
-      failed_when:                     oraprecheck_results.rc > 3
-      # changed_when:                    oraprecheck_results.rc < 3
-      environment:
-        DB_SID:                        "{{ db_sid }}"
-        CV_ASSUME_DISTID:              "{{ CV_ASSUME_DISTID }}"
-      args:
-        chdir:                         "{{ target_media_location }}/oraserver/LINUX_X86_64/db_home/SAP"
-        creates:                       "/etc/sap_deployment_automation/{{ sap_sid | upper }}/oracle_pre_check_install.txt"
-        executable:                    /bin/csh
-
-    # Debug for testing
-    - name:                            "Oracle ASM: Debug: installer pre checks output"
-      ansible.builtin.debug:
-        var:                           oraprecheck_results.stdout_lines
-        verbosity:                     2
-
-    - name:                            "Oracle ASM: Debug: installer prechecks output"
-      ansible.builtin.copy:
-        dest:                          "/etc/sap_deployment_automation/{{ sap_sid | upper }}/oracle_pre_check_install.log"
-        content:                       "{{ oraprecheck_results.stdout }}"
-        mode:                          "0777"
-      when:                            oraprecheck_results.stdout is defined
-
-    - name:                            "Oracle ASM: Create oracle_pre_check_install.txt"
-      ansible.builtin.file:
-        path:                          "/etc/sap_deployment_automation/{{ sap_sid | upper }}/oracle_pre_check_install.txt"
-        state:                         touch
-        mode:                          '0755'
-      when:                            oraprecheck_results.rc < 3
 
 # /*---------------------------------------------------------------------------8
 # | Start of Oracle software installation using SAP RUNINSTALLER wrapper.      |
@@ -268,35 +315,6 @@
         mopatch_path:                  "{{ mopatch_directory.files[0].path }}"
       when:                            mopatch_directory.matched == 1
 
-    - name:                            "Oracle ASM: Check if 'OPatch.bck' exists"
-      ansible.builtin.stat:
-        path:                          "{{ tmp_directory }}/{{ db_sid | upper }}/{{ ora_version }}/OPatch.bck"
-      register:                        opatch_stat
-
-    - name:                            "Oracle ASM: backup OPatch"
-      ansible.builtin.copy:
-        src:                           "/oracle/{{ db_sid | upper }}/{{ ora_version }}/OPatch"
-        dest:                          "{{ tmp_directory }}/{{ db_sid | upper }}/{{ ora_version }}/OPatch.bck"
-        remote_src:                    true
-        mode:                          '0755'
-      when:
-        - not opatch_stat.stat.exists
-
-    - name:                            "Oracle ASM: remove old OPatch"
-      ansible.builtin.file:
-        path:                          "/oracle/{{ db_sid | upper }}/{{ ora_version }}/OPatch"
-        state:                         absent
-      when:
-        - not opatch_stat.stat.exists
-
-    - name:                            "ORACLE ASM: copy OPatch from {{ target_media_location }}/SBP/OPATCH/OPatch to /oracle/{{ db_sid | upper }}/{{ ora_version }}"
-      ansible.builtin.copy:
-        src:                           "{{ target_media_location }}/SBP/OPATCH/OPatch"
-        dest:                          "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
-        remote_src:                    true
-        mode:                          0755
-        owner:                         oracle
-        group:                         oinstall
 
     - name:                            "ORACLE ASM: copy MOPatch from {{ mopatch_path }} to /oracle/{{ db_sid | upper }}/{{ ora_version }}"
       ansible.builtin.copy:
