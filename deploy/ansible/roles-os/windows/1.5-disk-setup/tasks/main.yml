@@ -58,37 +58,34 @@
 # ----------------------------------------
 # Mount Point : Create directory structure
 # ----------------------------------------
-
-- name:                                "1.5 Disk setup - Create base mount point directory"
+- name:                                "1.5 Disk setup - Create directory structure - Mountpoint"
   when:
                                        - disk_mount_strategy == 'mountpoint'
-  ansible.windows.win_file:
-    path:                              "{{ disk_base_mount_path }}"
-    state:                             directory
+  block:
+    - name:                            "1.5 Disk setup - Create base mount point directory"
+      ansible.windows.win_file:
+        path:                          "{{ disk_base_mount_path }}"
+        state:                         directory
 
-- name:                                "1.5 Disk setup - Create top-level mount directories"
-  when:
-                                       - disk_mount_strategy == 'mountpoint'
-                                       - item.mount_base_path | default(false)
+    - name:                            "1.5 Disk setup - Create top-level mount directories"
+      when:
                                        - item.use_mount_point | default(false)
-  ansible.windows.win_file:
-    path:                              "{{ item.mount_base_path }}"
-    state:                             directory
-  loop:                                "{{ volume_groups }}"
-  loop_control:
-    label:                             "{{ item.mount_base_path }}"
+      ansible.windows.win_file:
+        path:                          "{{ item.mount_base_path }}"
+        state:                         directory
+      loop:                            "{{ volume_groups }}"
+      loop_control:
+        label:                         "{{ item.mount_base_path }}"
 
-- name:                                "1.5 Disk setup - Create disk-level mount directories"
-  when:
-                                       - disk_mount_strategy == 'mountpoint'
-                                       - item.mount_base_path | default(false)
+    - name:                            "1.5 Disk setup - Create disk-level mount directories"
+      when:
                                        - item.use_mount_point | default(false)
-  ansible.windows.win_file:
-    path:                              "{{ item.mount_point }}"
-    state:                             directory
-  loop:                                "{{ volume_groups }}"
-  loop_control:
-    label:                             "{{ item.mount_point }}"
+      ansible.windows.win_file:
+        path:                          "{{ item.mount_point }}"
+        state:                         directory
+      loop:                            "{{ volume_groups }}"
+      loop_control:
+        label:                         "{{ item.mount_point }}"
 
 # ----------------------------------------
 # Disk Initialization
