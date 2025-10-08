@@ -206,6 +206,7 @@ variable "use_simple_mount"                     {
                                                   default     = true
                                                 }
 variable "usr_sap"                              { description = "If defined provides the mount point for /usr/sap on ANF" }
+
 variable "web_instance_number"                  {
                                                   description = "The Instance number for Web Dispatcher"
                                                   default     = "00"
@@ -241,3 +242,29 @@ variable "sap_cal_product_name"                 {
                                                 }
 
 variable "site_information"                     { description = "Site information" }
+
+#########################################################################################
+#                                                                                       #
+#  Windows Configuration                                                                #
+#                                                                                       #
+#########################################################################################
+
+variable "windows_domain_name"                  {
+                                                  description = "If defined, will join the Windows virtual machines to the specified domain"
+                                                  default     = ""
+                                                }
+
+variable "windows_app_disk_mounting_style"      {
+                                                  description = "If defined, will use the specified disk mounting style for Windows application tier virtual machines. Valid values are 'driveletter' or 'mountpoint'"
+                                                  default     = "driveletter"
+                                                }
+
+variable "windows_db_disk_mounting_style"       {
+                                                  description = "If defined, will use the specified disk mounting style for Windows database tier virtual machines. Valid values are 'driveletter' or 'mountpoint'"
+                                                  default     = "driveletter"
+                                                }
+
+variable "windows_disk_mountpoint_base_path"    {
+                                                  description = "If defined, will use the specified base path for mount points. Only used if mounting style is set to 'mountpoint'"
+                                                  default     = "C:\\SAP\\SQLServerDisks"
+                                                }

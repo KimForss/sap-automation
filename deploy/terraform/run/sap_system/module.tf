@@ -303,6 +303,9 @@ module "anydb_node" {
   use_scalesets_for_deployment                  = var.use_scalesets_for_deployment
   use_secondary_ips                             = var.use_secondary_ips
   dns_settings                                  = local.dns_settings
+  windows_domain_name                           = var.windows_domain_name
+  windows_db_disk_mounting_style                = var.windows_db_disk_mounting_style
+  windows_disk_mountpoint_base_path             = var.windows_disk_mountpoint_base_path
 
 }
 
@@ -501,6 +504,14 @@ module "output_files" {
   enable_sap_cal                                = var.enable_sap_cal
   calapi_kv                                     = var.calapi_kv
   sap_cal_product_name                          = var.sap_cal_product_name
+
+  #########################################################################################
+  #  Windows Configuration                                                                #
+  #########################################################################################
+  windows_domain_name                           = var.windows_domain_name
+  windows_app_disk_mounting_style               = var.windows_app_disk_mounting_style
+  windows_db_disk_mounting_style                = var.windows_db_disk_mounting_style
+  windows_disk_mountpoint_base_path             = var.windows_disk_mountpoint_base_path
 
   site_information                              = module.hdb_node.site_information
 }

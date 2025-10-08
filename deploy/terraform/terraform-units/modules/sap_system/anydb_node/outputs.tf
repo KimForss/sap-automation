@@ -184,3 +184,24 @@ output "database_kdump_disks"          {
                                                          )
                                                        )
                                        }
+
+#######################################4#######################################8
+#                                                                              #
+#                            Windows Configuration                             #
+#                                                                              #
+#######################################4#######################################8
+
+output "windows_domain_name"           {
+                                         description = "Windows domain name for domain join"
+                                         value       = var.windows_domain_name
+                                       }
+
+output "windows_db_disk_mounting_style" {
+                                         description = "Windows disk mounting style for database tier (driveletter or mountpoint)"
+                                         value       = var.windows_db_disk_mounting_style
+                                       }
+
+output "windows_disk_mountpoint_base_path" {
+                                         description = "Base path for Windows mount points"
+                                         value       = var.windows_disk_mountpoint_base_path
+                                       }

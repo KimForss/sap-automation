@@ -12,7 +12,9 @@
 # Options: 'driveletter' or 'mountpoint'
 # - driveletter: Traditional Windows drive letters (C:, D:, E:, etc.)
 # - mountpoint: Mount disks under folder paths
-disk_mount_strategy: 'mountpoint'
+# This is typically set from the inventory based on windows_db_disk_mounting_style
+# or windows_app_disk_mounting_style
+disk_mount_strategy: 'driveletter'
 
 # Base path for mount points (only used when disk_mount_strategy is 'mountpoint')
 # All disk mount points will be created under this base path
@@ -20,6 +22,7 @@ disk_mount_strategy: 'mountpoint'
 #   C:\SQLServerDisks\DATA\DATA1
 #   C:\SQLServerDisks\LOG\LOG1
 #   C:\SQLServerDisks\TEMPDB\TEMPDB1
+# This is typically set from the inventory based on windows_disk_mountpoint_base_path
 disk_base_mount_path: 'C:\SQLServerDisks'
 
 # Allocation unit sizes for different disk types (in bytes)
@@ -45,7 +48,7 @@ mount_point_naming:
 
 # Enable verbose disk configuration output
 # temporarily enable for debug
-disk_setup_verbose: true
+disk_setup_verbose: false
 
 # Retry configuration for disk initialization
 # Windows may need time for disks to become available after VM provisioning

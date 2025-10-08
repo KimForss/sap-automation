@@ -169,6 +169,14 @@ resource "local_file" "ansible_inventory_new_yml" {
                     app_use_nvme_disks                     = upper(var.infrastructure.disk_controller_type_app_tier) == "NVME"
                     db_use_nvme_disks                      = upper(var.infrastructure.disk_controller_type_database_tier) == "NVME"
 
+                    windows_domain_name                    = var.windows_domain_name
+                    app_disk_mount_strategy                = upper(var.app_tier_os_types["app"]) == "WINDOWS" ? var.windows_app_disk_mounting_style : ""
+                    app_disk_base_mount_path               = upper(var.app_tier_os_types["app"]) == "WINDOWS" ? var.windows_disk_mountpoint_base_path : ""
+                    scs_disk_mount_strategy                = upper(var.app_tier_os_types["scs"]) == "WINDOWS" ? var.windows_app_disk_mounting_style : ""
+                    scs_disk_base_mount_path               = upper(var.app_tier_os_types["scs"]) == "WINDOWS" ? var.windows_disk_mountpoint_base_path : ""
+                    db_disk_mount_strategy                 = var.platform == "SQLSERVER" ? var.windows_db_disk_mounting_style : ""
+                    db_disk_base_mount_path                = var.platform == "SQLSERVER" ? var.windows_disk_mountpoint_base_path : ""
+
     }
   )
   filename             = format("%s/%s_hosts.yaml", path.cwd, var.sap_sid)

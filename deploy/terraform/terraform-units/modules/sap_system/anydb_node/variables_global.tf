@@ -74,6 +74,27 @@ variable "scale_set_id"                                 { description = "Azure r
 
 #########################################################################################
 #                                                                                       #
+#  Windows Configuration                                                                #
+#                                                                                       #
+#########################################################################################
+
+variable "windows_domain_name"                          {
+                                                          description = "If defined, will join the Windows virtual machines to the specified domain"
+                                                          default     = ""
+                                                        }
+
+variable "windows_db_disk_mounting_style"               {
+                                                          description = "If defined, will use the specified disk mounting style for Windows database tier virtual machines. Valid values are 'driveletter' or 'mountpoint'"
+                                                          default     = "driveletter"
+                                                        }
+
+variable "windows_disk_mountpoint_base_path"            {
+                                                          description = "If defined, will use the specified base path for mount points. Only used if mounting style is set to 'mountpoint'"
+                                                          default     = "C:\\SAP\\SQLServerDisks"
+                                                        }
+
+#########################################################################################
+#                                                                                       #
 #  Tags                                                                                 #
 #                                                                                       #
 #########################################################################################

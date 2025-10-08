@@ -13,6 +13,12 @@ ${sid}_DB:
       resource_group_name : ${created_resource_group_name}
       subscription_id     : ${created_resource_group_subscription_id}
       use_nvme_disks      : ${db_use_nvme_disks}
+%{~ if db_disk_mount_strategy != "" }
+      disk_mount_strategy : ${db_disk_mount_strategy}
+%{~ endif }
+%{~ if db_disk_base_mount_path != "" }
+      disk_base_mount_path: ${db_disk_base_mount_path}
+%{~ endif }
 %{~ if scale_out }
       site                : ${site[idx]}
 %{~ endif }
@@ -43,6 +49,12 @@ ${sid}_SCS:
       resource_group_name : ${created_resource_group_name}
       subscription_id     : ${created_resource_group_subscription_id}
       use_nvme_disks      : ${app_use_nvme_disks}
+%{~ if scs_disk_mount_strategy != "" }
+      disk_mount_strategy : ${scs_disk_mount_strategy}
+%{~ endif }
+%{~ if scs_disk_base_mount_path != "" }
+      disk_base_mount_path: ${scs_disk_base_mount_path}
+%{~ endif }
 %{~ if scs_connection == "winrm" }
       ${winrm_cert_valid}
       ${winrm_timeout_sec}
@@ -70,6 +82,12 @@ ${sid}_ERS:
       resource_group_name : ${created_resource_group_name}
       subscription_id     : ${created_resource_group_subscription_id}
       use_nvme_disks      : ${app_use_nvme_disks}
+%{~ if scs_disk_mount_strategy != "" }
+      disk_mount_strategy : ${scs_disk_mount_strategy}
+%{~ endif }
+%{~ if scs_disk_base_mount_path != "" }
+      disk_base_mount_path: ${scs_disk_base_mount_path}
+%{~ endif }
 %{~ if ers_connection == "winrm" }
       ${winrm_cert_valid}
       ${winrm_timeout_sec}
@@ -97,6 +115,12 @@ ${sid}_PAS:
       resource_group_name : ${created_resource_group_name}
       subscription_id     : ${created_resource_group_subscription_id}
       use_nvme_disks      : ${app_use_nvme_disks}
+%{~ if app_disk_mount_strategy != "" }
+      disk_mount_strategy : ${app_disk_mount_strategy}
+%{~ endif }
+%{~ if app_disk_base_mount_path != "" }
+      disk_base_mount_path: ${app_disk_base_mount_path}
+%{~ endif }
 %{~ if app_connection == "winrm" }
       ${winrm_cert_valid}
       ${winrm_timeout_sec}
@@ -124,6 +148,12 @@ ${sid}_APP:
       resource_group_name : ${created_resource_group_name}
       subscription_id     : ${created_resource_group_subscription_id}
       use_nvme_disks      : ${app_use_nvme_disks}
+%{~ if app_disk_mount_strategy != "" }
+      disk_mount_strategy : ${app_disk_mount_strategy}
+%{~ endif }
+%{~ if app_disk_base_mount_path != "" }
+      disk_base_mount_path: ${app_disk_base_mount_path}
+%{~ endif }
 %{~ if app_connection == "winrm" }
       ${winrm_cert_valid}
       ${winrm_timeout_sec}
@@ -151,6 +181,12 @@ ${sid}_WEB:
       resource_group_name : ${created_resource_group_name}
       subscription_id     : ${created_resource_group_subscription_id}
       use_nvme_disks      : ${app_use_nvme_disks}
+%{~ if app_disk_mount_strategy != "" }
+      disk_mount_strategy : ${app_disk_mount_strategy}
+%{~ endif }
+%{~ if app_disk_base_mount_path != "" }
+      disk_base_mount_path: ${app_disk_base_mount_path}
+%{~ endif }
 %{~ if web_connection == "winrm" }
       ${winrm_cert_valid}
       ${winrm_timeout_sec}
