@@ -484,7 +484,8 @@
   become:                              true
   become_user:                         oracle
   ansible.builtin.shell: |
-                                       ./asmca -silent -createDiskGroup -diskGroupName ARCH -redundancy EXTERNAL -diskList '{{ asm_archdisklist }}'
+                                       ./asmca -silent -createDiskGroup -diskGroupName ARCH -redundancy EXTERNAL -diskList '{{ asm_archdisklist }}' -compatible.asm {{ ora_version }} -compatible.rdbms  {{ ora_version }} -compatible.advm {{ ora_version }}
+
   register:                            arch_diskgroup_creation_results
   environment:
     DB_SID:                            "{{ db_sid | upper }}"
@@ -499,7 +500,7 @@
   become_user:                         oracle
   ansible.builtin.shell: |
                                        set -o errexit
-                                       ./asmca -silent -createDiskGroup -diskGroupName RECO -redundancy EXTERNAL -diskList '{{ asm_recodisklist }}'
+                                       ./asmca -silent -createDiskGroup -diskGroupName RECO -redundancy EXTERNAL -diskList '{{ asm_recodisklist }}'  -compatible.asm {{ ora_version }} -compatible.rdbms  {{ ora_version }} -compatible.advm {{ ora_version }}
   register:                            reco_diskgroup_creation_results
   environment:
     DB_SID:                            "{{ db_sid | upper }}"
@@ -520,9 +521,9 @@
   become_user:                        oracle
   ansible.builtin.shell: |
                                       set -o errexit
+                                      ./asmca -silent -editDiskGroupAttributes -diskGroupName DATA -attribute compatible.advm={{ ora_version }}
                                       ./asmca -silent -editDiskGroupAttributes -diskGroupName DATA -attribute compatible.rdbms={{ ora_version }}
-                                      ./asmca -silent -editDiskGroupAttributes -diskGroupName ARCH -attribute compatible.rdbms={{ ora_version }}
-                                      ./asmca -silent -editDiskGroupAttributes -diskGroupName RECO -attribute compatible.rdbms={{ ora_version }}
+                                      ./asmca -silent -editDiskGroupAttributes -diskGroupName DATA -attribute compatible.asm={{ ora_version }}
   register:                           diskgroupupdate_results
   failed_when:                        diskgroupupdate_results.rc >= 1
   environment:
@@ -540,7 +541,7 @@
     mode:                             '0755'
 
 
-- name:                               "SAP Oracle Fail befor DB Install"
+- name:                               "SAP Oracle Fail before DB Install"
   ansible.builtin.fail:
     msg:   "check before DB install"
 ...
