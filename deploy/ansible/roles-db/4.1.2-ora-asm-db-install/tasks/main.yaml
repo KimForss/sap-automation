@@ -82,28 +82,6 @@
     owner:                             oracle
     group:                             oinstall
 
-- name:                                "Oracle ASM: check if installed"
-  ansible.builtin.stat:
-    path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/grid_sbp_installed.txt"
-  register:                            oracle_installed
-
-- name:                                "ORACLE ASM: Unzip the Database software"
-  become:                              true
-  become_user:                         root
-  ansible.builtin.unarchive:
-    src:                               "{{ target_media_location }}/oraserver/LINUX_X86_64/db_home/LINUX.X64_193000_db_home.zip"
-    dest:                              /oracle/{{ db_sid | upper }}/{{ ora_version }}
-    creates:                           "/oracle/{{ db_sid | upper }}/{{ ora_version }}/SIGNATURE.SMF"
-    owner:                             oracle
-    group:                             oinstall
-    remote_src:                        true
-
-# +------------------------------------4--------------------------------------*/
-# |                                                                            |
-# |                       Oracle Grid: Patch installation media                |
-# |                                                                            |
-# +------------------------------------4--------------------------------------*/
-
 
 - name:                                "Oracle ASM: Find Patch ID for GRID"
   become:                              true
@@ -136,6 +114,32 @@
     ApplyRU:                           "{{ STAGE_SBP_DBRU }}"
 
 
+- name:                               "SAP Oracle Fail before DB Install"
+  ansible.builtin.fail:
+    msg:   "check before DB install"
+
+
+- name:                                "Oracle ASM: check if installed"
+  ansible.builtin.stat:
+    path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/grid_sbp_installed.txt"
+  register:                            oracle_installed
+
+- name:                                "ORACLE ASM: Unzip the Database software"
+  become:                              true
+  become_user:                         root
+  ansible.builtin.unarchive:
+    src:                               "{{ target_media_location }}/oraserver/LINUX_X86_64/db_home/LINUX.X64_193000_db_home.zip"
+    dest:                              /oracle/{{ db_sid | upper }}/{{ ora_version }}
+    creates:                           "/oracle/{{ db_sid | upper }}/{{ ora_version }}/SIGNATURE.SMF"
+    owner:                             oracle
+    group:                             oinstall
+    remote_src:                        true
+
+# +------------------------------------4--------------------------------------*/
+# |                                                                            |
+# |                       Oracle Grid: Patch installation media                |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
 
 - name:                                "Oracle ASM: Check if 'OPatch.bck' exists"
   ansible.builtin.stat:
