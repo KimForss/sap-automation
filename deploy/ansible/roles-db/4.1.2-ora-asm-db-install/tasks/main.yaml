@@ -103,15 +103,18 @@
     patch_grid_path:                   "{{ patch_grid_id_directory.files[0].path | dirname }}"
   when:                                patch_grid_id_directory.matched == 1
 
-- name:                                "Oracle ASM: OPatch ID"
-  ansible.builtin.debug:
-    msg:                               "Patch GRID path {{ patch_grid_path }}"
-
-
 - name:                                "Oracle ASM: set ApplyRU and OPatchPath"
   ansible.builtin.set_fact:
     OPatchPath:                        "{{ target_media_location }}/SBP/OPATCH/OPatch"
     ApplyRU:                           "{{ STAGE_SBP_DBRU }}"
+
+- name:                                "Oracle ASM: OPatch ID"
+  ansible.builtin.debug:
+    msg:
+
+      - "Oracle Image: {{ target_media_location }}/oraserver/LINUX_X86_64/db_home/LINUX.X64_193000_db_home.zip"
+      - "ApplyRU:      {{ ApplyRU }}"
+      - "OPatchPath    {{ OPatchPath }}"
 
 
 - name:                               "SAP Oracle Fail before DB Install"
