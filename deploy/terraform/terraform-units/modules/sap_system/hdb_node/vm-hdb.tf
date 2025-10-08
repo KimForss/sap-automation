@@ -382,6 +382,8 @@ resource "azurerm_managed_disk" "data_disk" {
   create_option                        = "Empty"
   storage_account_type                 = local.data_disk_list[count.index].storage_account_type
   disk_size_gb                         = local.data_disk_list[count.index].disk_size_gb
+  # Only set disk_iops_read_write, disk_mbps_read_write for UltraSSD_LRS and
+  # PremiumV2_LRS disk types, as other types do not support these properties.
   disk_iops_read_write                 = contains(["UltraSSD_LRS", "PremiumV2_LRS"], local.data_disk_list[count.index].storage_account_type) ? (
                                             local.data_disk_list[count.index].disk_iops_read_write) : (
                                             null
