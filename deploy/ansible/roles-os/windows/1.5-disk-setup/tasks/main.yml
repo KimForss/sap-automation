@@ -66,9 +66,10 @@
     path:                              "{{ disk_base_mount_path }}"
     state:                             directory
 
-- name:                                "1.5 Disk setup - Create type-level mount directories"
+- name:                                "1.5 Disk setup - Create top-level mount directories"
   when:
                                        - disk_mount_strategy == 'mountpoint'
+                                       - item.mount_base_path | default(false)
                                        - item.use_mount_point | default(false)
   ansible.windows.win_file:
     path:                              "{{ item.mount_base_path }}"
@@ -80,6 +81,7 @@
 - name:                                "1.5 Disk setup - Create disk-level mount directories"
   when:
                                        - disk_mount_strategy == 'mountpoint'
+                                       - item.mount_base_path | default(false)
                                        - item.use_mount_point | default(false)
   ansible.windows.win_file:
     path:                              "{{ item.mount_point }}"

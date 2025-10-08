@@ -75,7 +75,7 @@
 {%     set mount_base_path = base_mount_path ~ "\\BACKUP" %}
 {% elif disktype == 'tempdb' %}
 {%     set tempdb_disk_counter.value = tempdb_disk_counter.value + 1 %}
-{%     set startlettercharacter = "abcdefghijklmnopqrstuvwxyz"[startletter.value - 116] | upper %}
+{%     set startlettercharacter = "abcdefghijklmnopqrstuvwxyz"[startletter.value - 117] | upper %}
 {%     set mount_folder_name = "TEMPDB" ~ tempdb_disk_counter.value %}
 {%     set mount_base_path = base_mount_path ~ "\\TEMPDB" %}
 {% else %}
