@@ -23,8 +23,8 @@
 
 - name:                                "1.5 Disk setup - Set default mount strategy"
   ansible.builtin.set_fact:
-    disk_mount_strategy:               "{{ disk_mount_strategy | default('driveletter') }}"
-    disk_base_mount_path:              "{{ disk_base_mount_path | default('C:\\SQLServerDisks') }}"
+    disk_mount_strategy:               "{{ hostvars[ansible_hostname]['disk_mount_strategy'] | default('driveletter') }}"
+    disk_base_mount_path:              "{{ hostvars[ansible_hostname]['disk_base_mount_path'] | default('C:\\SQLServerDisks') }}"
 
 - name:                                "1.5 Disk setup - Get disk facts"
   community.windows.win_disk_facts:
@@ -60,7 +60,7 @@
 # ----------------------------------------
 - name:                                "1.5 Disk setup - Create directory structure - Mountpoint"
   when:
-                                       - disk_mount_strategy == 'mountpoint'
+                                       - disk_mount_strategy == 'mountpoint' | bool
   block:
     - name:                            "1.5 Disk setup - Create base mount point directory"
       ansible.windows.win_file:
@@ -106,25 +106,29 @@
 # ----------------------------------------
 # Drive Letter : Use DriveLetter parameter
 # ----------------------------------------
-
-- name:                                "1.5 Disk setup - Initialize disks with drive letters"
+- name:                                "1.5 Disk setup - Disk initialization with - DriveLetter"
   when:
-                                       - disk_mount_strategy == 'driveletter'
+                                       - disk_mount_strategy == 'driveletter' | bool
+  block:
+
+    - name:                            "1.5 Disk setup - Initialize disks with drive letters"
+      when:
+                                       - disk_mount_strategy == 'driveletter' | bool
                                        - not item.use_mount_point | default(false)
                                        - item.osdisk_id != ''
-  ansible.windows.win_dsc:
-    resource_name:                     "Disk"
-    DiskId:                            "{{ item.osdisk_id }}"
-    DiskIdType:                        'UniqueId'
-    DriveLetter:                       "{{ item.driveletter }}"
-    PartitionStyle:                    "GPT"
-    FSLabel:                           "{{ item.diskname }}"
-    FSFormat:                          'NTFS'
-    AllocationUnitSize:                "{{ item.sector_size }}"
-  loop:                                "{{ volume_groups }}"
-  loop_control:
-    label:                             "{{ item.diskname }} -> {{ item.driveletter }}:"
-  register:                            win_disk_driveletter_results
+      ansible.windows.win_dsc:
+        resource_name:                 "Disk"
+        DiskId:                        "{{ item.osdisk_id }}"
+        DiskIdType:                    'UniqueId'
+        DriveLetter:                   "{{ item.driveletter }}"
+        PartitionStyle:                "GPT"
+        FSLabel:                       "{{ item.diskname }}"
+        FSFormat:                      'NTFS'
+        AllocationUnitSize:            "{{ item.sector_size }}"
+      loop:                            "{{ volume_groups }}"
+      loop_control:
+        label:                         "{{ item.diskname }} -> {{ item.driveletter }}:"
+      register:                        win_disk_driveletter_results
 
 # ----------------------------------------
 # Mount Point : Use AccessPath parameter
@@ -157,13 +161,17 @@
 #     label:                             "{{ item.diskname }} -> {{ item.mount_point }}"
 #   register:                            win_disk_mountpoint_results
 
-- name:                                "1.5 Disk setup - Initialize and mount disks with PowerShell"
+- name:                                "1.5 Disk setup - Disk initialization with - MountPoint"
   when:
+                                       - disk_mount_strategy == 'mountpoint' | bool
+  block:
+    - name:                            "1.5 Disk setup - Initialize and mount disks with PowerShell"
+      when:
                                        - disk_mount_strategy == 'mountpoint'
                                        - item.use_mount_point | default(false)
                                        - item.osdisk_id != ''
-  ansible.windows.win_powershell:
-    script: |
+      ansible.windows.win_powershell:
+        script: |
                                        $ErrorActionPreference = 'Stop'
 
                                        $disk = Get-Disk | Where-Object { $_.UniqueId -eq '{{ item.osdisk_id }}' }
@@ -174,27 +182,27 @@
                                          Format-Volume -Partition $partition -FileSystem NTFS -NewFileSystemLabel '{{ item.diskname }}' -AllocationUnitSize {{ item.sector_size }} -Confirm:$false
                                          Add-PartitionAccessPath -DiskNumber $disk.Number -PartitionNumber $partition.PartitionNumber -AccessPath '{{ item.mount_point }}'
                                        }
-  loop:                                "{{ volume_groups }}"
-  loop_control:
-    label:                             "{{ item.diskname }} -> {{ item.mount_point }}"
-  register:                            win_disk_mountpoint_results
+      loop:                            "{{ volume_groups }}"
+      loop_control:
+        label:                         "{{ item.diskname }} -> {{ item.mount_point }}"
+      register:                        win_disk_mountpoint_results
 
 # ----------------------------------------
 # Debug output
 # ----------------------------------------
 
-- name:                               "1.5 Disk setup - Show disk initialization results (drive letters)"
+- name:                                "1.5 Disk setup - Show disk initialization results (drive letters)"
   when:
-                                       - disk_mount_strategy == 'driveletter'
+                                       - disk_mount_strategy == 'driveletter' | bool
                                        - win_disk_driveletter_results is defined
   ansible.builtin.debug:
     msg:
       - "Drive letter results:         {{ win_disk_driveletter_results }}"
     verbosity:                         2
 
-- name:                               "1.5 Disk setup - Show disk initialization results (mount points)"
+- name:                                "1.5 Disk setup - Show disk initialization results (mount points)"
   when:
-                                       - disk_mount_strategy == 'mountpoint'
+                                       - disk_mount_strategy == 'mountpoint' | bool
                                        - win_disk_mountpoint_results is defined
   ansible.builtin.debug:
     msg:
