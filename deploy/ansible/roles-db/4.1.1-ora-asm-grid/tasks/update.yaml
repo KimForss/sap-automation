@@ -281,7 +281,7 @@
 # Step 9.3
 - name:                                "ORACLE GRID UPDATE: Work-around for Oracle bug 28352017"
   become:                              true
-  become_user:                         {{ oracle_user_name }}
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell: |
                                        $OHGRID/bin/cluutil \
                                        -ckpt -oraclebase `env ORACLE_HOME=$OHGRID $OHGRID/bin/orabase` \

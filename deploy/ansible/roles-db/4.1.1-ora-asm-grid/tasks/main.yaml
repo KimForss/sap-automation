@@ -342,10 +342,8 @@
       failed_when:                     gridinstaller_results.rc >= 2              # installer returns rc=1 (exited with warning) by default when run is silent mode as the oratab file is created only after running the root.sh
       environment:
         CV_ASSUME_DISTID:              "{{ CV_ASSUME_DISTID }}"
-        ORACLE_SID:                    "{{ db_sid | upper }}"
         ORACLE_BASE:                   /oracle/BASE
         ORACLE_HOME:                   /oracle/GRID/{{ ora_version }}
-        DB_SID:                        "{{ db_sid | upper }}"
       args:
         executable:                    /bin/csh
         chdir:                         "/oracle/GRID/{{ ora_version }}"
