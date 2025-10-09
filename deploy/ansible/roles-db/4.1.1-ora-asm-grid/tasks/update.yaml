@@ -170,7 +170,7 @@
     path:                              "/oracle/GRID/{{ ora_version }}/bin/oradism"
     state:                             file
     mode:                              'u+rw'
-    owner:                             root
+    owner:                             "{{ oracle_user_name }}"
     group:                             oinstall
 
 # Step 7
@@ -213,6 +213,7 @@
     owner:                             "{{ oracle_user_name }}"
     group:                             oinstall
 
+# Step 8
 - name:                                "ORACLE GRID UPDATE: pre processing reset permissions"
   when:                                oradism_stat.stat.exists
   ansible.builtin.file:
@@ -222,6 +223,7 @@
     owner:                             root
     group:                             oinstall
 
+# Step 9.1
 - name:                                "ORACLE GRID UPDATE: complete installation in the grid home"
   become:                              true
   become_user:                         root
@@ -248,6 +250,7 @@
     state:                             touch
     mode:                              '0755'
 
+# Step 9.2
 - name:                                "ORACLE GRID UPDATE: Run roothas.sh -postpatch"
   become:                              true
   become_user:                         root
@@ -271,6 +274,36 @@
 - name:                                "ORACLE GRID UPDATE: creates after a successful post processing script execution"
   ansible.builtin.file:
     path:                              "/etc/sap_deployment_automation/grid/gridupdate_roothas_postpatch.txt"
+    state:                             touch
+    mode:                              '0755'
+
+
+# Step 9.3
+- name:                                "ORACLE GRID UPDATE: Work-around for Oracle bug 28352017"
+  become:                              true
+  become_user:                         {{ oracle_user_name }}
+  ansible.builtin.shell: |
+                                       $OHGRID/bin/cluutil \
+                                       -ckpt -oraclebase `env ORACLE_HOME=$OHGRID $OHGRID/bin/orabase` \
+                                       -writeckpt -name ROOTCRS_PREPATCH -state START
+  register:                            cluutil_results
+  environment:
+    CV_ASSUME_DISTID:                  "{{ CV_ASSUME_DISTID }}"
+    OHGRID:                            "/oracle/GRID/{{ ora_version }}"
+  args:
+    executable:                        /bin/csh
+    creates:                           "/etc/sap_deployment_automation/grid/gridupdate_cluutil.txt"
+
+- name:                                "ORACLE GRID UPDATE: Debug: GRID cluutil output"
+  ansible.builtin.copy:
+    dest:                              "/etc/sap_deployment_automation/grid/grid_cluutil.log"
+    content:                           "{{ cluutil_results.stdout }}"
+    mode:                              0777
+  when:                                cluutil_results.stdout is defined
+
+- name:                                "ORACLE GRID UPDATE: creates after a successful post processing script execution"
+  ansible.builtin.file:
+    path:                              "/etc/sap_deployment_automation/grid/gridupdate_cluutil.txt"
     state:                             touch
     mode:                              '0755'
 
