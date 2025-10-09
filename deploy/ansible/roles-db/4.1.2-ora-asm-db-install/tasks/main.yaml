@@ -154,7 +154,7 @@
         msg:                           "Running {{ target_media_location }}/RUNINSTALLER/SAP/RUNINSTALLER \
                                        -oracle_image {{ OracleImage }}                           \
                                        -applyRU {{ ApplyRU }}                                    \
-                                       -opatchPath {{ OPatchPath }}                              \
+                                       -opatchLocation {{ OPatchPath }}                              \
                                        -silent -ignorePrereqWarnings"
 
     - name:                            "Oracle ASM: Execute RUNINSTALLER"
@@ -164,7 +164,7 @@
                                        {{ target_media_location }}/RUNINSTALLER/SAP/RUNINSTALLER \
                                        -oracle_image {{ OracleImage }}                           \
                                        -applyRU {{ ApplyRU }}                                    \
-                                       -opatchPath {{ OPatchPath }}                              \
+                                       -opatchLocation {{ OPatchPath }}                              \
                                        -silent -ignorePrereqWarnings
       register:                        orainstaller_results
       failed_when:                     orainstaller_results.rc >= 2              # installer returns rc=1 (exited with warning) by default when run is silent mode as the oratab file is created only after running the root.sh
