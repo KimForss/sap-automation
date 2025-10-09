@@ -114,7 +114,7 @@
 - name:                                "Oracle ASM: set ApplyRU and OPatchPath"
   ansible.builtin.set_fact:
     OPatchPath:                        "{{ target_media_location }}/SBP/OPATCH/OPatch"
-    ApplyRU:                           "{{ patch_grid_id_directory }}"
+    ApplyRU:                           "{{ patch_grid_path }}"
     OracleImage:                       "{{ target_media_location }}/oraserver/LINUX_X86_64/db_home/LINUX.X64_193000_db_home.zip"
 
 - name:                                "Oracle ASM: OPatch ID"
