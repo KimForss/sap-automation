@@ -44,7 +44,7 @@
     path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}"
     mode:                              '0755'
     state:                             directory
-    owner:                             oracle
+    owner:                             "{{ oracle_user_name }}"
     group:                             oinstall
 
 - name:                                "Oracle ASM: Create sap_deployment_automation grid folder"
@@ -52,7 +52,7 @@
     path:                              "/etc/sap_deployment_automation/grid"
     mode:                              '0755'
     state:                             directory
-    owner:                             oracle
+    owner:                             "{{ oracle_user_name }}"
     group:                             oinstall
 
 - name:                                "Oracle ASM: tmp folder"
@@ -60,7 +60,7 @@
     path:                              "{{ tmp_directory }}/{{ db_sid | upper }}/{{ ora_version }}/"
     mode:                              '0755'
     state:                             directory
-    owner:                             oracle
+    owner:                             "{{ oracle_user_name }}"
     group:                             oinstall
 
 
@@ -75,7 +75,7 @@
   ansible.builtin.file:
     path:                              /oracle
     state:                             directory
-    owner:                             oracle
+    owner:                             "{{ oracle_user_name }}"
     group:                             oinstall
     recurse:                           true
   when:                                not oracle_permissions.stat.exists
@@ -87,7 +87,7 @@
     path:                              "/etc/sap_deployment_automation/oracle/oracleowner.txt"
     state:                             touch
     mode:                              '0755'
-    owner:                             oracle
+    owner:                             "{{ oracle_user_name }}"
     group:                             oinstall
 
 

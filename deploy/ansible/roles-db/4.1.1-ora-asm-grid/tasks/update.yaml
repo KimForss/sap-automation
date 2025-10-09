@@ -193,7 +193,7 @@
   register:                            sbpscript_results
   failed_when:                         sbpscript_results.rc >= 2
   args:
-    creates:                           "/etc/sap_deployment_automation/grid/grid_sbp_installed.txt"
+    creates:                           "/etc/sap_deployment_automation/grid/grid_mopatch_installed.txt"
     chdir:                             "{{ target_media_location }}/SBP"
     executable:                        /bin/csh
 
@@ -204,14 +204,14 @@
 
 - name:                                "ORACLE GRID UPDATE: Post processing installer output"
   ansible.builtin.copy:
-    dest:                              "/etc/sap_deployment_automation/grid/grid_sbp.log"
+    dest:                              "/etc/sap_deployment_automation/grid/grid_mopatch.log"
     content:                           "{{ sbpscript_results.stdout }}"
     mode:                              '0777'
   when:                                sbpscript_results.stdout is defined
 
-- name:                                "ORACLE GRID UPDATE: Create grid_sbp_installed.txt"
+- name:                                "ORACLE GRID UPDATE: Create grid_mopatch_installed.txt"
   ansible.builtin.file:
-    path:                              "/etc/sap_deployment_automation/grid/grid_sbp_installed.txt"
+    path:                              "/etc/sap_deployment_automation/grid/grid_mopatch_installed.txt"
     state:                             touch
     mode:                              '0755'
     owner:                             "{{ oracle_user_name }}"
