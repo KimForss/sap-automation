@@ -94,63 +94,62 @@
       become:                          true
       become_user:                     root
       ansible.builtin.shell:           "set -o pipefail && oracleasm listdisks | grep DATA"
-      register:                        asm_dlist
+      register:                        asm_disk_list
 
     - name:                            "ORACLE GRID: Get the List of ARCH disks"
       become:                          true
       become_user:                     root
       ansible.builtin.shell:           "set -o pipefail && oracleasm listdisks | grep ARCH"
-      register:                        asm_alist
+      register:                        asm_archive_disk_list
 
     - name:                            "ORACLE GRID: Get the List of RECO disks"
       become:                          true
       become_user:                     root
       ansible.builtin.shell:           "set -o pipefail && oracleasm listdisks |grep RECO"
-      register:                        asm_rlist
+      register:                        asm_recovery_disk_list
 
 
     - name:                            "ORACLE GRID: Prepare the Data disk list"
       ansible.builtin.set_fact:
-        asm_dlist1:                    "{{ asm_dlist.stdout_lines | list }}"
-        asm_alist1:                    "{{ asm_alist.stdout_lines | list }}"
-        asm_rlist1:                    "{{ asm_rlist.stdout_lines | list }}"
-
+        asm_disk_list:                "{{ asm_disk_list.stdout_lines | list }}"
+        asm_archive_disk_list:        "{{ asm_archive_disk_list.stdout_lines | list }}"
+        asm_recovery_disk_list:       "{{ asm_recovery_disk_list.stdout_lines | list }}"
 
     - name:                            "ORACLE GRID: DISPLAY Oracle lists"
       ansible.builtin.debug:
         msg:
-          - "Data:     {{ asm_dlist1 }}"
-          - "Archive:  {{ asm_alist1 }}"
-          - "Recovery: {{ asm_rlist1 }}"
+          - "Data:     {{ asm_disk_list }}"
+          - "Archive:  {{ asm_archive_disk_list }}"
+          - "Recovery: {{ asm_recovery_disk_list }}"
 
     - name:                            "ORACLE GRID: Prepend /dev/oracleasm/disk to each of of the disk"
       ansible.builtin.set_fact:
-        asm_datadisklist:              "{{ asm_dlist1 | map('regex_replace', '^(.*)$', '/dev/oracleasm/disks/\\1') | join(',') }}"
-        asm_archdisklist:              "{{ asm_alist1 | map('regex_replace', '^(.*)$', '/dev/oracleasm/disks/\\1') | join(',') }}"
-        asm_recodisklist:              "{{ asm_rlist1 | map('regex_replace', '^(.*)$', '/dev/oracleasm/disks/\\1') | join(',') }}"
+        asm_data_disk_list:            "{{ asm_disk_list | map('regex_replace', '^(.*)$', '/dev/oracleasm/disks/\\1') | join(',') }}"
+        asm_archive_disk_list:         "{{ asm_archive_disk_list | map('regex_replace', '^(.*)$', '/dev/oracleasm/disks/\\1') | join(',') }}"
+        asm_recovery_disk_list:        "{{ asm_recovery_disk_list | map('regex_replace', '^(.*)$', '/dev/oracleasm/disks/\\1') | join(',') }}"
       when:
         - is_UEK6
 
     - name:                            "ORACLE GRID: Prepend /dev/disk/by-label to each of of the disk"
       ansible.builtin.set_fact:
-        asm_datadisklist:              "{{ asm_dlist1 | map('regex_replace', '^(.*)$', 'ORCL:\\1') | join(',') }}"
-        asm_archdisklist:              "{{ asm_alist1 | map('regex_replace', '^(.*)$', 'ORCL:\\1') | join(',') }}"
-        asm_recodisklist:              "{{ asm_rlist1 | map('regex_replace', '^(.*)$', 'ORCL:\\1') | join(',') }}"
+        asm_data_disk_list:            "{{ asm_disk_list | map('regex_replace', '^(.*)$', 'ORCL:\\1') | join(',') }}"
+        asm_archive_disk_list:         "{{ asm_archive_disk_list | map('regex_replace', '^(.*)$', 'ORCL:\\1') | join(',') }}"
+        asm_recovery_disk_list:        "{{ asm_recovery_disk_list | map('regex_replace', '^(.*)$', 'ORCL:\\1') | join(',') }}"
       when:
         - not is_UEK6
 
     - name:                            "ORACLE GRID: Store the disk lists as arrays"
       ansible.builtin.set_fact:
-        data_disk_list:                "{{ asm_datadisklist | split(',') | list }}"
-        arch_disk_list:                "{{ asm_archdisklist | split(',') | list }}"
-        reco_disk_list:                "{{ asm_recodisklist | split(',') | list }}"
+        data_disk_list:                "{{ asm_data_disk_list | split(',') | list }}"
+        arch_disk_list:                "{{ asm_archive_disk_list | split(',') | list }}"
+        recovery_disk_list:            "{{ asm_recovery_disk_list | split(',') | list }}"
 
     - name:                            "ORACLE GRID: DISPLAY Oracle lists with prefix"
       ansible.builtin.debug:
         msg:
           - "Data:     {{ data_disk_list }}"
           - "Archive:  {{ arch_disk_list }}"
-          - "Recovery: {{ reco_disk_list }}"
+          - "Recovery: {{ recovery_disk_list }}"
 
     - name:                            "ORACLE GRID: Create Grid install response file"
       become:                          true
@@ -465,7 +464,7 @@
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell: |
-                                       ./asmca -silent -createDiskGroup -diskGroupName ARCH -redundancy EXTERNAL -diskList '{{ asm_archdisklist }}' -compatible.asm {{ ora_version }} -compatible.rdbms  {{ ora_version }} -compatible.advm {{ ora_version }}
+                                       ./asmca -silent -createDiskGroup -diskGroupName ARCH -redundancy EXTERNAL -diskList '{{ asm_archive_disk_list }}' -compatible.asm {{ ora_version }} -compatible.rdbms  {{ ora_version }} -compatible.advm {{ ora_version }}
 
       register:                        arch_diskgroup_creation_results
       environment:
@@ -481,7 +480,7 @@
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell: |
                                        set -o errexit
-                                       ./asmca -silent -createDiskGroup -diskGroupName RECO -redundancy EXTERNAL -diskList '{{ asm_recodisklist }}'  -compatible.asm {{ ora_version }} -compatible.rdbms  {{ ora_version }} -compatible.advm {{ ora_version }}
+                                       ./asmca -silent -createDiskGroup -diskGroupName RECO -redundancy EXTERNAL -diskList '{{ asm_recovery_disk_list }}'  -compatible.asm {{ ora_version }} -compatible.rdbms  {{ ora_version }} -compatible.advm {{ ora_version }}
       register:                        reco_diskgroup_creation_results
       environment:
         DB_SID:                        "{{ db_sid | upper }}"
