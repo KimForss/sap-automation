@@ -107,6 +107,16 @@
     owner:                             "{{ oracle_user_name }}"
     group:                             oinstall
 
+# Step 2.1
+
+- name:                                "ORACLE GRID UPDATE: Remove {{ ora_release }}.srvctlstatus"
+  become:                              true
+  become_user:                         "{{ oracle_user_name }}"
+  ansible.builtin.file:
+    path:                              "/oracle/{{ db_sid | upper }}/{{ ora_release }}.srvctlstatus"
+    state:                             absent
+
+# Step 2.2
 - name:                                "ORACLE GRID UPDATE: Stop all CRS-managed resources associated with the RDBMS home"
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
@@ -114,11 +124,11 @@
                                        env ORACLE_HOME=$OHRDBMS ORACLE_BASE=$OHRDBMS.dummybase $OHRDBMS/bin/srvctl stop home -o $OHRDBMS -s $OHRDBMS.srvctlstatus
   register:                            srvctlstatus_results
   environment:
-    OHRDBMS:                           "/oracle/GRID/{{ ora_release }}"
+    OHRDBMS:                           "/oracle/{{ db_sid | upper }}/{{ ora_release }}"
   args:
     executable:                        /bin/csh
-    chdir:                             "/oracle/GRID/{{ ora_version }}/bin"
-    creates:                           /etc/sap_deployment_automation/grid/srvctlstatus.txt
+    chdir:                             "/oracle/{{ db_sid | upper }}"
+    creates:                           /oracle/{{ db_sid | upper }}/{{ ora_release }}.srvctlstatus
 
 - name:                                "ORACLE GRID UPDATE: Pre Processing set permissions"
   when:                                oradism_stat.stat.exists
@@ -127,6 +137,7 @@
     state:                             touch
     mode:                              '0755'
 
+# Step 5
 - name:                                "ORACLE GRID UPDATE: Shut down the grid stack and unlock the grid home for patching"
   become:                              true
   become_user:                         root
@@ -152,15 +163,26 @@
     state:                             touch
     mode:                              '0755'
 
+# Step 6
+- name:                                "ORACLE GRID UPDATE: pre processing reset permissions"
+  when:                                oradism_stat.stat.exists
+  ansible.builtin.file:
+    path:                              "/oracle/GRID/{{ ora_version }}/bin/oradism"
+    state:                             file
+    mode:                              'u+rw'
+    owner:                             root
+    group:                             oinstall
+
+# Step 7
 - name:                                "ORACLE GRID UPDATE: Post Processing - SBP Patching - progress"
   ansible.builtin.debug:
-    msg:                               "Running SBP Patching, please wait"
+    msg:                               "Running SBP Patching, env ORACLE_HOME=$OHGRID $OHGRID/MOPatch/mopatch.sh -v -s {{ target_media_location }}/SBP/{{ oracle_sbp_patch }}, please wait"
 
 - name:                                "ORACLE GRID UPDATE: Post Processing - SBP Patching"
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
 
-  ansible.builtin.shell:               "env ORACLE_HOME=$OHGRID $OHGRID/MOPatch/mopatch.sh -v -s {{ target_media_location }}/SBP/{{ oracle_sbp_patch }}"
+  ansible.builtin.shell:               "env ORACLE_HOME=$OHGRID $OHGRID/MOPatch/mopatch.sh -v -s {{ target_media_location }}/SBP/{{ oracle_sbp_patch }} -F mopatch_patchgen"
   environment:
     CV_ASSUME_DISTID:                  "{{ CV_ASSUME_DISTID }}"
     OHGRID:                            "/oracle/GRID/{{ ora_version }}"
