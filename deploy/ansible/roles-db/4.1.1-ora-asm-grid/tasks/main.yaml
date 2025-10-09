@@ -86,23 +86,23 @@
     # ora_secondary:                     "{{ ansible_play_hosts_all[1] }}"         # Oracle Secondary Host
     current_host:                      "{{ ansible_hostname }}"
 
-- name:                               "ORACLE GRID: Get the List of Data disks"
-  become:                             true
-  become_user:                        root
-  ansible.builtin.shell:              "set -o pipefail && oracleasm listdisks | grep DATA"
-  register:                           asm_dlist
+- name:                                "ORACLE GRID: Get the List of Data disks"
+  become:                              true
+  become_user:                         root
+  ansible.builtin.shell:               "set -o pipefail && oracleasm listdisks | grep DATA"
+  register:                            asm_dlist
 
-- name:                               "ORACLE GRID: Get the List of ARCH disks"
-  become:                             true
-  become_user:                        root
-  ansible.builtin.shell:              "set -o pipefail && oracleasm listdisks | grep ARCH"
-  register:                           asm_alist
+- name:                                "ORACLE GRID: Get the List of ARCH disks"
+  become:                              true
+  become_user:                         root
+  ansible.builtin.shell:               "set -o pipefail && oracleasm listdisks | grep ARCH"
+  register:                            asm_alist
 
-- name:                               "ORACLE GRID: Get the List of RECO disks"
-  become:                             true
-  become_user:                        root
-  ansible.builtin.shell:              "set -o pipefail && oracleasm listdisks |grep RECO"
-  register:                           asm_rlist
+- name:                                "ORACLE GRID: Get the List of RECO disks"
+  become:                              true
+  become_user:                         root
+  ansible.builtin.shell:               "set -o pipefail && oracleasm listdisks |grep RECO"
+  register:                            asm_rlist
 
 # - name:                               "Get the List of OLOG disks"
 #   become:                             true
@@ -156,7 +156,7 @@
 
 - name:                                "ORACLE GRID: Create Grid install response file"
   become:                              true
-  become_user:                         oracle
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.template:
     src:                               ORACLE_19c_00_ASM_v1_install.rsp.j2
     dest:                              "/oracle/GRID/{{ ora_version }}/{{ ansible_hostname }}_{{ db_sid }}_install.rsp"
@@ -275,7 +275,7 @@
     dest:                              "{{ patch_copy_name }}"
     remote_src:                        true
     mode:                              '0755'
-    owner:                             oracle
+    owner:                             "{{ oracle_user_name }}"
     group:                             oinstall
   when:
     - not opatchgrid_stat.stat.exists
@@ -291,7 +291,7 @@
     dest:                              "/oracle/GRID/{{ ora_version }}"
     remote_src:                        true
     mode:                              '0755'
-    owner:                             oracle
+    owner:                             "{{ oracle_user_name }}"
     group:                             oinstall
 
 - name:                                "ORACLE GRID: Find MOPatch"
@@ -323,7 +323,7 @@
     dest:                              "/oracle/GRID/{{ ora_version }}"
     remote_src:                        true
     mode:                              '0755'
-    owner:                             oracle
+    owner:                             "{{ oracle_user_name }}"
     group:                             oinstall
 
 
@@ -351,7 +351,7 @@
 
 - name:                                "ORACLE GRID: Install Execute gridSetup.sh"
   become:                              true
-  become_user:                         oracle
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell: |
                                        ./gridSetup.sh -silent -applyRU {{ ApplyRU }} -applyOneOffs {{ OneOffs }} -opatchlocation /oracle/GRID/{{ ora_version }}/OPatch -skipOpatchVersionCheck -responseFile ./{{ ansible_hostname }}_{{ db_sid }}_install.rsp
   register:                            gridinstaller_results
@@ -440,7 +440,7 @@
 
 - name:                                "ORACLE GRID: Execute ASM Config tools"
   become:                              true
-  become_user:                         oracle
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell: |
                                        ./gridSetup.sh -executeConfigTools -silent -responseFile ./{{ ansible_hostname }}_{{ db_sid }}_install.rsp
   register:                            tools_installer_results
@@ -481,7 +481,7 @@
 
 - name:                                "ORACLE GRID: Create ASM Disk groups ARCH"
   become:                              true
-  become_user:                         oracle
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell: |
                                        ./asmca -silent -createDiskGroup -diskGroupName ARCH -redundancy EXTERNAL -diskList '{{ asm_archdisklist }}' -compatible.asm {{ ora_version }} -compatible.rdbms  {{ ora_version }} -compatible.advm {{ ora_version }}
 
@@ -496,7 +496,7 @@
 
 - name:                                "ORACLE GRID: Create ASM Disk groups RECO"
   become:                              true
-  become_user:                         oracle
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell: |
                                        set -o errexit
                                        ./asmca -silent -createDiskGroup -diskGroupName RECO -redundancy EXTERNAL -diskList '{{ asm_recodisklist }}'  -compatible.asm {{ ora_version }} -compatible.rdbms  {{ ora_version }} -compatible.advm {{ ora_version }}

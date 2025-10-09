@@ -62,7 +62,7 @@
     dest:                              "/oracle/GRID/{{ ora_version }}"
     remote_src:                        true
     mode:                              '0755'
-    owner:                             oracle
+    owner:                             "{{ oracle_user_name }}"
     group:                             oinstall
 
 - name:                                "ORACLE GRID: Find MOPatch"
@@ -89,7 +89,7 @@
     dest:                               "/oracle/GRID/{{ ora_version }}"
     remote_src:                         true
     mode:                               0777
-    owner:                              oracle
+    owner:                              "{{ oracle_user_name }}"
     group:                              oinstall
 
 - name:                                "ORACLE GRID: Check if backup exists for GRID"
@@ -104,12 +104,12 @@
     path:                              "/oracle/GRID/{{ ora_version }}/bin/oradism"
     state:                             file
     mode:                              '0750'
-    owner:                             oracle
+    owner:                             "{{ oracle_user_name }}"
     group:                             oinstall
 
 - name:                                "ORACLE GRID: Stop all CRS-managed resources associated with the RDBMS home"
   become:                              true
-  become_user:                         oracle
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell: |
                                        env ORACLE_HOME=$OHRDBMS ORACLE_BASE=$OHRDBMS.dummybase $OHRDBMS/bin/srvctl stop home -o $OHRDBMS -s $OHRDBMS.srvctlstatus
   register:                            srvctlstatus_results
@@ -136,7 +136,7 @@
   register:                            grid_roothas_results
   environment:
     CV_ASSUME_DISTID:                  "{{ CV_ASSUME_DISTID }}"
-    OHGRID:                           "/oracle/GRID/{{ ora_version }}"
+    OHGRID:                            "/oracle/GRID/{{ ora_version }}"
   args:
     executable:                        /bin/csh
     creates:                           "/etc/sap_deployment_automation/grid/gridupdate_roothas.txt"
@@ -165,7 +165,7 @@
   ansible.builtin.shell:               "env ORACLE_HOME=$OHGRID $OHGRID/MOPatch/mopatch.sh -v -s {{ target_media_location }}/SBP/{{ oracle_sbp_patch }}"
   environment:
     CV_ASSUME_DISTID:                  "{{ CV_ASSUME_DISTID }}"
-    OHGRID:                           /oracle/GRID/{{ ora_version }}
+    OHGRID:                            "/oracle/GRID/{{ ora_version }}"
   register:                            sbpscript_results
   failed_when:                         sbpscript_results.rc >= 2
   args:
@@ -190,7 +190,7 @@
     path:                              "/etc/sap_deployment_automation/grid/grid_sbp_installed.txt"
     state:                             touch
     mode:                              '0755'
-    owner:                             oracle
+    owner:                             "{{ oracle_user_name }}"
     group:                             oinstall
 
 - name:                                "ORACLE GRID: pre processing reset permissions"
@@ -210,7 +210,7 @@
   register:                            rootadd_rdbms_results
   environment:
     CV_ASSUME_DISTID:                  "{{ CV_ASSUME_DISTID }}"
-    OHGRID:                           "/oracle/GRID/{{ ora_version }}"
+    OHGRID:                            "/oracle/GRID/{{ ora_version }}"
   args:
     executable:                        /bin/csh
     creates:                           "/etc/sap_deployment_automation/grid/gridupdate_rootadd_rdbms.txt"
@@ -236,7 +236,7 @@
   register:                            roothas_postpatch_results
   environment:
     CV_ASSUME_DISTID:                  "{{ CV_ASSUME_DISTID }}"
-    OHGRID:                           "/oracle/GRID/{{ ora_version }}"
+    OHGRID:                            "/oracle/GRID/{{ ora_version }}"
   args:
     executable:                        /bin/csh
     creates:                           "/etc/sap_deployment_automation/grid/gridupdate_roothas_postpatch.txt"
