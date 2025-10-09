@@ -83,6 +83,35 @@
     mopatch_path:                      "{{ mopatch_directory.files[0].path }}"
   when:                                mopatch_directory.matched == 1
 
+- name:                                "ORACLE GRID UPDATE: Patch ID for GRID"
+  become:                              true
+  become_user:                         root
+  ansible.builtin.find:
+    paths:                             "{{ target_media_location }}/SBP/GIRU19P"
+    patterns:                          ["bundle.xml"]
+    file_type:                         file
+    recurse:                           true
+  register:                            patch_grid_id_directory
+
+- name:                                "ORACLE GRID UPDATE: Find Patch ID for GRID"
+  ansible.builtin.fail:
+    msg:                               "No Patch Ids"
+  when:                                patch_grid_id_directory.matched != 1
+
+- name:                                "ORACLE GRID UPDATE: OPatch ID"
+  ansible.builtin.set_fact:
+    patch_grid_path:                   "{{ patch_grid_id_directory.files[0].path | dirname }}"
+  when:                                patch_grid_id_directory.matched == 1
+
+- name:                                "ORACLE GRID UPDATE: OPatch ID"
+  ansible.builtin.debug:
+    msg:                               "Patch GRID path {{ patch_grid_path }}"
+
+- name:                                "ORACLE GRID UPDATE: set STAGE_SBP_OCWRU"
+  ansible.builtin.set_fact:
+    STAGE_SBP_OCWRU:                   "{{ patch_grid_path }}/{{ bom.patch.SBP_OCWRU }}"
+  when:                                patch_grid_path is defined and bom.patch.SBP_OCWRU is defined
+
 - name:                                "ORACLE GRID UPDATE: Set Runtime Variables"
   ansible.builtin.set_fact:
     is_UEK6:                           "{{ ansible_kernel is version('5.5', '<') }}"
@@ -111,16 +140,8 @@
     owner:                             "{{ oracle_user_name }}"
     group:                             oinstall
 
-# Step 2.1
+# Step 2
 
-- name:                                "ORACLE GRID UPDATE: Remove {{ ora_release }}.srvctlstatus"
-  become:                              true
-  become_user:                         "{{ oracle_user_name }}"
-  ansible.builtin.file:
-    path:                              "/oracle/{{ db_sid | upper }}/{{ ora_release }}.srvctlstatus"
-    state:                             absent
-
-# Step 2.2
 - name:                                "ORACLE GRID UPDATE: Stop all CRS-managed resources associated with the RDBMS home"
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
@@ -185,7 +206,6 @@
 - name:                                "ORACLE GRID UPDATE: Post Processing - SBP Patching"
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
-
   ansible.builtin.shell:               "env ORACLE_HOME=$OHGRID $OHGRID/MOPatch/mopatch.sh -v -s {{ target_media_location }}/SBP/{{ oracle_sbp_grid_patch }} -F mopatch_patchgen"
   environment:
     CV_ASSUME_DISTID:                  "{{ CV_ASSUME_DISTID }}"
@@ -255,32 +275,31 @@
     mode:                              '0755'
 
 # Step 9.2
-- name:                                "ORACLE GRID UPDATE: Run roothas.sh -postpatch"
+- name:                                "ORACLE GRID UPDATE: Run rootcrs.sh -postpatch"
   become:                              true
   become_user:                         root
   ansible.builtin.shell: |
-                                       $OHGRID/crs/install/roothas.sh -postpatch
-  register:                            roothas_postpatch_results
+                                       $OHGRID/crs/install/rootcrs.sh -postpatch -nonrolling
+  register:                            rootcrs_postpatch_results
   environment:
     CV_ASSUME_DISTID:                  "{{ CV_ASSUME_DISTID }}"
     OHGRID:                            "/oracle/GRID/{{ ora_version }}"
   args:
     executable:                        /bin/csh
-    creates:                           "/etc/sap_deployment_automation/grid/gridupdate_roothas_postpatch.txt"
+    creates:                           "/etc/sap_deployment_automation/grid/gridupdate_rootcrs_postpatch.txt"
 
-- name:                                "ORACLE GRID UPDATE: Debug: GRID roothas.sh postpatch output"
+- name:                                "ORACLE GRID UPDATE: Debug: GRID rootcrs.sh postpatch output"
   ansible.builtin.copy:
-    dest:                              "/etc/sap_deployment_automation/grid/grid_roothas_postpatc.log"
-    content:                           "{{ roothas_postpatch_results.stdout }}"
+    dest:                              "/etc/sap_deployment_automation/grid/grid_rootcrs_postpatch.log"
+    content:                           "{{ rootcrs_postpatch_results.stdout }}"
     mode:                              0777
-  when:                                roothas_postpatch_results.stdout is defined
+  when:                                rootcrs_postpatch_results.stdout is defined
 
 - name:                                "ORACLE GRID UPDATE: creates after a successful post processing script execution"
   ansible.builtin.file:
-    path:                              "/etc/sap_deployment_automation/grid/gridupdate_roothas_postpatch.txt"
+    path:                              "/etc/sap_deployment_automation/grid/gridupdate_rootcrs_postpatch.txt"
     state:                             touch
     mode:                              '0755'
-
 
 # Step 9.3
 - name:                                "ORACLE GRID UPDATE: Work-around for Oracle bug 28352017"
@@ -308,6 +327,157 @@
 - name:                                "ORACLE GRID UPDATE: creates after a successful post processing script execution"
   ansible.builtin.file:
     path:                              "/etc/sap_deployment_automation/grid/gridupdate_cluutil.txt"
+    state:                             touch
+    mode:                              '0755'
+
+- name:                                "ORACLE GRID UPDATE: Remove {{ ora_release }}.srvctlstatus"
+  become:                              true
+  become_user:                         "{{ oracle_user_name }}"
+  ansible.builtin.file:
+    path:                              "/oracle/{{ db_sid | upper }}/{{ ora_release }}.srvctlstatus"
+    state:                             absent
+
+# Step 10
+- name:                                "ORACLE GRID UPDATE: Run the pre-installation script for the database component of Grid Infrastructure Release Update 19.28.0.0.250715"
+  become:                              true
+  become_user:                         "{{ oracle_user_name }}"
+  ansible.builtin.shell: |
+                                       {{ STAGE_SBP_OCWRU }}/custom/scripts/prepatch.sh -dbhome $IHRDBMS
+
+  register:                            prepatch_results
+  environment:
+    CV_ASSUME_DISTID:                  "{{ CV_ASSUME_DISTID }}"
+    IHRDBMS:                           "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
+  args:
+    executable:                        /bin/csh
+    creates:                           "/etc/sap_deployment_automation/grid/gridupdate_prepatch.txt"
+
+- name:                                "ORACLE GRID UPDATE: Debug: GRID prepatch output"
+  ansible.builtin.copy:
+    dest:                              "/etc/sap_deployment_automation/grid/grid_update_prepatch.log"
+    content:                           "{{ prepatch_results.stdout }}"
+    mode:                              0777
+  when:                                prepatch_results.stdout is defined
+
+- name:                                "ORACLE GRID UPDATE: creates after a successful post processing script execution"
+  ansible.builtin.file:
+    path:                              "/etc/sap_deployment_automation/grid/gridupdate_prepatch.txt"
+    state:                             touch
+    mode:                              '0755'
+
+# Step 11
+- name:                                "ORACLE GRID DB UPDATE: pre processing reset permissions"
+  when:                                oradism_stat.stat.exists
+  ansible.builtin.file:
+    path:                              "/oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/oradism"
+    state:                             file
+    mode:                              'u+rw'
+    owner:                             "{{ oracle_user_name }}"
+    group:                             oinstall
+
+# Step 12
+- name:                                "ORACLE GRID DB UPDATE: Post Processing - DB SBP Patching - progress"
+  ansible.builtin.debug:
+    msg:                               "Running SBP Patching, env ORACLE_HOME=$IHRDBMS  $IHRDBMS /MOPatch/mopatch.sh -v -s {{ target_media_location }}/SBP/{{ oracle_grid_sbp_patch }}, please wait"
+
+- name:                                "ORACLE GRID DB UPDATE: Post Processing - SBP Patching"
+  become:                              true
+  become_user:                         "{{ oracle_user_name }}"
+  ansible.builtin.shell:               "env ORACLE_HOME=$IHRDBMS $IHRDBMS/MOPatch/mopatch.sh -v -s {{ target_media_location }}/SBP/{{ oracle_grid_sbp_patch }} -F mopatch_patchgen"
+  environment:
+    CV_ASSUME_DISTID:                  "{{ CV_ASSUME_DISTID }}"
+    IHRDBMS :                          "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
+  register:                            sbpscriptdb_results
+  failed_when:                         sbpscriptdb_results.rc >= 2
+  args:
+    creates:                           "/etc/sap_deployment_automation/grid/grid_mopatch_db_installed.txt"
+    chdir:                             "{{ target_media_location }}/SBP"
+    executable:                        /bin/csh
+
+- name:                                "ORACLE GRID DB UPDATE: Post processing installer output"
+  ansible.builtin.debug:
+    var:                               sbpscriptdb_results.stdout_lines
+    verbosity:                         2
+
+- name:                                "ORACLE GRID DB UPDATE: Post processing installer output"
+  ansible.builtin.copy:
+    dest:                              "/etc/sap_deployment_automation/grid/grid_mopatch_db.log"
+    content:                           "{{ sbpscriptdb_results.stdout }}"
+    mode:                              '0777'
+  when:                                sbpscriptdb_results.stdout is defined
+
+- name:                                "ORACLE GRID DB UPDATE: Create grid_mopatch_db_installed.txt"
+  ansible.builtin.file:
+    path:                              "/etc/sap_deployment_automation/grid/grid_mopatch_db_installed.txt"
+    state:                             touch
+    mode:                              '0755'
+    owner:                             "{{ oracle_user_name }}"
+    group:                             oinstall
+
+# Step 13
+- name:                                "ORACLE DB UPDATE: pre processing reset permissions"
+  when:                                oradism_stat.stat.exists
+  ansible.builtin.file:
+    path:                              "/oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/oradism"
+    state:                             file
+    mode:                              '4750'
+    owner:                             "{{ oracle_user_name }}"
+    group:                             oinstall
+
+
+# Step 14
+- name:                                "ORACLE GRID UPDATE: Run the post-installation script for the database component of Grid Infrastructure Release Update 19.28.0.0.250715"
+  become:                              true
+  become_user:                         "{{ oracle_user_name }}"
+  ansible.builtin.shell: |
+                                       {{ STAGE_SBP_OCWRU }}/custom/scripts/postpatch.sh -dbhome $IHRDBMS
+  register:                            postpatch_results
+  environment:
+    CV_ASSUME_DISTID:                  "{{ CV_ASSUME_DISTID }}"
+    IHRDBMS:                           "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
+  args:
+    executable:                        /bin/csh
+    creates:                           "/etc/sap_deployment_automation/grid/gridupdate_postpatch.txt"
+
+- name:                                "ORACLE GRID UPDATE: Debug: GRID postpatch output"
+  ansible.builtin.copy:
+    dest:                              "/etc/sap_deployment_automation/grid/grid_update_postpatch.log"
+    content:                           "{{ postpatch_results.stdout }}"
+    mode:                              0777
+  when:                                postpatch_results.stdout is defined
+
+- name:                                "ORACLE GRID UPDATE: creates after a successful post processing script execution"
+  ansible.builtin.file:
+    path:                              "/etc/sap_deployment_automation/grid/gridupdate_postpatch.txt"
+    state:                             touch
+    mode:                              '0755'
+
+# Step 16
+- name:                                "ORACLE GRID UPDATE: Start all CRS-managed resources associated with the RDBMS home"
+  become:                              true
+  become_user:                         "{{ oracle_user_name }}"
+  ansible.builtin.shell: |
+                                       env ORACLE_HOME=$OHRDBMS ORACLE_BASE=$OHRDBMS.dummybase $OHRDBMS/bin/srvctl start home -o $OHRDBMS \
+                                       -s $OHRDBMS.`hostname`.srvctlstatus -n `hostname`
+
+  register:                            srvctl_start_results
+  environment:
+    CV_ASSUME_DISTID:                  "{{ CV_ASSUME_DISTID }}"
+    OHRDBMS:                           "/oracle/{{ db_sid | upper }}/{{ ora_release }}"
+  args:
+    executable:                        /bin/csh
+    creates:                           "/etc/sap_deployment_automation/grid/gridupdate_srvctl_start.txt"
+
+- name:                                "ORACLE GRID UPDATE: Debug: GRID prepatch output"
+  ansible.builtin.copy:
+    dest:                              "/etc/sap_deployment_automation/grid/grid_update_prepatch.log"
+    content:                           "{{ srvctl_start_results.stdout }}"
+    mode:                              0777
+  when:                                srvctl_start_results.stdout is defined
+
+- name:                                "ORACLE GRID UPDATE: creates gridupdate_srvctl_start.txt after a successful post processing script execution"
+  ansible.builtin.file:
+    path:                              "/etc/sap_deployment_automation/grid/gridupdate_srvctl_start.txt"
     state:                             touch
     mode:                              '0755'
 
