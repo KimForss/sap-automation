@@ -1,4 +1,4 @@
-{# Copyright (c) Microsoft Corporation.
+{ # Copyright (c) Microsoft Corporation.
  # Licensed under the MIT License.
 #}
 name:      {{ root_bom.name }}
@@ -12,6 +12,12 @@ platform:      {% if root_bom.platform is defined %}{{ root_bom.platform }}{% en
 
 InstanceType:  {% if root_bom.InstanceType is defined %}{{ root_bom.InstanceType }}{% else %}ABAP{% endif %}
 
+patch_information:
+{% if root_bom.patch_information is defined %}
+{%   for pKey,pValue in root_bom.patch.items() %}
+{{'  %-10s' | format(pKey | trim +':') }}{{' \"%s\"' | format(pValue | trim) }}
+{%   endfor %}
+{% endif %}
 
 product_ids:
 

@@ -12,10 +12,20 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-
 ---
 
-- name:                                "ORACLE GRID UPDATE: - Validate ORACLE parameters"
+- name:                                "ORACLE GRID: Register BoM"
+  ansible.builtin.include_role:
+    name:                              roles-sap/3.3.1-bom-utility
+    tasks_from:                        bom-register
+  vars:
+    bom_name:                          "{{ bom_base_name }}"
+    task_prefix:                       "ORACLE GRID: "
+    sa_enabled:                        true
+  when:
+                                       - bom is undefined
+
+- name:                                "ORACLE GRID: - Validate ORACLE parameters"
   ansible.builtin.assert:
     that:
       - item_to_check.parameter is defined                    # Has the variable been defined
@@ -23,22 +33,17 @@
       - item_to_check.parameter | trim | length > 1
     fail_msg:                      item_to_check.error
   loop:
-    - { parameter: 'ora_release', error: 'Oracle deployments requires that ora_release is provided' }
-    - { parameter: 'ora_version', error: 'Oracle deployments requires that ora_version is provided' }
-    - { parameter: 'oracle_grid_sbp_patch', error: 'Oracle grid deployments requires that oracle_grid_sbp_patch is provided' }
+    - { parameter: 'bom.patch_information.ora_release', error: 'Oracle deployments requires that ora_release is provided' }
+    - { parameter: 'bom.patch_information.ora_version', error: 'Oracle deployments requires that ora_version is provided' }
+    - { parameter: 'bom.patch_information.oracle_sbp_patch', error: 'Oracle deployments requires that oracle_sbp_patch is provided' }
   loop_control:
     loop_var: item_to_check
 
-- name:                                "ORACLE GRID UPDATE: Register BoM"
-  ansible.builtin.include_role:
-    name:                              roles-sap/3.3.1-bom-utility
-    tasks_from:                        bom-register
-  vars:
-    bom_name:                          "{{ bom_base_name }}"
-    task_prefix:                       "ORACLE GRID UPDATE: "
-    sa_enabled:                        true
-  when:
-                                       - bom is undefined
+- name:                                "ORACLE GRID: Set variables from BoM"
+  ansible.builtin.set_fact:
+    ora_release:                       "{{ bom.patch_information.ora_release }}"
+    ora_version:                       "{{ bom.patch_information.ora_version }}"
+    oracle_sbp_patch:                  "{{ bom.patch_information.oracle_sbp_patch }}"
 
 # +------------------------------------4--------------------------------------*/
 # |                                                                            |
@@ -109,8 +114,8 @@
 
 - name:                                "ORACLE GRID UPDATE: set STAGE_SBP_OCWRU"
   ansible.builtin.set_fact:
-    STAGE_SBP_OCWRU:                   "{{ patch_grid_path }}/{{ bom.patch.SBP_OCWRU }}"
-  when:                                patch_grid_path is defined and bom.patch.SBP_OCWRU is defined
+    STAGE_SBP_OCWRU:                   "{{ patch_grid_path }}/{{ bom.patch_information.SBP_OCWRU }}"
+  when:                                patch_grid_path is defined and bom.patch_information.SBP_OCWRU is defined
 
 - name:                                "ORACLE GRID UPDATE: Set Runtime Variables"
   ansible.builtin.set_fact:
@@ -211,12 +216,12 @@
 # Step 7
 - name:                                "ORACLE GRID UPDATE: Post Processing - SBP Patching - progress"
   ansible.builtin.debug:
-    msg:                               "Running SBP Patching, env ORACLE_HOME=$OHGRID $OHGRID/MOPatch/mopatch.sh -v -s {{ target_media_location }}/SBP/{{ oracle_grid_sbp_patch }}, please wait"
+    msg:                               "Running SBP Patching, env ORACLE_HOME=$OHGRID $OHGRID/MOPatch/mopatch.sh -v -s {{ target_media_location }}/SBP/{{ bom.patch_information.oracle_grid_sbp_patch }}, please wait"
 
 - name:                                "ORACLE GRID UPDATE: Post Processing - SBP Patching"
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
-  ansible.builtin.shell:               "env ORACLE_HOME=$OHGRID $OHGRID/MOPatch/mopatch.sh -v -s {{ target_media_location }}/SBP/{{ oracle_grid_sbp_patch }} -F mopatch_patchgen"
+  ansible.builtin.shell:               "env ORACLE_HOME=$OHGRID $OHGRID/MOPatch/mopatch.sh -v -s {{ target_media_location }}/SBP/{{ bom.patch_information.oracle_grid_sbp_patch }} -F mopatch_patchgen"
   environment:
     CV_ASSUME_DISTID:                  "{{ CV_ASSUME_DISTID }}"
     OHGRID:                            "/oracle/GRID/{{ ora_version }}"
@@ -386,7 +391,7 @@
 - name:                                "ORACLE GRID DB UPDATE: Post Processing - SBP Patching"
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
-  ansible.builtin.shell:               "env ORACLE_HOME=$IHRDBMS $IHRDBMS/MOPatch/mopatch.sh -v -s {{ target_media_location }}/SBP/{{ oracle_grid_sbp_patch }} -F mopatch_patchgen"
+  ansible.builtin.shell:               "env ORACLE_HOME=$IHRDBMS $IHRDBMS/MOPatch/mopatch.sh -v -s {{ target_media_location }}/SBP/{{ bom.patch_informationoracle_grid_sbp_patch }} -F mopatch_patchgen"
   environment:
     CV_ASSUME_DISTID:                  "{{ CV_ASSUME_DISTID }}"
     IHRDBMS :                          "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
