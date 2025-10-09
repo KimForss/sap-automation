@@ -47,6 +47,14 @@
     owner:                             oracle
     group:                             oinstall
 
+- name:                                "Oracle ASM: Create sap_deployment_automation grid folder"
+  ansible.builtin.file:
+    path:                              "/etc/sap_deployment_automation/grid"
+    mode:                              '0755'
+    state:                             directory
+    owner:                             oracle
+    group:                             oinstall
+
 - name:                                "Oracle ASM: tmp folder"
   ansible.builtin.file:
     path:                              "{{ tmp_directory }}/{{ db_sid | upper }}/{{ ora_version }}/"
