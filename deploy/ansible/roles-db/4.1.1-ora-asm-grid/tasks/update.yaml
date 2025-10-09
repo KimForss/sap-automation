@@ -275,29 +275,29 @@
     mode:                              '0755'
 
 # Step 9.2
-- name:                                "ORACLE GRID UPDATE: Run rootcrs.sh -postpatch"
+- name:                                "ORACLE GRID UPDATE: Run roothas.sh -postpatch"
   become:                              true
   become_user:                         root
   ansible.builtin.shell: |
-                                       $OHGRID/crs/install/rootcrs.sh -postpatch -nonrolling
-  register:                            rootcrs_postpatch_results
+                                       $OHGRID/crs/install/roothas.sh -postpatch
+  register:                            roothas_postpatch_results
   environment:
     CV_ASSUME_DISTID:                  "{{ CV_ASSUME_DISTID }}"
     OHGRID:                            "/oracle/GRID/{{ ora_version }}"
   args:
     executable:                        /bin/csh
-    creates:                           "/etc/sap_deployment_automation/grid/gridupdate_rootcrs_postpatch.txt"
+    creates:                           "/etc/sap_deployment_automation/grid/gridupdate_roothas_postpatch.txt"
 
-- name:                                "ORACLE GRID UPDATE: Debug: GRID rootcrs.sh postpatch output"
+- name:                                "ORACLE GRID UPDATE: Debug: GRID roothas.sh postpatch output"
   ansible.builtin.copy:
-    dest:                              "/etc/sap_deployment_automation/grid/grid_rootcrs_postpatch.log"
-    content:                           "{{ rootcrs_postpatch_results.stdout }}"
+    dest:                              "/etc/sap_deployment_automation/grid/grid_roothas_postpatch.log"
+    content:                           "{{ roothas_postpatch_results.stdout }}"
     mode:                              0777
-  when:                                rootcrs_postpatch_results.stdout is defined
+  when:                                roothas_postpatch_results.stdout is defined
 
 - name:                                "ORACLE GRID UPDATE: creates after a successful post processing script execution"
   ansible.builtin.file:
-    path:                              "/etc/sap_deployment_automation/grid/gridupdate_rootcrs_postpatch.txt"
+    path:                              "/etc/sap_deployment_automation/grid/gridupdate_roothas_postpatch.txt"
     state:                             touch
     mode:                              '0755'
 
