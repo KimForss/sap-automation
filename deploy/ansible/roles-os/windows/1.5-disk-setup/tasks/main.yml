@@ -60,7 +60,8 @@
 # ----------------------------------------
 - name:                                "1.5 Disk setup - Create directory structure - Mountpoint"
   when:
-                                       - disk_mount_strategy == 'mountpoint' | bool
+                                       - hostvars[ansible_hostname]['disk_mount_strategy'] is defined
+                                       - hostvars[ansible_hostname]['disk_mount_strategy'] == 'mountpoint' | bool
   block:
     - name:                            "1.5 Disk setup - Create base mount point directory"
       ansible.windows.win_file:
@@ -108,12 +109,12 @@
 # ----------------------------------------
 - name:                                "1.5 Disk setup - Disk initialization with - DriveLetter"
   when:
-                                       - disk_mount_strategy == 'driveletter' | bool
+                                       - hostvars[ansible_hostname]['disk_mount_strategy'] is defined
+                                       - hostvars[ansible_hostname]['disk_mount_strategy'] == 'driveletter' | bool
   block:
 
     - name:                            "1.5 Disk setup - Initialize disks with drive letters"
       when:
-                                       - disk_mount_strategy == 'driveletter' | bool
                                        - not item.use_mount_point | default(false)
                                        - item.osdisk_id != ''
       ansible.windows.win_dsc:
@@ -163,7 +164,8 @@
 
 - name:                                "1.5 Disk setup - Disk initialization with - MountPoint"
   when:
-                                       - disk_mount_strategy == 'mountpoint' | bool
+                                       - hostvars[ansible_hostname]['disk_mount_strategy'] is defined
+                                       - hostvars[ansible_hostname]['disk_mount_strategy'] == 'mountpoint' | bool
   block:
     - name:                            "1.5 Disk setup - Initialize and mount disks with PowerShell"
       when:
@@ -190,24 +192,26 @@
 # ----------------------------------------
 # Debug output
 # ----------------------------------------
-
-- name:                                "1.5 Disk setup - Show disk initialization results (drive letters)"
-  when:
-                                       - disk_mount_strategy == 'driveletter' | bool
+- name:                                "1.5 Disk setup - Show disk initialization results"
+  when:                                hostvars[ansible_hostname]['disk_mount_strategy'] is defined
+  block:
+    - name:                            "1.5 Disk setup - Show disk initialization results (drive letters)"
+      when:
+                                       - hostvars[ansible_hostname]['disk_mount_strategy'] == 'driveletter' | bool
                                        - win_disk_driveletter_results is defined
-  ansible.builtin.debug:
-    msg:
-      - "Drive letter results:         {{ win_disk_driveletter_results }}"
-    verbosity:                         2
+      ansible.builtin.debug:
+        msg:
+          - "Drive letter results:     {{ win_disk_driveletter_results }}"
+        verbosity:                     2
 
-- name:                                "1.5 Disk setup - Show disk initialization results (mount points)"
-  when:
-                                       - disk_mount_strategy == 'mountpoint' | bool
+    - name:                            "1.5 Disk setup - Show disk initialization results (mount points)"
+      when:
+                                       - hostvars[ansible_hostname]['disk_mount_strategy'] == 'mountpoint' | bool
                                        - win_disk_mountpoint_results is defined
-  ansible.builtin.debug:
-    msg:
-      - "Mount point results:          {{ win_disk_mountpoint_results }}"
-    verbosity:                         2
+      ansible.builtin.debug:
+        msg:
+          - "Mount point results:      {{ win_disk_mountpoint_results }}"
+        verbosity:                     2
 
 ...
 # /*---------------------------------------------------------------------------8
