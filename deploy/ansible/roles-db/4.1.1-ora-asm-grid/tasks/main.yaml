@@ -57,7 +57,7 @@
 
 - name:                                "ORACLE GRID: Permissions"
   ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation/oracle
+    path:                              /etc/sap_deployment_automation/grid
     state:                             directory
     mode:                              '0755'
     owner:                             oracle
@@ -73,7 +73,7 @@
 
 - name:                                "Oracle GRID: check if installed"
   ansible.builtin.stat:
-    path:                              "/etc/sap_deployment_automation/grid/grid_installed.txt"
+    path:                              "/etc/sap_deployment_automation/grid/grid_setup_completed.txt"
   register:                            grid_installed
 
 # - fail:
