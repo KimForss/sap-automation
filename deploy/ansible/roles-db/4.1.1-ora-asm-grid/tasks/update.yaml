@@ -117,7 +117,7 @@
     is_UEK6:                           "{{ ansible_kernel is version('5.5', '<') }}"
     CV_ASSUME_DISTID:                  "{% if ansible_kernel is version('5.5', '<') %} OEL7 {% else %} OL8 {% endif %}"
 
-- name:                                "ORACLE GRID UPDATE: copy MOPatch from {{ mopatch_path }} to /oracle/{{ db_sid | upper }}/{{ ora_version }}"
+- name:                                "ORACLE GRID UPDATE: copy MOPatch from {{ mopatch_path }} to /oracle/GRID/{{ ora_version }}"
   ansible.builtin.copy:
     src:                               "{{ mopatch_path }}"
     dest:                              "/oracle/GRID/{{ ora_version }}"
@@ -125,6 +125,16 @@
     mode:                              0777
     owner:                             "{{ oracle_user_name }}"
     group:                             oinstall
+
+- name:                                "ORACLE GRID UPDATE: copy MOPatch from {{ mopatch_path }} to /oracle/{{ db_sid | upper }}/{{ ora_version }}"
+  ansible.builtin.copy:
+    src:                               "{{ mopatch_path }}"
+    dest:                              "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
+    remote_src:                        true
+    mode:                              0777
+    owner:                             "{{ oracle_user_name }}"
+    group:                             oinstall
+
 
 - name:                                "ORACLE GRID UPDATE: Check if backup exists for GRID"
   ansible.builtin.stat:
