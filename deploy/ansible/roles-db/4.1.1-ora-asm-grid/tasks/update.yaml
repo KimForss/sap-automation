@@ -15,7 +15,7 @@
 
 ---
 
-- name:                                "ORACLE GRID: - Validate ORACLE parameters"
+- name:                                "ORACLE GRID UPDATE: - Validate ORACLE parameters"
   ansible.builtin.assert:
     that:
       - item_to_check.parameter is defined                    # Has the variable been defined
@@ -29,13 +29,13 @@
   loop_control:
     loop_var: item_to_check
 
-- name:                                "ORACLE GRID: Register BoM"
+- name:                                "ORACLE GRID UPDATE: Register BoM"
   ansible.builtin.include_role:
     name:                              roles-sap/3.3.1-bom-utility
     tasks_from:                        bom-register
   vars:
     bom_name:                          "{{ bom_base_name }}"
-    task_prefix:                       "ORACLE GRID: "
+    task_prefix:                       "ORACLE GRID UPDATE: "
     sa_enabled:                        true
   when:
                                        - bom is undefined
@@ -46,17 +46,17 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-- name:                                "ORACLE GRID: remove old OPatch"
+- name:                                "ORACLE GRID UPDATE: remove old OPatch"
   ansible.builtin.file:
     path:                              "/oracle/GRID/{{ ora_version }}/OPatch"
     state:                             absent
 
-- name:                                "ORACLE GRID: remove old MOPatch"
+- name:                                "ORACLE GRID UPDATE: remove old MOPatch"
   ansible.builtin.file:
     path:                              "/oracle/GRID/{{ ora_version }}/MOPatch"
     state:                             absent
 
-- name:                                "ORACLE GRID: copy OPatch for GRID from downloads"
+- name:                                "ORACLE GRID UPDATE: copy OPatch for GRID from downloads"
   ansible.builtin.copy:
     src:                               "{{ target_media_location }}/SBP/OPATCH/OPatch"
     dest:                              "/oracle/GRID/{{ ora_version }}"
@@ -65,7 +65,7 @@
     owner:                             "{{ oracle_user_name }}"
     group:                             oinstall
 
-- name:                                "ORACLE GRID: Find MOPatch"
+- name:                                "ORACLE GRID UPDATE: Find MOPatch"
   ansible.builtin.find:
     paths:                             "{{ target_media_location }}/SBP/SAPSBP"
     patterns:                          ["MOPatch"]
@@ -73,32 +73,32 @@
     recurse:                           true
   register:                            mopatch_directory
 
-- name:                                "ORACLE GRID: Find MOPatch"
+- name:                                "ORACLE GRID UPDATE: Find MOPatch"
   ansible.builtin.fail:
     msg:                               "Too many MOPatches found"
   when:                                mopatch_directory.matched != 1
 
-- name:                                "ORACLE GRID: MOPatch path"
+- name:                                "ORACLE GRID UPDATE: MOPatch path"
   ansible.builtin.set_fact:
     mopatch_path:                      "{{ mopatch_directory.files[0].path }}"
   when:                                mopatch_directory.matched == 1
 
-- name:                                "ORACLE GRID: copy MOPatch from {{ mopatch_path }} to /oracle/{{ db_sid | upper }}/{{ ora_version }}"
+- name:                                "ORACLE GRID UPDATE: copy MOPatch from {{ mopatch_path }} to /oracle/{{ db_sid | upper }}/{{ ora_version }}"
   ansible.builtin.copy:
-    src:                                "{{ mopatch_path }}"
-    dest:                               "/oracle/GRID/{{ ora_version }}"
-    remote_src:                         true
-    mode:                               0777
-    owner:                              "{{ oracle_user_name }}"
-    group:                              oinstall
+    src:                               "{{ mopatch_path }}"
+    dest:                              "/oracle/GRID/{{ ora_version }}"
+    remote_src:                        true
+    mode:                              0777
+    owner:                             "{{ oracle_user_name }}"
+    group:                             oinstall
 
-- name:                                "ORACLE GRID: Check if backup exists for GRID"
+- name:                                "ORACLE GRID UPDATE: Check if backup exists for GRID"
   ansible.builtin.stat:
     path:                              "/oracle/GRID/{{ ora_version }}/bin/oradism"
   register:                            oradism_stat
 
 
-- name:                                "ORACLE GRID: Pre Processing set permissions"
+- name:                                "ORACLE GRID UPDATE: Pre Processing set permissions"
   when:                                oradism_stat.stat.exists
   ansible.builtin.file:
     path:                              "/oracle/GRID/{{ ora_version }}/bin/oradism"
@@ -107,58 +107,56 @@
     owner:                             "{{ oracle_user_name }}"
     group:                             oinstall
 
-- name:                                "ORACLE GRID: Stop all CRS-managed resources associated with the RDBMS home"
+- name:                                "ORACLE GRID UPDATE: Stop all CRS-managed resources associated with the RDBMS home"
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell: |
                                        env ORACLE_HOME=$OHRDBMS ORACLE_BASE=$OHRDBMS.dummybase $OHRDBMS/bin/srvctl stop home -o $OHRDBMS -s $OHRDBMS.srvctlstatus
   register:                            srvctlstatus_results
   environment:
-    CV_ASSUME_DISTID:                  "{{ CV_ASSUME_DISTID }}"
     OHRDBMS:                           "/oracle/GRID/{{ ora_release }}"
   args:
     executable:                        /bin/csh
     chdir:                             "/oracle/GRID/{{ ora_version }}/bin"
     creates:                           /etc/sap_deployment_automation/grid/srvctlstatus.txt
 
-- name:                                "ORACLE GRID: Pre Processing set permissions"
+- name:                                "ORACLE GRID UPDATE: Pre Processing set permissions"
   when:                                oradism_stat.stat.exists
   ansible.builtin.file:
     path:                              "/etc/sap_deployment_automation/grid/srvctlstatus.txt"
     state:                             touch
     mode:                              '0755'
 
-- name:                                "ORACLE GRID: Shut down the grid stack and unlock the grid home for patching"
+- name:                                "ORACLE GRID UPDATE: Shut down the grid stack and unlock the grid home for patching"
   become:                              true
   become_user:                         root
   ansible.builtin.shell: |
                                        $OHGRID/crs/install/roothas.sh -prepatch
   register:                            grid_roothas_results
   environment:
-    CV_ASSUME_DISTID:                  "{{ CV_ASSUME_DISTID }}"
     OHGRID:                            "/oracle/GRID/{{ ora_version }}"
   args:
     executable:                        /bin/csh
     creates:                           "/etc/sap_deployment_automation/grid/gridupdate_roothas.txt"
 
-- name:                                "ORACLE GRID: Debug: GRID roothas.sh output"
+- name:                                "ORACLE GRID UPDATE: Debug: GRID roothas.sh output"
   ansible.builtin.copy:
     dest:                              "/etc/sap_deployment_automation/grid/grid_roothas.log"
     content:                           "{{ grid_roothas_results.stdout }}"
     mode:                              0777
   when:                                grid_roothas_results.stdout is defined
 
-- name:                                "ORACLE GRID: creates after a successful post processing script execution"
+- name:                                "ORACLE GRID UPDATE: creates after a successful post processing script execution"
   ansible.builtin.file:
     path:                              "/etc/sap_deployment_automation/grid/gridupdate_roothas.txt"
     state:                             touch
     mode:                              '0755'
 
-- name:                                "ORACLE GRID: Post Processing - SBP Patching - progress"
+- name:                                "ORACLE GRID UPDATE: Post Processing - SBP Patching - progress"
   ansible.builtin.debug:
     msg:                               "Running SBP Patching, please wait"
 
-- name:                                "ORACLE GRID: Post Processing - SBP Patching"
+- name:                                "ORACLE GRID UPDATE: Post Processing - SBP Patching"
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
 
@@ -173,19 +171,19 @@
     chdir:                             "{{ target_media_location }}/SBP"
     executable:                        /bin/csh
 
-- name:                                "ORACLE GRID: Post processing installer output"
+- name:                                "ORACLE GRID UPDATE: Post processing installer output"
   ansible.builtin.debug:
     var:                               sbpscript_results.stdout_lines
     verbosity:                         2
 
-- name:                                "ORACLE GRID: Post processing installer output"
+- name:                                "ORACLE GRID UPDATE: Post processing installer output"
   ansible.builtin.copy:
     dest:                              "/etc/sap_deployment_automation/grid/grid_sbp.log"
     content:                           "{{ sbpscript_results.stdout }}"
     mode:                              '0777'
   when:                                sbpscript_results.stdout is defined
 
-- name:                                "ORACLE GRID: Create grid_sbp_installed.txt"
+- name:                                "ORACLE GRID UPDATE: Create grid_sbp_installed.txt"
   ansible.builtin.file:
     path:                              "/etc/sap_deployment_automation/grid/grid_sbp_installed.txt"
     state:                             touch
@@ -193,7 +191,7 @@
     owner:                             "{{ oracle_user_name }}"
     group:                             oinstall
 
-- name:                                "ORACLE GRID: pre processing reset permissions"
+- name:                                "ORACLE GRID UPDATE: pre processing reset permissions"
   when:                                oradism_stat.stat.exists
   ansible.builtin.file:
     path:                              "/oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/oradism"
@@ -202,7 +200,7 @@
     owner:                             root
     group:                             oinstall
 
-- name:                                "ORACLE GRID: complete installation in the grid home"
+- name:                                "ORACLE GRID UPDATE: complete installation in the grid home"
   become:                              true
   become_user:                         root
   ansible.builtin.shell: |
@@ -215,20 +213,20 @@
     executable:                        /bin/csh
     creates:                           "/etc/sap_deployment_automation/grid/gridupdate_rootadd_rdbms.txt"
 
-- name:                                "ORACLE GRID: Debug: GRID rootadd_rdbms.sh output"
+- name:                                "ORACLE GRID UPDATE: Debug: GRID rootadd_rdbms.sh output"
   ansible.builtin.copy:
     dest:                              "/etc/sap_deployment_automation/grid/grid_roothas.log"
     content:                           "{{ grid_roothas_results.stdout }}"
     mode:                              0777
   when:                                grid_roothas_results.stdout is defined
 
-- name:                                "ORACLE GRID: creates after a successful post processing script execution"
+- name:                                "ORACLE GRID UPDATE: creates after a successful post processing script execution"
   ansible.builtin.file:
     path:                              "/etc/sap_deployment_automation/grid/gridupdate_rootadd_rdbms.txt"
     state:                             touch
     mode:                              '0755'
 
-- name:                                "ORACLE GRID: Run roothas.sh -postpatch"
+- name:                                "ORACLE GRID UPDATE: Run roothas.sh -postpatch"
   become:                              true
   become_user:                         root
   ansible.builtin.shell: |
@@ -241,14 +239,14 @@
     executable:                        /bin/csh
     creates:                           "/etc/sap_deployment_automation/grid/gridupdate_roothas_postpatch.txt"
 
-- name:                                "ORACLE GRID: Debug: GRID roothas.sh postpatch output"
+- name:                                "ORACLE GRID UPDATE: Debug: GRID roothas.sh postpatch output"
   ansible.builtin.copy:
     dest:                              "/etc/sap_deployment_automation/grid/grid_roothas_postpatc.log"
     content:                           "{{ roothas_postpatch_results.stdout }}"
     mode:                              0777
   when:                                roothas_postpatch_results.stdout is defined
 
-- name:                                "ORACLE GRID: creates after a successful post processing script execution"
+- name:                                "ORACLE GRID UPDATE: creates after a successful post processing script execution"
   ansible.builtin.file:
     path:                              "/etc/sap_deployment_automation/grid/gridupdate_roothas_postpatch.txt"
     state:                             touch
