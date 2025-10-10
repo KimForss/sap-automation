@@ -157,18 +157,24 @@ stages:
 
                   sudo apt install python3-jmespath -y
 
-                  source ~/.bashrc; pipx uninstall ansible-core --verbose
-                  source ~/.bashrc; pip3 uninstall -y ansible-core --verbose
+                  current_ansible_version=$(ansible --version | grep "\[core" | cut -d " " -f3 | cut -d "]" -f1)
+                  echo "Ansible version $current_ansible_version detected"
 
-                  pip3 install ansible-core=="${ansible_core_version:-2.16.14}" \
-                   argcomplete \
-                   'pywinrm>=0.3.0' \
-                   netaddr \
-                   wheel \
-                   pywinrm[credssp] \
-                   setuptools --force
-                  ansible-galaxy collection install --force ansible.windows ansible.posix ansible.utils community.windows microsoft.ad community.general
-                  ansible --version
+                  if [ "$current_ansible_version" != "${ansible_core_version:-2.16.14}"]; then
+
+                    source ~/.bashrc; pipx uninstall ansible-core --verbose
+                    source ~/.bashrc; pip3 uninstall -y ansible-core --verbose
+
+                    pip3 install ansible-core=="${ansible_core_version:-2.16.14}" \
+                    argcomplete \
+                    'pywinrm>=0.3.0' \
+                    netaddr \
+                    wheel \
+                    pywinrm[credssp] \
+                    setuptools --force
+                    ansible-galaxy collection install --force ansible.windows ansible.posix ansible.utils community.windows microsoft.ad community.general
+                    ansible --version
+                  fi
                 else
                   echo "Running on SDAF deployed agent"
                   sudo apt install python3-jmespath -y
