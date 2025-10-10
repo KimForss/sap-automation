@@ -354,16 +354,13 @@
     sap_dbs_hostname: "{{ ora_secondary }}"
   when:  current_host == ora_secondary
 
-
-# Create sqlnet.ora for secondary node.
-
 - name:                               "Oracle Data Guard - Preparation: Create the sqlnet.ora for Secondary"
   become:                             true
   become_user:                        oracle
   ansible.builtin.template:
     backup:                           true
     src:                              sqlnet.ora.j2
-    dest:                             "/oracle/{{ db_sid | upper }}/{{ ora_version }}/network/admin/sqlnet.ora"
+    dest:                             "/oracle/{{ db_sid }}/{{ ora_version }}/network/admin/sqlnet.ora"
     mode:                             '0644'
     force:                            true
   vars:
@@ -378,7 +375,7 @@
   ansible.builtin.template:
     backup:                           true
     src:                              sqlnet.ora.j2
-    dest:                             "/oracle/{{ db_sid | upper }}/{{ ora_version }}/network/admin/sqlnet.ora"
+    dest:                             "{{ target_media_location }}/downloads/{{ db_sid | upper }}/sqlnet.ora"
     mode:                             '0644'
     force:                            true
   vars:
@@ -386,7 +383,6 @@
     sap_dbp_hostname: "{{ ora_primary }}"
     sap_dbs_hostname: "{{ ora_secondary }}"
   when:  current_host != ora_primary
-
 
 # Create the sql script for updating the data guard specific parameters for Primary node.
 
