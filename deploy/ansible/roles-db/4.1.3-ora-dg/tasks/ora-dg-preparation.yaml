@@ -332,7 +332,7 @@
   ansible.builtin.template:
     backup:                           true
     src:                              tnsnames_primary.j2
-    dest:                             "{{ target_media_location }}/downloads/{{ db_sid | upper }}/tnsnames.ora"
+    dest:                             "/oracle/{{ db_sid | upper }}/{{ ora_version }}/network/admin/tnsnames.ora"
     mode:                             '0644'
     force:                            true
   vars:
