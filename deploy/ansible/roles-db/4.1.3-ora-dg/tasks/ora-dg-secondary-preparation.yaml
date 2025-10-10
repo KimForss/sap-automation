@@ -69,7 +69,7 @@
     group:                             oinstall
     force:                             true
     mode:                              "{{ '0777' | int - (custom_umask | default('022') | int) }}"
-  when: current_host == ora_primary
+#  when: current_host == ora_primary
 
 # - name:                                "Oracle Data Guard - Preparation (Secondary): Copy orapwSID to templocation"
 #   become:                              true
