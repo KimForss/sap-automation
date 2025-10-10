@@ -265,6 +265,7 @@
             main_password:             "{{ hostvars.localhost.sap_password }}"
             sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
             sapbits_sas_token:         "{{ hostvars.localhost.sapbits_sas_token }}"
+            oracle_password:           "{{ hostvars.localhost.oracle_password }}"
           tags:
             - always
 
@@ -285,6 +286,7 @@
             tier:                      ora                                    # Actions for Oracle DB Servers
             action:                    'Prepare_and_Restore'
             main_password:             "{{ hostvars.localhost.sap_password }}"
+            oracle_password:           "{{ hostvars.localhost.oracle_password }}"
           tags:
             - always
 
@@ -315,6 +317,8 @@
             main_password:             "{{ hostvars.localhost.sap_password }}"
             sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
             sapbits_sas_token:         "{{ hostvars.localhost.sapbits_sas_token }}"
+            oracle_password:           "{{ hostvars.localhost.oracle_password }}"
+
           tags:
             - always
 
@@ -346,6 +350,7 @@
             main_password:             "{{ hostvars.localhost.sap_password }}"
             sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
             sapbits_sas_token:         "{{ hostvars.localhost.sapbits_sas_token }}"
+            oracle_password:           "{{ hostvars.localhost.oracle_password }}"
           tags:
             - always
 
