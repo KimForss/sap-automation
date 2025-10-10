@@ -360,7 +360,7 @@
   ansible.builtin.template:
     backup:                           true
     src:                              sqlnet.ora.j2
-    dest:                             "/oracle/{{ db_sid }}/{{ ora_version }}/network/admin/sqlnet.ora"
+    dest:                             "/oracle/{{ db_sid | upper }}/{{ ora_version }}/network/admin/sqlnet.ora"
     mode:                             '0644'
     force:                            true
   vars:
