@@ -2,6 +2,47 @@
 # Licensed under the MIT License.
 
 ---
+
+- name:                                "Oracle Data Guard: Register BoM"
+  ansible.builtin.include_role:
+    name:                              roles-sap/3.3.1-bom-utility
+    tasks_from:                        bom-register
+  vars:
+    bom_name:                          "{{ bom_base_name }}"
+    task_prefix:                       "Oracle Data Guard: "
+    sa_enabled:                        true
+  when:
+                                       - bom is undefined
+
+- name:                                "Oracle Data Guard: - Validate ORACLE parameters"
+  ansible.builtin.assert:
+    that:
+      - item_to_check.parameter is defined                    # Has the variable been defined
+      - item_to_check.parameter | type_debug != 'NoneType'    # and given a value
+      - item_to_check.parameter | trim | length > 1
+    fail_msg:                      item_to_check.error
+  loop:
+    - { parameter: 'bom.patch_information.ora_release', error: 'Oracle deployments requires that ora_release is provided' }
+    - { parameter: 'bom.patch_information.ora_version', error: 'Oracle deployments requires that ora_version is provided' }
+    - { parameter: 'bom.patch_information.oracle_sbp_patch', error: 'Oracle deployments requires that oracle_sbp_patch is provided' }
+  loop_control:
+    loop_var: item_to_check
+
+- name:                                "Oracle Data Guard: Set variables from BoM"
+  ansible.builtin.set_fact:
+    ora_release:                       "{{ bom.patch_information.ora_release }}"
+    ora_version:                       "{{ bom.patch_information.ora_version }}"
+    oracle_sbp_patch:                  "{{ bom.patch_information.oracle_sbp_patch }}"
+
+- name:                                "Oracle Data Guard: - Set DB SID"
+  ansible.builtin.debug:
+    msg:
+                                       - "DB SID: {{ sap_sid | upper }}"
+                                       - "Oracle Version: {{ ora_version }}"
+                                       - "Oracle Release: {{ ora_release }}"
+                                       - "Oracle SBP Patch: {{ oracle_sbp_patch }}"
+
+
 - name:                                "Oracle Data Guard - Observer: Set the NFS Server name"
   ansible.builtin.set_fact:
     nfs_server:                        "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') | first }}"
@@ -70,44 +111,100 @@
     owner:                             oracle
     group:                             oinstall
 
-- name:                                "Oracle Data Guard - Observer: Execute RUNINSTALLER"
-  ansible.builtin.debug:
-    msg:                               "Oracle Data Guard - Observer: Execute RUNINSTALLER"
-
-- name:                                "Oracle Data Guard - Observer: Execute RUNINSTALLER"
+- name:                                "Oracle Data Guard: Find Patch ID for GRID"
   become:                              true
-  become_user:                         "{{ oracle_user_name }}"
-  ansible.builtin.shell:               ./RUNINSTALLER  -ignorePrereqWarnings -silent
-  register:                            orainstall_results
-  failed_when:                         orainstall_results.rc >= 3
-  environment:
-    DB_SID:                            "{{ db_sid | upper }}"
-    CV_ASSUME_DISTID:                  "{{ CV_ASSUME_DISTID }}"
-  args:
-    executable:                        /bin/csh
-    chdir:                             "{{ target_media_location }}/oraserver/LINUX_X86_64/db_home/SAP"
-    creates:                           /etc/sap_deployment_automation/{{ sap_sid | upper }}/oracle_installed.txt
+  become_user:                         root
+  ansible.builtin.find:
+    paths:                             "{{ target_media_location }}/SBP/GIRU19P"
+    patterns:                          ["bundle.xml"]
+    file_type:                         file
+    recurse:                           true
+  register:                            patch_grid_id_directory
 
-- name:                                "Oracle Data Guard - Observer: installer output"
+- name:                                "Oracle Data Guard: Find Patch ID for GRID"
+  ansible.builtin.fail:
+    msg:                               "No Patch Ids"
+  when:                                patch_grid_id_directory.matched != 1
+
+- name:                                "Oracle Data Guard: OPatch ID"
+  ansible.builtin.set_fact:
+    patch_grid_path:                   "{{ patch_grid_id_directory.files[0].path | dirname }}"
+  when:                                patch_grid_id_directory.matched == 1
+
+- name:                                "Oracle Data Guard: set ApplyRU and OPatchPath"
+  ansible.builtin.set_fact:
+    OPatchPath:                        "{{ target_media_location }}/SBP/OPATCH/OPatch"
+    ApplyRU:                           "{{ patch_grid_path }}"
+    OracleImage:                       "{{ target_media_location }}/oraserver/LINUX_X86_64/db_home/LINUX.X64_193000_db_home.zip"
+
+- name:                                "Oracle Data Guard: OPatch ID"
   ansible.builtin.debug:
-    var:                               orainstall_results.stdout_lines
-    verbosity:                         2
+    msg:
 
-- name:                                "Oracle Data Guard - Observer: installer output"
-  ansible.builtin.copy:
-    dest:                              /etc/sap_deployment_automation/{{ sap_sid | upper }}/install.log
-    content:                           "{{ orainstall_results.stdout }}"
-    mode:                              '0777'
-  when:                                orainstall_results.stdout is defined
+      - "Oracle Image: {{ target_media_location }}/oraserver/LINUX_X86_64/db_home/LINUX.X64_193000_db_home.zip"
+      - "ApplyRU:      {{ ApplyRU }}"
+      - "OPatchPath    {{ OPatchPath }}"
 
-- name:                                "Oracle Data Guard - Observer: Create oracle_installed.txt"
-  become:                              true
-  become_user:                         "{{ oracle_user_name }}"
-  ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation/{{ sap_sid | upper }}/oracle_installed.txt
-    state:                             touch
-    mode:                              '0755'
-  when:                                orainstall_results.rc >= 3
+- name:                                "Oracle Data Guard: check if installed"
+  ansible.builtin.stat:
+    path:                              "/etc/sap_deployment_automation/oracle/oracle_installed.txt"
+  register:                            oracle_installed
+
+# /*---------------------------------------------------------------------------8
+# | Start of Oracle software installation using SAP RUNINSTALLER wrapper.      |
+# | Before running Installer set DB_SID and CV_ASSUME_DISTID according to      |
+# | SAP Note 2660017 Oracle Software Installation on Unix                      |
+# |                                                                            |
+# | Step 1 run the pre-installation check                                      |
+# +------------------------------------4--------------------------------------*/
+- name:                                "Oracle Data Guard: Installation"
+  when:
+    - not oracle_installed.stat.exists
+  block:
+
+    - name:                            "Oracle Data Guard: Execute RUNINSTALLER command"
+      ansible.builtin.debug:
+        msg:                           "Running {{ target_media_location }}/RUNINSTALLER/SAP/RUNINSTALLER -oracle_image {{ OracleImage }} -applyRU {{ ApplyRU }} -opatchLocation {{ OPatchPath }} -silent -ignorePrereqWarnings"
+
+    - name:                            "Oracle Data Guard: Execute RUNINSTALLER"
+      become:                          true
+      become_user:                     "{{ oracle_user_name }}"
+      ansible.builtin.shell: |
+                                       {{ target_media_location }}/RUNINSTALLER/SAP/RUNINSTALLER \
+                                       -oracle_image {{ OracleImage }}                           \
+                                       -applyRU {{ ApplyRU }}                                    \
+                                       -opatchLocation {{ OPatchPath }}                          \
+                                       -silent -ignorePrereqWarnings
+      register:                        orainstaller_results
+      failed_when:                     orainstaller_results.rc >=  3
+      environment:
+        DB_SID:                        "{{ db_sid | upper }}"
+        CV_ASSUME_DISTID:              "{{ CV_ASSUME_DISTID }}"
+      args:
+        executable:                    /bin/csh
+        chdir:                         "{{ target_media_location }}/oraserver/LINUX_X86_64/db_home/SAP"
+        creates:                       /etc/sap_deployment_automation/{{ sap_sid | upper }}/oracle_installed.txt
+
+    - name:                            "Oracle Data Guard - Observer: installer output"
+      ansible.builtin.debug:
+        var:                           orainstall_results.stdout_lines
+        verbosity:                     2
+
+    - name:                            "Oracle Data Guard - Observer: installer output"
+      ansible.builtin.copy:
+        dest:                          /etc/sap_deployment_automation/{{ sap_sid | upper }}/{{ ansible_hostname }}_install.log
+        content:                       "{{ orainstall_results.stdout }}"
+        mode:                          '0777'
+      when:                            orainstall_results.stdout is defined
+
+    - name:                            "Oracle Data Guard - Observer: Create oracle_installed.txt"
+      become:                          true
+      become_user:                     "{{ oracle_user_name }}"
+      ansible.builtin.file:
+        path:                          /etc/sap_deployment_automation/{{ sap_sid | upper }}/oracle_installed.txt
+        state:                         touch
+        mode:                          '0755'
+      when:                            orainstall_results.rc >= 3
 
   # Create SQLNET.ORA .
 
