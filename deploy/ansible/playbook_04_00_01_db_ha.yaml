@@ -264,6 +264,7 @@
             action:                    'Prepare_Secondary'
             main_password:             "{{ hostvars.localhost.sap_password }}"
             sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
+            sapbits_sas_token:         "{{ hostvars.localhost.sapbits_sas_token }}"
           tags:
             - always
 
@@ -313,6 +314,7 @@
             action:                    'Post_Processing_Primary'
             main_password:             "{{ hostvars.localhost.sap_password }}"
             sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
+            sapbits_sas_token:         "{{ hostvars.localhost.sapbits_sas_token }}"
           tags:
             - always
 
@@ -343,6 +345,7 @@
             action:                    'Post_Processing_Secondary'
             main_password:             "{{ hostvars.localhost.sap_password }}"
             sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
+            sapbits_sas_token:         "{{ hostvars.localhost.sapbits_sas_token }}"
           tags:
             - always
 
@@ -373,6 +376,7 @@
             action:                    'Post_Processing_Secondary'
             main_password:             "{{ hostvars.localhost.sap_password }}"
             sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
+            sapbits_sas_token:         "{{ hostvars.localhost.sapbits_sas_token }}"
           tags:
             - always
 
@@ -422,12 +426,14 @@
         - database_high_availability
         - platform in ['ORACLE', 'ORACLE-ASM']
       block:
-        - name:                            "Observer Playbook: Setting the DB facts"
+        - name:                          "Observer Playbook: Setting the DB facts"
           ansible.builtin.set_fact:
-            node_tier:                     observer
-            action:                        'Setup_Observer'
-            main_password:                 "{{ hostvars.localhost.sap_password }}"
-            sapbits_location_base_path:    "{{ hostvars.localhost.sapbits_location_base_path }}"
+            node_tier:                   observer
+            action:                      'Setup_Observer'
+            main_password:               "{{ hostvars.localhost.sap_password }}"
+            sapbits_location_base_path:  "{{ hostvars.localhost.sapbits_location_base_path }}"
+            sapbits_sas_token:           "{{ hostvars.localhost.sapbits_sas_token }}"
+
           tags:
             - always
 
