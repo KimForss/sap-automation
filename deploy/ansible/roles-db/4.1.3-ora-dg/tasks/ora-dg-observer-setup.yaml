@@ -42,23 +42,16 @@
                                        - "Oracle Release: {{ ora_release }}"
                                        - "Oracle SBP Patch: {{ oracle_sbp_patch }}"
 
-
-- name:                                "Oracle Data Guard - Observer: Set the NFS Server name"
-  ansible.builtin.set_fact:
-    nfs_server:                        "{{ query('inventory_hostnames', '{{ db_sid | upper }}_SCS') | first }}"
-
-# # Set Primary and Secondary node names.
-# - name:                                "Set the  Server names"
-#   ansible.builtin.set_fact:
-#     ora_primary:                       "{{ db_sid | upper }}_DB[0]"
-#     ora_secondary:                     "{{ db_sid | upper }}_DB[1]"
-#     current_host:                      "{{ ansible_hostname }}"
-
+- name:                                "Oracle Data Guard - Observer: Mount Filesystems block"
+  when:
+    - usr_sap_install_mountpoint is undefined
+  block:
+    - name:                            "Oracle Data Guard - Observer: Set the NFS Server name"
+      ansible.builtin.set_fact:
+        nfs_server:                    "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') | first }}"
 
 # Mount Filesystems
 
-- name:                                "Oracle Data Guard - Observer: Mount Filesystems block"
-  block:
     - name:                            "Oracle Data Guard - Observer: Mount Filesystems when not using external NFS (on observer)"
       ansible.posix.mount:
         src:                           "{{ item.src }}"
@@ -71,8 +64,6 @@
       when:
         - node_tier == 'observer'
         - sap_mnt is undefined
-  when:
-    - usr_sap_install_mountpoint is undefined
 
 - name:                                "Oracle Data Guard - Observer: Change group ID for oinstall"
   ansible.builtin.group:
