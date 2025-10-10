@@ -459,12 +459,12 @@
 # # |                                                                          |
 # # +------------------------------------4------------------------------------*/
 # -------------------------------------+---------------------------------------8
-#   DB2 - High Availability Setup                                               |
+#   DB2 - High Availability Setup                                              |
 #     a. Install DB2 on Primary Server                                         |
 #     b. Take offline backup of Primary DB                                     |
 #     c. Install DB2 on Secondary Server using backup restore option           |
-#     d. Restore Secondary/Standby from backup of primary system              |
-#     e. HADR  parameters on primary and secodary                              |
+#     d. Restore Secondary/Standby from backup of primary system               |
+#     e. HADR  parameters on primary and secondary                             |
 #     f. HADR definition on primary & Secondary                                |
 #     g. HADR setup Checks                                                     |
 #    Split the following section into the pacemaker roles-sap/5.7db2-pacemaker |
