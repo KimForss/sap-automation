@@ -667,7 +667,7 @@
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell: |
       set -o pipefail
-      sqlplus / as sysdba @orasecondary_startup.sql | tee /etc/sap_deployment_automation/dataguard_scripts/ora_secondary_startup_spfile.log
+      sqlplus / as sysdba @oracle_secondary_startup.sql | tee /etc/sap_deployment_automation/dataguard_scripts/ora_secondary_startup_spfile.log
   register:                            ora_secondary_startup_spfile_results
   failed_when:                         ora_secondary_startup_spfile_results.rc > 0
   args:
@@ -814,7 +814,7 @@
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell: |
       set -o pipefail
-      sqlplus / as sysdba @asmsecondary_startup.sql | tee /etc/sap_deployment_automation/dataguard_scripts/asm_secondary_startup_spfile.log
+      sqlplus / as sysdba @asm_secondary_startup.sql | tee /etc/sap_deployment_automation/dataguard_scripts/asm_secondary_startup_spfile.log
   register:                            asm_secondary_startup_spfile_results
   failed_when:                         asm_secondary_startup_spfile_results.rc > 0
   args:

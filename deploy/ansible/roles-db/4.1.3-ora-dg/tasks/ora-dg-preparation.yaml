@@ -179,12 +179,12 @@
   when:
     - node_tier == 'oracle-asm'
 
-- name:                                "Oracle Data Guard for ASM - Preparation: create asmsecondary_startup.sql"
+- name:                                "Oracle Data Guard for ASM - Preparation: create asm_secondary_startup.sql"
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.blockinfile:
     create:                            true
-    path:                              /etc/sap_deployment_automation/dataguard_scripts/asmsecondary_startup.sql
+    path:                              /etc/sap_deployment_automation/dataguard_scripts/asm_secondary_startup.sql
     marker_begin:                      "-- BEGIN"
     marker_end:                        "-- END"
     block: |
@@ -194,13 +194,13 @@
   when:
     - node_tier == 'oracle-asm'
 
-# orasecondary_startup.sql
-- name:                                "Oracle Data Guard  - Preparation: create orasecondary_startup.sql"
+# oracle_secondary_startup.sql
+- name:                                "Oracle Data Guard  - Preparation: create oracle_secondary_startup.sql"
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.blockinfile:
     create:                            true
-    path:                              /etc/sap_deployment_automation/dataguard_scripts/orasecondary_startup.sql
+    path:                              /etc/sap_deployment_automation/dataguard_scripts/oracle_secondary_startup.sql
     marker_begin:                      "-- BEGIN"
     marker_end:                        "-- END"
     block: |
@@ -223,12 +223,12 @@
          exit
     mode:                              '0755'
 
-- name:                                "Oracle Data Guard - Preparation: create asmsecondary_startup.sql"
+- name:                                "Oracle Data Guard - Preparation: create asm_secondary_startup.sql"
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.blockinfile:
     create:                            true
-    path:                              /etc/sap_deployment_automation/dataguard_scripts/asmsecondary_startup.sql
+    path:                              /etc/sap_deployment_automation/dataguard_scripts/asm_secondary_startup.sql
     marker_begin:                      "-- BEGIN"
     marker_end:                        "-- END"
     block: |
@@ -554,6 +554,9 @@
     - { mode: '0755', path: '/oracle/{{ db_sid | upper }}/saptrace/diag' }
     - { mode: '0755', path: '/oracle/{{ db_sid | upper }}/saptrace/usertrace' }
     - { mode: '0755', path: '/oracle/{{ db_sid | upper }}/orawallet' }
+  when:
+    - current_host == ora_secondary
+    - node_tier == "oracle"
 
 - name:                                "Oracle Data Guard - Rescue create shutdown_secondary.sql"
   become:                              true

@@ -58,6 +58,8 @@
     path:                              "{{ item.path }}"
     state:                             directory
     mode:                              '0755'
+    owner:                             "{{ oracle_user_name }}"
+    group:                             oinstall
   loop:
     - { state: 'directory', mode: '0755', path: '/etc/sap_deployment_automation/' }
     - { state: 'directory', mode: '0755', path: '/etc/sap_deployment_automation/grid' }
