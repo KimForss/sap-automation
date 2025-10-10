@@ -175,8 +175,8 @@
                                        -applyRU {{ ApplyRU }}                                    \
                                        -opatchLocation {{ OPatchPath }}                          \
                                        -silent -ignorePrereqWarnings
-      register:                        orainstaller_results
-      failed_when:                     orainstaller_results.rc >=  3
+      register:                        dataguard_oracle_installer_results
+      failed_when:                     dataguard_oracle_installer_results.rc >=  3
       environment:
         DB_SID:                        "{{ db_sid | upper }}"
         CV_ASSUME_DISTID:              "{{ CV_ASSUME_DISTID }}"
@@ -186,8 +186,9 @@
         creates:                       /etc/sap_deployment_automation/{{ sap_sid | upper }}/oracle_installed.txt
 
     - name:                            "Oracle Data Guard - Observer: installer output"
+      when:                            dataguard_oracle_installer_results.stdout is defined
       ansible.builtin.debug:
-        var:                           orainstaller_results.stdout_lines
+        var:                           dataguard_oracle_installer_results.stdout_lines
         verbosity:                     2
 
     - name:                            "Oracle Data Guard - Observer: installer output"
@@ -195,7 +196,7 @@
         dest:                          /etc/sap_deployment_automation/{{ sap_sid | upper }}/{{ ansible_hostname }}_install.log
         content:                       "{{ orainstall_results.stdout }}"
         mode:                          '0777'
-      when:                            orainstaller_results.stdout is defined
+      when:                            dataguard_oracle_installer_results.stdout is defined
 
     - name:                            "Oracle Data Guard - Observer: Create oracle_installed.txt"
       become:                          true
@@ -204,7 +205,9 @@
         path:                          /etc/sap_deployment_automation/{{ sap_sid | upper }}/oracle_installed.txt
         state:                         touch
         mode:                          '0755'
-      when:                            orainstaller_results.rc >= 3
+      when:
+        - dataguard_oracle_installer_results is defined
+        - dataguard_oracle_installer_results.rc >= 3
 
   # Create SQLNET.ORA .
 
