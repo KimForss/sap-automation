@@ -18,6 +18,28 @@
     ora_secondary:                     "{{ ansible_play_hosts_all[1] }}"         # Oracle Secondary Host
     current_host:                      "{{ ansible_hostname }}"
 
+- name:                                "Oracle Data Guard - Create Folder for File sharing"
+  become:                              true
+  become_user:                         "root"
+  ansible.builtin.file:
+    path:                              "{{ target_media_location }}/downloads/{{ db_sid | upper }}"
+    mode:                              '0755'
+    state:                             directory
+    owner:                             oracle
+    group:                             oinstall
+
+- name:                                "Oracle Data Guard - Create Folder for dbs folder copy from primary to secondary"
+  become:                              true
+  become_user:                         "root"
+  ansible.builtin.file:
+    path:                              "{{ target_media_location }}/downloads/{{ db_sid | upper }}/dbs"
+    mode:                              '0755'
+    state:                             directory
+    owner:                             oracle
+    group:                             oinstall
+
+
+
 - name:                                "Oracle Data Guard: Prepare secondary node"
   ansible.builtin.include_tasks:       "ora-dg-secondary-preparation.yaml"
   when:
