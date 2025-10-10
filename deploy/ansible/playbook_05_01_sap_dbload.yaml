@@ -210,10 +210,6 @@
       become:                          true
       become_user:                     root
       block:
-      when:
-        - platform in ['ORACLE', 'ORACLE-ASM']
-        - ansible_os_family != "Windows"
-
         - name:                        "DBLoad Playbook: - Setting the dbload facts"
           ansible.builtin.set_fact:
             tier:                      dbload                                                          # SAP Install phase: DBLOAD
@@ -286,6 +282,9 @@
                 - dbload_results.rc > 0
           tags:
             - 5.1-dbload
+      when:
+        - platform in ['ORACLE', 'ORACLE-ASM']
+        - ansible_os_family != "Windows"
 
 
 # /*----------------------------------------------------------------------------8
