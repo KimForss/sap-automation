@@ -187,7 +187,7 @@
 
     - name:                            "Oracle Data Guard - Observer: installer output"
       ansible.builtin.debug:
-        var:                           orainstall_results.stdout_lines
+        var:                           orainstaller_results.stdout_lines
         verbosity:                     2
 
     - name:                            "Oracle Data Guard - Observer: installer output"
@@ -195,7 +195,7 @@
         dest:                          /etc/sap_deployment_automation/{{ sap_sid | upper }}/{{ ansible_hostname }}_install.log
         content:                       "{{ orainstall_results.stdout }}"
         mode:                          '0777'
-      when:                            orainstall_results.stdout is defined
+      when:                            orainstaller_results.stdout is defined
 
     - name:                            "Oracle Data Guard - Observer: Create oracle_installed.txt"
       become:                          true
@@ -204,7 +204,7 @@
         path:                          /etc/sap_deployment_automation/{{ sap_sid | upper }}/oracle_installed.txt
         state:                         touch
         mode:                          '0755'
-      when:                            orainstall_results.rc >= 3
+      when:                            orainstaller_results.rc >= 3
 
   # Create SQLNET.ORA .
 
