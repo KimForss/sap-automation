@@ -243,7 +243,7 @@
   # Create User for SIDADM on Secondary Node.
     - name:                                "2.5.1 SAP Users: -  Create Oracle ASM Users Assignment"
       ansible.builtin.user:
-        name:                              "{{sap_sid | lower }}adm"
+        name:                              "{{ db_sid | lower }}adm"
         uid:                               "{{ sidadm_uid }}"
         group:                             "sapsys"
         groups:                            asmoper,asmdba,dba,oper,oinstall
@@ -258,9 +258,9 @@
       become_user:                         "root"
       ansible.builtin.copy:
         src:                               /etc/sap_deployment_automation/dataguard_scripts/tnsnames.ora
-        dest:                              /sapmnt/{{ sap_sid |upper }}/profile/oracle/tnsnames.ora
+        dest:                              /sapmnt/{{ db_sid |upper }}/profile/oracle/tnsnames.ora
         remote_src:                        true
-        owner:                             '{{sap_sid |lower }}adm'
+        owner:                             '{{ db_sid |lower }}adm'
         group:                             sapsys
         mode:                              "{{ '0777' | int - (custom_umask | default('022') | int) }}"
 
