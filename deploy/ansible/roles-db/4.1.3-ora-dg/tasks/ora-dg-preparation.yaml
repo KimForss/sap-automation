@@ -3,8 +3,15 @@
 
 ---
 
+# Set Primary and Secondary node names.
+- name:                                "Oracle Data Guard - Preparation: Setting the primary and Secondary DB names"
+  ansible.builtin.set_fact:
+    ora_primary:                       "{{ ansible_play_hosts_all[0] }}"         # Oracle Primary Host
+    ora_secondary:                     "{{ ansible_play_hosts_all[1] }}"         # Oracle Secondary Host
+    current_host:                      "{{ ansible_hostname }}"
+
 # /*---------------------------------------------------------------------------8
-# | Prepare the sql script  for  data guard initial configuration.             |
+# | Prepare the sql scripts for data guard initial configuration.              |
 # |                                                                            |
 # |                                                                            |
 # | Step 1 create the SQL scripts for DG                                       |
@@ -51,7 +58,6 @@
         exit
     mode:                              '0755'
 
-
 - name:                                "Oracle Data Guard - Preparation: create standby_redo_logs.sql"
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
@@ -68,7 +74,6 @@
         exit
     mode:                              '0755'
   when:                                node_tier == "oracle"
-
 
 - name:                                "Oracle Data Guard for oracle asm - Preparation: create standby_redo_logs.sql"
   become:                              true
@@ -256,14 +261,6 @@
          ALTER SYSTEM SET dg_broker_start=true;
          exit
     mode:                              '0755'
-
-
-# Set Primary and Secondary node names.
-- name:                                "Oracle Data Guard - Preparation: Setting the primary and Secondary DB names"
-  ansible.builtin.set_fact:
-    ora_primary:                       "{{ ansible_play_hosts_all[0] }}"         # Oracle Primary Host
-    ora_secondary:                     "{{ ansible_play_hosts_all[1] }}"         # Oracle Secondary Host
-    current_host:                      "{{ ansible_hostname }}"
 
 # Debug for testing
 - name:                                "Oracle Data Guard - Preparation: Debug: installer prechecks output"
