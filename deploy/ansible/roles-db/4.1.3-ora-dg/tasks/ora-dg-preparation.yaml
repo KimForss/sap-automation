@@ -547,7 +547,7 @@
     state:                             directory
     owner:                             oracle
     group:                             oinstall
-  mode:                              '{{ item.mode }}'
+    mode:                              "{{ item.mode }}"
   loop:
     - { mode: '0755', path: '/oracle/{{ db_sid | upper }}/oraarch/{{ db_sid | upper }}arch' }
     - { mode: '0755', path: '/oracle/{{ db_sid | upper }}/oraarch/standbylog' }
