@@ -17,14 +17,10 @@
     ora_primary:                       "{{ ansible_play_hosts_all[0] }}"         # Oracle Primary Host
     ora_secondary:                     "{{ ansible_play_hosts_all[1] }}"         # Oracle Secondary Host
     current_host:                      "{{ ansible_hostname }}"
-  when:
-    - node_tier in ["oracle", "oracle-asm"]
-    - action == 'Prepare_and_Restore'
 
 - name:                                "Oracle Data Guard: Prepare secondary node"
   ansible.builtin.include_tasks:       "ora-dg-secondary-preparation.yaml"
   when:
-    - node_tier in ["oracle", "oracle-asm"]
     - action == 'Prepare_Secondary'
 
 - name:                                "Oracle Data Guard: Prepare and Restore"
@@ -43,29 +39,25 @@
         - current_host == ora_secondary
   when:
     - action    == 'Prepare_and_Restore'
-    - node_tier == "oracle" or node_tier == "oracle-asm"
     - node_tier != "observer"
 
 - name:                                "Oracle Data Guard: Post processing on Primary"
   ansible.builtin.include_tasks:       "ora-dg-postprocessing-primary.yaml"
   when:
-    - node_tier == "oracle" or node_tier == "oracle-asm"
     - node_tier != "observer"
     - action    == 'Post_Processing_Primary'
 
-# Enable Flashback Loggining on the Secondary for FSFO
+# Enable Flashback Logging on the Secondary for FSFO
 - name:                                "Oracle Data Guard: Post processing on Secondary"
   ansible.builtin.include_tasks:       "ora-dg-postprocessing-secondary.yaml"
   when:
-    - node_tier == "oracle" or node_tier == "oracle-asm"
     - node_tier != "observer"
     - action    == 'Post_Processing_Secondary'
 
-# Enable Flashback Loggining on the Secondary for FSFO
+# Enable Flashback Logging on the Secondary for FSFO
 - name:                                "Oracle Data Guard: Post processing on Secondary"
   ansible.builtin.include_tasks:       "ora-dg-postprocessing-secondary.yaml"
   when:
-    - node_tier == "oracle" or node_tier == "oracle-asm"
     - node_tier != "observer"
     - action    == 'Post_Processing_Secondary'
 
