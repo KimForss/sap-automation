@@ -210,6 +210,10 @@
       become:                          true
       become_user:                     root
       block:
+      when:
+        - platform in ['ORACLE', 'ORACLE-ASM']
+        - ansible_os_family != "Windows"
+
         - name:                        "DBLoad Playbook: - Setting the dbload facts"
           ansible.builtin.set_fact:
             tier:                      dbload                                                          # SAP Install phase: DBLOAD
@@ -243,6 +247,10 @@
               loop:                    "{{ all_sids }}"
               loop_control:
                 loop_var:              sid_to_be_deployed
+
+            - name:                    "Oracle : Updating Oracle database after DB Load"
+              ansible.builtin.import_tasks: roles-db/4.1.1-ora-asm-grid/tasks/final.yaml
+
 
             - name:                    "DBLoad Playbook: - Create db-load-done flag"
               delegate_to:             localhost
@@ -279,9 +287,6 @@
           tags:
             - 5.1-dbload
 
-      when:
-        - platform in ['ORACLE', 'ORACLE-ASM']
-        - ansible_os_family != "Windows"
 
 # /*----------------------------------------------------------------------------8
 # |                                                                            |
