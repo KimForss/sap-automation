@@ -160,7 +160,7 @@ stages:
                   current_ansible_version=$(ansible --version | grep "\[core" | cut -d " " -f3 | cut -d "]" -f1)
                   echo "Ansible version $current_ansible_version detected"
 
-                  if [ "$current_ansible_version" != "${ansible_core_version:-2.16.14}"]; then
+                  if [ "$current_ansible_version" != "${ansible_core_version:-2.16.14}" ]; then
 
                     source ~/.bashrc; pipx uninstall ansible-core --verbose
                     source ~/.bashrc; pip3 uninstall -y ansible-core --verbose
@@ -172,6 +172,7 @@ stages:
                     wheel \
                     pywinrm[credssp] \
                     setuptools --force
+
                     ansible-galaxy collection install --force ansible.windows ansible.posix ansible.utils community.windows microsoft.ad community.general
                     ansible --version
                   fi
