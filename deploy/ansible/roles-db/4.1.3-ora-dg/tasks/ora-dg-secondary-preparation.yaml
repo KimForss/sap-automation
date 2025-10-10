@@ -33,7 +33,6 @@
          exit;
     mode:                              '0755'
 
-
 - name:                                "Oracle Data Guard - Preparation (Secondary): Create PFILE on Primary DB to COPY it on SECONDARY"
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
@@ -63,27 +62,27 @@
   become:                              true
   become_user:                         "root"
   ansible.builtin.copy:
-    src:                               /oracle/{{ db_sid | upper }}/{{ ora_release }}/dbs/init{{ db_sid | upper }}.ora
+    src:                               "/oracle/{{ db_sid | upper }}/{{ ora_release }}/dbs/init{{ db_sid | upper }}.ora"
     dest:                              "{{ target_media_location }}/downloads/{{ db_sid | upper }}/init{{ db_sid | upper }}.ora"
     remote_src:                        true
     owner:                             oracle
     group:                             oinstall
     force:                             true
     mode:                              "{{ '0777' | int - (custom_umask | default('022') | int) }}"
-  # when: current_host == ora_primary
+  when: current_host == ora_primary
 
-- name:                                "Oracle Data Guard - Preparation (Secondary): Copy orapwSID to templocation"
-  become:                              true
-  become_user:                         "root"
-  ansible.builtin.copy:
-    src:                               /oracle/{{ db_sid | upper }}/{{ ora_release }}/dbs/orapw{{ db_sid | upper }}
-    dest:                              "{{ target_media_location }}/downloads/{{ db_sid | upper }}/orapw{{ db_sid | upper }}"
-    remote_src:                        true
-    force:                             true
-    owner:                             oracle
-    group:                             dba
-    mode:                              "{{ '0777' | int - (custom_umask | default('022') | int) }}"
-  # when: current_host == ora_primary
+# - name:                                "Oracle Data Guard - Preparation (Secondary): Copy orapwSID to templocation"
+#   become:                              true
+#   become_user:                         "root"
+#   ansible.builtin.copy:
+#     src:                               /oracle/{{ db_sid | upper }}/{{ ora_release }}/dbs/orapw{{ db_sid | upper }}
+#     dest:                              "{{ target_media_location }}/downloads/{{ db_sid | upper }}/orapw{{ db_sid | upper }}"
+#     remote_src:                        true
+#     force:                             true
+#     owner:                             oracle
+#     group:                             dba
+#     mode:                              "{{ '0777' | int - (custom_umask | default('022') | int) }}"
+#   when: current_host == ora_primary
 
 # - name:                                "Oracle Data Guard - Preparation (Secondary)Copy dbs folder to templocation"
 #   become:                              true
