@@ -53,29 +53,15 @@
 - name:                                "ORACLE GRID: Load the disk configuration settings"
   ansible.builtin.include_vars:        disks_config_asm.yml
 
-- name:                                "Create hidden directory"
+- name:                                "ORACLE GRID: Create directories"
   ansible.builtin.file:
     path:                              "{{ item.path }}"
     state:                             directory
     mode:                              '0755'
   loop:
     - { state: 'directory', mode: '0755', path: '/etc/sap_deployment_automation/' }
-
-- name:                                "ORACLE GRID: Permissions"
-  ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation/grid
-    state:                             directory
-    mode:                              '0755'
-    owner:                             oracle
-    group:                             oinstall
-
-- name:                                "ORACLE GRID: Create Grid software directory"
-  ansible.builtin.file:
-    path:                              /oracle/GRID/{{ ora_version }}
-    state:                             directory
-    owner:                             oracle
-    group:                             oinstall
-    mode:                              '0755'
+    - { state: 'directory', mode: '0755', path: '/etc/sap_deployment_automation/grid' }
+    - { state: 'directory', mode: '0755', path: "/oracle/GRID/{{ ora_version }}" }
 
 - name:                                "Oracle GRID: check if installed"
   ansible.builtin.stat:

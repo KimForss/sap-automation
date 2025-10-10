@@ -56,57 +56,29 @@
 - name:                                "Oracle ASM: Load the disk configuration settings"
   ansible.builtin.include_vars:        disks_config_asm.yml
 
-- name:                                "Oracle ASM: Create sap_deployment_automation folder"
+- name:                                "ORACLE ASM: Create directories"
   ansible.builtin.file:
-    path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}"
-    mode:                              '0755'
-    state:                             directory
-    owner:                             "{{ oracle_user_name }}"
-    group:                             oinstall
+    path:                              "{{ item.path }}"
+    state:                             "{{ item.state }}"
+    recurse:                           true
+    mode:                              "{{ item.mode }}"
+  loop:
+    - { state: 'directory', mode: '0755', path: '/etc/sap_deployment_automation/' }
+    - { state: 'directory', mode: '0755', path: '/etc/sap_deployment_automation/oracle' }
+    - { state: 'directory', mode: '0755', path: "/etc/sap_deployment_automation/{{ sap_sid | upper }}" }
+    - { state: 'directory', mode: '0755', path: "{{ tmp_directory }}/{{ db_sid | upper }}/{{ ora_version }}" }
 
-- name:                                "Oracle ASM: Create sap_deployment_automation grid folder"
+- name:                                "ORACLE ASM: Create and permission Oracle directories"
   ansible.builtin.file:
-    path:                              "/etc/sap_deployment_automation/grid"
-    mode:                              '0755'
-    state:                             directory
-    owner:                             "{{ oracle_user_name }}"
-    group:                             oinstall
-
-- name:                                "Oracle ASM: tmp folder"
-  ansible.builtin.file:
-    path:                              "{{ tmp_directory }}/{{ db_sid | upper }}/{{ ora_version }}/"
-    mode:                              '0755'
-    state:                             directory
-    owner:                             "{{ oracle_user_name }}"
-    group:                             oinstall
-
-
-- name:                                "Oracle ASM: check if permissions are set"
-  ansible.builtin.stat:
-    path:                              "/etc/sap_deployment_automation/oracle/oracleowner.txt"
-  register:                            oracle_permissions
-
-- name:                                "Make oracle:oinstall as owners"
-  become:                              true
-  become_user:                         root
-  ansible.builtin.file:
-    path:                              /oracle
-    state:                             directory
+    path:                              "{{ item.path }}"
+    state:                             "{{ item.state }}"
     owner:                             "{{ oracle_user_name }}"
     group:                             oinstall
     recurse:                           true
-  when:                                not oracle_permissions.stat.exists
-
-- name:                                Create oracleowner.txt
-  become:                              true
-  become_user:                         root
-  ansible.builtin.file:
-    path:                              "/etc/sap_deployment_automation/oracle/oracleowner.txt"
-    state:                             touch
-    mode:                              '0755'
-    owner:                             "{{ oracle_user_name }}"
-    group:                             oinstall
-
+    mode:                              "{{ item.mode }}"
+  loop:
+    - { state: 'directory', mode: '0755', path: "/oracle" }
+    - { state: 'directory', mode: '0755', path: "/oracle/GRID/{{ ora_version }}" }
 
 - name:                                "Oracle ASM: Find Patch ID for GRID"
   become:                              true
