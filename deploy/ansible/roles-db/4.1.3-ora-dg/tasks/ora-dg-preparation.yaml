@@ -174,12 +174,12 @@
   when:
     - node_tier == 'oracle-asm'
 
-- name:                                "Oracle Data Guard for ASM - Preparation: create asmsecondarystartup.sql"
+- name:                                "Oracle Data Guard for ASM - Preparation: create asmsecondary_startup.sql"
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.blockinfile:
     create:                            true
-    path:                              /etc/sap_deployment_automation/dataguard_scripts/asmsecondarystartup.sql
+    path:                              /etc/sap_deployment_automation/dataguard_scripts/asmsecondary_startup.sql
     marker_begin:                      "-- BEGIN"
     marker_end:                        "-- END"
     block: |
@@ -189,13 +189,13 @@
   when:
     - node_tier == 'oracle-asm'
 
-# orasecondarystartup.sql
-- name:                                "Oracle Data Guard  - Preparation: create orasecondarystartup.sql"
+# orasecondary_startup.sql
+- name:                                "Oracle Data Guard  - Preparation: create orasecondary_startup.sql"
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.blockinfile:
     create:                            true
-    path:                              /etc/sap_deployment_automation/dataguard_scripts/orasecondarystartup.sql
+    path:                              /etc/sap_deployment_automation/dataguard_scripts/orasecondary_startup.sql
     marker_begin:                      "-- BEGIN"
     marker_end:                        "-- END"
     block: |
@@ -205,12 +205,12 @@
   when:
     - node_tier == 'oracle'
 
-- name:                                "Oracle Data Guard - Preparation: create secondarystartup.sql"
+- name:                                "Oracle Data Guard - Preparation: create secondary_startup.sql"
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.blockinfile:
     create:                            true
-    path:                              /etc/sap_deployment_automation/dataguard_scripts/secondarystartup.sql
+    path:                              /etc/sap_deployment_automation/dataguard_scripts/secondary_startup.sql
     marker_begin:                      "-- BEGIN"
     marker_end:                        "-- END"
     block: |
@@ -218,12 +218,12 @@
          exit
     mode:                              '0755'
 
-- name:                                "Oracle Data Guard - Preparation: create asmsecondarystartup.sql"
+- name:                                "Oracle Data Guard - Preparation: create asmsecondary_startup.sql"
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.blockinfile:
     create:                            true
-    path:                              /etc/sap_deployment_automation/dataguard_scripts/asmsecondarystartup.sql
+    path:                              /etc/sap_deployment_automation/dataguard_scripts/asmsecondary_startup.sql
     marker_begin:                      "-- BEGIN"
     marker_end:                        "-- END"
     block: |
@@ -430,20 +430,20 @@
   become_user:                        oracle
   ansible.builtin.template:
     backup:                           true
-    src:                              dbtrigger.j2
-    dest:                             "/etc/sap_deployment_automation/dataguard_scripts/dbtrigger.sql"
+    src:                              db_trigger.j2
+    dest:                             "/etc/sap_deployment_automation/dataguard_scripts/db_trigger.sql"
     mode:                             '0644'
     force:                            true
   when:  current_host == ora_primary
 
 
-- name:                               "Oracle Data Guard - Preparation: create dgconfig.sh"
+- name:                               "Oracle Data Guard - Preparation: create dataguard_config.sh"
   become:                             true
   become_user:                        oracle
   ansible.builtin.template:
     backup:                           true
-    src:                              dgconfig.j2
-    dest:                             "/etc/sap_deployment_automation/dataguard_scripts/dgconfig.dgmgrl"
+    src:                              dataguard_config.j2
+    dest:                             "/etc/sap_deployment_automation/dataguard_scripts/dataguard_config.dgmgrl"
     mode:                             '0644'
     force:                            true
   when:  current_host == ora_primary
@@ -475,12 +475,12 @@
     - node_tier == 'oracle-asm'
 
 
-- name:                                "Oracle Data Guard - Preparation: create secondarystartup.sql"
+- name:                                "Oracle Data Guard - Preparation: create secondary_startup.sql"
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.blockinfile:
     create: true
-    path: /etc/sap_deployment_automation/dataguard_scripts/secondarystartup.sql
+    path: /etc/sap_deployment_automation/dataguard_scripts/secondary_startup.sql
     marker_begin: "-- BEGIN"
     marker_end:   "-- END"
     block: |
@@ -490,12 +490,12 @@
   when: current_host == ora_secondary
 
 #  Update the Local_Listener value for Secondary Node.
-- name:                                "Oracle Local Listener Update - Preparation: create listenerupdate.sql"
+- name:                                "Oracle Local Listener Update - Preparation: create listener_update.sql"
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.blockinfile:
     create: true
-    path: /etc/sap_deployment_automation/dataguard_scripts/listenerupdate.sql
+    path: /etc/sap_deployment_automation/dataguard_scripts/listener_update.sql
     marker_begin: "-- BEGIN"
     marker_end:   "-- END"
     block: |
@@ -506,12 +506,12 @@
 
 
 #  Update the Local_Listener value for Primary Node.
-- name:                                "Oracle Local Listener Update - Preparation: create listenerupdate.sql"
+- name:                                "Oracle Local Listener Update - Preparation: create listener_update.sql"
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.blockinfile:
     create: true
-    path: /etc/sap_deployment_automation/dataguard_scripts/listenerupdate.sql
+    path: /etc/sap_deployment_automation/dataguard_scripts/listener_update.sql
     marker_begin: "-- BEGIN"
     marker_end:   "-- END"
     block: |
@@ -522,7 +522,7 @@
 
 # Enable Flashback for Secondary Node.
 
-- name:                                "Oracle Local Listener Update - Preparation: create listenerupdate.sql"
+- name:                                "Oracle Local Listener Update - Preparation: create listener_update.sql"
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.blockinfile:
@@ -533,127 +533,41 @@
     block: |
          ALTER DATABASE RECOVER MANAGED STANDBY DATABASE CANCEL;
          ALTER DATABASE FLASHBACK ON;
-         ALTER DATABASE RECOVER MANAGED STANDBY DATABASE DISCONNECT FROM SESSION  THROUGH LAST SWITCHOVER;
+         ALTER DATABASE RECOVER MANAGED STANDBY DATABASE DISCONNECT FROM SESSION THROUGH LAST SWITCHOVER;
          exit
     mode: '0755'
   when: current_host == ora_secondary
 
 # Create Directories for RESTORE on Secondary
 
-- name:                                "ORACLE: Create oracle SIDarch directory"
-  ansible.builtin.file:
-    path:                              /oracle/{{ db_sid | upper }}/oraarch/{{ db_sid | upper }}arch
-    mode:                              '0755'
-    state:                             directory
-    owner:                             oracle
-    group:                             oinstall
-  when:  current_host == ora_secondary
-
-- name:                                "ORACLE: Create oracle standbylog directory"
-  ansible.builtin.file:
-    path:                              /oracle/{{ db_sid | upper }}/oraarch/standbylog
-    mode:                              '0755'
-    state:                             directory
-    owner:                             oracle
-    group:                             oinstall
-  when:  current_host == ora_secondary
-
-- name:                                "ORACLE: Create oracle oraflash directory"
-  ansible.builtin.file:
-    path:                              /oracle/{{ db_sid | upper }}/oraflash
-    mode:                              '0755'
-    state:                             directory
-    owner:                             oracle
-    group:                             oinstall
-  when:  current_host == ora_secondary
-
-- name:                                "ORACLE: Create saptrace directory"
-  ansible.builtin.file:
-    path:                              /oracle/{{ db_sid | upper }}/saptrace
-    mode:                              '0755'
-    state:                             directory
-    owner:                             oracle
-    group:                             oinstall
-  when:  current_host == ora_secondary
-
-- name:                                "ORACLE: Create saparch directory"
-  ansible.builtin.file:
-    path:                              /oracle/{{ db_sid | upper }}/saparch
-    mode:                              '0755'
-    state:                             directory
-    owner:                             oracle
-    group:                             oinstall
-  when:  current_host == ora_secondary
-
-- name:                                "ORACLE: Create sapprof directory"
-  ansible.builtin.file:
-    path:                              /oracle/{{ db_sid | upper }}/sapprof
-    mode:                              '0755'
-    state:                             directory
-    owner:                             oracle
-    group:                             oinstall
-  when:  current_host == ora_secondary
-
-- name:                                "ORACLE: Create sapcheck directory"
-  ansible.builtin.file:
-    path:                              /oracle/{{ db_sid | upper }}/sapcheck
-    mode:                              '0755'
-    state:                             directory
-    owner:                             oracle
-    group:                             oinstall
-  when:  current_host == ora_secondary
-
-- name:                                "ORACLE: Create saptrace audit directory"
-  ansible.builtin.file:
-    path:                              /oracle/{{ db_sid | upper }}/saptrace/audit
-    mode:                              '0755'
-    state:                             directory
-    owner:                             oracle
-    group:                             oinstall
-  when:  current_host == ora_secondary
-
-- name:                                "ORACLE: Create saptrace background directory"
-  ansible.builtin.file:
-    path:                              /oracle/{{ db_sid | upper }}/saptrace/background
-    mode:                              '0755'
-    state:                             directory
-    owner:                             oracle
-    group:                             oinstall
-  when:  current_host == ora_secondary
-
-- name:                                "ORACLE: Create saptrace diag directory"
-  ansible.builtin.file:
-    path:                              /oracle/{{ db_sid | upper }}/saptrace/diag
-    mode:                              '0755'
-    state:                             directory
-    owner:                             oracle
-    group:                             oinstall
-  when:  current_host == ora_secondary
-
-- name:                                "ORACLE: Create saptrace usertrace directory"
-  ansible.builtin.file:
-    path:                              /oracle/{{ db_sid | upper }}/saptrace/usertrace
-    mode:                              '0755'
-    state:                             directory
-    owner:                             oracle
-    group:                             oinstall
+- name:                                "ORACLE: Create directories"
   when:                                current_host == ora_secondary
-
-- name:                                "ORACLE: Create orawallet directory"
   ansible.builtin.file:
-    path:                              /oracle/{{ db_sid | upper }}/orawallet
-    mode:                              '0755'
+    path:                              "{{ item.path }}"
     state:                             directory
     owner:                             oracle
     group:                             oinstall
-  when:                                current_host == ora_secondary
+  mode:                              '{{ item.mode }}'
+  loop:
+    - { mode: '0755', path: '/oracle/{{ db_sid | upper }}/oraarch/{{ db_sid | upper }}arch' }
+    - { mode: '0755', path: '/oracle/{{ db_sid | upper }}/oraarch/standbylog' }
+    - { mode: '0755', path: '/oracle/{{ db_sid | upper }}/oraflash' }
+    - { mode: '0755', path: '/oracle/{{ db_sid | upper }}/saptrace' }
+    - { mode: '0755', path: '/oracle/{{ db_sid | upper }}/saparch' }
+    - { mode: '0755', path: '/oracle/{{ db_sid | upper }}/sapprof' }
+    - { mode: '0755', path: '/oracle/{{ db_sid | upper }}/sapcheck' }
+    - { mode: '0755', path: '/oracle/{{ db_sid | upper }}/saptrace/audit' }
+    - { mode: '0755', path: '/oracle/{{ db_sid | upper }}/saptrace/background' }
+    - { mode: '0755', path: '/oracle/{{ db_sid | upper }}/saptrace/diag' }
+    - { mode: '0755', path: '/oracle/{{ db_sid | upper }}/saptrace/usertrace' }
+    - { mode: '0755', path: '/oracle/{{ db_sid | upper }}/orawallet' }
 
-- name:                                "Oracle Data Guard - Rescue create shutdownsecondary.sql"
+- name:                                "Oracle Data Guard - Rescue create shutdown_secondary.sql"
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.blockinfile:
     create:                            true
-    path:                              /etc/sap_deployment_automation/dataguard_scripts/shutdownsecondary.sql
+    path:                              /etc/sap_deployment_automation/dataguard_scripts/shutdown_secondary.sql
     marker_begin:                      "-- BEGIN"
     marker_end:                        "-- END"
     block: |
@@ -667,7 +581,7 @@
   ansible.builtin.template:
     backup:                           true
     src:                              asmfilesystems-secondary.j2
-    dest:                             "/etc/sap_deployment_automation/dataguard_scripts/asmfilesystems-secondary.sh"
+    dest:                             "/etc/sap_deployment_automation/dataguard_scripts/asmfilesystems_secondary.sh"
     mode:                             '0755'
     force:                            true
   when:

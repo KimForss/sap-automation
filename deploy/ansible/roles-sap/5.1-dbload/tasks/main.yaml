@@ -17,6 +17,7 @@
     sap_inifile_template:              "dbload-inifile-param.j2"
     dir_params:                        "{{ tmp_directory }}/.params"
     pas_virtual_hostname:              "{{ custom_pas_virtual_hostname | default(virtual_host, true) }}"
+
 - name:                                "DBLoad: -  Create directories"
   ansible.builtin.file:
     path:                              "{{ item.path }}"

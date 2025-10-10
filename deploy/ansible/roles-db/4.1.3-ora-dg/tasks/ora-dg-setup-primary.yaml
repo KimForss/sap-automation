@@ -190,7 +190,7 @@
 # - name:                            "Update the Local_Listener Value in primary"
 #   become:                              true
 #   become_user:                         "{{ oracle_user_name }}"
-#   ansible.builtin.shell:               sqlplus / as sysdba @listenerupdate.sql
+#   ansible.builtin.shell:               sqlplus / as sysdba @listener_update.sql
 #   register:                            local_listener_on_secondary_results
 #   failed_when:                         local_listener_on_secondary_results.rc > 0
 #   args:

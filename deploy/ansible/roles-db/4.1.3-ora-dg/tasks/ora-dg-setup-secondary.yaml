@@ -304,7 +304,7 @@
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell: |
       set -o pipefail
-      sqlplus / as sysdba @secondarystartup.sql | tee /etc/sap_deployment_automation/dataguard_scripts/secondary_startup.log
+      sqlplus / as sysdba @secondary_startup.sql | tee /etc/sap_deployment_automation/dataguard_scripts/secondary_startup.log
   register:                            secondary_startup_results
   failed_when:                         secondary_startup_results.rc > 0
   args:
@@ -365,7 +365,7 @@
     - name:                            "Oracle Data Guard - Setup Secondary: Shutdown secondary DB"
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
-      ansible.builtin.shell:           sqlplus / as sysdba @shutdownsecondary.sql
+      ansible.builtin.shell:           sqlplus / as sysdba @shutdown_secondary.sql
       register:                        secondary_shutdown_results
       failed_when:                     secondary_shutdown_results.rc > 0
       args:
@@ -393,7 +393,7 @@
     - name:                            "Oracle Data Guard - Setup Secondary: Startup secondary DB"
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
-      ansible.builtin.shell:           sqlplus / as sysdba @secondarystartup.sql
+      ansible.builtin.shell:           sqlplus / as sysdba @secondary_startup.sql
       register:                        secondary_startup_results2
       args:
         chdir:                         /etc/sap_deployment_automation/dataguard_scripts
@@ -603,7 +603,7 @@
 - name:                                "Oracle Data Guard - Update the Local_Listener Value on secondary"
   become:                              true
   become_user:                         "oracle"
-  ansible.builtin.shell:               sqlplus / as sysdba @listenerupdate.sql
+  ansible.builtin.shell:               sqlplus / as sysdba @listener_update.sql
   register:                            local_listener_on_secondary_results
   failed_when:                         local_listener_on_secondary_results.rc > 0
   args:
@@ -619,7 +619,7 @@
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell: |
       set -o pipefail
-      sqlplus / as sysdba @shutdownsecondary.sql | tee /etc/sap_deployment_automation/dataguard_scripts/ora_secondary_shutdown.log
+      sqlplus / as sysdba @shutdown_secondary.sql | tee /etc/sap_deployment_automation/dataguard_scripts/ora_secondary_shutdown.log
   register:                            secondary_shutdown_results
   failed_when:                         secondary_shutdown_results.rc > 0
   args:
@@ -667,7 +667,7 @@
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell: |
       set -o pipefail
-      sqlplus / as sysdba @orasecondarystartup.sql | tee /etc/sap_deployment_automation/dataguard_scripts/ora_secondary_startup_spfile.log
+      sqlplus / as sysdba @orasecondary_startup.sql | tee /etc/sap_deployment_automation/dataguard_scripts/ora_secondary_startup_spfile.log
   register:                            ora_secondary_startup_spfile_results
   failed_when:                         ora_secondary_startup_spfile_results.rc > 0
   args:
@@ -766,7 +766,7 @@
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell: |
       set -o pipefail
-      sqlplus / as sysdba @shutdownsecondary.sql | tee /etc/sap_deployment_automation/dataguard_scripts/asm_secondary_shutdown.log
+      sqlplus / as sysdba @shutdown_secondary.sql | tee /etc/sap_deployment_automation/dataguard_scripts/asm_secondary_shutdown.log
   register:                            secondary_shutdown_results
   failed_when:                         secondary_shutdown_results.rc > 0
   args:
@@ -814,7 +814,7 @@
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell: |
       set -o pipefail
-      sqlplus / as sysdba @asmsecondarystartup.sql | tee /etc/sap_deployment_automation/dataguard_scripts/asm_secondary_startup_spfile.log
+      sqlplus / as sysdba @asmsecondary_startup.sql | tee /etc/sap_deployment_automation/dataguard_scripts/asm_secondary_startup_spfile.log
   register:                            asm_secondary_startup_spfile_results
   failed_when:                         asm_secondary_startup_spfile_results.rc > 0
   args:
