@@ -26,18 +26,18 @@
       when:                            database_high_availability
       block:
 
-        - name:                        "Create Progress folder"
+        - name:                        "HA Preparations - local - Create Progress folder"
           ansible.builtin.file:
             path:                      "{{ _workspace_directory }}/.progress"
             state:                     directory
             mode:                      0755
 
-        - name:                        "Remove db-ha-done flag"
+        - name:                        "HA Preparations - local - Remove db-ha-done flag"
           ansible.builtin.file:
             path:                      "{{ _workspace_directory }}/.progress/db-ha-done"
             state:                     absent
 
-        - name:                        "Ensure passlib is installed on the controller"
+        - name:                        "HA Preparations - local - Ensure passlib is installed on the controller"
           become:                      true
           become_user:                 root
           ansible.builtin.package:
@@ -59,14 +59,14 @@
         #   ansible.builtin.set_fact:
         #     tier:                         fencing
 
-        - name:                        "Run the misc/password role"
+        - name:                        "HA Preparations - local - Run the misc/password role"
           ansible.builtin.include_role:
             name:                      roles-misc/0.1-passwords
             public:                    true
           tags:
                                        - 0.1-passwords
 
-        - name:                        "OS configuration playbook: - Read password"
+        - name:                        "HA Preparations - local - Read Windows passwords"
           ansible.builtin.include_role:
             name:                      roles-misc/0.1-passwords
             tasks_from:                windows.yaml
@@ -75,7 +75,7 @@
           tags:
                                        - 0.1-win-passwords
 
-        - name:                        "WinCluster-Create: Get witness account details"
+        - name:                        "HA Preparations - local -  Get witness account details"
           ansible.builtin.include_role:
             name:                      roles-misc/0.2-kv-secrets
             tasks_from:                wincluster-witness.yaml
@@ -87,13 +87,21 @@
           tags:
                                        - 0.2-wincluster-witness
 
-        - name:                        "Run the keyvault role"
+        - name:                        "HA Preparations - local - Run the keyvault role"
           ansible.builtin.include_role:
             name:                      roles-misc/0.2-kv-secrets
           vars:
             operation:                 fencing
           tags:
                                        - kv-secrets
+        - name:                        "HA Preparations - local - Read storage account details"
+          ansible.builtin.include_role:
+            name:                      roles-misc/0.3.sap-installation-media-storage-details
+            public:                    true
+          tags:
+            - kv-sap-installation-media-storage-details
+
+
 
 
 # +------------------------------------4--------------------------------------*/
@@ -255,6 +263,7 @@
             tier:                      ora                                    # Actions for Oracle DB Servers
             action:                    'Prepare_Secondary'
             main_password:             "{{ hostvars.localhost.sap_password }}"
+            sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
           tags:
             - always
 
