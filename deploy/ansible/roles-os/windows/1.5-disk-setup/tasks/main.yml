@@ -21,35 +21,18 @@
 #
 # -------------------------------------+---------------------------------------8
 
-- name:                                "1.5 Disk setup - Set default mount strategy"
-  ansible.builtin.set_fact:
-    disk_mount_strategy:               "{{ hostvars[ansible_hostname]['disk_mount_strategy'] | default('driveletter') }}"
-    disk_base_mount_path:              "{{ hostvars[ansible_hostname]['disk_base_mount_path'] | default('C:\\SQLServerDisks') }}"
-
 - name:                                "1.5 Disk setup - Get disk facts"
   community.windows.win_disk_facts:
-
-- name:                                "1.5 Disk setup - Show disk info from facts"
-  ansible.builtin.debug:
-    msg:
-      - "Disks:                        {{ ansible_facts.disks }} "
-      - "Mount Strategy:               {{ disk_mount_strategy }}"
-      - "Base Mount Path:              {{ disk_base_mount_path }}"
-    verbosity:                         2
 
 - name:                                "1.5 Disk setup - Load the disk configuration settings"
   ansible.builtin.include_vars:
     file:                              "{{ role_path }}/vars/main.yml"
     name:                              disk_config_vars
 
-- name:                                "[DEBUG] 1.5 Disk setup - Show loaded disk configuration variables"
-  ansible.builtin.debug:
-    var:                               disk_config_vars
-    verbosity:                         2
-
 - name:                                "1.5 Disk setup - Show disk configuration"
   ansible.builtin.debug:
     msg:
+      - "Variables read into the task: {{ disk_config_vars }} "
       - "Unique disks:                 {{ disktypes }} "
       - "Volume groups count:          {{ volume_groups | length }} "
       - "Volume groups:                {{ volume_groups }}"
@@ -61,32 +44,30 @@
 - name:                                "1.5 Disk setup - Create directory structure - Mountpoint"
   when:
                                        - hostvars[ansible_hostname]['disk_mount_strategy'] is defined
-                                       - hostvars[ansible_hostname]['disk_mount_strategy'] == 'mountpoint' | bool
+                                       - hostvars[ansible_hostname]['disk_mount_strategy'] == 'mountpoint'
   block:
     - name:                            "1.5 Disk setup - Create base mount point directory"
       ansible.windows.win_file:
-        path:                          "{{ disk_base_mount_path }}"
+        path:                          "{{ hostvars[ansible_hostname]['disk_base_mount_path'] | default('C:\\SQLServerDisks') }}"
         state:                         directory
 
     - name:                            "1.5 Disk setup - Create top-level mount directories"
-      when:
-                                       - item.use_mount_point | default(false)
+      when:                            item.use_mount_point | default(false)
       ansible.windows.win_file:
         path:                          "{{ item.mount_base_path }}"
         state:                         directory
       loop:                            "{{ volume_groups }}"
       loop_control:
-        label:                         "{{ item.mount_base_path }}"
+        label:                         "{{ item.mount_base_path | default(item.diskname) }}"
 
     - name:                            "1.5 Disk setup - Create disk-level mount directories"
-      when:
-                                       - item.use_mount_point | default(false)
+      when:                            item.use_mount_point | default(false)
       ansible.windows.win_file:
         path:                          "{{ item.mount_point }}"
         state:                         directory
       loop:                            "{{ volume_groups }}"
       loop_control:
-        label:                         "{{ item.mount_point }}"
+        label:                         "{{ item.mount_point | default(item.diskname) }}"
 
 # ----------------------------------------
 # Disk Initialization
@@ -110,7 +91,7 @@
 - name:                                "1.5 Disk setup - Disk initialization with - DriveLetter"
   when:
                                        - hostvars[ansible_hostname]['disk_mount_strategy'] is defined
-                                       - hostvars[ansible_hostname]['disk_mount_strategy'] == 'driveletter' | bool
+                                       - hostvars[ansible_hostname]['disk_mount_strategy'] == 'driveletter'
   block:
 
     - name:                            "1.5 Disk setup - Initialize disks with drive letters"
@@ -165,11 +146,11 @@
 - name:                                "1.5 Disk setup - Disk initialization with - MountPoint"
   when:
                                        - hostvars[ansible_hostname]['disk_mount_strategy'] is defined
-                                       - hostvars[ansible_hostname]['disk_mount_strategy'] == 'mountpoint' | bool
+                                       - hostvars[ansible_hostname]['disk_mount_strategy'] == 'mountpoint'
   block:
     - name:                            "1.5 Disk setup - Initialize and mount disks with PowerShell"
       when:
-                                       - disk_mount_strategy == 'mountpoint'
+                                       - hostvars[ansible_hostname]['disk_mount_strategy'] == 'mountpoint'
                                        - item.use_mount_point | default(false)
                                        - item.osdisk_id != ''
       ansible.windows.win_powershell:
@@ -186,7 +167,7 @@
                                        }
       loop:                            "{{ volume_groups }}"
       loop_control:
-        label:                         "{{ item.diskname }} -> {{ item.mount_point }}"
+        label:                         "{{ item.diskname }} -> {{ item.mount_point | default('N/A') }}"
       register:                        win_disk_mountpoint_results
 
 # ----------------------------------------
@@ -197,7 +178,7 @@
   block:
     - name:                            "1.5 Disk setup - Show disk initialization results (drive letters)"
       when:
-                                       - hostvars[ansible_hostname]['disk_mount_strategy'] == 'driveletter' | bool
+                                       - hostvars[ansible_hostname]['disk_mount_strategy'] == 'driveletter'
                                        - win_disk_driveletter_results is defined
       ansible.builtin.debug:
         msg:
@@ -206,7 +187,7 @@
 
     - name:                            "1.5 Disk setup - Show disk initialization results (mount points)"
       when:
-                                       - hostvars[ansible_hostname]['disk_mount_strategy'] == 'mountpoint' | bool
+                                       - hostvars[ansible_hostname]['disk_mount_strategy'] == 'mountpoint'
                                        - win_disk_mountpoint_results is defined
       ansible.builtin.debug:
         msg:
