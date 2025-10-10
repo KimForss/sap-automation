@@ -58,7 +58,7 @@
     - name:                            "Oracle Data Guard - Post Processing: Enable DG Broker on Primary"
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
-      ansible.builtin.shell:           sqlplus / as sysdba @enabledgbroker.sql
+      ansible.builtin.shell:           sqlplus / as sysdba @enable_dataguard_broker.sql
       register:                        dg_broker_primary_results
       failed_when:                     dg_broker_primary_results.rc > 0
       args:

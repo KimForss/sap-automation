@@ -38,8 +38,6 @@
     owner:                             oracle
     group:                             oinstall
 
-
-
 - name:                                "Oracle Data Guard: Prepare secondary node"
   ansible.builtin.include_tasks:       "ora-dg-secondary-preparation.yaml"
   when:

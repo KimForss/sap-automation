@@ -159,7 +159,6 @@
   when:
     - node_tier == 'oracle'
 
-
 - name:                                "Oracle Data Guard for ASM - Preparation: create create_spfile.sql"
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
@@ -206,7 +205,6 @@
   when:
     - node_tier == 'oracle'
 
-
 - name:                                "Oracle Data Guard - Preparation: create secondarystartup.sql"
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
@@ -219,7 +217,6 @@
          STARTUP NOMOUNT PFILE=$ORACLE_HOME/dbs/init{{ db_sid | upper }}.ora;
          exit
     mode:                              '0755'
-
 
 - name:                                "Oracle Data Guard - Preparation: create asmsecondarystartup.sql"
   become:                              true
@@ -234,12 +231,12 @@
          exit
     mode:                              '0755'
 
-- name:                                "Oracle Data Guard - Preparation: create dgstatus.sql"
+- name:                                "Oracle Data Guard - Preparation: create dataguard_status.sql"
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.blockinfile:
     create:                            true
-    path:                              /etc/sap_deployment_automation/dataguard_scripts/dgstatus.sql
+    path:                              /etc/sap_deployment_automation/dataguard_scripts/dataguard_status.sql
     marker_begin:                      "-- BEGIN"
     marker_end:                        "-- END"
     block: |
@@ -247,12 +244,12 @@
          exit
     mode:                              '0755'
 
-- name:                                "Oracle Data Guard - Preparation: create enabledgbroker.sql"
+- name:                                "Oracle Data Guard - Preparation: create enable_dataguard_broker.sql"
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.blockinfile:
     create: true
-    path: /etc/sap_deployment_automation/dataguard_scripts/enabledgbroker.sql
+    path: /etc/sap_deployment_automation/dataguard_scripts/enable_dataguard_broker.sql
     marker_begin: "-- BEGIN"
     marker_end:   "-- END"
     block: |
@@ -398,8 +395,8 @@
   become_user:                        oracle
   ansible.builtin.template:
     backup:                           true
-    src:                              dbparametersfordg.j2
-    dest:                             "/etc/sap_deployment_automation/dataguard_scripts/dbparametersfordg.sql"
+    src:                              db_parameters_for_dataguard.j2
+    dest:                             "/etc/sap_deployment_automation/dataguard_scripts/db_parameters_for_dataguard.sql"
     mode:                             '0644'
     force:                            true
   vars:

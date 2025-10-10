@@ -859,7 +859,7 @@
 - name:                                "Oracle Data Guard - Setup Secondary: startup DG Broker on Secondary"
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
-  ansible.builtin.shell:               sqlplus / as sysdba @enabledgbroker.sql
+  ansible.builtin.shell:               sqlplus / as sysdba @enable_dataguard_broker.sql
   register:                            secondary_startup_results
   failed_when:                         secondary_startup_results.rc > 0
   args:
