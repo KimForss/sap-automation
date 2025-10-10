@@ -185,7 +185,7 @@
     - name:                            "Oracle Data Guard - Observer: installer output"
       ansible.builtin.copy:
         dest:                          /etc/sap_deployment_automation/{{ db_sid | upper }}/{{ ansible_hostname }}_install.log
-        content:                       "{{ orainstall_results.stdout }}"
+        content:                       "{{ dataguard_oracle_installer_results.stdout }}"
         mode:                          '0777'
       when:                            dataguard_oracle_installer_results.stdout is defined
 
