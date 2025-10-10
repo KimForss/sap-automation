@@ -86,7 +86,6 @@
     group:                             oinstall
     home:                              /home/oracle
     shell:                             /bin/csh
-    password:                          "{{ oracle_password | password_hash('sha512', inventory_hostname) }}"
     groups:                            dba,racdba,oper,backupdba,dgdba,kmdba
   when:
     - node_tier == "oracle-asm"
@@ -133,7 +132,6 @@
     groups:                            asmoper,asmadmin,asmdba,asmoper,backupdba,dgdba,kmdba,racdba
     append:                            true
     shell:                             /bin/csh
-    password:                          "{{ oracle_password | password_hash('sha512', inventory_hostname) }}"
     # create_home:                       true
     # home:                              "{{ item.home }}"
   # loop:

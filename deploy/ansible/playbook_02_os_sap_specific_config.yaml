@@ -125,12 +125,6 @@
             - always
             - is_run_with_infraCreate_only
 
-        - name:                        "SAP OS configuration playbook: - Set oracle password fact"
-          ansible.builtin.set_fact:
-            oracle_password:             "{{ hostvars.localhost.oracle_password }}"
-          when:
-            - platform in ['ORACLE', 'ORACLE-ASM']
-
         - name:                        "SAP OS configuration playbook: - Set sapos storage account facts"
           ansible.builtin.set_fact:
             sapbits_sas_token:          "{{ hostvars.localhost.sapbits_sas_token }}"
