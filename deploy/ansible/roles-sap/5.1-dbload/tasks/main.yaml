@@ -201,6 +201,8 @@
                                            list | length | int }}
 
     - name:                            "DBLoad: Set backup paths for different deployment scenarios"
+      when:
+        - platform == "HANA"
       block:
         - name:                        "Set backup path for HSR scale-out configuration"
           when:
@@ -226,6 +228,8 @@
             backup_path:               "{% if (backupdisks_count | int) == 0 %}/hana/data/backup{% else %}{{ hana_backup_path }}{% endif %}"
 
     - name:                            "Hana backup directory"
+      when:
+        - platform == "HANA"
       ansible.builtin.debug:
         msg:
           - "DB Server:                {{ db_server[0] }}"
@@ -348,6 +352,7 @@
     - name:                            "DBLoad: Results"
       ansible.builtin.debug:
         var:                           dbload_results
+        verbosity:                     2
       when:
         - job_result is defined
         - job_result.rc > 0

@@ -1,6 +1,40 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+- name:                                "ORACLE UPDATE: Set Runtime Variables"
+  ansible.builtin.set_fact:
+    is_UEK6:                           "{{ ansible_kernel is version('5.5', '<') }}"
+    CV_ASSUME_DISTID:                  "{% if ansible_kernel is version('5.5', '<') %} OEL7 {% else %} OL8 {% endif %}"
+
+# Step 17
+- name:                                "ORACLE UPDATE: Run run the post-installation script catsbp"
+  become:                              true
+  become_user:                         "{{ oracle_user_name }}"
+  ansible.builtin.shell: |
+                                       env ORACLE_HOME=$OHRDBMS ORACLE_SID=$ORACLE_SID $OHRDBMS/sapbundle/catsbp
+
+  register:                            catsbp_results
+  environment:
+    CV_ASSUME_DISTID:                  "{{ CV_ASSUME_DISTID }}"
+    OHRDBMS:                           "/oracle/{{ db_sid | upper }}/{{ ora_release }}"
+    ORACLE_SID:                        "{{ sap_sid | upper }}"
+  args:
+    executable:                        /bin/csh
+    creates:                           "/etc/sap_deployment_automation/oracle/update_catsbp.txt"
+
+- name:                                "ORACLE UPDATE: Debug: GRID prepatch output"
+  ansible.builtin.copy:
+    dest:                              "/etc/sap_deployment_automation/oracle/catsbp.log"
+    content:                           "{{ catsbp_results.stdout }}"
+    mode:                              0777
+  when:                                catsbp_results.stdout is defined
+
+- name:                                "ORACLE UPDATE: creates update_catsbp.txt after a successful post processing script execution"
+  ansible.builtin.file:
+    path:                              "/etc/sap_deployment_automation/oracle/update_catsbp.txt"
+    state:                             touch
+    mode:                              '0755'
+
 - name:                                "ORACLE Post Processing: Set Variables"
   ansible.builtin.set_fact:
     PAS:                               'pas'
