@@ -18,7 +18,7 @@
   ansible.builtin.template:
     backup:                           true
     src:                              secondary_log_apply_off.j2
-    dest:                             "/etc/sap_deployment_automation/dgscripts/secondary_log_apply_off.dgmgrl"
+    dest:                             "/etc/sap_deployment_automation/dataguard_scripts/secondary_log_apply_off.dgmgrl"
     mode:                             '0644'
     force:                            true
 
@@ -29,7 +29,7 @@
   ansible.builtin.template:
     backup:                           true
     src:                              secondary_log_apply_on.j2
-    dest:                             "/etc/sap_deployment_automation/dgscripts/secondary_log_apply_on.dgmgrl"
+    dest:                             "/etc/sap_deployment_automation/dataguard_scripts/secondary_log_apply_on.dgmgrl"
     mode:                             '0644'
     force:                            true
 
@@ -44,8 +44,8 @@
       register:                        secondary_log_apply_off_results
       failed_when:                     secondary_log_apply_off_results.rc > 0
       args:
-        creates:                       /etc/sap_deployment_automation/dgscripts/secondary_log_apply_off.txt
-        chdir:                         /etc/sap_deployment_automation/dgscripts
+        creates:                       /etc/sap_deployment_automation/dataguard_scripts/secondary_log_apply_off.txt
+        chdir:                         /etc/sap_deployment_automation/dataguard_scripts
         executable:                    /bin/csh
 
 
@@ -65,7 +65,7 @@
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.file:
-        path:                          /etc/sap_deployment_automation/dgscripts/secondary_log_apply_off.txt
+        path:                          /etc/sap_deployment_automation/dataguard_scripts/secondary_log_apply_off.txt
         state:                         touch
         mode:                          '0755'
       when:                            secondary_log_apply_off_results.rc == 0
@@ -74,12 +74,12 @@
     - name:                                "Oracle Data Guard - Enable Flashback on Oracle Secondary DB"
       become:                              true
       become_user:                         "{{ oracle_user_name }}"
-      ansible.builtin.shell:               sqlplus / as sysdba @turnonflashback.sql
+      ansible.builtin.shell:               sqlplus / as sysdba @turn_on_flashback.sql
       register:                            turn_on_flashback_secondary_results
       failed_when:                         turn_on_flashback_secondary_results.rc > 0
       args:
-       creates:                           /etc/sap_deployment_automation/dgscripts/turn_on_flashback_secondary.txt
-       chdir:                             /etc/sap_deployment_automation/dgscripts
+       creates:                           /etc/sap_deployment_automation/dataguard_scripts/turn_on_flashback_secondary.txt
+       chdir:                             /etc/sap_deployment_automation/dataguard_scripts
        executable:                        /bin/csh
 
     - name:                                "Oracle Data Guard - Setup Primary: Enable Flashback on Oracle Primary DB (debug)"
@@ -88,7 +88,7 @@
         verbosity:                         2
     - name:                                "Oracle Data Guard - Setup Primary: Enable Flashback on Oracle Secondary DB (save output)"
       ansible.builtin.copy:
-        dest:                              /etc/sap_deployment_automation/dgscripts/turn_on_flashback_secondary.log
+        dest:                              /etc/sap_deployment_automation/dataguard_scripts/turn_on_flashback_secondary.log
         content:                           "{{ turn_on_flashback_secondary_results.stdout }}"
         mode:                              '0755'
       when:                               turn_on_flashback_secondary_results.stdout is defined
@@ -97,7 +97,7 @@
       become:                              true
       become_user:                         "{{ oracle_user_name }}"
       ansible.builtin.file:
-        path:                              /etc/sap_deployment_automation/dgscripts/turn_on_flashback_secondary.txt
+        path:                              /etc/sap_deployment_automation/dataguard_scripts/turn_on_flashback_secondary.txt
         state:                             touch
         mode:                              '0755'
       when:
@@ -111,8 +111,8 @@
       register:                        secondary_log_apply_on_results
       failed_when:                     secondary_log_apply_on_results.rc > 0
       args:
-        creates:                       /etc/sap_deployment_automation/dgscripts/secondary_log_apply_on.txt
-        chdir:                         /etc/sap_deployment_automation/dgscripts
+        creates:                       /etc/sap_deployment_automation/dataguard_scripts/secondary_log_apply_on.txt
+        chdir:                         /etc/sap_deployment_automation/dataguard_scripts
         executable:                    /bin/csh
 
 
@@ -132,7 +132,7 @@
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.file:
-        path:                          /etc/sap_deployment_automation/dgscripts/secondary_log_apply_on.txt
+        path:                          /etc/sap_deployment_automation/dataguard_scripts/secondary_log_apply_on.txt
         state:                         touch
         mode:                          '0755'
       when:                            secondary_log_apply_off_results.rc == 0
@@ -143,12 +143,12 @@
       become_user:                         "{{ oracle_user_name }}"
       ansible.builtin.shell: |
           set -o pipefail
-          sqlplus / as sysdba @shutdownsecondary.sql | tee /etc/sap_deployment_automation/dgscripts/secondary_shutdown.log
+          sqlplus / as sysdba @shutdownsecondary.sql | tee /etc/sap_deployment_automation/dataguard_scripts/secondary_shutdown.log
       register:                            secondary_shutdown_cfg_results
       failed_when:                         secondary_shutdown_cfg_results.rc > 0
       args:
-        creates:                           /etc/sap_deployment_automation/dgscripts/secondary_shutdown_cfg.txt
-        chdir:                             /etc/sap_deployment_automation/dgscripts
+        creates:                           /etc/sap_deployment_automation/dataguard_scripts/secondary_shutdown_cfg.txt
+        chdir:                             /etc/sap_deployment_automation/dataguard_scripts
         executable:                        /bin/csh
       when:
         - current_host == ora_secondary
@@ -158,7 +158,7 @@
       become:                              true
       become_user:                         "root"
       ansible.builtin.file:
-        path:                              /etc/sap_deployment_automation/dgscripts/secondary_shutdown_cfg.txt
+        path:                              /etc/sap_deployment_automation/dataguard_scripts/secondary_shutdown_cfg.txt
         state:                             touch
         mode:                              '0755'
         owner:                             oracle
@@ -174,12 +174,12 @@
       become_user:                         "{{ oracle_user_name }}"
       ansible.builtin.shell: |
           set -o pipefail
-          sqlplus / as sysdba @orasecondarystartup.sql | tee /etc/sap_deployment_automation/dgscripts/secondary_startup.log
+          sqlplus / as sysdba @orasecondarystartup.sql | tee /etc/sap_deployment_automation/dataguard_scripts/secondary_startup.log
       register:                            secondary_startup_cfg_results
       failed_when:                         secondary_startup_cfg_results.rc > 0
       args:
-        creates:                           /etc/sap_deployment_automation/dgscripts/secondary_startup_cfg.txt
-        chdir:                             /etc/sap_deployment_automation/dgscripts
+        creates:                           /etc/sap_deployment_automation/dataguard_scripts/secondary_startup_cfg.txt
+        chdir:                             /etc/sap_deployment_automation/dataguard_scripts
         executable:                        /bin/csh
       when:
         - node_tier == "oracle"
@@ -190,7 +190,7 @@
       become:                              true
       become_user:                         "root"
       ansible.builtin.file:
-        path:                              /etc/sap_deployment_automation/dgscripts/secondary_startup_cfg.txt
+        path:                              /etc/sap_deployment_automation/dataguard_scripts/secondary_startup_cfg.txt
         state:                             touch
         mode:                              '0755'
         owner:                             oracle
@@ -210,8 +210,8 @@
       register:                        oracle_clusterware_register
       failed_when:                     oracle_clusterware_register.rc > 0
       args:
-        creates:                       /etc/sap_deployment_automation/dgscripts/oracle_clusterware_registered.txt
-        chdir:                         /etc/sap_deployment_automation/dgscripts
+        creates:                       /etc/sap_deployment_automation/dataguard_scripts/oracle_clusterware_registered.txt
+        chdir:                         /etc/sap_deployment_automation/dataguard_scripts
         executable:                    /bin/csh
       when:
        - node_tier == "oracle-asm"
@@ -220,7 +220,7 @@
       become:                          true
       become_user:                     root
       ansible.builtin.file:
-        path:                          /etc/sap_deployment_automation/dgscripts/oracle_clusterware_registered.txt
+        path:                          /etc/sap_deployment_automation/dataguard_scripts/oracle_clusterware_registered.txt
         state:                         touch
         mode:                          '0755'
         owner: oracle
@@ -257,7 +257,7 @@
       become:                              true
       become_user:                         "root"
       ansible.builtin.copy:
-        src:                               /etc/sap_deployment_automation/dgscripts/tnsnames.ora
+        src:                               /etc/sap_deployment_automation/dataguard_scripts/tnsnames.ora
         dest:                              /sapmnt/{{ sap_sid |upper }}/profile/oracle/tnsnames.ora
         remote_src:                        true
         owner:                             '{{sap_sid |lower }}adm'

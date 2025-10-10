@@ -14,7 +14,7 @@
   become:                              true
   become_user:                         "root"
   ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation/dgscripts
+    path:                              /etc/sap_deployment_automation/dataguard_scripts
     mode:                              '0755'
     state:                             directory
     owner:                             oracle
@@ -40,12 +40,12 @@
     owner:                             oracle
     group:                             oinstall
 
-- name:                                "Oracle Data Guard - Preparation (Secondary): create createpfile.sql"
+- name:                                "Oracle Data Guard - Preparation (Secondary): create create_pfile.sql"
   become:                              true
   become_user:                         "root"
   ansible.builtin.blockinfile:
     create:                            true
-    path:                              /etc/sap_deployment_automation/dgscripts/createpfile.sql
+    path:                              /etc/sap_deployment_automation/dataguard_scripts/create_pfile.sql
     marker_begin:                      "-- BEGIN"
     marker_end:                        "-- END"
     block: |
@@ -57,24 +57,24 @@
 - name:                                "Oracle Data Guard - Preparation (Secondary): Create PFILE on Primary DB to COPY it on SECONDARY"
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
-  ansible.builtin.shell:               sqlplus / as sysdba @createpfile.sql
-  register:                            createpfile_results
-  failed_when:                         createpfile_results.rc >= 2
+  ansible.builtin.shell:               sqlplus / as sysdba @create_pfile.sql
+  register:                            create_pfile_results
+  failed_when:                         create_pfile_results.rc >= 2
   args:
-    creates:                           /etc/sap_deployment_automation/dgscripts/createpfile.txt
-    chdir:                             /etc/sap_deployment_automation/dgscripts
+    creates:                           /etc/sap_deployment_automation/dataguard_scripts/create_pfile.txt
+    chdir:                             /etc/sap_deployment_automation/dataguard_scripts
     executable:                        /bin/csh
   # when:  current_host == ora_primary
 
-- name:                                "Oracle Data Guard - Preparation (Secondary): Create createpfile.txt"
+- name:                                "Oracle Data Guard - Preparation (Secondary): Create create_pfile.txt"
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation/dgscripts/createpfile.txt
+    path:                              /etc/sap_deployment_automation/dataguard_scripts/create_pfile.txt
     state:                             touch
     mode:                              '0755'
   when:
-    - createpfile_results.rc >= 2
+    - create_pfile_results.rc >= 2
   # when:  current_host == ora_primary
 
 # Copy the initSID.ora from primary to secondary
@@ -112,7 +112,7 @@
 #   register:                            dbs_folder_copied_results
 #   failed_when:                         dbs_folder_copied_results.rc != 0
 #   args:
-#     creates:                           /etc/sap_deployment_automation/dgscripts/dbscopied.txt
+#     creates:                           /etc/sap_deployment_automation/dataguard_scripts/dbscopied.txt
 #     chdir:                             /oracle/{{ db_sid | upper }}/{{ ora_release }}/dbs
 #     executable:                        /bin/csh
 
@@ -132,7 +132,7 @@
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation/dgscripts/dbscopied.txt
+    path:                              /etc/sap_deployment_automation/dataguard_scripts/dbscopied.txt
     state:                             touch
     mode:                              '0755'
 ...

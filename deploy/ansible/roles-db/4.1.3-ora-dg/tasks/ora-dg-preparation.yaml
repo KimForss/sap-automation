@@ -29,18 +29,18 @@
   become:                              true
   become_user:                         "root"
   ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation/dgscripts
+    path:                              /etc/sap_deployment_automation/dataguard_scripts
     mode:                              '0755'
     state:                             directory
     owner:                             oracle
     group:                             oinstall
 
-- name:                                "Oracle Data Guard - Preparation: create enablearchivelog.sql"
+- name:                                "Oracle Data Guard - Preparation: create enable_archive_log.sql"
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.blockinfile:
     create:                            true
-    path:                              /etc/sap_deployment_automation/dgscripts/enablearchivelog.sql
+    path:                              /etc/sap_deployment_automation/dataguard_scripts/enable_archive_log.sql
     marker_begin:                      "-- BEGIN"
     marker_end:                        "-- END"
     block: |
@@ -52,64 +52,63 @@
     mode:                              '0755'
 
 
-- name:                                "Oracle Data Guard - Preparation: create standbyredologs.sql"
+- name:                                "Oracle Data Guard - Preparation: create standby_redo_logs.sql"
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.blockinfile:
     create:                            true
-    path:                              /etc/sap_deployment_automation/dgscripts/standbyredologs.sql
+    path:                              /etc/sap_deployment_automation/dataguard_scripts/standby_redo_logs.sql
     marker_begin:                      "-- BEGIN"
     marker_end:                        "-- END"
     block: |
-        alter database add standby logfile '/oracle/{{ db_sid | upper }}/oraarch/standbylog/srl1.dbf' size 400M reuse;
-        alter database add standby logfile '/oracle/{{ db_sid | upper }}/oraarch/standbylog/srl2.dbf' size 400M reuse;
-        alter database add standby logfile '/oracle/{{ db_sid | upper }}/oraarch/standbylog/srl3.dbf' size 400M reuse;
-        alter database add standby logfile '/oracle/{{ db_sid | upper }}/oraarch/standbylog/srl4.dbf' size 400M reuse;
+        ALTER DATABASE ADD STANDBY LOGFILE '/oracle/{{ db_sid | upper }}/oraarch/standbylog/srl1.dbf' size 400M reuse;
+        ALTER DATABASE ADD STANDBY LOGFILE '/oracle/{{ db_sid | upper }}/oraarch/standbylog/srl2.dbf' size 400M reuse;
+        ALTER DATABASE ADD STANDBY LOGFILE '/oracle/{{ db_sid | upper }}/oraarch/standbylog/srl3.dbf' size 400M reuse;
+        ALTER DATABASE ADD STANDBY LOGFILE '/oracle/{{ db_sid | upper }}/oraarch/standbylog/srl4.dbf' size 400M reuse;
         exit
     mode:                              '0755'
   when:                                node_tier == "oracle"
 
 
-- name:                                "Oracle Data Guard for oracle asm - Preparation: create standbyredologs.sql"
+- name:                                "Oracle Data Guard for oracle asm - Preparation: create standby_redo_logs.sql"
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.blockinfile:
     create:                            true
-    path:                              /etc/sap_deployment_automation/dgscripts/standbyredologs.sql
+    path:                              /etc/sap_deployment_automation/dataguard_scripts/standby_redo_logs.sql
     marker_begin:                      "-- BEGIN"
     marker_end:                        "-- END"
     block: |
-        alter database add standby logfile '+ARCH' size 400M reuse;
-        alter database add standby logfile '+ARCH' size 400M reuse;
-        alter database add standby logfile '+ARCH' size 400M reuse;
-        alter database add standby logfile '+ARCH' size 400M reuse;
+        ALTER DATABASE ADD STANDBY LOGFILE '+ARCH' size 400M reuse;
+        ALTER DATABASE ADD STANDBY LOGFILE '+ARCH' size 400M reuse;
+        ALTER DATABASE ADD STANDBY LOGFILE '+ARCH' size 400M reuse;
+        ALTER DATABASE ADD STANDBY LOGFILE '+ARCH' size 400M reuse;
         exit
     mode:                              '0755'
   when:                                node_tier == "oracle-asm"
 
-- name:                                "Oracle Data Guard for oracle asm - Preparation: create fralogs.sql"
+- name:                                "Oracle Data Guard for oracle asm - Preparation: create flash_recovery_area_logs.sql"
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.blockinfile:
     create:                            true
-    path:                              /etc/sap_deployment_automation/dgscripts/fralogs.sql
+    path:                              /etc/sap_deployment_automation/dataguard_scripts/flash_recovery_area_logs.sql
     marker_begin:                      "-- BEGIN"
     marker_end:                        "-- END"
     block: |
-        alter database add standby logfile '+ARCH' size 400M reuse;
-        alter database add standby logfile '+ARCH' size 400M reuse;
-        alter database add standby logfile '+ARCH' size 400M reuse;
-        alter database add standby logfile '+ARCH' size 400M reuse;
+
+        ALTER SYSTEM SET DB_RECOVERY_FILE_DEST_SIZE=400M SCOPE=BOTH;
+        ALTER SYSTEM SET DB_RECOVERY_FILE_DEST='+RECO' SCOPE=BOTH;
         exit
     mode:                              '0755'
   when:                                node_tier == "oracle-asm"
 
-- name:                                "Oracle Data Guard - Preparation: create enableforcelogging.sql"
+- name:                                "Oracle Data Guard - Preparation: create enable_forced_logging.sql"
   become:                              true
   become_user:                         oracle
   ansible.builtin.blockinfile:
     create:                            true
-    path:                              /etc/sap_deployment_automation/dgscripts/enableforcelogging.sql
+    path:                              /etc/sap_deployment_automation/dataguard_scripts/enable_forced_logging.sql
     marker_begin:                      "-- BEGIN"
     marker_end:                        "-- END"
     block: |
@@ -118,12 +117,12 @@
          exit
     mode:                              '0755'
 
-- name:                                "Oracle Data Guard - Preparation: create turnonflashback.sql"
+- name:                                "Oracle Data Guard - Preparation: create turn_on_flashback.sql"
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.blockinfile:
     create:                            true
-    path:                              /etc/sap_deployment_automation/dgscripts/turnonflashback.sql
+    path:                              /etc/sap_deployment_automation/dataguard_scripts/turn_on_flashback.sql
     marker_begin:                      "-- BEGIN"
     marker_end:                        "-- END"
     block: |
@@ -132,12 +131,12 @@
          exit
     mode:                              '0755'
 
-- name:                                "Oracle Data Guard - Preparation: create createpfile.sql"
+- name:                                "Oracle Data Guard - Preparation: create create_pfile.sql"
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.blockinfile:
     create:                            true
-    path:                              /etc/sap_deployment_automation/dgscripts/createpfile.sql
+    path:                              /etc/sap_deployment_automation/dataguard_scripts/create_pfile.sql
     marker_begin:                      "-- BEGIN"
     marker_end:                        "-- END"
     block: |
@@ -145,12 +144,12 @@
          exit
     mode:                              '0755'
 
-- name:                                "Oracle Data Guard - Preparation: create createspfile.sql"
+- name:                                "Oracle Data Guard - Preparation: create create_spfile.sql"
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.blockinfile:
     create:                            true
-    path:                              /etc/sap_deployment_automation/dgscripts/createspfile.sql
+    path:                              /etc/sap_deployment_automation/dataguard_scripts/create_spfile.sql
     marker_begin:                      "-- BEGIN"
     marker_end:                        "-- END"
     block: |
@@ -161,16 +160,16 @@
     - node_tier == 'oracle'
 
 
-- name:                                "Oracle Data Guard for ASM - Preparation: create createspfile.sql"
+- name:                                "Oracle Data Guard for ASM - Preparation: create create_spfile.sql"
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.blockinfile:
     create:                            true
-    path:                              /etc/sap_deployment_automation/dgscripts/createspfilesecondary.sql
+    path:                              /etc/sap_deployment_automation/dataguard_scripts/create_spfilesecondary.sql
     marker_begin:                      "-- BEGIN"
     marker_end:                        "-- END"
     block: |
-         CREATE spfile='+DATA/{{ db_sid | upper }}_STDBY/PARAMETERFILE/spfile{{ db_sid | upper }}.ora' from pfile='/oracle/{{ db_sid | upper }}/{{ ora_release }}/dbs/init{{ db_sid | upper }}.ora';
+         CREATE SPFILE='+DATA/{{ db_sid | upper }}_STDBY/PARAMETERFILE/spfile{{ db_sid | upper }}.ora' from pfile='/oracle/{{ db_sid | upper }}/{{ ora_release }}/dbs/init{{ db_sid | upper }}.ora';
          exit
     mode:                              '0755'
   when:
@@ -181,7 +180,7 @@
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.blockinfile:
     create:                            true
-    path:                              /etc/sap_deployment_automation/dgscripts/asmsecondarystartup.sql
+    path:                              /etc/sap_deployment_automation/dataguard_scripts/asmsecondarystartup.sql
     marker_begin:                      "-- BEGIN"
     marker_end:                        "-- END"
     block: |
@@ -197,7 +196,7 @@
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.blockinfile:
     create:                            true
-    path:                              /etc/sap_deployment_automation/dgscripts/orasecondarystartup.sql
+    path:                              /etc/sap_deployment_automation/dataguard_scripts/orasecondarystartup.sql
     marker_begin:                      "-- BEGIN"
     marker_end:                        "-- END"
     block: |
@@ -213,7 +212,7 @@
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.blockinfile:
     create:                            true
-    path:                              /etc/sap_deployment_automation/dgscripts/secondarystartup.sql
+    path:                              /etc/sap_deployment_automation/dataguard_scripts/secondarystartup.sql
     marker_begin:                      "-- BEGIN"
     marker_end:                        "-- END"
     block: |
@@ -227,7 +226,7 @@
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.blockinfile:
     create:                            true
-    path:                              /etc/sap_deployment_automation/dgscripts/asmsecondarystartup.sql
+    path:                              /etc/sap_deployment_automation/dataguard_scripts/asmsecondarystartup.sql
     marker_begin:                      "-- BEGIN"
     marker_end:                        "-- END"
     block: |
@@ -240,11 +239,11 @@
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.blockinfile:
     create:                            true
-    path:                              /etc/sap_deployment_automation/dgscripts/dgstatus.sql
+    path:                              /etc/sap_deployment_automation/dataguard_scripts/dgstatus.sql
     marker_begin:                      "-- BEGIN"
     marker_end:                        "-- END"
     block: |
-         select  instance_name, status, database_role from v$database, v$instance;
+         SELECT INSTANCE_NAME, STATUS, DATABASE_ROLE FROM v$database, v$instance;
          exit
     mode:                              '0755'
 
@@ -253,7 +252,7 @@
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.blockinfile:
     create: true
-    path: /etc/sap_deployment_automation/dgscripts/enabledgbroker.sql
+    path: /etc/sap_deployment_automation/dataguard_scripts/enabledgbroker.sql
     marker_begin: "-- BEGIN"
     marker_end:   "-- END"
     block: |
@@ -286,7 +285,7 @@
   ansible.builtin.template:
     backup:                           true
     src:                              listener_primary.j2
-    dest:                             "/oracle/{{ db_sid }}/{{ ora_version }}/network/admin/listener.ora"
+    dest:                             "/oracle/{{ db_sid | upper }}/{{ ora_version }}/network/admin/listener.ora"
     mode:                             '0644'
     force:                            true
   vars:
@@ -301,7 +300,7 @@
   ansible.builtin.template:
     backup:                           true
     src:                              listener_secondary.j2
-    dest:                             "/oracle/{{ db_sid }}/{{ ora_version }}/network/admin/listener.ora"
+    dest:                             "/oracle/{{ db_sid | upper }}/{{ ora_version }}/network/admin/listener.ora"
     mode:                             '0644'
     force:                            true
   vars:
@@ -316,7 +315,7 @@
   ansible.builtin.template:
     backup:                           true
     src:                              tnsnames_primary.j2
-    dest:                             "/oracle/{{ db_sid }}/{{ ora_version }}/network/admin/tnsnames.ora"
+    dest:                             "/oracle/{{ db_sid | upper }}/{{ ora_version }}/network/admin/tnsnames.ora"
     mode:                             '0644'
     force:                            true
   vars:
@@ -400,7 +399,7 @@
   ansible.builtin.template:
     backup:                           true
     src:                              dbparametersfordg.j2
-    dest:                             "/etc/sap_deployment_automation/dgscripts/dbparametersfordg.sql"
+    dest:                             "/etc/sap_deployment_automation/dataguard_scripts/dbparametersfordg.sql"
     mode:                             '0644'
     force:                            true
   vars:
@@ -418,7 +417,7 @@
   ansible.builtin.template:
     backup:                           true
     src:                              tnsnamesforsap.j2
-    dest:                             "/etc/sap_deployment_automation/dgscripts/tnsnames.ora"
+    dest:                             "/etc/sap_deployment_automation/dataguard_scripts/tnsnames.ora"
     mode:                             '0644'
     force:                            true
   vars:
@@ -435,7 +434,7 @@
   ansible.builtin.template:
     backup:                           true
     src:                              dbtrigger.j2
-    dest:                             "/etc/sap_deployment_automation/dgscripts/dbtrigger.sql"
+    dest:                             "/etc/sap_deployment_automation/dataguard_scripts/dbtrigger.sql"
     mode:                             '0644'
     force:                            true
   when:  current_host == ora_primary
@@ -447,7 +446,7 @@
   ansible.builtin.template:
     backup:                           true
     src:                              dgconfig.j2
-    dest:                             "/etc/sap_deployment_automation/dgscripts/dgconfig.dgmgrl"
+    dest:                             "/etc/sap_deployment_automation/dataguard_scripts/dgconfig.dgmgrl"
     mode:                             '0644'
     force:                            true
   when:  current_host == ora_primary
@@ -458,7 +457,7 @@
   ansible.builtin.template:
     backup:                           true
     src:                              rman-restore.j2
-    dest:                             "/etc/sap_deployment_automation/dgscripts/rman-restore.rman"
+    dest:                             "/etc/sap_deployment_automation/dataguard_scripts/rman-restore.rman"
     mode:                             '0644'
     force:                            true
   when:
@@ -471,7 +470,7 @@
   ansible.builtin.template:
     backup:                           true
     src:                              rman-restore-asm.j2
-    dest:                             "/etc/sap_deployment_automation/dgscripts/rman-restore.rman"
+    dest:                             "/etc/sap_deployment_automation/dataguard_scripts/rman-restore.rman"
     mode:                             '0644'
     force:                            true
   when:
@@ -484,7 +483,7 @@
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.blockinfile:
     create: true
-    path: /etc/sap_deployment_automation/dgscripts/secondarystartup.sql
+    path: /etc/sap_deployment_automation/dataguard_scripts/secondarystartup.sql
     marker_begin: "-- BEGIN"
     marker_end:   "-- END"
     block: |
@@ -499,7 +498,7 @@
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.blockinfile:
     create: true
-    path: /etc/sap_deployment_automation/dgscripts/listenerupdate.sql
+    path: /etc/sap_deployment_automation/dataguard_scripts/listenerupdate.sql
     marker_begin: "-- BEGIN"
     marker_end:   "-- END"
     block: |
@@ -515,7 +514,7 @@
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.blockinfile:
     create: true
-    path: /etc/sap_deployment_automation/dgscripts/listenerupdate.sql
+    path: /etc/sap_deployment_automation/dataguard_scripts/listenerupdate.sql
     marker_begin: "-- BEGIN"
     marker_end:   "-- END"
     block: |
@@ -531,7 +530,7 @@
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.blockinfile:
     create: true
-    path: /etc/sap_deployment_automation/dgscripts/secondary_flashback_secondary.sql
+    path: /etc/sap_deployment_automation/dataguard_scripts/secondary_flashback_secondary.sql
     marker_begin: "-- BEGIN"
     marker_end:   "-- END"
     block: |
@@ -657,7 +656,7 @@
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.blockinfile:
     create:                            true
-    path:                              /etc/sap_deployment_automation/dgscripts/shutdownsecondary.sql
+    path:                              /etc/sap_deployment_automation/dataguard_scripts/shutdownsecondary.sql
     marker_begin:                      "-- BEGIN"
     marker_end:                        "-- END"
     block: |
@@ -671,7 +670,7 @@
   ansible.builtin.template:
     backup:                           true
     src:                              asmfilesystems-secondary.j2
-    dest:                             "/etc/sap_deployment_automation/dgscripts/asmfilesystems-secondary.sh"
+    dest:                             "/etc/sap_deployment_automation/dataguard_scripts/asmfilesystems-secondary.sh"
     mode:                             '0755'
     force:                            true
   when:

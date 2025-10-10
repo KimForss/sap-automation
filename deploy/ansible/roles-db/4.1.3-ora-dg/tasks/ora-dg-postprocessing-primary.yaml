@@ -28,8 +28,8 @@
       register:                        lsnrctl_start_primary_results
       failed_when:                     lsnrctl_start_primary_results.rc > 0
       args:
-        creates:                       /etc/sap_deployment_automation/dgscripts/lsnrctl_started_primary.txt
-        chdir:                         /etc/sap_deployment_automation/dgscripts
+        creates:                       /etc/sap_deployment_automation/dataguard_scripts/lsnrctl_started_primary.txt
+        chdir:                         /etc/sap_deployment_automation/dataguard_scripts
         executable:                    /bin/csh
       # when:                                current_host == ora_primary
 
@@ -49,7 +49,7 @@
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.file:
-        path:                          /etc/sap_deployment_automation/dgscripts/lsnrctl_started_primary.txt
+        path:                          /etc/sap_deployment_automation/dataguard_scripts/lsnrctl_started_primary.txt
         state:                         touch
         mode:                          '0755'
       when:                            lsnrctl_start_primary_results.rc == 0
@@ -62,8 +62,8 @@
       register:                        dg_broker_primary_results
       failed_when:                     dg_broker_primary_results.rc > 0
       args:
-        creates:                       /etc/sap_deployment_automation/dgscripts/enable_dg_broker.txt
-        chdir:                         /etc/sap_deployment_automation/dgscripts
+        creates:                       /etc/sap_deployment_automation/dataguard_scripts/enable_dg_broker.txt
+        chdir:                         /etc/sap_deployment_automation/dataguard_scripts
         executable:                    /bin/csh
       # when:                                current_host == ora_primary
 
@@ -78,7 +78,7 @@
 
     - name:                            "Oracle Data Guard - Post Processing: Enable DG Broker on Primary (save output)"
       ansible.builtin.copy:
-        dest:                          /etc/sap_deployment_automation/dgscripts/dg_broker_primary.log
+        dest:                          /etc/sap_deployment_automation/dataguard_scripts/dg_broker_primary.log
         content:                       "{{ dg_broker_primary_results.stdout }}"
         mode:                          '0777'
       when:                            dg_broker_primary_results.stdout is defined
@@ -87,7 +87,7 @@
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.file:
-        path:                          /etc/sap_deployment_automation/dgscripts/enable_dg_broker.txt
+        path:                          /etc/sap_deployment_automation/dataguard_scripts/enable_dg_broker.txt
         state:                         touch
         mode:                          '0755'
       when:                            dg_broker_primary_results.rc == 0
@@ -100,8 +100,8 @@
       register:                        dgconfig_results
       failed_when:                     dgconfig_results.rc > 0
       args:
-        creates:                       /etc/sap_deployment_automation/dgscripts/dg_config.txt
-        chdir:                         /etc/sap_deployment_automation/dgscripts
+        creates:                       /etc/sap_deployment_automation/dataguard_scripts/dg_config.txt
+        chdir:                         /etc/sap_deployment_automation/dataguard_scripts
         executable:                    /bin/csh
       # when:                                current_host == ora_primary
     - name:                            "Oracle Data Guard - Post Processing: Create dgmgrl configuration on Primary (debug)"
@@ -111,7 +111,7 @@
 
     - name:                            "Oracle Data Guard - Post Processing: Create dgmgrl configuration on Primary (save output)"
       ansible.builtin.copy:
-        dest:                          /etc/sap_deployment_automation/dgscripts/dg_create.log
+        dest:                          /etc/sap_deployment_automation/dataguard_scripts/dg_create.log
         content:                       "{{ dgconfig_results.stdout }}"
         mode:                          '0777'
       when:                            dgconfig_results.stdout is defined
@@ -120,7 +120,7 @@
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.file:
-        path:                          /etc/sap_deployment_automation/dgscripts/dg_config.txt
+        path:                          /etc/sap_deployment_automation/dataguard_scripts/dg_config.txt
         state:                         touch
         mode:                          '0755'
       when:                            dgconfig_results.rc == 0
@@ -133,8 +133,8 @@
       register:                        enable_dgconfig_results
       failed_when:                     enable_dgconfig_results.rc > 0
       args:
-        creates:                       /etc/sap_deployment_automation/dgscripts/dg_enable.txt
-        chdir:                         /etc/sap_deployment_automation/dgscripts
+        creates:                       /etc/sap_deployment_automation/dataguard_scripts/dg_enable.txt
+        chdir:                         /etc/sap_deployment_automation/dataguard_scripts
         executable:                    /bin/csh
       # when:                                current_host == ora_primary
     - name:                            "Oracle Data Guard - Post Processing: Create dgmgrl configuration on Primary (debug)"
@@ -144,7 +144,7 @@
 
     - name:                            "Oracle Data Guard - Post Processing: Create dgmgrl configuration on Primary (save output)"
       ansible.builtin.copy:
-        dest:                          /etc/sap_deployment_automation/dgscripts/dg_enable.log
+        dest:                          /etc/sap_deployment_automation/dataguard_scripts/dg_enable.log
         content:                       "{{ enable_dgconfig_results.stdout }}"
         mode:                          '0777'
       when:                            enable_dgconfig_results.stdout is defined
@@ -153,7 +153,7 @@
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.file:
-        path:                          /etc/sap_deployment_automation/dgscripts/dg_enable.txt
+        path:                          /etc/sap_deployment_automation/dataguard_scripts/dg_enable.txt
         state:                         touch
         mode:                          '0755'
       when:                            enable_dgconfig_results.rc == 0
@@ -166,8 +166,8 @@
       register:                        enable_dbtrigger_results
       failed_when:                     enable_dbtrigger_results.rc > 0
       args:
-        creates:                       /etc/sap_deployment_automation/dgscripts/enable_dbtrigger.txt
-        chdir:                         /etc/sap_deployment_automation/dgscripts
+        creates:                       /etc/sap_deployment_automation/dataguard_scripts/enable_dbtrigger.txt
+        chdir:                         /etc/sap_deployment_automation/dataguard_scripts
         executable:                    /bin/csh
       # when:                                current_host == ora_primary
     - name:                            "Oracle Data Guard - Post Processing: Create dbtrigger on Primary (debug)"
@@ -177,7 +177,7 @@
 
     - name:                            "Oracle Data Guard - Post Processing: Create dbtrigger configuration on Primary (save output)"
       ansible.builtin.copy:
-        dest:                          /etc/sap_deployment_automation/dgscripts/enable_dbtrigger.log
+        dest:                          /etc/sap_deployment_automation/dataguard_scripts/enable_dbtrigger.log
         content:                       "{{ enable_dbtrigger_results.stdout }}"
         mode:                          '0777'
       when:                            enable_dbtrigger_results.stdout is defined
@@ -186,7 +186,7 @@
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.file:
-        path:                          /etc/sap_deployment_automation/dgscripts/enable_dbtrigger.txt
+        path:                          /etc/sap_deployment_automation/dataguard_scripts/enable_dbtrigger.txt
         state:                         touch
         mode:                          '0755'
       when:                            enable_dbtrigger_results.rc == 0
@@ -199,8 +199,8 @@
       register:                        enable_dbtrigger_results
       failed_when:                     enable_dbtrigger_results.rc > 0
       args:
-        creates:                       /etc/sap_deployment_automation/dgscripts/enable_dbtrigger.txt
-        chdir:                         /etc/sap_deployment_automation/dgscripts
+        creates:                       /etc/sap_deployment_automation/dataguard_scripts/enable_dbtrigger.txt
+        chdir:                         /etc/sap_deployment_automation/dataguard_scripts
         executable:                    /bin/csh
       # when:                                current_host == ora_primary
     - name:                            "Oracle Data Guard - Post Processing: Create dbtrigger on Primary (debug)"
@@ -210,7 +210,7 @@
 
     - name:                            "Oracle Data Guard - Post Processing: Create dbtrigger configuration on Primary (save output)"
       ansible.builtin.copy:
-        dest:                          /etc/sap_deployment_automation/dgscripts/enable_dbtrigger.log
+        dest:                          /etc/sap_deployment_automation/dataguard_scripts/enable_dbtrigger.log
         content:                       "{{ enable_dbtrigger_results.stdout }}"
         mode:                          '0777'
       when:                            enable_dbtrigger_results.stdout is defined
@@ -219,7 +219,7 @@
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.file:
-        path:                          /etc/sap_deployment_automation/dgscripts/enable_dbtrigger.txt
+        path:                          /etc/sap_deployment_automation/dataguard_scripts/enable_dbtrigger.txt
         state:                         touch
         mode:                          '0755'
       when:                            enable_dbtrigger_results.rc == 0

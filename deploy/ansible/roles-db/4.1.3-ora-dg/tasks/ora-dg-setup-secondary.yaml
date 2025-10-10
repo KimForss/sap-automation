@@ -121,8 +121,8 @@
   register:                            lsnrctl_start_secondary_results
   failed_when:                         lsnrctl_start_secondary_results.rc > 0
   args:
-    creates:                           /etc/sap_deployment_automation/dgscripts/lsnrctl_started_sec.txt
-    chdir:                             /etc/sap_deployment_automation/dgscripts
+    creates:                           /etc/sap_deployment_automation/dataguard_scripts/lsnrctl_started_sec.txt
+    chdir:                             /etc/sap_deployment_automation/dataguard_scripts
     executable:                        /bin/csh
   when:
     - current_host == ora_secondary
@@ -144,7 +144,7 @@
   become:                              true
   become_user:                         "oracle"
   ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation/dgscripts/lsnrctl_started_sec.txt
+    path:                              /etc/sap_deployment_automation/dataguard_scripts/lsnrctl_started_sec.txt
     state:                             touch
     mode:                              '0755'
   when:
@@ -162,8 +162,8 @@
   register:                            lsnrctl_stop_secondary_results
   failed_when:                         lsnrctl_stop_secondary_results.rc > 0
   args:
-    creates:                           /etc/sap_deployment_automation/dgscripts/lsnrctl_stopped_sec.txt
-    chdir:                             /etc/sap_deployment_automation/dgscripts
+    creates:                           /etc/sap_deployment_automation/dataguard_scripts/lsnrctl_stopped_sec.txt
+    chdir:                             /etc/sap_deployment_automation/dataguard_scripts
     executable:                        /bin/csh
   when:
     - node_tier == "oracle-asm"
@@ -173,7 +173,7 @@
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation/dgscripts/lsnrctl_stopped_sec.txt
+    path:                              /etc/sap_deployment_automation/dataguard_scripts/lsnrctl_stopped_sec.txt
     state:                             touch
     mode:                              '0755'
   when:
@@ -189,8 +189,8 @@
   register:                            lsnrctl_asm_start_secondary_results
   failed_when:                         lsnrctl_asm_start_secondary_results.rc > 0
   args:
-    creates:                           /etc/sap_deployment_automation/dgscripts/lsnrctl_asm_started_sec.txt
-    chdir:                             /etc/sap_deployment_automation/dgscripts
+    creates:                           /etc/sap_deployment_automation/dataguard_scripts/lsnrctl_asm_started_sec.txt
+    chdir:                             /etc/sap_deployment_automation/dataguard_scripts
     executable:                        /bin/csh
   when:
     - node_tier == "oracle-asm"
@@ -213,7 +213,7 @@
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation/dgscripts/lsnrctl_asm_started_sec.txt
+    path:                              /etc/sap_deployment_automation/dataguard_scripts/lsnrctl_asm_started_sec.txt
     state:                             touch
     mode:                              '0755'
   when:
@@ -235,8 +235,8 @@
   register:                            lsnrctl_stop_secondary_results
   failed_when:                         lsnrctl_stop_secondary_results.rc > 0
   args:
-    creates:                           /etc/sap_deployment_automation/dgscripts/lsnrctl_stopped_sec.txt
-    chdir:                             /etc/sap_deployment_automation/dgscripts
+    creates:                           /etc/sap_deployment_automation/dataguard_scripts/lsnrctl_stopped_sec.txt
+    chdir:                             /etc/sap_deployment_automation/dataguard_scripts
     executable:                        /bin/csh
   when:
     - node_tier == "oracle-asm"
@@ -246,7 +246,7 @@
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation/dgscripts/lsnrctl_stopped_sec.txt
+    path:                              /etc/sap_deployment_automation/dataguard_scripts/lsnrctl_stopped_sec.txt
     state:                             touch
     mode:                              '0755'
   when:
@@ -262,8 +262,8 @@
   register:                            lsnrctl_asm_start_secondary_results
   failed_when:                         lsnrctl_asm_start_secondary_results.rc > 0
   args:
-    creates:                           /etc/sap_deployment_automation/dgscripts/lsnrctl_asm_started_sec.txt
-    chdir:                             /etc/sap_deployment_automation/dgscripts
+    creates:                           /etc/sap_deployment_automation/dataguard_scripts/lsnrctl_asm_started_sec.txt
+    chdir:                             /etc/sap_deployment_automation/dataguard_scripts
     executable:                        /bin/csh
   when:
     - node_tier == "oracle-asm"
@@ -286,7 +286,7 @@
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation/dgscripts/lsnrctl_asm_started_sec.txt
+    path:                              /etc/sap_deployment_automation/dataguard_scripts/lsnrctl_asm_started_sec.txt
     state:                             touch
     mode:                              '0755'
   when:
@@ -304,12 +304,12 @@
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell: |
       set -o pipefail
-      sqlplus / as sysdba @secondarystartup.sql | tee /etc/sap_deployment_automation/dgscripts/secondary_startup.log
+      sqlplus / as sysdba @secondarystartup.sql | tee /etc/sap_deployment_automation/dataguard_scripts/secondary_startup.log
   register:                            secondary_startup_results
   failed_when:                         secondary_startup_results.rc > 0
   args:
-    creates:                           /etc/sap_deployment_automation/dgscripts/secondary_startup.txt
-    chdir:                             /etc/sap_deployment_automation/dgscripts
+    creates:                           /etc/sap_deployment_automation/dataguard_scripts/secondary_startup.txt
+    chdir:                             /etc/sap_deployment_automation/dataguard_scripts
     executable:                        /bin/csh
   when: current_host == ora_secondary
 
@@ -321,7 +321,7 @@
 
 - name:                                "Oracle Data Guard - Setup Secondary: startup DG Broker on Secondary (save output)"
   ansible.builtin.copy:
-    dest:                              /etc/sap_deployment_automation/dgscripts/secondary_startup.log
+    dest:                              /etc/sap_deployment_automation/dataguard_scripts/secondary_startup.log
     content:                           "{{ secondary_startup_results.stdout }}"
     mode:                              '0777'
   when:                                secondary_startup_results.stdout is defined
@@ -330,7 +330,7 @@
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation/dgscripts/secondary_startup.txt
+    path:                              /etc/sap_deployment_automation/dataguard_scripts/secondary_startup.txt
     state:                             touch
     mode:                              '0755'
   when:
@@ -348,8 +348,8 @@
       register:                        rman_results
       failed_when:                     rman_results.rc > 1
       args:
-        creates:                       /etc/sap_deployment_automation/dgscripts/restore_completed.txt
-        chdir:                         /etc/sap_deployment_automation/dgscripts
+        creates:                       /etc/sap_deployment_automation/dataguard_scripts/restore_completed.txt
+        chdir:                         /etc/sap_deployment_automation/dataguard_scripts
         executable:                    /bin/csh
   rescue:
 
@@ -369,7 +369,7 @@
       register:                        secondary_shutdown_results
       failed_when:                     secondary_shutdown_results.rc > 0
       args:
-        chdir:                         /etc/sap_deployment_automation/dgscripts
+        chdir:                         /etc/sap_deployment_automation/dataguard_scripts
         executable:                    /bin/csh
 
     - name:                            "Oracle Data Guard - Setup Secondary: Remove files"
@@ -396,7 +396,7 @@
       ansible.builtin.shell:           sqlplus / as sysdba @secondarystartup.sql
       register:                        secondary_startup_results2
       args:
-        chdir:                         /etc/sap_deployment_automation/dgscripts
+        chdir:                         /etc/sap_deployment_automation/dataguard_scripts
         executable:                    /bin/csh
 
     - name:                            "Oracle Data Guard - Setup Secondary: startup DG Broker on Secondary (Debug)"
@@ -407,7 +407,7 @@
 
     - name:                            "Oracle Data Guard - Setup Secondary: startup DG Broker on Secondary (save output)"
       ansible.builtin.copy:
-        dest:                          /etc/sap_deployment_automation/dgscripts/secondary_startup2.log
+        dest:                          /etc/sap_deployment_automation/dataguard_scripts/secondary_startup2.log
         content:                       "{{ secondary_startup_results2.stdout }}"
         mode:                          '0777'
       when:                            secondary_startup_results.stdout2 is defined
@@ -419,7 +419,7 @@
       register:                        rman_results
       failed_when:                     rman_results.rc > 1
       args:
-        chdir:                         /etc/sap_deployment_automation/dgscripts
+        chdir:                         /etc/sap_deployment_automation/dataguard_scripts
         executable:                    /bin/csh
 
   when: current_host == ora_secondary
@@ -431,7 +431,7 @@
 
 - name:                                "Oracle Data Guard - Setup Secondary: Duplicate Secondary DB from Primary DB using RMAN (save output)"
   ansible.builtin.copy:
-    dest:                              /etc/sap_deployment_automation/dgscripts/restore.log
+    dest:                              /etc/sap_deployment_automation/dataguard_scripts/restore.log
     content:                           "{{ rman_results.stdout }}"
     mode:                              '0777'
   when:                                rman_results.stdout is defined
@@ -458,7 +458,7 @@
   ansible.builtin.template:
    backup:                             true
    src:                                standbyredolog.j2
-   dest:                               "/etc/sap_deployment_automation/dgscripts/standbyredolog.sql"
+   dest:                               "/etc/sap_deployment_automation/dataguard_scripts/standbyredolog.sql"
    mode:                               '0644'
    force:                              true
   when:                                node_tier == "oracle"
@@ -469,12 +469,12 @@
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell: |
       set -o pipefail
-      sqlplus / as sysdba @standbyredolog.sql | tee /etc/sap_deployment_automation/dgscripts/standbyredolog.log
+      sqlplus / as sysdba @standbyredolog.sql | tee /etc/sap_deployment_automation/dataguard_scripts/standbyredolog.log
   register:                            redo_rename_results
   failed_when:                         redo_rename_results.rc > 0
   args:
-    creates:                           /etc/sap_deployment_automation/dgscripts/redo_rename.txt
-    chdir:                             /etc/sap_deployment_automation/dgscripts
+    creates:                           /etc/sap_deployment_automation/dataguard_scripts/redo_rename.txt
+    chdir:                             /etc/sap_deployment_automation/dataguard_scripts
     executable:                        /bin/csh
   when:
     - node_tier == "oracle"
@@ -484,7 +484,7 @@
   become:                              true
   become_user:                         "root"
   ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation/dgscripts/redo_rename.txt
+    path:                              /etc/sap_deployment_automation/dataguard_scripts/redo_rename.txt
     state:                             touch
     mode:                              '0755'
     owner:                             oracle
@@ -497,7 +497,7 @@
   become:                              true
   become_user:                         "root"
   ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation/dgscripts/restore_completed.txt
+    path:                              /etc/sap_deployment_automation/dataguard_scripts/restore_completed.txt
     state:                             touch
     mode:                              '0755'
     owner:                             oracle
@@ -517,7 +517,7 @@
   failed_when:                         asm_oraarch_created_results.rc > 0
   args:
     executable:                        /bin/csh
-    creates:                           /etc/sap_deployment_automation/dgscripts/asm_oraarch_created.txt
+    creates:                           /etc/sap_deployment_automation/dataguard_scripts/asm_oraarch_created.txt
   when:
     - node_tier == "oracle-asm"
     - current_host == ora_secondary
@@ -527,7 +527,7 @@
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation/dgscripts/asm_oraarch_created.txt
+    path:                              /etc/sap_deployment_automation/dataguard_scripts/asm_oraarch_created.txt
     state:                             touch
     mode:                              '0755'
   when:
@@ -542,12 +542,12 @@
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell: |
       set -o pipefail
-      sqlplus / as sysdba @createspfile.sql | tee /etc/sap_deployment_automation/dgscripts/create_spfile.log
+      sqlplus / as sysdba @create_spfile.sql | tee /etc/sap_deployment_automation/dataguard_scripts/create_spfile.log
   register:                            create_spfile_results
   failed_when:                         create_spfile_results.rc > 0
   args:
-    creates:                           /etc/sap_deployment_automation/dgscripts/spfile_created.txt
-    chdir:                             /etc/sap_deployment_automation/dgscripts
+    creates:                           /etc/sap_deployment_automation/dataguard_scripts/spfile_created.txt
+    chdir:                             /etc/sap_deployment_automation/dataguard_scripts
     executable:                        /bin/csh
   when:
     - node_tier == "oracle"
@@ -558,7 +558,7 @@
   become:                              true
   become_user:                         "root"
   ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation/dgscripts/spfile_created.txt
+    path:                              /etc/sap_deployment_automation/dataguard_scripts/spfile_created.txt
     state:                             touch
     mode:                              '0755'
     owner:                             oracle
@@ -578,7 +578,7 @@
   register:                            backup_pfile_results
   failed_when:                         backup_pfile_results.rc > 0
   args:
-    creates:                           /etc/sap_deployment_automation/dgscripts/pfile_backup_created.txt
+    creates:                           /etc/sap_deployment_automation/dataguard_scripts/pfile_backup_created.txt
     chdir:                             /oracle/{{ db_sid |upper }}/{{ ora_release}}/dbs
     executable:                        /bin/csh
   when:
@@ -590,7 +590,7 @@
   become:                              true
   become_user:                         "root"
   ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation/dgscripts/pfile_backup_created.txt
+    path:                              /etc/sap_deployment_automation/dataguard_scripts/pfile_backup_created.txt
     state:                             touch
     mode:                              '0755'
     owner:                             oracle
@@ -607,8 +607,8 @@
   register:                            local_listener_on_secondary_results
   failed_when:                         local_listener_on_secondary_results.rc > 0
   args:
-   creates:                           /etc/sap_deployment_automation/dgscripts/local_listener_on_secondary.txt
-   chdir:                             /etc/sap_deployment_automation/dgscripts
+   creates:                           /etc/sap_deployment_automation/dataguard_scripts/local_listener_on_secondary.txt
+   chdir:                             /etc/sap_deployment_automation/dataguard_scripts
    executable:                        /bin/csh
   when:
     - current_host == ora_secondary
@@ -619,12 +619,12 @@
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell: |
       set -o pipefail
-      sqlplus / as sysdba @shutdownsecondary.sql | tee /etc/sap_deployment_automation/dgscripts/ora_secondary_shutdown.log
+      sqlplus / as sysdba @shutdownsecondary.sql | tee /etc/sap_deployment_automation/dataguard_scripts/ora_secondary_shutdown.log
   register:                            secondary_shutdown_results
   failed_when:                         secondary_shutdown_results.rc > 0
   args:
-    creates:                           /etc/sap_deployment_automation/dgscripts/ora_secondary_shutdown.txt
-    chdir:                             /etc/sap_deployment_automation/dgscripts
+    creates:                           /etc/sap_deployment_automation/dataguard_scripts/ora_secondary_shutdown.txt
+    chdir:                             /etc/sap_deployment_automation/dataguard_scripts
     executable:                        /bin/csh
   when:
     - node_tier == "oracle"
@@ -635,7 +635,7 @@
   become:                              true
   become_user:                         "root"
   ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation/dgscripts/ora_secondary_shutdown.txt
+    path:                              /etc/sap_deployment_automation/dataguard_scripts/ora_secondary_shutdown.txt
     state:                             touch
     mode:                              '0755'
     owner:                             oracle
@@ -646,7 +646,7 @@
     - current_host == ora_secondary
 
 # # Create new PFILE with SPFILE Details for NON-ASM.
-- name:                                "Oracle Data Guard - Preparation: create createspfile"
+- name:                                "Oracle Data Guard - Preparation: create create_spfile"
   become:                              true
   become_user:                         "oracle"
   ansible.builtin.blockinfile:
@@ -667,12 +667,12 @@
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell: |
       set -o pipefail
-      sqlplus / as sysdba @orasecondarystartup.sql | tee /etc/sap_deployment_automation/dgscripts/ora_secondary_startup_spfile.log
+      sqlplus / as sysdba @orasecondarystartup.sql | tee /etc/sap_deployment_automation/dataguard_scripts/ora_secondary_startup_spfile.log
   register:                            ora_secondary_startup_spfile_results
   failed_when:                         ora_secondary_startup_spfile_results.rc > 0
   args:
-    creates:                           /etc/sap_deployment_automation/dgscripts/ora_secondary_startup_spfile.txt
-    chdir:                             /etc/sap_deployment_automation/dgscripts
+    creates:                           /etc/sap_deployment_automation/dataguard_scripts/ora_secondary_startup_spfile.txt
+    chdir:                             /etc/sap_deployment_automation/dataguard_scripts
     executable:                        /bin/csh
   when:
     - node_tier == "oracle"
@@ -683,7 +683,7 @@
   become:                              true
   become_user:                         "root"
   ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation/dgscripts/ora_secondary_startup_spfile.txt
+    path:                              /etc/sap_deployment_automation/dataguard_scripts/ora_secondary_startup_spfile.txt
     state:                             touch
     mode:                              '0755'
     owner:                             oracle
@@ -701,12 +701,12 @@
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell: |
       set -o pipefail
-      sqlplus / as sysdba @createspfilesecondary.sql | tee /etc/sap_deployment_automation/dgscripts/create_spfile.log
+      sqlplus / as sysdba @create_spfilesecondary.sql | tee /etc/sap_deployment_automation/dataguard_scripts/create_spfile.log
   register:                            create_spfile_results
   failed_when:                         create_spfile_results.rc > 0
   args:
-    creates:                           /etc/sap_deployment_automation/dgscripts/spfile_created.txt
-    chdir:                             /etc/sap_deployment_automation/dgscripts
+    creates:                           /etc/sap_deployment_automation/dataguard_scripts/spfile_created.txt
+    chdir:                             /etc/sap_deployment_automation/dataguard_scripts
     executable:                        /bin/csh
   when:
     - node_tier == "oracle-asm"
@@ -717,7 +717,7 @@
   become:                              true
   become_user:                         "root"
   ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation/dgscripts/spfile_created.txt
+    path:                              /etc/sap_deployment_automation/dataguard_scripts/spfile_created.txt
     state:                             touch
     mode:                              '0755'
     owner:                             oracle
@@ -737,7 +737,7 @@
   register:                            backup_pfile_results
   failed_when:                         backup_pfile_results.rc > 0
   args:
-    creates:                           /etc/sap_deployment_automation/dgscripts/pfile_backup_created.txt
+    creates:                           /etc/sap_deployment_automation/dataguard_scripts/pfile_backup_created.txt
     chdir:                             /oracle/{{ db_sid |upper }}/{{ ora_release}}/dbs
     executable:                        /bin/csh
   when:
@@ -749,7 +749,7 @@
   become:                              true
   become_user:                         "root"
   ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation/dgscripts/pfile_backup_created.txt
+    path:                              /etc/sap_deployment_automation/dataguard_scripts/pfile_backup_created.txt
     state:                             touch
     mode:                              '0755'
     owner:                             oracle
@@ -766,12 +766,12 @@
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell: |
       set -o pipefail
-      sqlplus / as sysdba @shutdownsecondary.sql | tee /etc/sap_deployment_automation/dgscripts/asm_secondary_shutdown.log
+      sqlplus / as sysdba @shutdownsecondary.sql | tee /etc/sap_deployment_automation/dataguard_scripts/asm_secondary_shutdown.log
   register:                            secondary_shutdown_results
   failed_when:                         secondary_shutdown_results.rc > 0
   args:
-    creates:                           /etc/sap_deployment_automation/dgscripts/asm_secondary_shutdown.txt
-    chdir:                             /etc/sap_deployment_automation/dgscripts
+    creates:                           /etc/sap_deployment_automation/dataguard_scripts/asm_secondary_shutdown.txt
+    chdir:                             /etc/sap_deployment_automation/dataguard_scripts
     executable:                        /bin/csh
   when:
     - node_tier == "oracle-asm"
@@ -782,7 +782,7 @@
   become:                              true
   become_user:                         "root"
   ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation/dgscripts/asm_secondary_shutdown.txt
+    path:                              /etc/sap_deployment_automation/dataguard_scripts/asm_secondary_shutdown.txt
     state:                             touch
     mode:                              '0755'
     owner:                             oracle
@@ -793,7 +793,7 @@
     - current_host == ora_secondary
 
 # Create new PFILE with SPFILE Details for ASM.
-- name:                                "Oracle Data Guard for ASM - Preparation: create createspfile"
+- name:                                "Oracle Data Guard for ASM - Preparation: create create_spfile"
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.blockinfile:
@@ -814,12 +814,12 @@
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell: |
       set -o pipefail
-      sqlplus / as sysdba @asmsecondarystartup.sql | tee /etc/sap_deployment_automation/dgscripts/asm_secondary_startup_spfile.log
+      sqlplus / as sysdba @asmsecondarystartup.sql | tee /etc/sap_deployment_automation/dataguard_scripts/asm_secondary_startup_spfile.log
   register:                            asm_secondary_startup_spfile_results
   failed_when:                         asm_secondary_startup_spfile_results.rc > 0
   args:
-    creates:                           /etc/sap_deployment_automation/dgscripts/asm_secondary_startup_spfile.txt
-    chdir:                             /etc/sap_deployment_automation/dgscripts
+    creates:                           /etc/sap_deployment_automation/dataguard_scripts/asm_secondary_startup_spfile.txt
+    chdir:                             /etc/sap_deployment_automation/dataguard_scripts
     executable:                        /bin/csh
   when:
     - node_tier == "oracle-asm"
@@ -830,7 +830,7 @@
   become:                              true
   become_user:                         "root"
   ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation/dgscripts/asm_secondary_startup_spfile.txt
+    path:                              /etc/sap_deployment_automation/dataguard_scripts/asm_secondary_startup_spfile.txt
     state:                             touch
     mode:                              '0755'
     owner:                             oracle
@@ -844,7 +844,7 @@
   become:                              true
   become_user:                         root
   ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation/dgscripts/local_listener_on_secondary.txt
+    path:                              /etc/sap_deployment_automation/dataguard_scripts/local_listener_on_secondary.txt
     state:                             touch
     mode:                              '0755'
     owner:                             oracle
@@ -863,8 +863,8 @@
   register:                            secondary_startup_results
   failed_when:                         secondary_startup_results.rc > 0
   args:
-    creates:                           /etc/sap_deployment_automation/dgscripts/enable_dg_broker.txt
-    chdir:                             /etc/sap_deployment_automation/dgscripts
+    creates:                           /etc/sap_deployment_automation/dataguard_scripts/enable_dg_broker.txt
+    chdir:                             /etc/sap_deployment_automation/dataguard_scripts
     executable:                        /bin/csh
   when:                                current_host == ora_secondary
 
@@ -875,7 +875,7 @@
 
 - name:                                "Oracle Data Guard - Setup Secondary: startup DG Broker on Secondary (save output)"
   ansible.builtin.copy:
-    dest:                              /etc/sap_deployment_automation/dgscripts/secondary_startup.log
+    dest:                              /etc/sap_deployment_automation/dataguard_scripts/secondary_startup.log
     content:                           "{{ secondary_startup_results.stdout }}"
     mode:                              '0777'
   when:                                secondary_startup_results.stdout is defined
@@ -884,7 +884,7 @@
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation/dgscripts/enable_dg_broker.txt
+    path:                              /etc/sap_deployment_automation/dataguard_scripts/enable_dg_broker.txt
     state:                             touch
     mode:                              '0755'
   when:
