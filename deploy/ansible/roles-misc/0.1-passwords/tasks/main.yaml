@@ -11,6 +11,7 @@
 - name:                                "0.1 Password: - Construct SAP system password secret name"
   ansible.builtin.set_fact:
     sap_password_id:                   "{{ secret_prefix }}-{{ sap_sid }}-sap-password"
+    oracle_password_id:                "{{ secret_prefix }}-{{ sap_sid }}-oracle-password"
     secret_expiry_date:                "{{ '%Y-%m-%dT%H:%M:%SZ' | strftime(ansible_date_time.epoch | int + (60*60*24*365) )}}"
   tags:
     - always
@@ -44,6 +45,12 @@
     secret_exists:                     "{{ (sap_password_id in keyvault_secret_sap_password_exists.stdout) | bool }}"
   tags:
     - always
+
+- name:                                "0.1 Password: - Check for secret availability"
+  ansible.builtin.set_fact:
+    oracle_secret_exists:               "{{ (oracle_password_id in keyvault_secret_sap_password_exists.stdout) | bool }}"
+  when:
+    - platform in ['ORACLE', 'ORACLE-ASM']
 
 - name:                                "0.1 Password: - Retrieve SAP system password"
   when:                                secret_exists
@@ -145,5 +152,78 @@
   when:                                database_high_availability or scs_high_availability
   tags:
     - always
+
+- name:                                "0.1 Password: - Retrieve oracle password"
+  when:                                oracle_secret_exists
+  block:
+    - name:                            "0.1 Password: - Get SAP password from key vault"
+      ansible.builtin.command: >-
+        az keyvault secret show
+          --vault-name {{ kv_name }}
+          --name {{ oracle_password_id }}
+          --query value
+          --output tsv
+      changed_when:                    false
+      register:                        keyvault_secret_show_oracle_password_value
+      no_log:                          true
+      tags:
+        - always
+
+    - name:                            "0.1 Password: - Extract Oracle password"
+      ansible.builtin.set_fact:
+        oracle_password:               "{{ keyvault_secret_show_oracle_password_value.stdout }}"
+      no_log:                          true
+      tags:
+        - always
+
+- name:                                "0.1 Password: - Set Oracle system password"
+  when:                                not oracle_secret_exists
+  block:
+
+    - name:                            "0.1 Password: - Remove tmp file"
+      ansible.builtin.file:
+        path:                          /tmp/oraclepasswordfile
+        state:                         absent
+      tags:
+        - always
+
+    - name:                            "0.1 Password: - Create Password prefix"
+      ansible.builtin.set_fact:
+        oracle_password_pre:              "{{ oracle_password_pre | default([]) +
+                                            [lookup('password',
+                                              '/dev/null
+                                              length=1
+                                              chars=' ~item)]
+                                          }}"
+      loop:
+        - ascii_lowercase
+        - ascii_uppercase
+        - digits
+        - special
+      no_log:                          true
+      tags:
+        - always
+
+    - name:                            "0.1 Password: - Construct Oracle system password"
+      ansible.builtin.set_fact:
+        oracle_password:                  "{{ oracle_password_pre | join('')
+                                          + lookup('password',
+                                          '/tmp/oraclepasswordfile
+                                          length=9
+                                          chars=ascii_lowercase,ascii_uppercase,digits,special')
+                                        }}"
+      no_log:                          true
+      tags:
+        - always
+#    - name:                            "0.1 Password: - Construct SAP system password"
+#      ansible.builtin.set_fact:
+#        sap_password:                  "S3{{ lookup('password', '/tmp/sappasswordfile length=10 chars=ascii_lowercase,ascii_uppercase,digits') }}"
+
+    - name:                            "0.1 Password: - Create Password secret"
+      ansible.builtin.command:         az keyvault secret set --vault-name {{ kv_name }} --name {{ oracle_password_id }} --value "{{ oracle_password }}" --expires "{{ secret_expiry_date }}"
+      tags:
+        - always
+
+
 
 ...

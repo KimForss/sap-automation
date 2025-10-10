@@ -253,6 +253,7 @@
             tier:                      ora                                    # Actions for Oracle DB Servers
             action:                    'Prepare_Secondary'
             main_password:             "{{ hostvars.localhost.sap_password }}"
+            oracle_password:           "{{ hostvars.localhost.oracle_password }}"
           tags:
             - always
 
@@ -273,6 +274,7 @@
             tier:                      ora                                    # Actions for Oracle DB Servers
             action:                    'Prepare_and_Restore'
             main_password:             "{{ hostvars.localhost.sap_password }}"
+            oracle_password:           "{{ hostvars.localhost.oracle_password }}"
           tags:
             - always
 
@@ -301,6 +303,8 @@
             tier:                      ora                                    # Actions for Oracle DB Servers
             action:                    'Post_Processing_Primary'
             main_password:             "{{ hostvars.localhost.sap_password }}"
+            oracle_password:           "{{ hostvars.localhost.oracle_password }}"
+
           tags:
             - always
 
@@ -330,6 +334,7 @@
             tier:                      ora                                    # Actions for Oracle DB Servers
             action:                    'Post_Processing_Secondary'
             main_password:             "{{ hostvars.localhost.sap_password }}"
+            oracle_password:           "{{ hostvars.localhost.oracle_password }}"
           tags:
             - always
 
