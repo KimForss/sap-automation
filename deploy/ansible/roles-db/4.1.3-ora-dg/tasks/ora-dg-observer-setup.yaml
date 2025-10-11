@@ -128,7 +128,7 @@
 
       - "Oracle Image: {{ target_media_location }}/oraserver/LINUX_X86_64/db_home/LINUX.X64_193000_db_home.zip"
       - "ApplyRU:      {{ ApplyRU }}"
-      - "OPatchPath    {{ OPatchPath }}"
+      - "OPatchPath:   {{ OPatchPath }}"
 
 - name:                                "Oracle Data Guard: check if installed"
   ansible.builtin.stat:
