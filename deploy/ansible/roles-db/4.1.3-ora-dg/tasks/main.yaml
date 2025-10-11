@@ -40,7 +40,7 @@
 - name:                                "Oracle Data Guard - Preparation Create password file"
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
-  ansible.builtin.shell:               "orapwd file=$ORACLE_HOME/dbs/orapw{{ db_sid | upper }} password={{ main_password }} entries=5"
+  ansible.builtin.shell:               "orapwd file=$ORACLE_HOME/dbs/orapw{{ db_sid | upper }} password={{ main_password }} entries=5 format=12"
   environment:
     ORACLE_SID:                        "{{ db_sid | upper }}"
     ORACLE_HOME:                       "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
