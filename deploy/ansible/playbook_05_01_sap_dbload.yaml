@@ -213,7 +213,7 @@
         - name:                        "DBLoad Playbook: - Setting the dbload facts"
           ansible.builtin.set_fact:
             tier:                      dbload                                                          # SAP Install phase: DBLOAD
-            main_password:             "{{ hostvars.localhost.sap_password }}!1"   # ASM requires special char in password
+            main_password:             "{{ hostvars.localhost.sap_password }}"
             sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
             sapbits_sas_token:         "{{ hostvars.localhost.sapbits_sas_token }}"
             always_upload_jinja_templates: false
