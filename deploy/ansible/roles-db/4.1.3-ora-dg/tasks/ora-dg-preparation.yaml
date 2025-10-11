@@ -536,7 +536,6 @@
 - name:                                "ORACLE: Create directories"
   when:
     - current_host == ora_secondary
-    - node_tier == "oracle"
   ansible.builtin.file:
     path:                              "{{ item.path }}"
     state:                             directory
