@@ -39,7 +39,7 @@
       tags:
         - 0.1-passwords
 
-    - name:                            "OS configuration playbook: - Read password"
+    - name:                            "DBLoad Playbook: - Read/Create Windows password"
       ansible.builtin.include_role:
         name:                          roles-misc/0.1-passwords
         tasks_from:                    windows.yaml
@@ -65,7 +65,7 @@
                                         {{ sap_sid | upper }}_SCS :
                                         {{ sap_sid | upper }}_DB"
 
-  name:                                DB Load
+  name:                                DB Load on HANA
   remote_user:                         "{{ orchestration_ansible_user }}"
   gather_facts:                        true                                    # Important to collect hostvars information
   vars_files:
@@ -106,7 +106,7 @@
             - always
 
 
-        - name:                        "DBLoad Playbook: Define this SID"
+        - name:                        "DBLoad Playbook: - Define this SID"
           ansible.builtin.set_fact:
             this_sid:
               {
@@ -118,7 +118,7 @@
                 'app_inst_no': '{{ app_instance_number }}'
               }
 
-        - name:                        "DBLoad Playbook: Define list of SIDs"
+        - name:                        "DBLoad Playbook: - Define list of SIDs"
           ansible.builtin.set_fact:
             all_sids:                  "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sids | default([]) + [this_sid] }}{% endif %}"
 
@@ -194,7 +194,7 @@
 
 - hosts:                               "{{ sap_sid | upper }}_DB[0]"
 
-  name:                                DB Installation - ORACLE
+  name:                                DB Creation and Load - ORACLE
   remote_user:                         "{{ orchestration_ansible_user }}"
   gather_facts:                        true
   vars_files:
@@ -293,7 +293,7 @@
 # +------------------------------------4--------------------------------------*/
 - hosts:                               "{{ sap_sid | upper }}_DB[0]"
 
-  name:                                DB Load
+  name:                                DB Load on SQL Server
   remote_user:                         "{{ orchestration_ansible_user }}"
   gather_facts:                        true                                    # Important to collect hostvars information
   vars_files:
@@ -336,7 +336,7 @@
                 'app_inst_no': '{{ app_instance_number }}'
               }
 
-        - name:                        "DBLoad Playbook: Define list of SIDs"
+        - name:                        "DBLoad Playbook:  - Define list of SIDs"
           ansible.builtin.set_fact:
             all_sids:                  "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sids | default([]) + [this_sid] }}{% endif %}"
 
