@@ -534,7 +534,9 @@
 # Create Directories for RESTORE on Secondary
 
 - name:                                "ORACLE: Create directories"
-  when:                                current_host == ora_secondary
+  when:
+    - current_host == ora_secondary
+    - node_tier == "oracle"
   ansible.builtin.file:
     path:                              "{{ item.path }}"
     state:                             directory
@@ -554,9 +556,6 @@
     - { mode: '0755', path: '/oracle/{{ db_sid | upper }}/saptrace/diag' }
     - { mode: '0755', path: '/oracle/{{ db_sid | upper }}/saptrace/usertrace' }
     - { mode: '0755', path: '/oracle/{{ db_sid | upper }}/orawallet' }
-  when:
-    - current_host == ora_secondary
-    - node_tier == "oracle"
 
 - name:                                "Oracle Data Guard - Rescue create shutdown_secondary.sql"
   become:                              true

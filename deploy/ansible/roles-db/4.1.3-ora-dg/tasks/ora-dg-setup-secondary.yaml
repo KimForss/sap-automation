@@ -30,17 +30,17 @@
     mode:                              "{{ '0777' | int - (custom_umask | default('022') | int) }}"
   when: current_host == ora_secondary
 
-- name:                                "Oracle Data Guard - Setup Secondary: Copy orapwSID to Secondary"
-  become:                              true
-  become_user:                         "root"
-  ansible.builtin.copy:
-    src:                               "{{ target_media_location }}/downloads/{{ db_sid | upper }}/orapw{{ db_sid | upper }}"
-    dest:                              /oracle/{{ db_sid | upper }}/{{ ora_release }}/dbs/orapw{{ db_sid | upper }}
-    remote_src:                        true
-    owner:                             oracle
-    group:                             dba
-    mode:                              "{{ '0777' | int - (custom_umask | default('022') | int) }}"
-  when: current_host == ora_secondary
+# - name:                                "Oracle Data Guard - Setup Secondary: Copy orapwSID to Secondary"
+#   become:                              true
+#   become_user:                         "root"
+#   ansible.builtin.copy:
+#     src:                               "{{ target_media_location }}/downloads/{{ db_sid | upper }}/orapw{{ db_sid | upper }}"
+#     dest:                              /oracle/{{ db_sid | upper }}/{{ ora_release }}/dbs/orapw{{ db_sid | upper }}
+#     remote_src:                        true
+#     owner:                             oracle
+#     group:                             dba
+#     mode:                              "{{ '0777' | int - (custom_umask | default('022') | int) }}"
+#   when: current_host == ora_secondary
 
 # Add additional parameters for Oracle ASM to match the file locations of Primary in secondary.
 # This has to be done to prevent rman shooting file systems all over the disk groups.

@@ -49,7 +49,6 @@
   register:                            sapinst_log_files
   when:
     - tier != 'hana'
-    - tier != 'oracle'
     - sap_installation_tried.stat.exists
 
 - name:                               "Get the additional log files from the work directory"
@@ -62,9 +61,7 @@
     recurse:                          false
   register:                           work_log_files
   when:
-    - tier != 'hana'
-    - tier != 'oracle'
-    - tier != 'oracle-asm'
+    - tier not in ['hana', 'oracle', 'oracle-asm']
     - sap_installation_tried.stat.exists
     - work_log_component_name is defined
 
@@ -83,8 +80,7 @@
       ansible.builtin.debug:
         msg:                           "Error occurred while acquiring other SAP logs."
   when:
-    - tier != 'oracle'
-    - tier != 'oracle-asm'
+    - tier not in ['oracle', 'oracle-asm']
 
 - name:                                "Post Installation: Debug (sapinst_log_files)"
   ansible.builtin.debug:
@@ -204,7 +200,7 @@
     path:                              "{{ tmp_directory }}/{{ this_sid }}/sapinst_instdir"
   register:                            sapinst_instdir_exists
   when:
-    - tier not in ['hana', 'oracle']
+    - tier not in ['hana', 'oracle', 'oracle-asm']
     - all_sapinst_instdir_logs | default(false)
 
 - name:                                "Post Installation (optional): Find all log files in {{ tmp_directory }}/{{ this_sid }}/sapinst_instdir/"
@@ -217,7 +213,7 @@
     recurse:                           true
   register:                            sapinst_instdir_logs
   when:
-    - tier not in ['hana', 'oracle']
+    - tier not in ['hana', 'oracle', 'oracle-asm']
     - (sapinst_instdir_exists.stat.exists | default(false))
     - all_sapinst_instdir_logs | default(false)
 
@@ -230,7 +226,7 @@
     format:                            zip
     mode:                              0755
   when:
-    - tier not in ['hana', 'oracle']
+    - tier not in ['hana', 'oracle', 'oracle-asm']
     - sapinst_instdir_logs.files is defined
     - sapinst_instdir_logs.files | length > 0
     - all_sapinst_instdir_logs | default(false)
@@ -243,7 +239,7 @@
     dest:                              "{{ _workspace_directory }}/logs/{{ this_sid }}{{ suffix }}_{{ inventory_hostname }}_all_logs.zip"
     flat:                              true
   when:
-    - tier not in ['hana', 'oracle']
+    - tier not in ['hana', 'oracle', 'oracle-asm']
     - sapinst_instdir_logs.files is defined
     - sapinst_instdir_logs.files | length > 0
     - all_sapinst_instdir_logs | default(false)
@@ -291,7 +287,6 @@
       when:
         - hana_list_of_files is defined
 
-
 - name:                                "Post Installation: ORACLE"
   become:                              true
   become_user:                         "root"
@@ -319,7 +314,7 @@
       become:                          true
       community.general.archive:
         path:                          "{{ oracle_list_of_files }}"
-        dest:                          "/etc/sap_deployment_automation{{ ansible_hostname }}.zip"
+        dest:                          "/etc/sap_deployment_automation/{{ suffix }}{{ ansible_hostname }}.zip"
         format:                        zip
         mode:                          0755
 
@@ -336,7 +331,7 @@
       when:
         - oracle_log_files is defined
   when:
-    - tier == 'oracle'
+    - tier in ['oracle', 'oracle-asm']
 
 ...
 # /*---------------------------------------------------------------------------8
