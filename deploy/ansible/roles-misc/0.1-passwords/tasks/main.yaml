@@ -99,16 +99,13 @@
       ansible.builtin.set_fact:
         sap_password:                  "{{ sap_password_pre | join('')
                                           + lookup('password',
-                                          '/tmp/sappasswordfile
-                                          length=9
-                                          chars=ascii_lowercase,ascii_uppercase,digits')
+                                          '/tmp/sappasswordfile'
+                                          length=10
+                                          chars=ascii_lowercase,ascii_uppercase,digits,'_#$.')
                                         }}"
       no_log:                          true
       tags:
         - always
-#    - name:                            "0.1 Password: - Construct SAP system password"
-#      ansible.builtin.set_fact:
-#        sap_password:                  "S3{{ lookup('password', '/tmp/sappasswordfile length=10 chars=ascii_lowercase,ascii_uppercase,digits') }}"
 
     - name:                            "0.1 Password: - Create Password secret"
       ansible.builtin.command:         az keyvault secret set --vault-name {{ kv_name }} --name {{ sap_password_id }} --value "{{ sap_password }}" --expires "{{ secret_expiry_date }}"
