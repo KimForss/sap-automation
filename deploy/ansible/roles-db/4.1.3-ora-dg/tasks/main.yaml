@@ -46,7 +46,7 @@
     ORACLE_HOME:                       "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
   args:
     creates:                           /oracle/{{ db_sid | upper }}/{{ ora_version }}/dbs/orapw{{ db_sid | upper }}
-    chdir:                             /oracle/{{ db_sid | upper }}/{{ ora_version }}/dbs
+    chdir:                             "{{ target_media_location }}/downloads/{{ db_sid | upper }}/dbs"
     executable:                        /bin/csh
 
 - name:                                "Oracle Data Guard: Prepare secondary node"
