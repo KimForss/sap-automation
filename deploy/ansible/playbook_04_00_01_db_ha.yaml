@@ -249,7 +249,7 @@
           ansible.builtin.set_fact:
             action:                    'Prepare_Secondary'
             tier:                      ora                                    # Actions for Oracle DB Servers
-            main_password:             "{{ hostvars.localhost.sap_password }}"
+            main_password:             "{{ hostvars.localhost.sap_password }}!1"   # ASM requires special char in password
             sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
             sapbits_sas_token:         "{{ hostvars.localhost.sapbits_sas_token }}"
             primary_instance_name :    "{{ ansible_play_hosts_all[0] }}"        # Setting up Primary Instance Name
