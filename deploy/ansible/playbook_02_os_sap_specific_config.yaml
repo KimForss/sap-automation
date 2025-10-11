@@ -127,7 +127,7 @@
 
         - name:                        "SAP OS configuration playbook: - Set sapos storage account facts"
           ansible.builtin.set_fact:
-            sapbits_sas_token:          "{{ hostvars.localhost.sapbits_sas_token }}"
+            sapbits_sas_token:         "{{ hostvars.localhost.sapbits_sas_token }}"
           when:
             - not is_run_with_infraCreate_only
             - hostvars.localhost.sapbits_sas_token is defined
@@ -137,7 +137,7 @@
 
         - name:                        "SAP OS configuration playbook: - Set sapos storage account facts"
           ansible.builtin.set_fact:
-            sapbits_sas_token:          "{{ hostvars.localhost.sapbits_sas_token }}"
+            sapbits_sas_token:         "{{ hostvars.localhost.sapbits_sas_token }}"
           when:
             - not is_run_with_infraCreate_only
             - hostvars.localhost.sapbits_sas_token is defined
@@ -154,10 +154,6 @@
           register: azure_network_metadata
           tags:
             - always
-
-        # - name:                        "SAP OS configuration playbook: - Filter out the values for IPAddresses in json format"
-        #   ansible.builtin.set_fact:
-        #     private_ips_info:          "{{ azure_network_metadata.json.ipv4.ipAddress }}"
 
         - name:                        "SAP OS configuration playbook: - Convert ips to list"
           ansible.builtin.set_fact:
