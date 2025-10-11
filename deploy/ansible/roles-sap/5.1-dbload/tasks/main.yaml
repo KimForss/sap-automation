@@ -347,8 +347,8 @@
     - name:                            "DBLoad: Results"
       ansible.builtin.debug:
         msg:
-          - "DBLoad : {{ dbload_results }}"
-          - "Job result: {{ job_result }}"
+          - "DBLoad: {{ dbload_results.failed }}"
+          - "Job result: {{ job_result.rc }}"
 
     - name:                            "DBLoad: Results"
       ansible.builtin.debug:
