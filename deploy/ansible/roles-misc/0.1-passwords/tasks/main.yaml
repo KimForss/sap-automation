@@ -79,71 +79,26 @@
       tags:
         - always
 
-    - name:                            "0.1 Password: - Create Password prefix"
+    - name:                            "0.1 Password: - Construct password prefix"
       ansible.builtin.set_fact:
-        sap_password_pre:              "{{ sap_password_pre | default([]) +
+        password_prefix:    "{{ password_prefix | default([]) +
                                             [lookup('password',
                                               '/dev/null
                                               length=1
                                               chars=' ~item)]
-                                          }}"
+                                        }}"
       loop:
         - ascii_lowercase
         - ascii_uppercase
         - digits
-      no_log:                          true
-      tags:
-        - always
-      when:
-        - platform not in ['ORACLE', 'ORACLE-ASM']
 
-    - name:                            "0.1 Password: - Create Password prefix"
+    - name:                            "0.1 Password: - Construct password suffix"
       ansible.builtin.set_fact:
-        sap_password_pre:              "{{ sap_password_pre | default([]) +
-                                            [lookup('password',
-                                              '/dev/null
-                                              length=1
-                                              chars=' ~item)]
-                                          }}"
-      loop:
-        - ascii_lowercase
-        - ascii_uppercase
-        - digits
-        - special
-      no_log:                          true
-      tags:
-        - always
-      when:
-        - platform in ['ORACLE', 'ORACLE-ASM']
+        password_suffix:               "{{ lookup('ansible.builtin.password', '/dev/null', chars=['ascii_lowercase', 'digits', 'ascii_uppercase', '_#$.'], length=10) }}"
 
-    - name:                            "0.1 Password: - Construct SAP system password"
-      when:
-        - platform not in ['ORACLE', 'ORACLE-ASM']
+    - name:                            "0.1 Password: - Construct password"
       ansible.builtin.set_fact:
-        sap_password:                  "{{ sap_password_pre | join('')
-                                          + lookup('password',
-                                          '/tmp/sappasswordfile
-                                          length=9
-                                          chars=ascii_lowercase,ascii_uppercase,digits')
-                                        }}"
-      no_log:                          true
-      tags:
-        - always
-
-    - name:                            "0.1 Password: - Construct SAP system password"
-      when:
-        - platform in ['ORACLE', 'ORACLE-ASM']
-      ansible.builtin.set_fact:
-        sap_password:                  "{{ sap_password_pre | join('')
-                                          + lookup('password',
-                                          '/tmp/sappasswordfile
-                                          length=10
-                                          chars=ascii_lowercase,ascii_uppercase,digits, special')
-                                        }}"
-      no_log:                          true
-      tags:
-        - always
-
+        sap_password:                  "{{ password_prefix + password_suffix }}"
 
 #    - name:                            "0.1 Password: - Construct SAP system password"
 #      ansible.builtin.set_fact:
