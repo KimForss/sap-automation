@@ -257,7 +257,6 @@
         mode:                         '0755'
 
 
-
   # Create SQLNET.ORA .
 
 - name:                                "Oracle Data Guard - Observer: Copy sqlnet.ora TO Observer"

@@ -256,6 +256,7 @@
             secondary_instance_name:   "{{ ansible_play_hosts_all[1] }}"         # Setting up Secondary Instance Name
             ora_primary:               "{{ ansible_play_hosts_all[0] }}"         # Oracle Primary Host
             ora_secondary:             "{{ ansible_play_hosts_all[1] }}"         # Oracle Secondary Host
+            product_id:                 "NW_ABAP_DB:NW750.ORA.ABAP"
           when:
             - ansible_play_hosts_all | length >= 2
 
@@ -288,6 +289,7 @@
               ansible.builtin.include_role:
                 name:                  roles-sap/7.0.0-post-install
               vars:
+                prefix:                "{{ product_id.replace('.', '/').replace('/ABAP', '').split(':')[1] }}"
                 suffix:                "_DC_ACTION_1"
                 tier:                  'oracle-asm'
 
@@ -323,6 +325,7 @@
               ansible.builtin.include_role:
                 name:                  roles-sap/7.0.0-post-install
               vars:
+                prefix:                "{{ product_id.replace('.', '/').replace('/ABAP', '').split(':')[1] }}"
                 suffix:                "_DC_ACTION_2"
                 tier:                  'oracle-asm'
 
@@ -355,6 +358,7 @@
               ansible.builtin.include_role:
                 name:                  roles-sap/7.0.0-post-install
               vars:
+                prefix:                "{{ product_id.replace('.', '/').replace('/ABAP', '').split(':')[1] }}"
                 suffix:                "_DC_ACTION_3"
                 tier:                  'oracle-asm'
 
@@ -387,6 +391,7 @@
               ansible.builtin.include_role:
                 name:                  roles-sap/7.0.0-post-install
               vars:
+                prefix:                "{{ product_id.replace('.', '/').replace('/ABAP', '').split(':')[1] }}"
                 suffix:                "_DC_ACTION_4"
                 tier:                  'oracle-asm'
 
