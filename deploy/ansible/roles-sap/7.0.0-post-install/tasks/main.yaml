@@ -47,7 +47,7 @@
   register:                            sapinst_log_files
   when:
     - tier not in ['hana', 'ora']
-    - sap_installation_tried.stat.exists
+    - sap_installation_tried.stat.exists | default(false)
 
 - name:                               "Post Installation: Get the additional log files from the work directory"
   become_user:                        root
@@ -60,7 +60,7 @@
   register:                           work_log_files
   when:
     - tier not in ['hana', 'oracle', 'oracle-asm']
-    - sap_installation_tried.stat.exists
+    - sap_installation_tried.stat.exists | default(false)
     - work_log_component_name is defined
 
 - name:                                "Post Installation: Gather other logs"
