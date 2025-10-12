@@ -304,7 +304,7 @@
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell: |
       set -o pipefail
-      sqlplus / as sysdba @secondary_startup.sql | tee /etc/sap_deployment_automation/dataguard_scripts/secondary_startup.log
+      sqlplus / as sysdba @secondary_startup.sql
   register:                            secondary_startup_results
   failed_when:                         secondary_startup_results.rc > 0
   args:
@@ -312,6 +312,13 @@
     chdir:                             /etc/sap_deployment_automation/dataguard_scripts
     executable:                        /bin/csh
   when: current_host == ora_secondary
+
+- name:                            "Oracle Data Guard - Setup Secondary: Startup secondary DB using pfile (Debug)"
+  ansible.builtin.copy:
+    dest:                          "/etc/sap_deployment_automation/dataguard_scripts/secondary_startup.log"
+    content:                       "{{ secondary_startup_results.stdout }}"
+    mode:                          '0777'
+  when:                            secondary_startup_results.stdout is defined
 
 - name:                                "Oracle Data Guard - Setup Secondary: startup DG Broker on Secondary (Debug)"
   ansible.builtin.debug:
@@ -467,8 +474,7 @@
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell: |
-      set -o pipefail
-      sqlplus / as sysdba @standbyredolog.sql | tee /etc/sap_deployment_automation/dataguard_scripts/standbyredolog.log
+      sqlplus / as sysdba @standbyredolog.sql
   register:                            redo_rename_results
   failed_when:                         redo_rename_results.rc > 0
   args:
@@ -478,6 +484,15 @@
   when:
     - node_tier == "oracle"
     - current_host == ora_secondary
+
+
+- name:                                "Oracle Data Guard - Setup Secondary: Rename the redolog files afer RMAN Restore (Debug)"
+  ansible.builtin.copy:
+    dest:                              "/etc/sap_deployment_automation/dataguard_scripts/standbyredolog.log"
+    content:                           "{{ redo_rename_results.stdout }}"
+    mode:                              '0777'
+  when:                                redo_rename_results.stdout is defined
+
 
 - name:                                "Oracle Data Guard - Setup Secondary: Create redo_rename.txt"
   become:                              true
@@ -565,14 +580,20 @@
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell: |
-          set -o pipefail
-          sqlplus / as sysdba @create_spfile.sql | tee /etc/sap_deployment_automation/dataguard_scripts/create_spfile.log
+          sqlplus / as sysdba @create_spfile.sql
       register:                        create_spfile_results
       failed_when:                     create_spfile_results.rc > 0
       args:
         creates:                       /etc/sap_deployment_automation/dataguard_scripts/spfile_created.txt
         chdir:                         /etc/sap_deployment_automation/dataguard_scripts
         executable:                    /bin/csh
+
+    - name:                            "Oracle Data Guard - Setup Secondary: Create spfile on non-ASM (Debug)"
+      ansible.builtin.copy:
+        dest:                          "/etc/sap_deployment_automation/dataguard_scripts/create_spfile.log"
+        content:                       "{{ create_spfile_results.stdout }}"
+        mode:                          '0777'
+      when:                            create_spfile_results.stdout is defined
 
     - name:                            "Oracle Data Guard - Setup Secondary: Create spfile_created.txt"
       become:                          true
@@ -624,18 +645,24 @@
       executable:                      /bin/csh
 
     # Stop the Secondary Database.
-    - name:                            "Oracle Data Guard - Setup Secondary: Stop secondary DB for  spfile"
+    - name:                            "Oracle Data Guard - Setup Secondary: Stop secondary DB for spfile"
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell: |
-          set -o pipefail
-          sqlplus / as sysdba @shutdown_secondary.sql | tee /etc/sap_deployment_automation/dataguard_scripts/ora_secondary_shutdown.log
+          sqlplus / as sysdba @shutdown_secondary.sql
       register:                        secondary_shutdown_results
       failed_when:                     secondary_shutdown_results.rc > 0
       args:
         creates:                       /etc/sap_deployment_automation/dataguard_scripts/ora_secondary_shutdown.txt
         chdir:                         /etc/sap_deployment_automation/dataguard_scripts
         executable:                    /bin/csh
+
+    - name:                            "Oracle Data Guard - Setup Secondary: Stop secondary DB for spfile (Debug)"
+      ansible.builtin.copy:
+        dest:                          "/etc/sap_deployment_automation/dataguard_scripts/ora_secondary_shutdown.log"
+        content:                       "{{ secondary_shutdown_results.stdout }}"
+        mode:                          '0777'
+      when:                            secondary_shutdown_results.stdout is defined
 
     - name:                            "Oracle Data Guard - Setup Secondary: Create ora_secondary_shutdown.txt"
       become:                          true
@@ -667,14 +694,20 @@
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell: |
-          set -o pipefail
-          sqlplus / as sysdba @oracle_secondary_startup.sql | tee /etc/sap_deployment_automation/dataguard_scripts/ora_secondary_startup_spfile.log
+          sqlplus / as sysdba @oracle_secondary_startup.sql
       register:                        ora_secondary_startup_spfile_results
       failed_when:                     ora_secondary_startup_spfile_results.rc > 0
       args:
         creates:                       /etc/sap_deployment_automation/dataguard_scripts/ora_secondary_startup_spfile.txt
         chdir:                         /etc/sap_deployment_automation/dataguard_scripts
         executable:                    /bin/csh
+
+    - name:                            "Oracle Data Guard - Setup Secondary: Start secondary DB with spfile (Debug)"
+      ansible.builtin.copy:
+        dest:                          "/etc/sap_deployment_automation/dataguard_scripts/ora_secondary_startup_spfile.log"
+        content:                       "{{ ora_secondary_startup_spfile_results.stdout }}"
+        mode:                          '0777'
+      when:                            ora_secondary_startup_spfile_results.stdout is defined
 
     - name:                            "Oracle Data Guard - Setup Secondary: Create ora_secondary_startup_spfile.txt"
       become:                          true
@@ -699,14 +732,20 @@
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell: |
-          set -o pipefail
-          sqlplus / as sysdba @create_spfilesecondary.sql | tee /etc/sap_deployment_automation/dataguard_scripts/create_spfile.log
+          sqlplus / as sysdba @create_spfilesecondary.sql
       register:                        create_spfile_results
       failed_when:                     create_spfile_results.rc > 0
       args:
         creates:                       /etc/sap_deployment_automation/dataguard_scripts/spfile_created.txt
         chdir:                         /etc/sap_deployment_automation/dataguard_scripts
         executable:                    /bin/csh
+
+    - name:                            "Oracle Data Guard - Setup Secondary: Create spfile on ASM (Debug)"
+      ansible.builtin.copy:
+        dest:                          "/etc/sap_deployment_automation/dataguard_scripts/create_spfile.log"
+        content:                       "{{ create_spfile_results.stdout }}"
+        mode:                          '0777'
+      when:                            create_spfile_results.stdout is defined
 
     - name:                            "Oracle Data Guard - Setup Secondary: Create spfile_created.txt"
       become:                          true
@@ -747,18 +786,24 @@
         - backup_pfile_results.rc == 0
 
     # Stop the Secondary Database.
-    - name:                            "Oracle Data Guard - Setup Secondary: Stop secondary DB for  spfile"
+    - name:                            "Oracle Data Guard - Setup Secondary: Stop secondary DB for spfile"
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell: |
-          set -o pipefail
-          sqlplus / as sysdba @shutdown_secondary.sql | tee /etc/sap_deployment_automation/dataguard_scripts/asm_secondary_shutdown.log
+          sqlplus / as sysdba @shutdown_secondary.sql
       register:                        secondary_shutdown_results
       failed_when:                     secondary_shutdown_results.rc > 0
       args:
         creates:                       /etc/sap_deployment_automation/dataguard_scripts/asm_secondary_shutdown.txt
         chdir:                         /etc/sap_deployment_automation/dataguard_scripts
         executable:                    /bin/csh
+
+    - name:                            "Oracle Data Guard - Setup Secondary: Stop secondary DB for spfile (Debug)"
+      ansible.builtin.copy:
+        dest:                          "/etc/sap_deployment_automation/dataguard_scripts/asm_secondary_shutdown.log"
+        content:                       "{{ secondary_shutdown_results.stdout }}"
+        mode:                          '0777'
+      when:                            secondary_shutdown_results.stdout is defined
 
     - name:                            "Oracle Data Guard - Setup Secondary: Create asm_secondary_shutdown.txt"
       become:                          true
@@ -791,13 +836,20 @@
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell: |
           set -o pipefail
-          sqlplus / as sysdba @asm_secondary_startup.sql | tee /etc/sap_deployment_automation/dataguard_scripts/asm_secondary_startup_spfile.log
+          sqlplus / as sysdba @asm_secondary_startup.sql
       register:                        asm_secondary_startup_spfile_results
       failed_when:                     asm_secondary_startup_spfile_results.rc > 0
       args:
         creates:                       /etc/sap_deployment_automation/dataguard_scripts/asm_secondary_startup_spfile.txt
         chdir:                         /etc/sap_deployment_automation/dataguard_scripts
         executable:                    /bin/csh
+
+    - name:                            "Oracle Data Guard - Setup Secondary: Start secondary DB with spfile (Debug)"
+      ansible.builtin.copy:
+        dest:                          "/etc/sap_deployment_automation/dataguard_scripts/asm_secondary_startup_spfile.log"
+        content:                       "{{ asm_secondary_startup_spfile_results.stdout }}"
+        mode:                          '0777'
+      when:                            asm_secondary_startup_spfile_results.stdout is defined
 
     - name:                            "Oracle Data Guard - ASM - Setup Secondary: Create asm_secondary_startup_spfile.txt"
       become:                          true
