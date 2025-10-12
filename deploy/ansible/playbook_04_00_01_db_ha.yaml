@@ -440,16 +440,14 @@
         - name:                            "Observer Playbook: Check if the mounts are made"
           ansible.builtin.include_role:
             name:                          roles-sap-os/2.6-sap-mounts
-
-        - name:                            "Observer Playbook: Setting the os tier facts"
-          ansible.builtin.set_fact:
-            tier:                          observer
-          tags:
-            - always
+          vars:
+            tier:                          sapos
 
         - name:                            "Observer Playbook: Oracle Observer setup"
           ansible.builtin.include_role:
             name:                          roles-db/4.1.3-ora-dg
+          vars:
+            tier:                          observer
 
         - name:                            "Observer Playbook: - Run post installation routines"
           ansible.builtin.include_role:
