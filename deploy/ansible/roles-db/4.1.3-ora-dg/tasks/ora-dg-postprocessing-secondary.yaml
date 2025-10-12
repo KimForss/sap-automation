@@ -253,7 +253,7 @@
   # Create User for SIDADM on Secondary Node.
     - name:                                "2.5.1 SAP Users: -  Create Oracle ASM Users Assignment"
       ansible.builtin.user:
-        name:                              "{{ db_sid | lower }}adm"
+        name:                              "{{ sap_sid | lower }}adm"
         uid:                               "{{ sidadm_uid }}"
         group:                             "sapsys"
         groups:                            asmoper,asmdba,dba,oper,oinstall
