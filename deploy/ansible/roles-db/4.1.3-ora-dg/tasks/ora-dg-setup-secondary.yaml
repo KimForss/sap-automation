@@ -612,7 +612,6 @@
       become:                          true
       become_user:                     "oracle"
       ansible.builtin.shell: |
-          set -o pipefail
           mv init{{ db_sid | upper}}.ora init{{ db_sid | upper}}.ora_backup_after_restore
       register:                        backup_pfile_results
       failed_when:                     backup_pfile_results.rc > 0
@@ -642,7 +641,7 @@
       args:
         creates:                       /etc/sap_deployment_automation/dataguard_scripts/local_listener_on_secondary.txt
         chdir:                         /etc/sap_deployment_automation/dataguard_scripts
-      executable:                      /bin/csh
+        executable:                    /bin/csh
 
     # Stop the Secondary Database.
     - name:                            "Oracle Data Guard - Setup Secondary: Stop secondary DB for spfile"
