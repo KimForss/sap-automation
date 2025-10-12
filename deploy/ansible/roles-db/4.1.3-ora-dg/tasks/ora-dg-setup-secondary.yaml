@@ -524,7 +524,7 @@
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell: |
-
+                                       /oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir +DATA/{{ db_sid | upper }}_STDBY
                                        /oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir +DATA/{{ db_sid | upper }}_STDBY/PARAMETERFILE
 
   register:                            asm_oraarch_created_results
