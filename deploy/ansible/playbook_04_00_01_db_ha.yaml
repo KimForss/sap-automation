@@ -291,12 +291,7 @@
               vars:
                 prefix:                "{{ product_id.replace('.', '/').replace('/ABAP', '').split(':')[1] }}"
                 suffix:                "_DC_ACTION_1"
-                tier:                  'oracle-asm'
-
-            - name:                    "Create db-ha-done flag"
-              ansible.builtin.fail:
-                msg:                   "Terminated for debugging."
-
+                tier:                  'oracle'
 
           #############################################################
           #                                                           #
@@ -327,7 +322,7 @@
               vars:
                 prefix:                "{{ product_id.replace('.', '/').replace('/ABAP', '').split(':')[1] }}"
                 suffix:                "_DC_ACTION_2"
-                tier:                  'oracle-asm'
+                tier:                  'oracle'
 
           #############################################################
           #                                                           #
@@ -360,7 +355,7 @@
               vars:
                 prefix:                "{{ product_id.replace('.', '/').replace('/ABAP', '').split(':')[1] }}"
                 suffix:                "_DC_ACTION_3"
-                tier:                  'oracle-asm'
+                tier:                  'oracle'
 
           #############################################################
           #                                                           #
@@ -393,8 +388,7 @@
               vars:
                 prefix:                "{{ product_id.replace('.', '/').replace('/ABAP', '').split(':')[1] }}"
                 suffix:                "_DC_ACTION_4"
-                tier:                  'oracle-asm'
-
+                tier:                  'oracle'
 
 # /*----------------------------------------------------------------------------8
 # |                                                                            |
@@ -418,12 +412,13 @@
         - db_high_availability is defined
         - database_high_availability is not defined
 
-    - name:                            "Get Instance names"
+    - name:                            "Observer Playbook: Get Instance names"
       ansible.builtin.set_fact:
         primary_observer_name :        "{{ ansible_play_hosts_all[0] }}"        # Setting up Primary Instance Name
         secondary_observer_name:       "{{ ansible_play_hosts_all[1] | default('N/A') }}"         # Setting up Secondary Instance Name
+        tertiary_observer_name:        "{{ ansible_play_hosts_all[2] | default('N/A') }}"         # Setting up Tertiary Instance Name
 
-    - name:                            "Oracle: Observer setup"
+    - name:                            "Observer Playbook:  Observer setup"
       become:                          true
       when:
         - database_high_availability
@@ -441,15 +436,16 @@
             - always
 
         # Specify the active tier for this playbook run
-        - name:                            "Observer Playbook: Setting the os tier facts"
-          ansible.builtin.set_fact:
-            tier:                          os
-          tags:
-            - always
 
         - name:                            "Observer Playbook: Check if the mounts are made"
           ansible.builtin.include_role:
             name:                          roles-sap-os/2.6-sap-mounts
+
+        - name:                            "Observer Playbook: Setting the os tier facts"
+          ansible.builtin.set_fact:
+            tier:                          observer
+          tags:
+            - always
 
         - name:                            "Observer Playbook: Oracle Observer setup"
           ansible.builtin.include_role:
