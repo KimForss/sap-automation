@@ -38,6 +38,7 @@
 
 
 - name:                                "Oracle Data Guard - Preparation Create password file"
+  when:                                ansible_hostname == ora_primary
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell:               "orapwd file=$ORACLE_HOME/dbs/orapw{{ db_sid | upper }} password={{ main_password }} entries=5 format=12"
@@ -48,7 +49,6 @@
     creates:                           /oracle/{{ db_sid | upper }}/{{ ora_version }}/dbs/orapw{{ db_sid | upper }}
     chdir:                             "{{ target_media_location }}/downloads/{{ db_sid | upper }}/dbs"
     executable:                        /bin/csh
-
 
 - name:                                "Oracle Data Guard: Prepare secondary node"
   ansible.builtin.include_tasks:       "ora-dg-secondary-preparation.yaml"
