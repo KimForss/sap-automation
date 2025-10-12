@@ -315,9 +315,11 @@
         dest:                          "/etc/sap_deployment_automation/{{ suffix }}{{ ansible_hostname }}.zip"
         format:                        zip
         mode:                          0755
+      register:                        oracle_zip_files
 
       when:
         - oracle_log_files is defined
+        - oracle_log_files.files | length > 0
 
     - name:                            "Post Installation: Copy installation logs (Oracle)"
       become_user:                     root
@@ -327,7 +329,9 @@
         dest:                          "{{ _workspace_directory }}/logs/{{ sap_sid }}Oracle{{ suffix }}{{ ansible_hostname }}.zip"
         flat:                          true
       when:
+        - oracle_zip_files is changed
         - oracle_log_files is defined
+        - oracle_log_files.files | length > 0
   when:
     - tier in ['oracle', 'oracle-asm']
 
