@@ -73,8 +73,7 @@
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell: |
-                                       set -o pipefail
-                                       sqlplus / as sysdba @enable_forced_logging.sql | tee
+                                       sqlplus / as sysdba @enable_forced_logging.sql
   register:                            enable_force_logging_results
   failed_when:                         enable_force_logging_results.rc >= 2
   args:

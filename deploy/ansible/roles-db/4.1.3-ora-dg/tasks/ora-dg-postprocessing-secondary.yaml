@@ -138,21 +138,26 @@
       when:                            secondary_log_apply_off_results.rc == 0
 
     # Stop the Secondary Database.
-    - name:                                "Oracle Data Guard - Setup Secondary: Stop secondary DB for oracle clusterware configuration."
-      become:                              true
-      become_user:                         "{{ oracle_user_name }}"
+    - name:                            "Oracle Data Guard - Setup Secondary: Stop secondary DB for oracle clusterware configuration."
+      become:                          true
+      become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell: |
-          set -o pipefail
-          sqlplus / as sysdba @shutdown_secondary.sql | tee /etc/sap_deployment_automation/dataguard_scripts/secondary_shutdown.log
-      register:                            secondary_shutdown_cfg_results
-      failed_when:                         secondary_shutdown_cfg_results.rc > 0
+          sqlplus / as sysdba @shutdown_secondary.sql
+      register:                        secondary_shutdown_cfg_results
+      failed_when:                     secondary_shutdown_cfg_results.rc > 0
       args:
-        creates:                           /etc/sap_deployment_automation/dataguard_scripts/secondary_shutdown_cfg.txt
-        chdir:                             /etc/sap_deployment_automation/dataguard_scripts
-        executable:                        /bin/csh
+        creates:                       /etc/sap_deployment_automation/dataguard_scripts/secondary_shutdown_cfg.txt
+        chdir:                         /etc/sap_deployment_automation/dataguard_scripts
+        executable:                    /bin/csh
       when:
         - current_host == ora_secondary
 
+    - name:                            "Oracle Data Guard - Setup Secondary: Stop secondary DB for oracle clusterware configuration. (Debug)"
+      ansible.builtin.copy:
+        dest:                          "/etc/sap_deployment_automation/dataguard_scripts/secondary_shutdown.log"
+        content:                       "{{ secondary_shutdown_cfg_results.stdout }}"
+        mode:                          '0777'
+      when:                            secondary_shutdown_cfg_results.stdout is defined
 
     - name:                                "Oracle Data Guard - Setup Secondary: Create secondary_shutdown.txt"
       become:                              true
@@ -173,8 +178,7 @@
       become:                              true
       become_user:                         "{{ oracle_user_name }}"
       ansible.builtin.shell: |
-          set -o pipefail
-          sqlplus / as sysdba @oracle_secondary_startup.sql | tee /etc/sap_deployment_automation/dataguard_scripts/secondary_startup.log
+          sqlplus / as sysdba @oracle_secondary_startup.sql
       register:                            secondary_startup_cfg_results
       failed_when:                         secondary_startup_cfg_results.rc > 0
       args:
@@ -185,6 +189,12 @@
         - node_tier == "oracle"
         - current_host == ora_secondary
 
+    - name:                            "Oracle Data Guard - Setup Secondary: Start secondary DB after HA Service configuration on non-ASM (Debug)"
+      ansible.builtin.copy:
+        dest:                          "/etc/sap_deployment_automation/dataguard_scripts/secondary_startup.log"
+        content:                       "{{ secondary_startup_cfg_results.stdout }}"
+        mode:                          '0777'
+      when:                            secondary_startup_cfg_results.stdout is defined
 
     - name:                                "Oracle Data Guard - Setup Secondary: Create secondary_startup_cfg.txt"
       become:                              true
