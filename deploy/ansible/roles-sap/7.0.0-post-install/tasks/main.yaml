@@ -46,10 +46,10 @@
     recurse:                           false
   register:                            sapinst_log_files
   when:
-    - tier != 'hana'
+    - tier not in ['hana', 'ora']
     - sap_installation_tried.stat.exists
 
-- name:                               "Get the additional log files from the work directory"
+- name:                               "Post Installation: Get the additional log files from the work directory"
   become_user:                        root
   become:                             true
   ansible.builtin.find:
@@ -78,7 +78,7 @@
       ansible.builtin.debug:
         msg:                           "Error occurred while acquiring other SAP logs."
   when:
-    - tier not in ['oracle', 'oracle-asm']
+    - tier not in ['oracle', 'oracle-asm', 'ora']
 
 - name:                                "Post Installation: Debug (sapinst_log_files)"
   ansible.builtin.debug:
