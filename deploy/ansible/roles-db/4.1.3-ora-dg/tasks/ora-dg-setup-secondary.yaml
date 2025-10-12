@@ -643,6 +643,19 @@
         chdir:                         /etc/sap_deployment_automation/dataguard_scripts
         executable:                    /bin/csh
 
+    - name:                            "Oracle Data Guard - ASM - Create local_listener_on_secondary on secondary"
+      become:                          true
+      become_user:                     root
+      ansible.builtin.file:
+        path:                          /etc/sap_deployment_automation/dataguard_scripts/local_listener_on_secondary.txt
+        state:                         touch
+        mode:                          '0755'
+        owner:                         oracle
+        group:                         oinstall
+      when:
+        - local_listener_on_secondary_results.rc  == 0
+
+
     # Stop the Secondary Database.
     - name:                            "Oracle Data Guard - Setup Secondary: Stop secondary DB for spfile"
       become:                          true
@@ -783,6 +796,28 @@
         group:                         oinstall
       when:
         - backup_pfile_results.rc == 0
+    - name:                            "Oracle Data Guard - Update the Local_Listener Value on secondary"
+      become:                          true
+      become_user:                     "oracle"
+      ansible.builtin.shell:           sqlplus / as sysdba @listener_update.sql
+      register:                        local_listener_on_secondary_results
+      failed_when:                     local_listener_on_secondary_results.rc > 0
+      args:
+        creates:                       /etc/sap_deployment_automation/dataguard_scripts/local_listener_on_secondary.txt
+        chdir:                         /etc/sap_deployment_automation/dataguard_scripts
+        executable:                    /bin/csh
+
+    - name:                            "Oracle Data Guard - ASM - Create local_listener_on_secondary on secondary"
+      become:                          true
+      become_user:                     root
+      ansible.builtin.file:
+        path:                          /etc/sap_deployment_automation/dataguard_scripts/local_listener_on_secondary.txt
+        state:                         touch
+        mode:                          '0755'
+        owner:                         oracle
+        group:                         oinstall
+      when:
+        - local_listener_on_secondary_results.rc  == 0
 
     # Stop the Secondary Database.
     - name:                            "Oracle Data Guard - Setup Secondary: Stop secondary DB for spfile"
@@ -861,18 +896,6 @@
         group:                         oinstall
       when:
         - asm_secondary_startup_spfile_results.rc == 0
-
-    - name:                            "Oracle Data Guard - ASM - Create local_listener_on_secondary on secondary"
-      become:                          true
-      become_user:                     root
-      ansible.builtin.file:
-        path:                          /etc/sap_deployment_automation/dataguard_scripts/local_listener_on_secondary.txt
-        state:                         touch
-        mode:                          '0755'
-        owner:                         oracle
-        group:                         oinstall
-      when:
-        - local_listener_on_secondary_results.rc  == 0
 
 # Enable the DataGaurd Broker
 - name:                                "Oracle Data Guard - Setup Secondary: startup DG Broker on Secondary"
