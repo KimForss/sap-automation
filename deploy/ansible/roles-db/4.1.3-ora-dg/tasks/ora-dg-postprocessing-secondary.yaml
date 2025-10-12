@@ -268,9 +268,9 @@
       become_user:                         "root"
       ansible.builtin.copy:
         src:                               /etc/sap_deployment_automation/dataguard_scripts/tnsnames.ora
-        dest:                              /sapmnt/{{ db_sid |upper }}/profile/oracle/tnsnames.ora
+        dest:                              /sapmnt/{{ sap_sid |upper }}/profile/oracle/tnsnames.ora
         remote_src:                        true
-        owner:                             '{{ db_sid |lower }}adm'
+        owner:                             '{{ sap_sid |lower }}adm'
         group:                             sapsys
         mode:                              "{{ '0777' | int - (custom_umask | default('022') | int) }}"
 
