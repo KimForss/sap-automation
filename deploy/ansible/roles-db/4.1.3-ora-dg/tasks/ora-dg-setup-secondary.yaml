@@ -463,7 +463,6 @@
    force:                              true
   when:                                node_tier == "oracle"
 
-
 - name:                                "Oracle Data Guard - Setup Secondary: Rename the redolog files afer RMAN Restore"
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
@@ -510,7 +509,7 @@
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell: |
-                                       /oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir +ARCH/{{ db_sid | upper }}_STDBY
+
                                        /oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir +ARCH/{{ db_sid | upper }}_STDBY/oraarch
                                        /oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir +DATA/{{ db_sid | upper }}_STDBY/PARAMETERFILE
 
