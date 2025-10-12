@@ -323,8 +323,8 @@
       become_user:                     root
       become:                          true
       ansible.builtin.fetch:
-        src:                           "/etc/sap_deployment_automation{{ ansible_hostname }}.zip"
-        dest:                          "{{ _workspace_directory }}/logs/{{ sap_sid }}Oracle{{ ansible_hostname }}.zip"
+        src:                           "/etc/sap_deployment_automation/{{ suffix }}{{ ansible_hostname }}.zip"
+        dest:                          "{{ _workspace_directory }}/logs/{{ sap_sid }}Oracle{{ suffix }}{{ ansible_hostname }}.zip"
         flat:                          true
       when:
         - oracle_log_files is defined
