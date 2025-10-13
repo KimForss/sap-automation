@@ -25,8 +25,14 @@
 .PARAMETER ControlPlaneCode
     The control plane code identifier (e.g., MGMT).
 
+.PARAMETER ControlPlaneName
+    The control plane name (e.g., "MGMT-WEEU-DEP01  ").
+
 .PARAMETER WorkloadZoneCode
-    The workload zone code identifier (e.g., MGMT).
+    The workload zone code identifier (e.g., QA).
+
+.PARAMETER WorkloadZoneName
+    The workload zone name (e.g., "QA-WEEU-SAP01  ").
 
 .PARAMETER WorkloadZoneSubscriptionId
     The subscription ID for the workload zone resources.
@@ -72,8 +78,14 @@ function New-SDAFADOWorkloadZone {
     [Parameter(Mandatory = $true, HelpMessage = "Control Plane code (e.g., MGMT)")]
     [string]$ControlPlaneCode,
 
+    [Parameter(Mandatory = $false, HelpMessage = "Control Plane name (e.g., MGMT-WEEU-DEP01)")]
+    [string]$ControlPlaneName="",
+
     [Parameter(Mandatory = $true, HelpMessage = "Workload zone code (e.g., DEV)")]
     [string]$WorkloadZoneCode,
+
+    [Parameter(Mandatory = $false, HelpMessage = "Workload zone name (e.g., DEV-WEEU-SAP01)")]
+    [string]$WorkloadZoneName="",
 
     [Parameter(Mandatory = $true, HelpMessage = "Workload zone subscription ID")]
     [ValidateScript({ [System.Guid]::TryParse($_, [ref][System.Guid]::Empty) })]
@@ -347,8 +359,25 @@ function New-SDAFADOWorkloadZone {
       #endregion
 
       #region Set up prefixes
-      $WorkloadZonePrefix = "SDAF-" + $WorkloadZoneCode
+
+
+      #region Set up prefixes and pool names
+      if ($WorkloadZoneName.Length -eq 0) {
+        $WorkloadZonePrefix = "SDAF-" + $WorkloadZoneCode
+      }
+      else {
+        $WorkloadZonePrefix = "SDAF-" + $WorkloadZoneName
+      }
       Write-Verbose "Workload zone prefix: $WorkloadZonePrefix"
+
+      #region Set up prefixes and pool names
+      if ($ControlPlaneName.Length -eq 0) {
+        $ControlPlanePrefix = "SDAF-" + $ControlPlaneName
+      }
+      else {
+        $ControlPlanePrefix = "SDAF-" + $ControlPlaneCode
+      }
+
       $ControlPlanePrefix = "SDAF-" + $ControlPlaneCode
       Write-Verbose "Control plane prefix: $ControlPlanePrefix"
 
@@ -391,10 +420,10 @@ function New-SDAFADOWorkloadZone {
           if ($ServiceEndpointId.Length -ne 0) {
             az devops service-endpoint update --id $ServiceEndpointId --enable-for-all true --output none --only-show-errors
           }
-        SetVariableGroupVariable -VariableGroupId $WorkloadZoneVariableGroupId -VariableName "ARM_OBJECT_ID" -VariableValue $ManagedIdentityObjectId
-        SetVariableGroupVariable -VariableGroupId $WorkloadZoneVariableGroupId -VariableName "ARM_CLIENT_ID" -VariableValue $ManagedIdentityClientId
-        SetVariableGroupVariable -VariableGroupId $WorkloadZoneVariableGroupId -VariableName "USE_MSI" -VariableValue "true"
-        SetVariableGroupVariable -VariableGroupId $WorkloadZoneVariableGroupId -VariableName "ARM_USE_MSI" -VariableValue "true"
+          SetVariableGroupVariable -VariableGroupId $WorkloadZoneVariableGroupId -VariableName "ARM_OBJECT_ID" -VariableValue $ManagedIdentityObjectId
+          SetVariableGroupVariable -VariableGroupId $WorkloadZoneVariableGroupId -VariableName "ARM_CLIENT_ID" -VariableValue $ManagedIdentityClientId
+          SetVariableGroupVariable -VariableGroupId $WorkloadZoneVariableGroupId -VariableName "USE_MSI" -VariableValue "true"
+          SetVariableGroupVariable -VariableGroupId $WorkloadZoneVariableGroupId -VariableName "ARM_USE_MSI" -VariableValue "true"
 
 
         }

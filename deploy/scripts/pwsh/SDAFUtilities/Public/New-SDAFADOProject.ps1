@@ -25,6 +25,9 @@
 .PARAMETER ControlPlaneCode
     The control plane code identifier (e.g., MGMT).
 
+.PARAMETER ControlPlaneName
+    The control plane name (e.g., MGMT-WEUE-DEP01).
+
 .PARAMETER ControlPlaneSubscriptionId
     The subscription ID for the control plane resources.
 
@@ -90,6 +93,9 @@ function New-SDAFADOProject {
     [Parameter(Mandatory = $true, HelpMessage = "Control plane code (e.g., MGMT)")]
     [string]$ControlPlaneCode,
 
+    [Parameter(Mandatory = $false, HelpMessage = "Control plane name (e.g., MGMT-WEUE-DEP01)")]
+    [string]$ControlPlaneName = "",
+
     [Parameter(Mandatory = $true, HelpMessage = "Control plane subscription ID")]
     [ValidateScript({ [System.Guid]::TryParse($_, [ref][System.Guid]::Empty) })]
     [string]$ControlPlaneSubscriptionId,
@@ -149,6 +155,7 @@ function New-SDAFADOProject {
     Write-Verbose "  AuthenticationMethod: $AuthenticationMethod"
     Write-Verbose "  ManagedIdentityObjectId: $ManagedIdentityObjectId"
     Write-Verbose "  ControlPlaneCode: $ControlPlaneCode"
+    Write-Verbose "  ControlPlaneName: $ControlPlaneName"
     Write-Verbose "  ControlPlaneSubscriptionId: $ControlPlaneSubscriptionId"
     Write-Verbose "  AgentPoolName: $AgentPoolName"
     Write-Verbose "  CreateConnections: $CreateConnections"
@@ -740,7 +747,13 @@ resources:
       #endregion
 
       #region Set up prefixes and pool names
-      $ControlPlanePrefix = "SDAF-" + $ControlPlaneCode
+      if ($ControlPlaneName.Length -eq 0) {
+        $ControlPlanePrefix = "SDAF-" + $ControlPlaneName
+      }
+      else {
+        $ControlPlanePrefix = "SDAF-" + $ControlPlaneCode
+      }
+
       Write-Verbose "Control plane prefix: $ControlPlanePrefix"
 
       $AgentPoolNameFinal = $AgentPoolName

@@ -8,7 +8,7 @@ function Get-IniContent {
     .SYNOPSIS
         Get-IniContent
 
-
+    
 .LINK
     https://devblogs.microsoft.com/scripting/use-powershell-to-work-with-any-ini-file/
 
@@ -48,11 +48,11 @@ function Out-IniFile {
     <#
         .SYNOPSIS
             Out-IniContent
-
-
+    
+        
     .LINK
         https://devblogs.microsoft.com/scripting/use-powershell-to-work-with-any-ini-file/
-
+    
         #>
     <#
     #>
@@ -304,6 +304,9 @@ Export-ModuleMember -Function Copy-AzDevOpsVariableGroupVariable
 .PARAMETER ControlPlaneCode
     The control plane code identifier (e.g., MGMT).
 
+.PARAMETER ControlPlaneName
+    The control plane name (e.g., MGMT-WEUE-DEP01).
+
 .PARAMETER ControlPlaneSubscriptionId
     The subscription ID for the control plane resources.
 
@@ -369,6 +372,9 @@ function New-SDAFADOProject {
     [Parameter(Mandatory = $true, HelpMessage = "Control plane code (e.g., MGMT)")]
     [string]$ControlPlaneCode,
 
+    [Parameter(Mandatory = $false, HelpMessage = "Control plane name (e.g., MGMT-WEUE-DEP01)")]
+    [string]$ControlPlaneName = "",
+
     [Parameter(Mandatory = $true, HelpMessage = "Control plane subscription ID")]
     [ValidateScript({ [System.Guid]::TryParse($_, [ref][System.Guid]::Empty) })]
     [string]$ControlPlaneSubscriptionId,
@@ -428,6 +434,7 @@ function New-SDAFADOProject {
     Write-Verbose "  AuthenticationMethod: $AuthenticationMethod"
     Write-Verbose "  ManagedIdentityObjectId: $ManagedIdentityObjectId"
     Write-Verbose "  ControlPlaneCode: $ControlPlaneCode"
+    Write-Verbose "  ControlPlaneName: $ControlPlaneName"
     Write-Verbose "  ControlPlaneSubscriptionId: $ControlPlaneSubscriptionId"
     Write-Verbose "  AgentPoolName: $AgentPoolName"
     Write-Verbose "  CreateConnections: $CreateConnections"
@@ -589,8 +596,6 @@ function New-SDAFADOProject {
           }
         }
       }
-      Write-Verbose "Creating JSON input file for service connection"
-      Write-Verbose $PostBody | ConvertTo-Json -Depth 6
       Set-Content -Path $JsonInputFile -Value ($PostBody | ConvertTo-Json -Depth 6)
 
       Write-Verbose "Creating service connection: $ConnectionName"
@@ -1021,7 +1026,13 @@ resources:
       #endregion
 
       #region Set up prefixes and pool names
-      $ControlPlanePrefix = "SDAF-" + $ControlPlaneCode
+      if ($ControlPlaneName.Length -eq 0) {
+        $ControlPlanePrefix = "SDAF-" + $ControlPlaneName
+      }
+      else {
+        $ControlPlanePrefix = "SDAF-" + $ControlPlaneCode
+      }
+
       Write-Verbose "Control plane prefix: $ControlPlanePrefix"
 
       $AgentPoolNameFinal = $AgentPoolName
@@ -1643,7 +1654,7 @@ resources:
 
 # Export the function
 Export-ModuleMember -Function New-SDAFADOProject
-#EndRegion '.\Public\New-SDAFADOProject.ps1' 1367
+#EndRegion '.\Public\New-SDAFADOProject.ps1' 1378
 #Region '.\Public\New-SDAFADOWorkloadZone.ps1' -1
 
 #Requires -Version 5.1
@@ -1673,8 +1684,14 @@ Export-ModuleMember -Function New-SDAFADOProject
 .PARAMETER ControlPlaneCode
     The control plane code identifier (e.g., MGMT).
 
+.PARAMETER ControlPlaneName
+    The control plane name (e.g., "MGMT-WEEU-DEP01  ").
+
 .PARAMETER WorkloadZoneCode
-    The workload zone code identifier (e.g., MGMT).
+    The workload zone code identifier (e.g., QA).
+
+.PARAMETER WorkloadZoneName
+    The workload zone name (e.g., "QA-WEEU-SAP01  ").
 
 .PARAMETER WorkloadZoneSubscriptionId
     The subscription ID for the workload zone resources.
@@ -1720,8 +1737,14 @@ function New-SDAFADOWorkloadZone {
     [Parameter(Mandatory = $true, HelpMessage = "Control Plane code (e.g., MGMT)")]
     [string]$ControlPlaneCode,
 
+    [Parameter(Mandatory = $false, HelpMessage = "Control Plane name (e.g., MGMT-WEEU-DEP01)")]
+    [string]$ControlPlaneName="",
+
     [Parameter(Mandatory = $true, HelpMessage = "Workload zone code (e.g., DEV)")]
     [string]$WorkloadZoneCode,
+
+    [Parameter(Mandatory = $false, HelpMessage = "Workload zone name (e.g., DEV-WEEU-SAP01)")]
+    [string]$WorkloadZoneName="",
 
     [Parameter(Mandatory = $true, HelpMessage = "Workload zone subscription ID")]
     [ValidateScript({ [System.Guid]::TryParse($_, [ref][System.Guid]::Empty) })]
@@ -1840,6 +1863,9 @@ function New-SDAFADOWorkloadZone {
         }
 
       }
+
+      Write-Verbose "Creating JSON input file for service connection"
+      Write-Verbose $PostBody | ConvertTo-Json -Depth 6
       Set-Content -Path $JsonInputFile -Value ($PostBody | ConvertTo-Json -Depth 6)
 
       Write-Verbose "Creating service connection: $ConnectionName"
@@ -1992,8 +2018,25 @@ function New-SDAFADOWorkloadZone {
       #endregion
 
       #region Set up prefixes
-      $WorkloadZonePrefix = "SDAF-" + $WorkloadZoneCode
+
+
+      #region Set up prefixes and pool names
+      if ($WorkloadZoneName.Length -eq 0) {
+        $WorkloadZonePrefix = "SDAF-" + $WorkloadZoneCode
+      }
+      else {
+        $WorkloadZonePrefix = "SDAF-" + $WorkloadZoneName
+      }
       Write-Verbose "Workload zone prefix: $WorkloadZonePrefix"
+
+      #region Set up prefixes and pool names
+      if ($ControlPlaneName.Length -eq 0) {
+        $ControlPlanePrefix = "SDAF-" + $ControlPlaneName
+      }
+      else {
+        $ControlPlanePrefix = "SDAF-" + $ControlPlaneCode
+      }
+
       $ControlPlanePrefix = "SDAF-" + $ControlPlaneCode
       Write-Verbose "Control plane prefix: $ControlPlanePrefix"
 
@@ -2023,7 +2066,7 @@ function New-SDAFADOWorkloadZone {
 
       if ($AuthenticationMethod -eq "Managed Identity") {
 
-        $ServiceEndpointExists = (az devops service-endpoint list --query "[?name=='$ServiceConnectionName'].name | [0]"  --out tsv)
+        $ServiceEndpointExists = (az devops.service-endpoint list --query "[?name=='$ServiceConnectionName'].name | [0]"  --out tsv)
         if ($ServiceEndpointExists.Length -eq 0) {
           CreateServiceConnection -ConnectionName $ServiceConnectionName `
             -ServiceConnectionDescription "$WorkloadZoneCode Service Connection" `
@@ -2036,11 +2079,10 @@ function New-SDAFADOWorkloadZone {
           if ($ServiceEndpointId.Length -ne 0) {
             az devops service-endpoint update --id $ServiceEndpointId --enable-for-all true --output none --only-show-errors
           }
-        SetVariableGroupVariable -VariableGroupId $WorkloadZoneVariableGroupId -VariableName "ARM_OBJECT_ID" -VariableValue $ManagedIdentityObjectId
-        SetVariableGroupVariable -VariableGroupId $WorkloadZoneVariableGroupId -VariableName "ARM_CLIENT_ID" -VariableValue $ManagedIdentityClientId
-        SetVariableGroupVariable -VariableGroupId $WorkloadZoneVariableGroupId -VariableName "USE_MSI" -VariableValue "true"
-        SetVariableGroupVariable -VariableGroupId $WorkloadZoneVariableGroupId -VariableName "ARM_USE_MSI" -VariableValue "true"
-
+          SetVariableGroupVariable -VariableGroupId $WorkloadZoneVariableGroupId -VariableName "ARM_OBJECT_ID" -VariableValue $ManagedIdentityObjectId
+          SetVariableGroupVariable -VariableGroupId $WorkloadZoneVariableGroupId -VariableName "ARM_CLIENT_ID" -VariableValue $ManagedIdentityClientId
+          SetVariableGroupVariable -VariableGroupId $WorkloadZoneVariableGroupId -VariableName "USE_MSI" -VariableValue "true"
+          SetVariableGroupVariable -VariableGroupId $WorkloadZoneVariableGroupId -VariableName "ARM_USE_MSI" -VariableValue "true"
 
 
         }
@@ -2339,9 +2381,13 @@ function Remove-SDAFADOProject {
     [ValidateNotNullOrEmpty()]
     [string]$AdoProject,
 
-    [Parameter(Mandatory = $false, HelpMessage = "Azure DevOps project name")]
+    [Parameter(Mandatory = $false, HelpMessage = "Control Plane Code (e.g., MGMT)")]
     [ValidateNotNullOrEmpty()]
     [string]$ControlPlaneCode,
+
+    [Parameter(Mandatory = $false, HelpMessage = "Control Plane Name (e.g., MGMT-WEEU-DEP01)")]
+    [ValidateNotNullOrEmpty()]
+    [string]$ControlPlaneName = "",
 
     [Parameter(Mandatory = $true, HelpMessage = "Authentication method to use")]
     [ValidateSet("Service Principal", "Managed Identity")]
@@ -2380,8 +2426,13 @@ function Remove-SDAFADOProject {
       Write-Verbose "Version label set to: $VersionLabel"
       #endregion
 
-      $ControlPlanePrefix = "SDAF-" + $ControlPlaneCode
-      Write-Verbose "Control plane prefix: $ControlPlanePrefix"
+      #region Set up prefixes and pool names
+      if ($ControlPlaneName.Length -eq 0) {
+        $ControlPlanePrefix = "SDAF-" + $ControlPlaneName
+      }
+      else {
+        $ControlPlanePrefix = "SDAF-" + $ControlPlaneCode
+      }
 
       $ApplicationName = ""
       if ($EnableWebApp) {
@@ -2544,7 +2595,7 @@ function Remove-SDAFADOProject {
 
 # Export the function
 Export-ModuleMember -Function Remove-SDAFADOProject
-#EndRegion '.\Public\Remove-SDAFADOProject.ps1' 263
+#EndRegion '.\Public\Remove-SDAFADOProject.ps1' 272
 #Region '.\Public\Remove-SDAFADOWorkloadZone.ps1' -1
 
 #Requires -Version 5.1
@@ -2570,6 +2621,9 @@ Export-ModuleMember -Function Remove-SDAFADOProject
 
 .PARAMETER WorkloadZoneCode
     The workload zone code identifier (e.g., MGMT).
+
+.PARAMETER WorkloadZoneName
+    The workload zone name (e.g., QA-WEEU-SAP01).
 
 .PARAMETER AuthenticationMethod
     The authentication method to use (Service Principal or Managed Identity).
@@ -2597,9 +2651,10 @@ function Remove-SDAFADOWorkloadZone {
     [string]$AdoProject,
 
     [Parameter(Mandatory = $true, HelpMessage = "Workload zone code (e.g., DEV)")]
-    [ValidateLength(2, 8)]
-    [ValidatePattern('^[A-Z0-9]+$')]
     [string]$WorkloadZoneCode,
+
+    [Parameter(Mandatory = $false, HelpMessage = "Workload zone name (e.g., DEV-WEEU-SAP01)")]
+    [string]$WorkloadZoneName = "",
 
     [Parameter(Mandatory = $true, HelpMessage = "Authentication method to use")]
     [ValidateSet("Service Principal", "Managed Identity")]
@@ -2744,7 +2799,12 @@ function Remove-SDAFADOWorkloadZone {
       #endregion
 
       #region Set up prefixes
-      $WorkloadZonePrefix = "SDAF-" + $WorkloadZoneCode
+      if ($WorkloadZoneName.Length -eq 0) {
+        $WorkloadZonePrefix = "SDAF-" + $WorkloadZoneCode
+      }
+      else {
+        $WorkloadZonePrefix = "SDAF-" + $WorkloadZoneName
+      }
       Write-Verbose "Workload zone prefix: $WorkloadZonePrefix"
 
       #endregion
@@ -2819,7 +2879,7 @@ function Remove-SDAFADOWorkloadZone {
 
 # Export the function
 Export-ModuleMember -Function Remove-SDAFADOWorkloadZone
-#EndRegion '.\Public\Remove-SDAFADOWorkloadZone.ps1' 273
+#EndRegion '.\Public\Remove-SDAFADOWorkloadZone.ps1' 282
 #Region '.\Public\Remove-SDAFUserAssignedIdentity.ps1' -1
 
 function Remove-SDAFUserAssignedIdentity {
