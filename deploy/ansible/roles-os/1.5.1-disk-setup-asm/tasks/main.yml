@@ -429,7 +429,7 @@
 
     - name:                            "ORACLE ASM: Permissions ASM Disks - DATA"
       ansible.builtin.file:
-        path:                          "{{ item }}"
+        path:                          "{{ item }}1"
         owner:                         "{{ grid_user_name }}"
         group:                         oinstall
         state:                         directory
@@ -497,7 +497,7 @@
 
     - name:                            "ORACLE ASM: Permissions ASM Disks - ARCH"
       ansible.builtin.file:
-        path:                          "{{ item }}"
+        path:                          "{{ item }}1"
         owner:                         "{{ grid_user_name }}"
         group:                         oinstall
         state:                         directory
@@ -562,7 +562,7 @@
 
     - name:                            "ORACLE ASM: Permissions ASM Disks - RECO"
       ansible.builtin.file:
-        path:                          "{{ item }}"
+        path:                          "{{ item }}1"
         owner:                         "{{ grid_user_name }}"
         group:                         oinstall
         state:                         directory
