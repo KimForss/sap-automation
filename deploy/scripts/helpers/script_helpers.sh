@@ -1106,151 +1106,152 @@ function ImportAndReRunApply {
 			if [[ -z $existing ]]; then
 				existing=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary} | select(.summary | startswith("a resource with the ID"))' "$fileName")
 
+				if [[ -n $existing ]]; then
+					readarray -t errors < <(echo "${existing}" | jq -c '.')
 
-			if [[ -n $existing ]]; then
-				readarray -t errors < <(echo "${existing}" | jq -c '.')
-
-				for item in "${errors[@]}"; do
-					moduleID=$(jq -c -r '.address ' <<<"$item")
-					azureResourceID=$(jq -c -r '.summary' <<<"$item" | awk -F'\"' '{print $2}')
-					echo "Trying to import $azureResourceID into $moduleID"
-					# shellcheck disable=SC2086
-					echo terraform -chdir="${terraform_module_directory}" import $importParameters "${moduleID}" "${azureResourceID}"
-					echo ""
-					# shellcheck disable=SC2086
-					if terraform -chdir="${terraform_module_directory}" import $importParameters "${moduleID}" "${azureResourceID}"; then
-						import_return_value=$?
-					else
-						import_return_value=$?
-						if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
-							if terraform -chdir="${terraform_module_directory}" import $importParameters "${moduleID}" "${azureResourceID}"; then
-								import_return_value=$?
-							else
-								import_return_value=$?
+					for item in "${errors[@]}"; do
+						moduleID=$(jq -c -r '.address ' <<<"$item")
+						azureResourceID=$(jq -c -r '.summary' <<<"$item" | awk -F'\"' '{print $2}')
+						echo "Trying to import $azureResourceID into $moduleID"
+						# shellcheck disable=SC2086
+						echo terraform -chdir="${terraform_module_directory}" import $importParameters "${moduleID}" "${azureResourceID}"
+						echo ""
+						# shellcheck disable=SC2086
+						if terraform -chdir="${terraform_module_directory}" import $importParameters "${moduleID}" "${azureResourceID}"; then
+							import_return_value=$?
+						else
+							import_return_value=$?
+							if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
+								if terraform -chdir="${terraform_module_directory}" import $importParameters "${moduleID}" "${azureResourceID}"; then
+									import_return_value=$?
+								else
+									import_return_value=$?
+								fi
 							fi
 						fi
-					fi
-				done
+					done
 
-				rm "$fileName"
-				# shellcheck disable=SC2086
-				if terraform -chdir="${terraform_module_directory}" plan -input=false $importParameters; then
-					import_return_value=$?
-					print_banner "Installer" "Terraform plan succeeded" "success"
+					rm "$fileName"
+					# shellcheck disable=SC2086
+					if terraform -chdir="${terraform_module_directory}" plan -input=false $importParameters; then
+						import_return_value=$?
+						print_banner "Installer" "Terraform plan succeeded" "success"
+					else
+						import_return_value=$?
+						print_banner "Installer" "Terraform plan failed" "error"
+					fi
+
+					if [ $import_return_value -ne 1 ]; then
+
+						print_banner "Installer" "Re-running Terraform apply after import" "info"
+						error_count=0
+
+						# shellcheck disable=SC2086
+						if terraform -chdir="${terraform_module_directory}" apply -no-color -compact-warnings -json -input=false --auto-approve $applyParameters | tee "$fileName"; then
+							import_return_value=${PIPESTATUS[0]}
+						else
+							import_return_value=${PIPESTATUS[0]}
+						fi
+						# shellcheck disable=SC2086
+						if [ 1 == $import_return_value ]; then
+							print_banner "Installer" "Errors during the apply phase after importing resources" "error"
+						else
+							# return code 2 is ok
+							print_banner "Installer" "Terraform apply succeeded" "success"
+							if [ -f "$fileName" ]; then
+								rm "$fileName"
+							fi
+							import_return_value=0
+						fi
+					fi
 				else
-					import_return_value=$?
-					print_banner "Installer" "Terraform plan failed" "error"
-				fi
+					current_errors=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary}' "$fileName")
 
-				if [ $import_return_value -ne 1 ]; then
+					if [[ -n $current_errors ]]; then
+						import_return_value=0
+						echo -e "$bold_red Errors occurred during the apply phase:$reset"
+						echo -e "$bold_red ------------------------------------------------------------------------------------- $reset"
+						readarray -t errors < <(echo "${current_errors}" | jq -c '.')
 
-					print_banner "Installer" "Re-running Terraform apply after import" "info"
-					error_count=0
-
-					# shellcheck disable=SC2086
-					if terraform -chdir="${terraform_module_directory}" apply -no-color -compact-warnings -json -input=false --auto-approve $applyParameters | tee "$fileName"; then
-						import_return_value=${PIPESTATUS[0]}
-					else
-						import_return_value=${PIPESTATUS[0]}
+						for item in "${errors[@]}"; do
+							errorMessage=$(jq -c -r '.summary ' <<<"$item")
+							echo "Error: $errorMessage"
+							echo "##vso[task.logissue type=error]Error: $errorMessage"
+						done
 					fi
-					# shellcheck disable=SC2086
-					if [ 1 == $import_return_value ]; then
-						print_banner "Installer" "Errors during the apply phase after importing resources" "error"
+
+					if [ -f "$fileName" ]; then
+						rm "$fileName"
+					fi
+
+				fi
+				if [ -f "$fileName" ]; then
+					current_errors=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary}' "$fileName")
+
+					if [[ -n $current_errors ]]; then
+
+						echo -e "$bold_red Errors occurred during the apply phase:$reset"
+						echo -e "$bold_red ------------------------------------------------------------------------------------- $reset"
+						readarray -t errors < <(echo "${current_errors}" | jq -c '.')
+						error_count=${#errors[@]}
+
+						for item in "${errors[@]}"; do
+							errorMessage=$(jq -c -r '.summary ' <<<"$item")
+							echo "Error: $errorMessage"
+							echo "##vso[task.logissue type=error]Error: $errorMessage"
+						done
 					else
-						# return code 2 is ok
-						print_banner "Installer" "Terraform apply succeeded" "success"
+						print_banner "ImportAndReRunApply" "No errors" "info"
 						if [ -f "$fileName" ]; then
 							rm "$fileName"
 						fi
 						import_return_value=0
 					fi
+
 				fi
 			else
-				current_errors=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary}' "$fileName")
-
-				if [[ -n $current_errors ]]; then
-					import_return_value=0
-					echo -e "$bold_red Errors occurred during the apply phase:$reset"
-					echo -e "$bold_red ------------------------------------------------------------------------------------- $reset"
-					readarray -t errors < <(echo "${current_errors}" | jq -c '.')
-
-					for item in "${errors[@]}"; do
-						errorMessage=$(jq -c -r '.summary ' <<<"$item")
-						echo "Error: $errorMessage"
-						echo "##vso[task.logissue type=error]Error: $errorMessage"
-					done
-				fi
-
+				print_banner "ImportAndReRunApply" "No errors" "info"
 				if [ -f "$fileName" ]; then
 					rm "$fileName"
 				fi
-
+				import_return_value=0
 			fi
-			if [ -f "$fileName" ]; then
-				current_errors=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary}' "$fileName")
 
-				if [[ -n $current_errors ]]; then
+		fi
+		if [ "$import_return_value" -ne 0 ]; then
+			print_banner "ImportAndReRunApply" "Terraform apply failed with return code: $import_return_value" "error"
+			echo "##vso[task.logissue type=error]Terraform apply failed with return code: $import_return_value"
+		else
+			if [ "$error_count" -gt 0 ]; then
 
-					echo -e "$bold_red Errors occurred during the apply phase:$reset"
-					echo -e "$bold_red ------------------------------------------------------------------------------------- $reset"
-					readarray -t errors < <(echo "${current_errors}" | jq -c '.')
-					error_count=${#errors[@]}
-
-					for item in "${errors[@]}"; do
-						errorMessage=$(jq -c -r '.summary ' <<<"$item")
-						echo "Error: $errorMessage"
-						echo "##vso[task.logissue type=error]Error: $errorMessage"
-					done
+				if [ "$error_count" -gt "$msi_error_count" ]; then
+					print_banner "ImportAndReRunApply" "Errors occurred during the apply phase" "error"
+					echo "##vso[task.logissue type=error]Errors occurred during the apply phase"
+					import_return_value=5
 				else
-					print_banner "ImportAndReRunApply" "No errors" "info"
-					if [ -f "$fileName" ]; then
-						rm "$fileName"
-					fi
 					import_return_value=0
 				fi
-
-			fi
-		else
-			print_banner "ImportAndReRunApply" "No errors" "info"
-			if [ -f "$fileName" ]; then
-				rm "$fileName"
-			fi
-			import_return_value=0
-		fi
-
-	fi
-	if [ "$import_return_value" -ne 0 ]; then
-		print_banner "ImportAndReRunApply" "Terraform apply failed with return code: $import_return_value" "error"
-		echo "##vso[task.logissue type=error]Terraform apply failed with return code: $import_return_value"
-	else
-		if [ "$error_count" -gt 0 ]; then
-
-			if [ "$error_count" -gt "$msi_error_count" ]; then
-				print_banner "ImportAndReRunApply" "Errors occurred during the apply phase" "error"
-				echo "##vso[task.logissue type=error]Errors occurred during the apply phase"
-				import_return_value=5
 			else
 				import_return_value=0
 			fi
-		else
-			import_return_value=0
 		fi
 	fi
 
-	# if [ -f "$fileName" ]; then
-	# 	retry_errors_temp=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary} | select(.summary | contains("A retryable error occurred."))' "$fileName")
-	# 	if [[ -n "${retry_errors_temp}" ]]; then
-	# 		sleep 30
-	# 		# shellcheck disable=SC2086
-	# 		if terraform -chdir="${terraform_module_directory}" apply -no-color -compact-warnings -json -input=false --auto-approve $applyParameters | tee "$fileName"; then
-	# 			import_return_value=${PIPESTATUS[0]}
-	# 		else
-	# 			import_return_value=${PIPESTATUS[0]}
-	# 		fi
-	# 	fi
-	# fi
-
-
+	if [ -f "$fileName" ]; then
+		retry_errors_temp=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary} | select(.summary | contains("A retryable error occurred."))' "$fileName")
+		if [[ -z "${retry_errors_temp}" ]]; then
+			retry_errors_temp=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary} | select(.summary | contains("a retryable error occurred."))' "$fileName")
+		fi
+		if [[ -n "${retry_errors_temp}" ]]; then
+			sleep 30
+			# shellcheck disable=SC2086
+			if terraform -chdir="${terraform_module_directory}" apply -no-color -compact-warnings -json -input=false --auto-approve $applyParameters | tee "$fileName"; then
+				import_return_value=${PIPESTATUS[0]}
+			else
+				import_return_value=${PIPESTATUS[0]}
+			fi
+		fi
+	fi
 
 	print_banner "ImportAndReRunApply" "Exiting function ImportAndReRunApply" "info" "return code: $import_return_value"
 
@@ -1439,4 +1440,3 @@ function get_terraform_output() {
 		echo "$default_value"
 	fi
 }
-
