@@ -1082,7 +1082,6 @@ function ImportAndReRunApply {
 	if [ -f "$fileName" ]; then
 		retry_errors_temp=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary} | select(.summary | contains("A retryable error occurred."))' "$fileName")
 		if [[ -n "${retry_errors_temp}" ]]; then
-			rm "$fileName"
 			sleep 30
 			# shellcheck disable=SC2086
 			if terraform -chdir="${terraform_module_directory}" apply -no-color -compact-warnings -json -input=false --auto-approve $applyParameters | tee "$fileName"; then
@@ -1092,6 +1091,7 @@ function ImportAndReRunApply {
 			fi
 		fi
 	fi
+
 	if [ -f "$fileName" ]; then
 
 		errors_occurred=$(jq 'select(."@level" == "error") | length' "$fileName")
