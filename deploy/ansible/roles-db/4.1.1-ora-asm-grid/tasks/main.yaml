@@ -58,7 +58,7 @@
     path:                              "{{ item.path }}"
     state:                             directory
     mode:                              '0755'
-    owner:                             "{{ oracle_user_name }}"
+    owner:                             "{{ grid_user_name }}"
     group:                             oinstall
   loop:
     - { state: 'directory', mode: '0755', path: '/etc/sap_deployment_automation/' }
@@ -146,7 +146,7 @@
 
     - name:                            "ORACLE GRID: Create Grid install response file"
       become:                          true
-      become_user:                     "{{ oracle_user_name }}"
+      become_user:                     "{{ grid_user_name }}"
       ansible.builtin.template:
         src:                           ORACLE_19c_00_ASM_v1_install.rsp.j2
         dest:                          "/oracle/GRID/{{ ora_version }}/{{ ansible_hostname }}_{{ db_sid }}_install.rsp"
@@ -169,7 +169,7 @@
         src:                           "{{ target_media_location }}/oraserver/LINUX_X86_64/grid_home/LINUX.X64_193000_grid_home.zip"
         dest:                          /oracle/GRID/{{ ora_version }}
         creates:                       "/oracle/GRID/{{ ora_version }}/SIGNATURE.SMF"
-        owner:                         "{{ oracle_user_name }}"
+        owner:                         "{{ grid_user_name }}"
         group:                         oinstall
         remote_src:                    true
 
@@ -264,7 +264,7 @@
         dest:                          "{{ patch_copy_name }}"
         remote_src:                    true
         mode:                          '0755'
-        owner:                         "{{ oracle_user_name }}"
+        owner:                         "{{ grid_user_name }}"
         group:                         oinstall
       when:
         - not opatchgrid_stat.stat.exists
@@ -280,7 +280,7 @@
         dest:                          "/oracle/GRID/{{ ora_version }}"
         remote_src:                    true
         mode:                          '0755'
-        owner:                         "{{ oracle_user_name }}"
+        owner:                         "{{ grid_user_name }}"
         group:                         oinstall
 
     - name:                            "ORACLE GRID: Find MOPatch"
@@ -312,7 +312,7 @@
         dest:                          "/oracle/GRID/{{ ora_version }}"
         remote_src:                    true
         mode:                          '0755'
-        owner:                         "{{ oracle_user_name }}"
+        owner:                         "{{ grid_user_name }}"
         group:                         oinstall
 
     # +--------------------------------4------------------------------------------*/
@@ -327,7 +327,7 @@
 
     - name:                            "ORACLE GRID: Install Execute gridSetup.sh"
       become:                          true
-      become_user:                     "{{ oracle_user_name }}"
+      become_user:                     "{{ grid_user_name }}"
       ansible.builtin.shell: |
                                        ./gridSetup.sh -silent -applyRU {{ ApplyRU }} -applyOneOffs {{ OneOffs }} -opatchlocation /oracle/GRID/{{ ora_version }}/OPatch -skipOpatchVersionCheck -responseFile ./{{ ansible_hostname }}_{{ db_sid }}_install.rsp
       register:                        gridinstaller_results
@@ -414,7 +414,7 @@
 
     - name:                            "ORACLE GRID: Execute ASM Config tools"
       become:                          true
-      become_user:                     "{{ oracle_user_name }}"
+      become_user:                     "{{ grid_user_name }}"
       ansible.builtin.shell: |
                                        ./gridSetup.sh -executeConfigTools -silent -responseFile ./{{ ansible_hostname }}_{{ db_sid }}_install.rsp
       register:                        tools_installer_results
@@ -455,7 +455,7 @@
 
     - name:                            "ORACLE GRID: Create ASM Disk groups ARCH"
       become:                          true
-      become_user:                     "{{ oracle_user_name }}"
+      become_user:                     "{{ grid_user_name }}"
       ansible.builtin.shell: |
                                        ./asmca -silent -createDiskGroup -diskGroupName ARCH -redundancy EXTERNAL -diskList '{{ asm_archive_disk_list }}' -compatible.asm {{ ora_version }} -compatible.rdbms  {{ ora_version }} -compatible.advm {{ ora_version }}
 
@@ -470,7 +470,7 @@
 
     - name:                            "ORACLE GRID: Create ASM Disk groups RECO"
       become:                          true
-      become_user:                     "{{ oracle_user_name }}"
+      become_user:                     "{{ grid_user_name }}"
       ansible.builtin.shell: |
                                        set -o errexit
                                        ./asmca -silent -createDiskGroup -diskGroupName RECO -redundancy EXTERNAL -diskList '{{ asm_recovery_disk_list }}'  -compatible.asm {{ ora_version }} -compatible.rdbms  {{ ora_version }} -compatible.advm {{ ora_version }}

@@ -67,7 +67,7 @@
     dest:                              "/oracle/GRID/{{ ora_version }}"
     remote_src:                        true
     mode:                              '0755'
-    owner:                             "{{ oracle_user_name }}"
+    owner:                             "{{ grid_user_name }}"
     group:                             oinstall
 
 - name:                                "ORACLE GRID UPDATE: Find MOPatch"
@@ -128,7 +128,7 @@
     dest:                              "/oracle/GRID/{{ ora_version }}"
     remote_src:                        true
     mode:                              0777
-    owner:                             "{{ oracle_user_name }}"
+    owner:                             "{{ grid_user_name }}"
     group:                             oinstall
 
 - name:                                "ORACLE GRID UPDATE: copy MOPatch from {{ mopatch_path }} to /oracle/{{ db_sid | upper }}/{{ ora_version }}"
@@ -137,7 +137,7 @@
     dest:                              "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
     remote_src:                        true
     mode:                              0777
-    owner:                             "{{ oracle_user_name }}"
+    owner:                             "{{ grid_user_name }}"
     group:                             oinstall
 
 
@@ -152,14 +152,14 @@
     path:                              "/oracle/GRID/{{ ora_version }}/bin/oradism"
     state:                             file
     mode:                              '0750'
-    owner:                             "{{ oracle_user_name }}"
+    owner:                             "{{ grid_user_name }}"
     group:                             oinstall
 
 # Step 2
 
 - name:                                "ORACLE GRID UPDATE: Stop all CRS-managed resources associated with the RDBMS home"
   become:                              true
-  become_user:                         "{{ oracle_user_name }}"
+  become_user:                         "{{ grid_user_name }}"
   ansible.builtin.shell: |
                                        env ORACLE_HOME=$OHRDBMS ORACLE_BASE=$OHRDBMS.dummybase $OHRDBMS/bin/srvctl stop home -o $OHRDBMS -s $OHRDBMS.srvctlstatus
   register:                            srvctlstatus_results
@@ -210,7 +210,7 @@
     path:                              "/oracle/GRID/{{ ora_version }}/bin/oradism"
     state:                             file
     mode:                              'u+rw'
-    owner:                             "{{ oracle_user_name }}"
+    owner:                             "{{ grid_user_name }}"
     group:                             oinstall
 
 # Step 7
@@ -220,7 +220,7 @@
 
 - name:                                "ORACLE GRID UPDATE: Post Processing - SBP Patching"
   become:                              true
-  become_user:                         "{{ oracle_user_name }}"
+  become_user:                         "{{ grid_user_name }}"
   ansible.builtin.shell:               "env ORACLE_HOME=$OHGRID $OHGRID/MOPatch/mopatch.sh -v -s {{ target_media_location }}/SBP/{{ bom.patch_information.oracle_grid_sbp_patch }} -F mopatch_patchgen"
   environment:
     CV_ASSUME_DISTID:                  "{{ CV_ASSUME_DISTID }}"
@@ -249,7 +249,7 @@
     path:                              "/etc/sap_deployment_automation/grid/grid_mopatch_installed.txt"
     state:                             touch
     mode:                              '0755'
-    owner:                             "{{ oracle_user_name }}"
+    owner:                             "{{ grid_user_name }}"
     group:                             oinstall
 
 # Step 8
@@ -319,7 +319,7 @@
 # Step 9.3
 - name:                                "ORACLE GRID UPDATE: Work-around for Oracle bug 28352017"
   become:                              true
-  become_user:                         "{{ oracle_user_name }}"
+  become_user:                         "{{ grid_user_name }}"
   ansible.builtin.shell: |
                                        $OHGRID/bin/cluutil \
                                        -ckpt -oraclebase `env ORACLE_HOME=$OHGRID $OHGRID/bin/orabase` \
@@ -348,7 +348,7 @@
 # Step 10
 - name:                                "ORACLE GRID UPDATE: Run the pre-installation script for the database component of Grid Infrastructure Release Update 19.28.0.0.250715"
   become:                              true
-  become_user:                         "{{ oracle_user_name }}"
+  become_user:                         "{{ grid_user_name }}"
   ansible.builtin.shell: |
                                        {{ STAGE_SBP_OCWRU }}/custom/scripts/prepatch.sh -dbhome $IHRDBMS
 
@@ -380,7 +380,7 @@
     path:                              "/oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/oradism"
     state:                             file
     mode:                              'u+rw'
-    owner:                             "{{ oracle_user_name }}"
+    owner:                             "{{ grid_user_name }}"
     group:                             oinstall
 
 # Step 12
@@ -390,7 +390,7 @@
 
 - name:                                "ORACLE GRID DB UPDATE: Post Processing - SBP Patching"
   become:                              true
-  become_user:                         "{{ oracle_user_name }}"
+  become_user:                         "{{ grid_user_name }}"
   ansible.builtin.shell:               "env ORACLE_HOME=$IHRDBMS $IHRDBMS/MOPatch/mopatch.sh -v -s {{ target_media_location }}/SBP/{{ bom.patch_information.oracle_grid_sbp_patch }} -F mopatch_patchgen"
   environment:
     CV_ASSUME_DISTID:                  "{{ CV_ASSUME_DISTID }}"
@@ -419,7 +419,7 @@
     path:                              "/etc/sap_deployment_automation/grid/grid_mopatch_db_installed.txt"
     state:                             touch
     mode:                              '0755'
-    owner:                             "{{ oracle_user_name }}"
+    owner:                             "{{ grid_user_name }}"
     group:                             oinstall
 
 # Step 13
@@ -429,14 +429,14 @@
     path:                              "/oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/oradism"
     state:                             file
     mode:                              '4750'
-    owner:                             "{{ oracle_user_name }}"
+    owner:                             "{{ grid_user_name }}"
     group:                             oinstall
 
 
 # Step 14
 - name:                                "ORACLE GRID UPDATE: Run the post-installation script for the database component of Grid Infrastructure Release Update 19.28.0.0.250715"
   become:                              true
-  become_user:                         "{{ oracle_user_name }}"
+  become_user:                         "{{ grid_user_name }}"
   ansible.builtin.shell: |
                                        {{ STAGE_SBP_OCWRU }}/custom/scripts/postpatch.sh -dbhome $IHRDBMS
   register:                            postpatch_results
@@ -463,7 +463,7 @@
 # Step 16
 - name:                                "ORACLE GRID UPDATE: Start all CRS-managed resources associated with the RDBMS home"
   become:                              true
-  become_user:                         "{{ oracle_user_name }}"
+  become_user:                         "{{ grid_user_name }}"
   ansible.builtin.shell: |
                                        env ORACLE_HOME=$OHRDBMS ORACLE_BASE=$OHRDBMS.dummybase $OHRDBMS/bin/srvctl start home -o $OHRDBMS \
                                        -s $OHRDBMS.srvctlstatus
@@ -491,7 +491,7 @@
 
 - name:                                "ORACLE GRID UPDATE: Remove {{ ora_release }}.srvctlstatus"
   become:                              true
-  become_user:                         "{{ oracle_user_name }}"
+  become_user:                         "{{ grid_user_name }}"
   ansible.builtin.file:
     path:                              "/oracle/{{ db_sid | upper }}/{{ ora_release }}.srvctlstatus"
     state:                             absent

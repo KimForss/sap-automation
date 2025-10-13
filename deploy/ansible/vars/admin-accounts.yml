@@ -447,6 +447,19 @@ admin_users:
     node_tier:    oracle-asm
     enabled:      true
 
+  - name:         "{{ grid_user_name }}"
+    comment:      "Oracle Grid Infrastructure Administrator"
+    uid:          "{{ grid_uid }}"
+    group:        oinstall
+    groups:       ["oper", "sapsys", "sapinst", "asmdba", "dba", "asmadmin", "asmoper"]
+    sudoers_role: "admin_no_password"
+    password:     "{{ main_password }}"
+    shell:        /bin/csh
+    state:        present
+    tier:         ora
+    node_tier:    oracle-asm
+    enabled:      true
+
 # Admin users for Observer
 
   - name:         "ora{{ sap_sid | lower }}"
