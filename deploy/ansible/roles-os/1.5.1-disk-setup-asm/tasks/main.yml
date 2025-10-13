@@ -426,7 +426,8 @@
         path:                          "/etc/sap_deployment_automation/asm/asm_data_disks_created.txt"
         mode:                          0755
         state:                         touch
-      when:                            "{{ data_disk_created.rc | default(0) == 0 }}"
+      when:
+        - data_disk_created.rc | default(0) == 0
 
 
     - name:                            "ORACLE ASM: Permissions ASM Disks - DATA"
@@ -495,7 +496,8 @@
         path:                          "/etc/sap_deployment_automation/asm/asm_archive_disks_created.txt"
         mode:                          0755
         state:                         touch
-      when:                            "{{ archive_disk_created.rc | default(0) == 0 }}"
+      when:
+        - archive_disk_created.rc | default(0) == 0
 
     - name:                            "ORACLE ASM: Permissions ASM Disks - ARCH"
       ansible.builtin.file:
@@ -559,7 +561,8 @@
         path:                          "/etc/sap_deployment_automation/asm/asm_recovery_disks_created.txt"
         mode:                          0755
         state:                         touch
-      when:                            "{{ recovery_disk_created.rc | default(0) == 0 }}"
+      when:
+        - recovery_disk_created.rc | default(0) == 0
 
     - name:                            "ORACLE ASM: Permissions ASM Disks - RECO"
       ansible.builtin.file:
