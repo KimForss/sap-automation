@@ -299,7 +299,7 @@ echo ""
 
 # shellcheck disable=SC2086
 
-if terraform -chdir="$terraform_module_directory" plan -detailed-exitcode -input=false -out="$deployer_plan_name" $allParameters | tee plan_output.log; then
+if terraform -chdir="$terraform_module_directory" plan -detailed-exitcode -input=false $allParameters | tee plan_output.log; then
 	install_deployer_return_value=${PIPESTATUS[0]}
 else
 	install_deployer_return_value=${PIPESTATUS[0]}
