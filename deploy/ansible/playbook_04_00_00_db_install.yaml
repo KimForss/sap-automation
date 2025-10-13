@@ -520,6 +520,8 @@
         - name:                        "Database Installation Playbook: - HANA ScaleOut - Ensure the accounts are present"
           ansible.builtin.include_role:
             name:                      roles-os/1.11-accounts
+          vars:
+            tier:                      ha
           tags:
                                        - 1.11-accounts
 
@@ -634,11 +636,7 @@
           tags:
             - always
 
-        - name:                        "Database Installation Playbook: - Oracle - Configure accounts for oracle"
-          ansible.builtin.include_role:
-            name:                      roles-os/1.11-accounts
-
-        - name:                        "Database Installation Playbook: - Oracle - Configure accounts for oracle"
+        - name:                        "Database Installation Playbook: - Oracle - Configure accounts"
           ansible.builtin.include_role:
             name:                      roles-os/1.11-accounts
 
@@ -717,6 +715,10 @@
             sapbits_sas_token:         "{{ hostvars.localhost.sapbits_sas_token }}"
           tags:
             - always
+
+        - name:                        "Database Installation Playbook: - Oracle ASM - Configure accounts"
+          ansible.builtin.include_role:
+            name:                      roles-os/1.11-accounts
 
         - name:                         "Database Installation Playbook: - Oracle ASM - Register repositories"
           ansible.builtin.import_tasks: roles-os/1.3-repository/tasks/1.3.3-repositories-from-BOM.yaml
