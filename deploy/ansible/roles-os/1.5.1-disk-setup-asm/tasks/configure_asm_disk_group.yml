@@ -39,7 +39,7 @@
     extended:                      true
   when:
     - item.rc != 0
-    - "'is not an ASM disk' in item.stderr or 'is not a known' in item.stderr"
+    - "'is not marked as an ASM disk' in item.stderr or 'is not a known' in item.stderr or 'does not exist or is not instantiated' in item.stderr"
 
 - name:                            "ORACLE ASM: Debug - {{ disk_group_name }} disks requiring configuration"
   ansible.builtin.debug:
