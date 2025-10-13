@@ -142,10 +142,6 @@
         state:                         touch
         mode:                          '0755'
 
-    - name:                            "Oracle Data Guard - Post Processing: Disable automatic restart for database"
-      ansible.builtin.shell: |
-                                       srvctl disable database -d {{ db_sid |  upper }}_STDBY
-
     # Stop the Secondary Database.
     - name:                            "Oracle Data Guard - Setup Secondary: Stop secondary DB for oracle clusterware configuration."
       become:                          true
@@ -193,60 +189,88 @@
       register:                        secondary_startup_cfg_results
       failed_when:                     secondary_startup_cfg_results.rc > 0
       args:
-        creates:                           /etc/sap_deployment_automation/dataguard_scripts/secondary_startup_cfg.txt
-        chdir:                             /etc/sap_deployment_automation/dataguard_scripts
-        executable:                        /bin/csh
-
+        creates:                       /etc/sap_deployment_automation/dataguard_scripts/secondary_startup_cfg.txt
+        chdir:                         /etc/sap_deployment_automation/dataguard_scripts
+        executable:                    /bin/csh
 
     - name:                            "Oracle Data Guard - Setup Secondary: Start secondary DB after HA Service configuration on non-ASM (Debug)"
+      when:                            secondary_startup_cfg_results.stdout is defined
       ansible.builtin.copy:
         dest:                          "/etc/sap_deployment_automation/dataguard_scripts/secondary_startup.log"
         content:                       "{{ secondary_startup_cfg_results.stdout }}"
         mode:                          '0777'
-      when:                            secondary_startup_cfg_results.stdout is defined
 
-    - name:                                "Oracle Data Guard - Setup Secondary: Create secondary_startup_cfg.txt"
-      become:                              true
-      become_user:                         "root"
-      ansible.builtin.file:
-        path:                              /etc/sap_deployment_automation/dataguard_scripts/secondary_startup_cfg.txt
-        state:                             touch
-        mode:                              '0755'
-        owner:                             oracle
-        group:                             oinstall
+    - name:                            "Oracle Data Guard - Setup Secondary: Create secondary_startup_cfg.txt"
+      become:                          true
+      become_user:                     "root"
       when:
-        - node_tier == "oracle"
-        - secondary_startup_cfg_results.rc == 0
-        - current_host == ora_secondary
+                                       - node_tier == "oracle"
+                                       - secondary_startup_cfg_results.rc == 0
+                                       - current_host == ora_secondary
+      ansible.builtin.file:
+        path:                          /etc/sap_deployment_automation/dataguard_scripts/secondary_startup_cfg.txt
+        state:                         touch
+        mode:                          '0755'
+        owner:                         oracle
+        group:                         oinstall
 
-    # Not needed as we should not enabled automatic restart for Oracle running SAP
-    # - name:                            "Oracle CLusterware Restart Configuration"
-    #   become:                          true
-    #   become_user:                     "{{ oracle_user_name }}"
-    #   ansible.builtin.shell: |
-    #                                    srvctl add   database  -db {{ db_sid |  upper }}_STDBY   -oraclehome /oracle/{{ db_sid |  upper }}/{{ ora_release }}   -spfile  +DATA/{{ db_sid |  upper }}_STDBY/PARAMETERFILE/spfile{{ db_sid |  lower }}.ora -role PHYSICAL_STANDBY -instance  {{ db_sid |  upper }} -startoption mount -diskgroup "ARCH,DATA,RECO"
-    #                                    srvctl start database  -db {{ db_sid |  upper }}_STDBY
-    #   register:                        oracle_clusterware_register
-    #   failed_when:                     oracle_clusterware_register.rc > 0
-    #   args:
-    #     creates:                       /etc/sap_deployment_automation/dataguard_scripts/oracle_clusterware_registered.txt
-    #     chdir:                         /etc/sap_deployment_automation/dataguard_scripts
-    #     executable:                    /bin/csh
-    #   when:
-    #    - node_tier == "oracle-asm"
 
-    # - name:                            "Create oracle_clusterware_registered on secondary"
-    #   become:                          true
-    #   become_user:                     root
-    #   ansible.builtin.file:
-    #     path:                          /etc/sap_deployment_automation/dataguard_scripts/oracle_clusterware_registered.txt
-    #     state:                         touch
-    #     mode:                          '0755'
-    #     owner: oracle
-    #     group: oinstall
-    #   when:
-    #     - node_tier == "oracle-asm"
-    #     - oracle_clusterware_register.rc  == 0
+    # Disable the automatic restart for database on Secondary.
+    - name:                            "Oracle Data Guard: Disable automatic restart for database on Secondary"
+      become:                          true
+      become_user:                     "{{ oracle_user_name }}"
+      ansible.builtin.shell: |
+                                       srvctl disable database -d {{ db_sid | upper }}_STDBY -force -noprompt
+      environment:
+        ORACLE_HOME:                   "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
+        PATH:                          "/oracle/GRID/{{ ora_version }}/bin:{{ ansible_env.PATH }}"
+      args:
+        executable:                    /bin/csh
+      register:                        disable_restart_secondary
+      failed_when:                     disable_restart_secondary.rc != 0 and 'PRCD-1126' not in disable_restart_secondary.stderr
+      changed_when:                    disable_restart_secondary.rc == 0
+
+    - name:                            "Oracle Data Guard: Verify database is mounted on Secondary"
+      become:                          true
+      become_user:                     "{{ oracle_user_name }}"
+      ansible.builtin.shell: |
+                                       sqlplus -s / as sysdba << EOF
+                                       SET HEADING OFF
+                                       SET FEEDBACK OFF
+                                       SELECT open_mode FROM v\$database;
+                                       EXIT;
+                                       EOF
+      environment:
+        ORACLE_SID:                    "{{ db_sid | upper }}"
+        ORACLE_HOME:                   "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
+      args:
+        executable:                    /bin/csh
+      register:                        secondary_open_mode
+      failed_when:                     false
+      changed_when:                    false
+
+    - name:                            "Oracle Data Guard: Ensure database is mounted (not open) on Secondary"
+      become:                          true
+      become_user:                     "{{ oracle_user_name }}"
+      ansible.builtin.shell: |
+                                       sqlplus -s / as sysdba << EOF
+                                       SHUTDOWN IMMEDIATE;
+                                       STARTUP MOUNT;
+                                       EXIT;
+                                       EOF
+      environment:
+        ORACLE_SID:                    "{{ db_sid | upper }}"
+        ORACLE_HOME:                   "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
+      args:
+        executable:                    /bin/csh
+      when:                            "'MOUNTED' not in secondary_open_mode.stdout"
+      register:                        mount_secondary
+
+    - name:                            "Oracle Data Guard: Create disable_restart_secondary.txt"
+      ansible.builtin.file:
+        path:                          /etc/sap_deployment_automation/dataguard_scripts/disable_restart_secondary.txt
+        state:                         touch
+        mode:                          '0755'
 
     - name:                            "Create post processing completed on secondary"
       become:                          true
@@ -255,32 +279,31 @@
         path:                          /usr/sap/install/downloads/{{ db_sid | upper }}/post_processing_secondary_completed.txt
         state:                         touch
         mode:                          '0755'
-        owner: oracle
-        group: oinstall
+        owner:                         oracle
+        group:                         oinstall
 
 
     # Create User for SIDADM on Secondary Node.
-    - name:                                "2.5.1 SAP Users: -  Create Oracle ASM Users Assignment"
+    - name:                            "2.5.1 SAP Users: -  Create Oracle ASM Users Assignment"
       ansible.builtin.user:
-        name:                              "{{ sap_sid | lower }}adm"
-        uid:                               "{{ sidadm_uid }}"
-        group:                             "sapsys"
-        groups:                            asmoper,asmdba,dba,oper,oinstall
-        append:                            true
-        shell:                             /bin/csh
-      # when:                                node_tier == "oracle-asm"
+        name:                          "{{ sap_sid | lower }}adm"
+        uid:                           "{{ sidadm_uid }}"
+        group:                         "sapsys"
+        groups:                        asmoper,asmdba,dba,oper,oinstall
+        append:                        true
+        shell:                         /bin/csh
 
     # Update the tnsnames.ora for SAP application servers
-    - name:                                "Oracle Data Guard - Update tnsnames.ora for SAP application servers"
-      become:                              true
-      become_user:                         "root"
+    - name:                            "Oracle Data Guard - Update tnsnames.ora for SAP application servers"
+      become:                          true
+      become_user:                     "root"
       ansible.builtin.copy:
-        src:                               /etc/sap_deployment_automation/dataguard_scripts/tnsnames.ora
-        dest:                              /sapmnt/{{ sap_sid |upper }}/profile/oracle/tnsnames.ora
-        remote_src:                        true
-        owner:                             '{{ sap_sid |lower }}adm'
-        group:                             sapsys
-        mode:                              "{{ '0777' | int - (custom_umask | default('022') | int) }}"
+        src:                           /etc/sap_deployment_automation/dataguard_scripts/tnsnames.ora
+        dest:                          /sapmnt/{{ sap_sid |upper }}/profile/oracle/tnsnames.ora
+        remote_src:                    true
+        owner:                         '{{ sap_sid |lower }}adm'
+        group:                         sapsys
+        mode:                          "{{ '0777' | int - (custom_umask | default('022') | int) }}"
 
 ...
   # /*---------------------------------------------------------------------------8

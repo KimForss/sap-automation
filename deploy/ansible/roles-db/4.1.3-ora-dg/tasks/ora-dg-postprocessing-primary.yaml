@@ -231,9 +231,61 @@
         state:                         touch
         mode:                          '0755'
 
-    - name:                            "Oracle Data Guard - Post Processing: Disable automatic restart for database"
+    - name:                            "Oracle Data Guard: Disable automatic restart for database on Primary"
+      become:                          true
+      become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell: |
-                                       srvctl disable database -d {{ db_sid | upper }}
+                                       srvctl disable database -d {{ db_sid | upper }} -force -noprompt
+      environment:
+        ORACLE_HOME:                   "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
+        PATH:                          "/oracle/GRID/{{ ora_version }}/bin:{{ ansible_env.PATH }}"
+      args:
+        executable:                    /bin/csh
+      register:                        disable_restart_primary
+      failed_when:                     disable_restart_primary.rc != 0 and 'PRCD-1126' not in disable_restart_primary.stderr
+      changed_when:                    disable_restart_primary.rc == 0
+
+    - name:                            "Oracle Data Guard: Verify database is open on Primary"
+      become:                          true
+      become_user:                     "{{ oracle_user_name }}"
+      ansible.builtin.shell: |
+                                       sqlplus -s / as sysdba << EOF
+                                       SET HEADING OFF
+                                       SET FEEDBACK OFF
+                                       SELECT open_mode FROM v\$database;
+                                       EXIT;
+                                       EOF
+      environment:
+        ORACLE_SID:                    "{{ db_sid | upper }}"
+        ORACLE_HOME:                   "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
+      args:
+        executable:                    /bin/csh
+      register:                        primary_open_mode
+      failed_when:                     "'READ WRITE' not in primary_open_mode.stdout"
+      changed_when:                    false
+
+    - name:                            "Oracle Data Guard: Ensure database is open on Primary"
+      become:                          true
+      become_user:                     "{{ oracle_user_name }}"
+      ansible.builtin.shell: |
+                                       sqlplus -s / as sysdba << EOF
+                                       ALTER DATABASE OPEN;
+                                       EXIT;
+                                       EOF
+      environment:
+        ORACLE_SID:                    "{{ db_sid | upper }}"
+        ORACLE_HOME:                   "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
+      args:
+        executable:                    /bin/csh
+      when:                            "'READ WRITE' not in primary_open_mode.stdout"
+      register:                        open_primary
+      failed_when:                     open_primary.rc != 0 and 'ORA-01531' not in open_primary.stderr
+
+    - name:                            "Oracle Data Guard: Create disable_restart_primary.txt"
+      ansible.builtin.file:
+        path:                          /etc/sap_deployment_automation/dataguard_scripts/disable_restart_primary.txt
+        state:                         touch
+        mode:                          '0755'
 
     - name:                            "Create post processing completed"
       become:                          true
@@ -244,7 +296,6 @@
         mode:                          '0755'
         owner: oracle
         group: oinstall
-
 
 ...
   # /*---------------------------------------------------------------------------8
