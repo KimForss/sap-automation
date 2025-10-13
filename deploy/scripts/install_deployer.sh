@@ -116,11 +116,11 @@ if [ "$param_dirname" != '.' ]; then
 	exit 3
 fi
 
-if [ "$DEBUG" = true ]; then
+if [ "$DEBUG" == True ]; then
+	echo -e "${cyan}Enabling debug mode$reset_formatting"
 	set -x
 	set -o errexit
 fi
-
 # Check that parameter files have environment and location defined
 validate_key_parameters "$parameterfile"
 return_code=$?
