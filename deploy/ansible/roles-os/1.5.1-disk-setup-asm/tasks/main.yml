@@ -422,8 +422,6 @@
         path:                          "{{ item }}1"
         owner:                         "{{ grid_user_name }}"
         group:                         oinstall
-        state:                         directory
-        recurse:                       true
       loop:                            "{{ data_disk_list }}"
       loop_control:
         extended:                      true
@@ -490,8 +488,6 @@
         path:                          "{{ item }}1"
         owner:                         "{{ grid_user_name }}"
         group:                         oinstall
-        state:                         directory
-        recurse:                       true
       loop:                            "{{ archive_disk_list }}"
       loop_control:
         extended:                      true
@@ -555,8 +551,6 @@
         path:                          "{{ item }}1"
         owner:                         "{{ grid_user_name }}"
         group:                         oinstall
-        state:                         directory
-        recurse:                       true
       loop:                            "{{ recovery_disk_list }}"
       loop_control:
         extended:                      true
