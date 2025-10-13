@@ -8,18 +8,7 @@
 # |                         OS Base Disk Configuration                         |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
-# -------------------------------------+---------------------------------------8
-#
-# Task: 1.5.1     - os-disk-setup ASM
-#
-# -------------------------------------+---------------------------------------8
-# Purpose: Configure disks and mount points for Oracle ASM
-# Prepare disks and mount points
-# Get all the unique disk types from sap-parameters
-# Create LVM for Oracle and SAP file systems.
 
-# -------------------------------------+---------------------------------------8
-#
 - name:                                "ORACLE ASM: Load the disk configuration settings"
   ansible.builtin.include_vars:        disks_config_asm.yml
 
@@ -29,13 +18,6 @@
   with_items:
                                        - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') }}"
                                        - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
-
-# - name:                                "Print unique disks and volume group details"
-#   ansible.builtin.debug:
-#     var:
-#       - volume_groups
-#       - disks
-#     verbosity:                         2
 
 # CREATE VOLUME GROUPS BASED ON sap-parameters.yaml
 # -------------------------------------+---------------------------------------8
@@ -56,7 +38,6 @@
   ansible.builtin.set_fact:
     vgcreatedlist:                     "{{ vgscreated | json_query('results[*].item.vg') }}" # noqa: jinja[invalid]
 
-# Debug for testing
 - name:                                "ORACLE ASM: Print vgcreated details"
   ansible.builtin.debug:
     var:
@@ -64,8 +45,6 @@
                                        - logical_volumes
                                        - vgscreated.results
     verbosity:                         2
-
-# Debug testing end of line
 
 # CREATE LOGICAL VOLUMES BASED ON VGCREATEDLIST
 # -------------------------------------+---------------------------------------8
@@ -87,7 +66,6 @@
   loop:                                "{{ logical_volumes }}"
   register:                            lvscreated
 
-# Debug for testing
 - name:                                "ORACLE ASM: Print lvscreated details"
   ansible.builtin.debug:
     var:                               lvscreated
@@ -97,24 +75,19 @@
   ansible.builtin.set_fact:
     lvcreatedlist_tmp:                 "{{ lvscreated.results | rejectattr('skipped', 'defined') | list }}"
 
-# Debug for testing
 - name:                                "ORACLE ASM: Print vgcreated filtered details"
   ansible.builtin.debug:
     var:                               lvcreatedlist_tmp
     verbosity:                         2
 
-
 - name:                                "ORACLE ASM: Filter the logical volumes created results1"
   ansible.builtin.set_fact:
     lvcreatedlist:                     "{{ lvcreatedlist_tmp | map(attribute='item.lv') | list }}"
 
-
-# Debug for testing
 - name:                                "ORACLE ASM: Print vgcreated details"
   ansible.builtin.debug:
     var:                               lvcreatedlist
     verbosity:                         2
-
 
 - name:                                "ORACLE ASM: Filesystem creation"
   when:
@@ -129,7 +102,6 @@
   loop:                                "{{ logical_volumes }}"
   register :                           filesystemscreated
 
-# Debug for testing
 - name:                                "ORACLE ASM: Print values to be passed for filesystem creation"
   ansible.builtin.debug:
     var:                               filesystemscreated
@@ -141,7 +113,7 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-# Create a run flag directory
+# Create directories
 - name:                                "ORACLE ASM: Create run flag directory"
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation
@@ -154,9 +126,7 @@
     state:                             directory
     mode:                              0755
 
-# ORACLE should be the owner of the file systems /oracle directories.
-
-- name:                                "ORACLE ASM: Make orasid:dba as owners"
+- name:                                "ORACLE ASM: Make oracle:oinstall as owners of /oracle"
   ansible.builtin.file:
     path:                              /oracle
     state:                             directory
@@ -164,32 +134,36 @@
     owner:                             oracle
     group:                             oinstall
 
-- name:                                "ORACLE ASM: Make orasid:dba as owners"
+- name:                                "ORACLE ASM: Set permissions on target_media_location"
   ansible.builtin.file:
     path:                              "{{ target_media_location }}"
     state:                             directory
     mode:                              0777
 
-# Setup and configure ORACLE ASM.
+# /*---------------------------------------------------------------------------8
+# |  ONE-TIME SETUP: Packages and Oracle ASM Configuration                     |
+# +----------------------------------------------------------------------------*/
 
-- name:                                "ORACLE ASM: check if DISKS are already initialized"
-  ansible.builtin.stat:
-    path:                              "/etc/sap_deployment_automation/asm/asm_disk_initialized.txt"
-  register:                            oracle_asm_initialized
+- name:                                "ORACLE ASM: Check if Oracle ASM is configured"
+  ansible.builtin.shell: |
+                                       set -o pipefail
+                                       /usr/sbin/oracleasm configure 2>&1 | grep -q "{{ grid_user_name }}"
+  register:                            oracleasm_check
+  failed_when:                         false
+  changed_when:                        false
 
-# STEP1 Install ASMLIB and ASMSUPPORT Packages
-- name:                                "ORACLE ASM: Disk Initialisation"
-  when:                                not oracle_asm_initialized.stat.exists
+- name:                                "ORACLE ASM: One-time package installation and configuration"
+  when:                                oracleasm_check.rc != 0
   block:
 
-    - name:                            "ORACLE ASM: Install Compat Packages"
+    - name:                            "ORACLE ASM: Install libbpf package"
       ansible.builtin.dnf:
         name:
                                        - "{{ target_media_location }}/RPM/libbpf-0.6.0-6.el8.x86_64.rpm"
         state:                         present
         disable_gpg_check:             true
 
-    - name:                            "ORACLE ASM: Install Compat Packages"
+    - name:                            "ORACLE ASM: Install compat packages for RHEL7/OL7"
       when:                            distribution_id in ['redhat7', 'oraclelinux7']
       ansible.builtin.dnf:
         name:
@@ -198,7 +172,7 @@
         state:                         present
         disable_gpg_check:             true
 
-    - name:                            "ORACLE ASM: check for v3 RPMS"
+    - name:                            "ORACLE ASM: Check for v3 RPMs"
       ansible.builtin.stat:
         path:                          "{{ target_media_location }}/RPM/oracleasmlib-3.0.0-13.el8.x86_64.rpm"
       register:                        oracle_asm_v3
@@ -212,7 +186,7 @@
         state:                         present
         disable_gpg_check:             true
 
-    - name:                            "ORACLE ASM: check for v2 RPMS"
+    - name:                            "ORACLE ASM: Check for v2 RPMs"
       ansible.builtin.stat:
         path:                          "{{ target_media_location }}/downloads/oracleasmlib-2.0.17-1.el8.x86_64.rpm"
       register:                        oracle_asm_v2
@@ -226,30 +200,13 @@
         state:                         present
         disable_gpg_check:             true
 
-
-    # STEP2 Configure and init ORACLEASM
-    # The loop has to be run per host as the sap-parameters file has all the disks.
-
-    - name:                            "ORACLE ASM: Oracle Data Guard: Setting the primary and Secondary DB names"
-      ansible.builtin.set_fact:
-        current_host:                  "{{ ansible_hostname }}"
-
-    - name:                            "ORACLE ASM: Configuration"
+    - name:                            "ORACLE ASM: Configure Oracle ASM"
       ansible.builtin.shell: |
                                        set -o errexit
                                        /usr/sbin/oracleasm configure -u {{ grid_user_name }} -g oinstall -e -s y
                                        /usr/sbin/oracleasm init
       register:                        oracle_asm_config_results
-      args:
-        chdir:                         "/usr/sbin"
-        creates:                       /etc/sap_deployment_automation/asm/asm_configured.txt
       failed_when:                     oracle_asm_config_results.rc not in [0, 1]
-
-    - name:                            "ORACLE ASM: Configuration"
-      ansible.builtin.file:
-        path:                          /etc/sap_deployment_automation/asm/asm_configured.txt
-        state:                         touch
-        mode:                          0755
 
     - name:                            "ORACLE ASM: Start and enable oracleasm service"
       ansible.builtin.systemd:
@@ -257,288 +214,97 @@
         state:                         restarted
         enabled:                       true
 
+# /*---------------------------------------------------------------------------8
+# |  DISK DISCOVERY: Build disk lists for each disk group                      |
+# +----------------------------------------------------------------------------*/
 
-    # STEP3 Initialize Disks for ASM
+- name:                                "ORACLE ASM: Set current host for disk filtering"
+  ansible.builtin.set_fact:
+    current_host:                      "{{ ansible_hostname }}"
 
-    # Need to map the LUN id from SAP Parameters file to the scsi1 list to get the list to be used for creating ASM Disks.
-    # Capture the list of disks to create list for DATA disk group.
-
-    - name:                            "ORACLE ASM: Capture disks for DATA Group"
-      when:
+- name:                                "ORACLE ASM: Capture disks for DATA Group"
+  when:
                                        - item.type == "data-asm"
                                        - item.host == current_host
-      ansible.builtin.shell: |
+  ansible.builtin.shell: |
                                        set -o errexit
                                        readlink -f lun{{ item.LUN }}
+  loop:                                "{{ disks }}"
+  register:                            data_group
+  args:
+    chdir:                             "/dev/disk/azure/scsi1"
 
-      loop:                            "{{ disks }}"
-      register:                        data_group
-      args:
-        chdir:                         "/dev/disk/azure/scsi1"
+- name:                                "ORACLE ASM: Build DATA disk list with LUN metadata"
+  ansible.builtin.set_fact:
+    data_disk_list:                    "{{ data_group.results | rejectattr('skipped', 'defined') | map(attribute='stdout') | list }}"
+    data_disk_luns:                    "{{ data_group.results | rejectattr('skipped', 'defined') | map(attribute='item.LUN') | list }}"
 
-    - name:                            "ORACLE ASM: Filter the list from data_group results"
-      ansible.builtin.set_fact:
-        data_disk_group:               "{{ data_group.results | rejectattr('skipped', 'defined') | list }}"
-
-    - name:                            "ORACLE ASM: Filter the logical volumes created results1"
-      ansible.builtin.set_fact:
-        data_disk_list:                "{{ data_disk_group | map(attribute='stdout') | list }}"
-
-    - name:                            "ORACLE ASM: Set data_disk_list_rsp"
-      ansible.builtin.set_fact:
-        data_disk_list_rsp:            "{{ data_disk_list | join('1,') }}"
-
-    # - fail: msg"{{ datadiskcount }}"
-
-    # We need to map the LUN id from SAP Parameters file to the scsi1 list to get the list to be used for creating ASM Disks.
-    # Capture the list of disks to create list for ARCH disk group.
-
-    - name:                            "ORACLE ASM: Capture disks for ARCH Group"
-      when:
+- name:                                "ORACLE ASM: Capture disks for ARCH Group"
+  when:
                                        - item.type == "arch-asm"
                                        - item.host == current_host
-      ansible.builtin.shell: |
+  ansible.builtin.shell: |
                                        set -o errexit
                                        readlink -f lun{{ item.LUN }}
+  loop:                                "{{ disks }}"
+  register:                            archive_group
+  args:
+    chdir:                             "/dev/disk/azure/scsi1"
 
-      loop:                            "{{ disks }}"
-      register:                        archive_group
-      args:
-        chdir:                         "/dev/disk/azure/scsi1"
+- name:                                "ORACLE ASM: Build ARCH disk list with LUN metadata"
+  ansible.builtin.set_fact:
+    archive_disk_list:                 "{{ archive_group.results | rejectattr('skipped', 'defined') | map(attribute='stdout') | list }}"
+    archive_disk_luns:                 "{{ archive_group.results | rejectattr('skipped', 'defined') | map(attribute='item.LUN') | list }}"
 
-    - name:                            "ORACLE ASM: Filter the arch disks from the results"
-      ansible.builtin.set_fact:
-        archive_disk_group:            "{{ archive_group.results | rejectattr('skipped', 'defined') | list }}"
-
-    - name:                            "ORACLE ASM: Create the ARCH DISKS List"
-      ansible.builtin.set_fact:
-        archive_disk_list:             "{{ archive_disk_group | map(attribute='stdout') | list }}"
-
-    - name:                            "ORACLE ASM: Set archive_disk_list_rsp"
-      ansible.builtin.set_fact:
-        archive_disk_list_rsp:         "{{ archive_disk_list | join('1,') }}"
-
-    # Capture the list of disks to create list for RECO disk group.
-
-    - name:                            "Capture disks for RECO Group"
-      when:
+- name:                                "ORACLE ASM: Capture disks for RECO Group"
+  when:
                                        - item.type == "reco-asm"
                                        - item.host == current_host
-      ansible.builtin.shell: |
+  ansible.builtin.shell: |
                                        set -o errexit
                                        readlink -f lun{{ item.LUN }}
+  loop:                                "{{ disks }}"
+  register:                            recovery_group
+  args:
+    chdir:                             "/dev/disk/azure/scsi1"
 
-      loop:                            "{{ disks }}"
-      register:                        recovery_group
-      args:
-        chdir:                         "/dev/disk/azure/scsi1"
+- name:                                "ORACLE ASM: Build RECO disk list with LUN metadata"
+  ansible.builtin.set_fact:
+    recovery_disk_list:                "{{ recovery_group.results | rejectattr('skipped', 'defined') | map(attribute='stdout') | list }}"
+    recovery_disk_luns:                "{{ recovery_group.results | rejectattr('skipped', 'defined') | map(attribute='item.LUN') | list }}"
 
-    - name:                            "Filter the arch disks from the results"
-      ansible.builtin.set_fact:
-        recovery_disk_group:           "{{ recovery_group.results | rejectattr('skipped', 'defined') | list }}"
+- name:                                "ORACLE ASM: Print disk information"
+  ansible.builtin.debug:
+    msg:
+      - "Data Disks:    {{ data_disk_list }}"
+      - "Data LUNs:     {{ data_disk_luns }}"
+      - "Archive Disks: {{ archive_disk_list }}"
+      - "Archive LUNs:  {{ archive_disk_luns }}"
+      - "Recovery Disks:{{ recovery_disk_list }}"
+      - "Recovery LUNs: {{ recovery_disk_luns }}"
+    verbosity:                         2
 
-    - name:                            "ORACLE ASM: Create the ARCH DISKS List"
-      ansible.builtin.set_fact:
-        recovery_disk_list:            "{{ recovery_disk_group | map(attribute='stdout') | list }}"
+# /*---------------------------------------------------------------------------8
+# |  DISK GROUP CONFIGURATION: Idempotent disk initialization                  |
+# +----------------------------------------------------------------------------*/
 
-    - name:                            "ORACLE ASM: Set recovery_disk_list_rsp fact"
-      ansible.builtin.set_fact:
-        recovery_disk_list_rsp:        "{{ recovery_disk_list | join('1,') }}"
+- name:                                "ORACLE ASM: Configure DATA disk group"
+  ansible.builtin.include_tasks:       configure_asm_disk_group.yml
+  vars:
+    disk_group_name:                   "DATA"
+    disk_group_list:                   "{{ data_disk_list }}"
+    disk_group_luns:                   "{{ data_disk_luns }}"
 
-    - name:                            "ORACLE ASM: Print disk information"
-      ansible.builtin.debug:
-        msg:
-          - "Data Disk list:           {{ data_disk_list }}"
-          - "Archive Disk list:        {{ archive_disk_list }}"
-          - "Recovery Disk list:       {{ recovery_disk_list }}"
-          - "Data Disk list rsp:       {{ data_disk_list_rsp }}"
-          - "Archive Disk list rsp:    {{ archive_disk_list_rsp }}"
-          - "Recovery Disk list rsp:   {{ recovery_disk_list_rsp }}"
-        verbosity:                     2
+- name:                                "ORACLE ASM: Configure ARCH disk group"
+  ansible.builtin.include_tasks:       configure_asm_disk_group.yml
+  vars:
+    disk_group_name:                   "ARCH"
+    disk_group_list:                   "{{ archive_disk_list }}"
+    disk_group_luns:                   "{{ archive_disk_luns }}"
 
-
-    # ==============================================================================
-    # Initialize a Data disk device only if it is not already an ASM disk
-    # ==============================================================================
-        # Query each disk's ASM status individually
-    - name:                            "ORACLE ASM: Query existing ASM disk configuration - DATA"
-      ansible.builtin.shell: |
-                                       /usr/sbin/oracleasm querydisk "{{ item }}1" 2>&1
-      loop:                            "{{ data_disk_list }}"
-      register:                        data_disk_query
-      failed_when:                     false
-      changed_when:                    false
-
-    # Extract which disks are NOT already configured
-    - name:                            "ORACLE ASM: Identify unconfigured DATA disks"
-      when:
-                                       - item.rc != 0  # Non-zero RC means disk is not configured
-                                       - "'is not an ASM disk' in item.stderr or 'is not a known' in item.stderr"
-      ansible.builtin.set_fact:
-        data_disks_to_configure:       "{{ data_disks_to_configure | default([]) + [item.item] }}"
-      loop:                            "{{ data_disk_query.results }}"
-
-    # Partition only unconfigured disks
-    - name:                            "ORACLE ASM: Partition unconfigured DATA disks"
-      become:                          true
-      become_user:                     root
-      when:                            data_disks_to_configure is defined
-      community.general.parted:
-        device:                        "{{ item }}"
-        number:                        1
-        state:                         present
-        label:                         msdos
-        part_type:                     primary
-        part_start:                    0%
-        part_end:                      100%
-      loop:                            "{{ data_disks_to_configure | default([]) }}"
-
-    # Create ASM disks only for unconfigured disks
-    - name:                            "ORACLE ASM: Initialize ASM DISKS - DATA"
-      when:                            data_disks_to_configure is defined
-      ansible.builtin.shell: |
-                                       /usr/sbin/oracleasm createdisk DATA"{{ db_sid | upper }}"0"{{ ansible_loop.index }}" "{{ item }}1"
-      loop:                            "{{ data_disks_to_configure | default([]) }}"
-      loop_control:
-        extended:                      true
-      register:                        data_disk_created
-
-    # Set permissions on ALL data disks (configured or not)
-    - name:                            "ORACLE ASM: Set permissions on DATA disk partitions"
-      ansible.builtin.file:
-        path:                          "{{ item }}1"
-        owner:                         "{{ grid_user_name }}"
-        group:                         oinstall
-        mode:                          '0660'
-      loop:                            "{{ data_disk_list }}"
-
-    # ==============================================================================
-    # ARCHIVE (ARCH) Disk Group Initialization
-    # ==============================================================================
-
-    - name:                            "ORACLE ASM: Query existing ASM disk configuration - ARCH"
-      ansible.builtin.shell: |
-                                       /usr/sbin/oracleasm querydisk "{{ item }}1" 2>&1
-      loop:                            "{{ archive_disk_list }}"
-      register:                        archive_disk_query
-      failed_when:                     false
-      changed_when:                    false
-
-    - name:                            "ORACLE ASM: Identify unconfigured ARCH disks"
-      when:
-                                       - item.rc != 0
-                                       - "'is not an ASM disk' in item.stderr or 'is not a known' in item.stderr"
-      ansible.builtin.set_fact:
-        archive_disks_to_configure:    "{{ archive_disks_to_configure | default([]) + [item.item] }}"
-      loop:                            "{{ archive_disk_query.results }}"
-
-    - name:                            "ORACLE ASM: Debug - ARCH disks requiring configuration"
-      ansible.builtin.debug:
-        msg:                           "Disks to configure: {{ archive_disks_to_configure | default([]) }}"
-        verbosity:                     2
-
-    - name:                            "ORACLE ASM: Partition unconfigured ARCH disks"
-      become:                          true
-      become_user:                     root
-      when:
-                                       - archive_disks_to_configure is defined
-                                       - archive_disks_to_configure | length > 0
-      community.general.parted:
-        device:                        "{{ item }}"
-        number:                        1
-        state:                         present
-        label:                         msdos
-        part_type:                     primary
-        part_start:                    0%
-        part_end:                      100%
-      loop:                            "{{ archive_disks_to_configure | default([]) }}"
-
-    - name:                            "ORACLE ASM: Initialize ASM DISKS - ARCH"
-      when:
-                                       - archive_disks_to_configure is defined
-                                       - archive_disks_to_configure | length > 0
-      ansible.builtin.shell: |
-                                       /usr/sbin/oracleasm createdisk ARCH"{{ db_sid | upper }}"0"{{ ansible_loop.index }}" "{{ item }}1"
-      loop:                            "{{ archive_disks_to_configure | default([]) }}"
-      loop_control:
-        extended:                      true
-      register:                        archive_disk_created
-
-    - name:                            "ORACLE ASM: Set permissions on ARCH disk partitions"
-      ansible.builtin.file:
-        path:                          "{{ item }}1"
-        owner:                         "{{ grid_user_name }}"
-        group:                         oinstall
-        mode:                          '0660'
-      loop:                            "{{ archive_disk_list }}"
-
-    - name:                            "ORACLE ASM: Report ARCH disk creation results"
-      when:                            archive_disk_created is defined
-      ansible.builtin.debug:
-        msg:                           "Archive disks configured: {{ archive_disk_created.results | default([]) | length }}"
-
-
-    # ==============================================================================
-    # RECOVERY (RECO) Disk Group Initialization
-    # ==============================================================================
-
-    - name:                            "ORACLE ASM: Query existing ASM disk configuration - RECO"
-      ansible.builtin.shell: |
-                                       /usr/sbin/oracleasm querydisk "{{ item }}1" 2>&1
-      loop:                            "{{ recovery_disk_list }}"
-      register:                        recovery_disk_query
-      failed_when:                     false
-      changed_when:                    false
-
-    - name:                            "ORACLE ASM: Identify unconfigured RECO disks"
-      when:
-                                       - item.rc != 0
-                                       - "'is not an ASM disk' in item.stderr or 'is not a known' in item.stderr"
-      ansible.builtin.set_fact:
-        recovery_disks_to_configure:   "{{ recovery_disks_to_configure | default([]) + [item.item] }}"
-      loop:                            "{{ recovery_disk_query.results }}"
-
-    - name:                            "ORACLE ASM: Debug - RECO disks requiring configuration"
-      ansible.builtin.debug:
-        msg:                           "Disks to configure: {{ recovery_disks_to_configure | default([]) }}"
-        verbosity:                     2
-
-    - name:                            "ORACLE ASM: Partition unconfigured RECO disks"
-      become:                          true
-      become_user:                     root
-      when:
-                                       - recovery_disks_to_configure is defined
-                                       - recovery_disks_to_configure | length > 0
-      community.general.parted:
-        device:                        "{{ item }}"
-        number:                        1
-        state:                         present
-        label:                         msdos
-        part_type:                     primary
-        part_start:                    0%
-        part_end:                      100%
-      loop:                            "{{ recovery_disks_to_configure | default([]) }}"
-
-    - name:                            "ORACLE ASM: Initialize ASM DISKS - RECO"
-      when:
-                                       - recovery_disks_to_configure is defined
-                                       - recovery_disks_to_configure | length > 0
-      ansible.builtin.shell: |
-                                       /usr/sbin/oracleasm createdisk RECO"{{ db_sid | upper }}"0"{{ ansible_loop.index }}" "{{ item }}1"
-      loop:                            "{{ recovery_disks_to_configure | default([]) }}"
-      loop_control:
-        extended:                      true
-      register:                        recovery_disk_created
-
-    - name:                            "ORACLE ASM: Set permissions on RECO disk partitions"
-      ansible.builtin.file:
-        path:                          "{{ item }}1"
-        owner:                         "{{ grid_user_name }}"
-        group:                         oinstall
-        mode:                          '0660'
-      loop:                            "{{ recovery_disk_list }}"
-
-    - name:                            "ORACLE ASM: Report RECO disk creation results"
-      when:                            recovery_disk_created is defined
-      ansible.builtin.debug:
-        msg:                           "Recovery disks configured: {{ recovery_disk_created.results | default([]) | length }}"
+- name:                                "ORACLE ASM: Configure RECO disk group"
+  ansible.builtin.include_tasks:       configure_asm_disk_group.yml
+  vars:
+    disk_group_name:                   "RECO"
+    disk_group_list:                   "{{ recovery_disk_list }}"
+    disk_group_luns:                   "{{ recovery_disk_luns }}"
