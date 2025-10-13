@@ -97,7 +97,7 @@
     group:                             oinstall
     home:                              "/home/{{ grid_user_name }}"
     shell:                             /bin/csh
-    groups:                            dba,racdba,oper,backupdba,dgdba,kmdba
+    groups:                            dba,racdba,oper,asmadmin,asmdba
   when:
     - node_tier == "oracle-asm"
 
