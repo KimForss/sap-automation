@@ -204,6 +204,9 @@ fi
 if printenv ARM_SUBSCRIPTION_ID; then
 	az account set --subscription "$ARM_SUBSCRIPTION_ID"
 	echo "Deployer subscription:               $ARM_SUBSCRIPTION_ID"
+	TF_subscription_id="$ARM_SUBSCRIPTION_ID"
+	export TF_subscription_id
+
 fi
 
 echo -e "$green--- Convert config files to UX format ---$reset"
