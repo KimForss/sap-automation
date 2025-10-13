@@ -13,22 +13,8 @@
 # Task: 1.5.1     - os-disk-setup ASM
 #
 # -------------------------------------+---------------------------------------8
-
-# -------------------------------------+---------------------------------------8
-#
-# <Comment Header>
-#
-# -------------------------------------+---------------------------------------8
-
-# ----------------------------------------
-# BEGIN
-# ----------------------------------------
-
-# ----------------------------------------
-# END
-# ----------------------------------------
-
-# # Prepare disks and mount points
+# Purpose: Configure disks and mount points for Oracle ASM
+# Prepare disks and mount points
 # Get all the unique disk types from sap-parameters
 # Create LVM for Oracle and SAP file systems.
 
