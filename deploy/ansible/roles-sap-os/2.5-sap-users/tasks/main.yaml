@@ -87,6 +87,7 @@
     home:                              "/home/{{ oracle_user_name }}"
     shell:                             /bin/csh
     groups:                            dba,racdba,oper,backupdba,dgdba,kmdba
+    append:                            true
   when:
     - node_tier == "oracle-asm"
 
@@ -97,7 +98,8 @@
     group:                             oinstall
     home:                              "/home/{{ grid_user_name }}"
     shell:                             /bin/csh
-    groups:                            dba,racdba,oper,asmadmin,asmdba
+    groups:                            dba,racdba,oper,asmadmin,asmdba,asmoper
+    append:                            true
   when:
     - node_tier == "oracle-asm"
 
