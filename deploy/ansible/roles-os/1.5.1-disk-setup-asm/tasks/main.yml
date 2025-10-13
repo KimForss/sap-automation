@@ -412,6 +412,7 @@
       loop_control:
         extended:                      true
       register:                        data_disk_created
+      failed_when:                     data_disk_created.rc not in [0, 1]
       args:
         creates:                      "/etc/sap_deployment_automation/asm/asm_data_disks_created.txt"
 
@@ -480,6 +481,7 @@
       loop_control:
         extended:                      true
       register:                        archive_disk_created
+      failed_when:                     archive_disk_created.rc not in [0, 1]
       args:
         creates:                       "/etc/sap_deployment_automation/asm/asm_archive_disks_created.txt"
 
@@ -543,6 +545,7 @@
       loop_control:
         extended:                      true
       register:                        recovery_disk_created
+      failed_when:                     recovery_disk_created.rc not in [0, 1]
       args:
         creates:                       "/etc/sap_deployment_automation/asm/asm_recovery_disks_created.txt"
 
