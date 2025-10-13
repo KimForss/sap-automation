@@ -1103,6 +1103,9 @@ function ImportAndReRunApply {
 			fi
 			# Check for resource that can be imported
 			existing=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary} | select(.summary | startswith("A resource with the ID"))' "$fileName")
+			if [[ -z $existing ]]; then
+				existing=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary} | select(.summary | startswith("a resource with the ID"))' "$fileName")
+
 
 			if [[ -n $existing ]]; then
 				readarray -t errors < <(echo "${existing}" | jq -c '.')
