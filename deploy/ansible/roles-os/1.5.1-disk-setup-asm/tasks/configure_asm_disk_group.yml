@@ -33,7 +33,7 @@
 - name:                                "ORACLE ASM: Identify unconfigured {{ disk_group_name }} disks with LUN mapping"
   when:
                                        - item.rc != 0
-                                       - "'is not marked as an ASM disk' in item.stdout or 'is not a known' in item.stdout or 'does not exist or is not instantiated' in item.stdout"
+                                       - "'is not marked as an ASM disk' in item.stdout or 'is not a known' in item.stdout or 'does not exist or is not instantiated' in item.stdout or 'Unable to access device' in item.stdout"
   ansible.builtin.set_fact:
     disks_needing_config:              "{{ disks_needing_config + [item.item] }}"
     disk_config_map:                   "{{ disk_config_map | combine({item.item: disk_group_luns[ansible_loop.index0]}) }}"
