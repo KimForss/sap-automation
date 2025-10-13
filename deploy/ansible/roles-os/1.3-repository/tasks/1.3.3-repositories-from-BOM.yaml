@@ -26,5 +26,3 @@
     - ( item.type is defined       and (item.type | lower) == 'rpm' )
     - ( item.archive is defined    and (item.archive | trim | length) > 0 )
     - ansible_os_family | upper == 'REDHAT'
-
-1
