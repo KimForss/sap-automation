@@ -103,7 +103,7 @@
                                              list }}"
   when:                                custom_repos[distribution_full_id] is defined
 
-- name:                                "1.3 Repos: Add the custom repositories {{ ansible_os_family }}"
+- name:                                "1.3 Repos: - Add the custom repositories {{ ansible_os_family }}"
   community.general.zypper_repository:
     repo:                              "{{ item.repo }}"
     state:                             "{{ item.state }}"
@@ -120,7 +120,7 @@
     - custom_repos_for_tier is defined
     - ansible_os_family | upper == 'SUSE'
 
-- name:                                "1.3 Repos: Add the custom repositories {{ ansible_os_family }}"
+- name:                                "1.3 Repos: - Add the custom repositories {{ ansible_os_family }}"
   ansible.builtin.dnf:
     name:                              "{{ item.url }}"
     state:                             "{{ item.state }}"
