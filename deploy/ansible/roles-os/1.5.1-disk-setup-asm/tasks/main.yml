@@ -68,7 +68,7 @@
 
 - name:                                "ORACLE ASM: Filter the vg name from vgscreated results"
   ansible.builtin.set_fact:
-    vgcreatedlist:                     "{{ vgscreated | json_query('results[*].item.vg') }}"
+    vgcreatedlist:                     "{{ vgscreated | json_query('results[*].item.vg') }}" # noqa: jinja[invalid]
 
 # Debug for testing
 - name:                                "ORACLE ASM: Print vgcreated details"
