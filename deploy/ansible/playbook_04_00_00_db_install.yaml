@@ -423,7 +423,7 @@
         - database_scale_out
         - hostvars.localhost.root_password is defined
       block:
-        - name:                            Reset root password to random local value
+        - name:                            "Database Installation Playbook: - HANA ScaleOut - Reset root password to random local value"
           become:                          true
           ansible.builtin.user:
             name:                          root

@@ -347,7 +347,7 @@
       tags:
                                        - always
 
-    - name:                            "Validation Playbook - Show IMDS results (JSON)"
+    - name:                            "Validation Playbook - Show Azure Instance Metadata results (JSON)"
       ansible.builtin.debug:
         var:                           azure_metadata.json
         verbosity:                     2
