@@ -36,12 +36,11 @@
     owner:                             oracle
     group:                             oinstall
 
-
 - name:                                "Oracle Data Guard - Preparation Create password file"
   when:
-    - action == 'Prepare_Secondary'
-    - ansible_hostname == ora_primary
-    - tier != "observer"
+                                       - action == 'Prepare_Secondary'
+                                       - ansible_hostname == ora_primary
+                                       - tier != "observer"
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell:               "orapwd file=$ORACLE_HOME/dbs/orapw{{ db_sid | upper }} password={{ main_password }} entries=5 format=12"
@@ -54,54 +53,60 @@
     executable:                        /bin/csh
 
 - name:                                "Oracle Data Guard: Prepare secondary node"
-  ansible.builtin.include_tasks:       "ora-dg-secondary-preparation.yaml"
   when:
-    - action == 'Prepare_Secondary'
+                                       - action == 'Prepare_Secondary'
+  ansible.builtin.include_tasks:       "ora-dg-secondary-preparation.yaml"
+
 
 - name:                                "Oracle Data Guard: Prepare and Restore"
+  when:
+                                       - action    == 'Prepare_and_Restore'
+                                       - node_tier != "observer"
   block:
     - name:                            "Oracle Data Guard: Preparation tasks"
       ansible.builtin.include_tasks:   "ora-dg-preparation.yaml"
 
     - name:                            "Oracle Data Guard: Setup primary"
-      ansible.builtin.include_tasks:   "ora-dg-setup-primary.yaml"
       when:
-        - current_host == ora_primary
+                                       - current_host == ora_primary
+      ansible.builtin.include_tasks:   "ora-dg-setup-primary.yaml"
 
     - name:                            "Oracle Data Guard: Setup secondary"
-      ansible.builtin.include_tasks:   "ora-dg-setup-secondary.yaml"
       when:
-        - current_host == ora_secondary
-  when:
-    - action    == 'Prepare_and_Restore'
-    - node_tier != "observer"
+                                       - current_host == ora_secondary
+      ansible.builtin.include_tasks:   "ora-dg-setup-secondary.yaml"
+
 
 - name:                                "Oracle Data Guard: Post processing on Primary"
+  when:
+                                       - node_tier != "observer"
+                                       - action    == 'Post_Processing_Primary'
   ansible.builtin.include_tasks:       "ora-dg-postprocessing-primary.yaml"
-  when:
-    - node_tier != "observer"
-    - action    == 'Post_Processing_Primary'
+
 
 # Enable Flashback Logging on the Secondary for FSFO
 - name:                                "Oracle Data Guard: Post processing on Secondary"
-  ansible.builtin.include_tasks:       "ora-dg-postprocessing-secondary.yaml"
   when:
-    - node_tier != "observer"
-    - action    == 'Post_Processing_Secondary'
+                                       - node_tier != "observer"
+                                       - action    == 'Post_Processing_Secondary'
+  ansible.builtin.include_tasks:       "ora-dg-postprocessing-secondary.yaml"
+
 
 # Enable Flashback Logging on the Secondary for FSFO
 - name:                                "Oracle Data Guard: Post processing on Secondary"
-  ansible.builtin.include_tasks:       "ora-dg-postprocessing-secondary.yaml"
   when:
-    - node_tier != "observer"
-    - action    == 'Post_Processing_Secondary'
+                                       - node_tier != "observer"
+                                       - action    == 'Post_Processing_Secondary'
+  ansible.builtin.include_tasks:       "ora-dg-postprocessing-secondary.yaml"
+
 
 # FSFO is enabled from the Observer.
 - name:                                "Oracle Data Guard: Setup Observer"
-  ansible.builtin.include_tasks:       "ora-dg-observer-setup.yaml"
   when:
-    - node_tier == "observer"
-    - action    == 'Setup_Observer'
+                                       - node_tier == "observer"
+                                       - action    == 'Setup_Observer'
+  ansible.builtin.include_tasks:       "ora-dg-observer-setup.yaml"
+
 ...
 # /*---------------------------------------------------------------------------8
 # |                                   END                                      |
