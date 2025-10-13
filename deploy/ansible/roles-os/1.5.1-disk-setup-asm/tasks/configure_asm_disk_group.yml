@@ -17,69 +17,69 @@
 #
 # -------------------------------------+---------------------------------------8
 
-- name:                            "ORACLE ASM: Query existing {{ disk_group_name }} disk configuration"
+- name:                                "ORACLE ASM: Query existing {{ disk_group_name }} disk configuration"
   ansible.builtin.shell: |
-                                   /usr/sbin/oracleasm querydisk "{{ item }}1" 2>&1
-  loop:                            "{{ disk_group_list }}"
-  register:                        disk_query_results
-  failed_when:                     false
-  changed_when:                    false
+                                       /usr/sbin/oracleasm querydisk "{{ item }}1" 2>&1
+  loop:                                "{{ disk_group_list }}"
+  register:                            disk_query_results
+  failed_when:                         false
+  changed_when:                        false
 
-- name:                            "ORACLE ASM: Build list of unconfigured {{ disk_group_name }} disks"
+- name:                                "ORACLE ASM: Build list of unconfigured {{ disk_group_name }} disks"
   ansible.builtin.set_fact:
-    disks_needing_config:          []
-    disk_config_map:               {}
+    disks_needing_config:              []
+    disk_config_map:                   {}
 
-- name:                            "ORACLE ASM: Identify unconfigured {{ disk_group_name }} disks with LUN mapping"
-  ansible.builtin.set_fact:
-    disks_needing_config:          "{{ disks_needing_config + [item.item] }}"
-    disk_config_map:               "{{ disk_config_map | combine({item.item: disk_group_luns[ansible_loop.index0]}) }}"
-  loop:                            "{{ disk_query_results.results }}"
-  loop_control:
-    extended:                      true
+- name:                                "ORACLE ASM: Identify unconfigured {{ disk_group_name }} disks with LUN mapping"
   when:
-    - item.rc != 0
-    - "'is not marked as an ASM disk' in item.stderr or 'is not a known' in item.stderr or 'does not exist or is not instantiated' in item.stderr"
+                                       - item.rc != 0
+                                       - "'is not marked as an ASM disk' in item.stdout or 'is not a known' in item.stdout or 'does not exist or is not instantiated' in item.stdout"
+  ansible.builtin.set_fact:
+    disks_needing_config:              "{{ disks_needing_config + [item.item] }}"
+    disk_config_map:                   "{{ disk_config_map | combine({item.item: disk_group_luns[ansible_loop.index0]}) }}"
+  loop:                                "{{ disk_query_results.results }}"
+  loop_control:
+    extended:                          true
 
-- name:                            "ORACLE ASM: Debug - {{ disk_group_name }} disks requiring configuration"
+- name:                                "ORACLE ASM: Debug - {{ disk_group_name }} disks requiring configuration"
   ansible.builtin.debug:
     msg:
-      - "Disks to configure: {{ disks_needing_config }}"
-      - "Disk to LUN mapping: {{ disk_config_map }}"
-    verbosity:                     2
+      - "Disks to configure:           {{ disks_needing_config }}"
+      - "Disk to LUN mapping:          {{ disk_config_map }}"
+    verbosity:                         2
 
-- name:                            "ORACLE ASM: Partition unconfigured {{ disk_group_name }} disks"
-  become:                          true
-  become_user:                     root
+- name:                                "ORACLE ASM: Partition unconfigured {{ disk_group_name }} disks"
+  become:                              true
+  become_user:                         root
+  when:                                disks_needing_config | length > 0
   community.general.parted:
-    device:                        "{{ item }}"
-    number:                        1
-    state:                         present
-    label:                         msdos
-    part_type:                     primary
-    part_start:                    0%
-    part_end:                      100%
-  loop:                            "{{ disks_needing_config }}"
-  when:                            disks_needing_config | length > 0
+    device:                            "{{ item }}"
+    number:                            1
+    state:                             present
+    label:                             msdos
+    part_type:                         primary
+    part_start:                        0%
+    part_end:                          100%
+  loop:                                "{{ disks_needing_config }}"
 
-- name:                            "ORACLE ASM: Initialize {{ disk_group_name }} ASM disks with stable naming"
+- name:                                "ORACLE ASM: Initialize {{ disk_group_name }} ASM disks with stable naming"
+  when:                                disks_needing_config | length > 0
   ansible.builtin.shell: |
-                                   lun_num="{{ disk_config_map[item] }}"
-                                   disk_name="{{ disk_group_name }}{{ db_sid | upper }}$(printf '%02d' ${lun_num})"
-                                   /usr/sbin/oracleasm createdisk "${disk_name}" "{{ item }}1"
-  loop:                            "{{ disks_needing_config }}"
-  when:                            disks_needing_config | length > 0
-  register:                        disk_creation_results
+                                       lun_num="{{ disk_config_map[item] }}"
+                                       disk_name="{{ disk_group_name }}{{ db_sid | upper }}$(printf '%02d' ${lun_num})"
+                                       /usr/sbin/oracleasm createdisk "${disk_name}" "{{ item }}1"
+  loop:                                "{{ disks_needing_config }}"
+  register:                            disk_creation_results
 
-- name:                            "ORACLE ASM: Set permissions on all {{ disk_group_name }} disk partitions"
+- name:                                "ORACLE ASM: Set permissions on all {{ disk_group_name }} disk partitions"
   ansible.builtin.file:
-    path:                          "{{ item }}1"
-    owner:                         "{{ grid_user_name }}"
-    group:                         oinstall
-    mode:                          '0660'
-  loop:                            "{{ disk_group_list }}"
+    path:                              "{{ item }}1"
+    owner:                             "{{ grid_user_name }}"
+    group:                             oinstall
+    mode:                              '0660'
+  loop:                                "{{ disk_group_list }}"
 
-- name:                            "ORACLE ASM: Report {{ disk_group_name }} disk group configuration status"
+- name:                                "ORACLE ASM: Report {{ disk_group_name }} disk group configuration status"
   ansible.builtin.debug:
     msg:
       - "Total {{ disk_group_name }} disks: {{ disk_group_list | length }}"
