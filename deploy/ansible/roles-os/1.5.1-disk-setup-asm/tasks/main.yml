@@ -425,9 +425,11 @@
         extended:                      true
       register:                        data_disk_created
       args:
-        creates:      "/etc/sap_deployment_automation/asm/asm_data_disks_created.txt"
+        creates:                      "/etc/sap_deployment_automation/asm/asm_data_disks_created.txt"
 
     - name:                            "ORACLE ASM: Permissions ASM Disks - DATA"
+      become:                          true
+      become_user:                     "root"
       ansible.builtin.file:
         path:                          "{{ item }}1"
         owner:                         "{{ grid_user_name }}"
@@ -436,7 +438,7 @@
         recurse:                       true
       loop:                            "{{ data_disk_list }}"
       loop_control:
-        extended:                          true
+        extended:                      true
 
     - name:                            "ORACLE ASM: Print data_disk_created"
       ansible.builtin.debug:
