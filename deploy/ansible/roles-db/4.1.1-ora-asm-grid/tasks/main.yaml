@@ -63,6 +63,8 @@
   loop:
     - { state: 'directory', mode: '0755', path: '/etc/sap_deployment_automation/' }
     - { state: 'directory', mode: '0755', path: '/etc/sap_deployment_automation/grid' }
+    - { state: 'directory', mode: '0755', path: "/oracle" }
+    - { state: 'directory', mode: '0755', path: "/oracle/BASE" }
     - { state: 'directory', mode: '0755', path: "/oracle/GRID/{{ ora_version }}" }
 
 - name:                                "Oracle GRID: check if installed"
