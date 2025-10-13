@@ -325,7 +325,7 @@
 
     - name:                            "ORACLE GRID: gridSetup command"
       ansible.builtin.debug:
-        msg:                           "Running ./gridSetup.sh -silent -applyRU {{ ApplyRU }} -applyOneOffs {{ OneOffs }} -opatchlocation /oracle/GRID/{{ ora_version }}/OPatch -skipOpatchVersionCheck -responseFile ./{{ ansible_hostname }}_{{ db_sid }}_install.rsp"
+        msg:                           "Running ./gridSetup.sh -silent -applyRU {{ ApplyRU }} -applyOneOffs {{ OneOffs }} -opatchlocation /oracle/GRID/{{ ora_version }}/OPatch -skipOpatchVersionCheck -ignorePrereqFailure -responseFile ./{{ ansible_hostname }}_{{ db_sid }}_install.rsp"
 
     - name:                            "ORACLE GRID: Install Execute gridSetup.sh"
       become:                          true
