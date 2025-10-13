@@ -319,14 +319,7 @@ else
 	echo ""
 	echo -e "${bold_red}Terraform plan:                      failed$reset_formatting"
 	echo ""
-	if [ -f "$deployer_plan_name" ]; then
-		echo "Removing the plan file: $deployer_plan_name"
-		# cleanup the plan file as we do not want to use it
-		rm -f "$deployer_plan_name"
-	fi
 
-	# shellcheck disable=SC2086
-	exit $install_deployer_return_value
 fi
 
 if [ 1 == $install_deployer_return_value ]; then
@@ -372,7 +365,7 @@ install_deployer_return_value=0
 
 if [ -n "${approve}" ]; then
 	# shellcheck disable=SC2086
-	if terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" \
+	if terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" $allParameters \
 		-no-color -compact-warnings -json -input=false -auto-approve | tee apply_output.json; then
 		install_deployer_return_value=${PIPESTATUS[0]}
 	else
@@ -397,7 +390,7 @@ if [ -n "${approve}" ]; then
 	fi
 else
 	# shellcheck disable=SC2086
-	if terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}"; then
+	if terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" $allParameters; then
 		install_deployer_return_value=$?
 	else
 		install_deployer_return_value=$?
