@@ -1025,15 +1025,14 @@ resources:
 
       Write-Host "Using Control plane code: $ControlPlaneCode" -foregroundColor Yellow
       Write-Host "Using Control plane name: $ControlPlaneName" -foregroundColor Yellow
-      Write-Verbose "Control plane code validated: $ControlPlaneCode"
       #endregion
 
       #region Set up prefixes and pool names
-      if ($ControlPlaneName.Length -ne 0) {
-        $ControlPlanePrefix = "SDAF-" + $ControlPlaneName
+      if ($ControlPlaneName.Length -eq 0) {
+        $ControlPlanePrefix = "SDAF-" + $ControlPlaneCode
       }
       else {
-        $ControlPlanePrefix = "SDAF-" + $ControlPlaneCode
+        $ControlPlanePrefix = "SDAF-" + $ControlPlaneName
       }
 
       Write-Host "Control plane prefix: $ControlPlanePrefix"
@@ -1658,7 +1657,7 @@ resources:
 
 # Export the function
 Export-ModuleMember -Function New-SDAFADOProject
-#EndRegion '.\Public\New-SDAFADOProject.ps1' 1382
+#EndRegion '.\Public\New-SDAFADOProject.ps1' 1381
 #Region '.\Public\New-SDAFADOWorkloadZone.ps1' -1
 
 #Requires -Version 5.1
@@ -2031,11 +2030,11 @@ function New-SDAFADOWorkloadZone {
       }
       Write-Verbose "Workload zone prefix: $WorkloadZonePrefix"
 
-      if ($ControlPlaneName.Length -ne 0) {
-        $ControlPlanePrefix = "SDAF-" + $ControlPlaneName
+      if ($ControlPlaneName.Length -eq 0) {
+        $ControlPlanePrefix = "SDAF-" + $ControlPlaneCode
       }
       else {
-        $ControlPlanePrefix = "SDAF-" + $ControlPlaneCode
+        $ControlPlanePrefix = "SDAF-" + $ControlPlaneName
       }
 
       Write-Verbose "Control plane prefix: $ControlPlanePrefix"
@@ -2427,11 +2426,11 @@ function Remove-SDAFADOProject {
       #endregion
 
       #region Set up prefixes and pool names
-      if ($ControlPlaneName.Length -ne 0) {
-        $ControlPlanePrefix = "SDAF-" + $ControlPlaneName
+      if ($ControlPlaneName.Length -eq 0) {
+        $ControlPlanePrefix = "SDAF-" + $ControlPlaneCode
       }
       else {
-        $ControlPlanePrefix = "SDAF-" + $ControlPlaneCode
+        $ControlPlanePrefix = "SDAF-" + $ControlPlaneName
       }
 
       $ApplicationName = ""
@@ -2445,6 +2444,7 @@ function Remove-SDAFADOProject {
       if ($EnableWebApp) {
         Write-Verbose "  Application name: $ApplicationName"
       }
+      #endregion
 
       #region Install DevOps extensions
       Write-Host "Installing the DevOps extensions" -ForegroundColor Green
@@ -2595,7 +2595,7 @@ function Remove-SDAFADOProject {
 
 # Export the function
 Export-ModuleMember -Function Remove-SDAFADOProject
-#EndRegion '.\Public\Remove-SDAFADOProject.ps1' 272
+#EndRegion '.\Public\Remove-SDAFADOProject.ps1' 273
 #Region '.\Public\Remove-SDAFADOWorkloadZone.ps1' -1
 
 #Requires -Version 5.1

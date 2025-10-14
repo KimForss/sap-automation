@@ -746,15 +746,14 @@ resources:
 
       Write-Host "Using Control plane code: $ControlPlaneCode" -foregroundColor Yellow
       Write-Host "Using Control plane name: $ControlPlaneName" -foregroundColor Yellow
-      Write-Verbose "Control plane code validated: $ControlPlaneCode"
       #endregion
 
       #region Set up prefixes and pool names
-      if ($ControlPlaneName.Length -ne 0) {
-        $ControlPlanePrefix = "SDAF-" + $ControlPlaneName
+      if ($ControlPlaneName.Length -eq 0) {
+        $ControlPlanePrefix = "SDAF-" + $ControlPlaneCode
       }
       else {
-        $ControlPlanePrefix = "SDAF-" + $ControlPlaneCode
+        $ControlPlanePrefix = "SDAF-" + $ControlPlaneName
       }
 
       Write-Host "Control plane prefix: $ControlPlanePrefix"

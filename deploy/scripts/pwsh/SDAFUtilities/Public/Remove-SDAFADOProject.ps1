@@ -101,11 +101,11 @@ function Remove-SDAFADOProject {
       #endregion
 
       #region Set up prefixes and pool names
-      if ($ControlPlaneName.Length -ne 0) {
-        $ControlPlanePrefix = "SDAF-" + $ControlPlaneName
+      if ($ControlPlaneName.Length -eq 0) {
+        $ControlPlanePrefix = "SDAF-" + $ControlPlaneCode
       }
       else {
-        $ControlPlanePrefix = "SDAF-" + $ControlPlaneCode
+        $ControlPlanePrefix = "SDAF-" + $ControlPlaneName
       }
 
       $ApplicationName = ""
@@ -119,6 +119,7 @@ function Remove-SDAFADOProject {
       if ($EnableWebApp) {
         Write-Verbose "  Application name: $ApplicationName"
       }
+      #endregion
 
       #region Install DevOps extensions
       Write-Host "Installing the DevOps extensions" -ForegroundColor Green

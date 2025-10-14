@@ -368,11 +368,11 @@ function New-SDAFADOWorkloadZone {
       }
       Write-Verbose "Workload zone prefix: $WorkloadZonePrefix"
 
-      if ($ControlPlaneName.Length -ne 0) {
-        $ControlPlanePrefix = "SDAF-" + $ControlPlaneName
+      if ($ControlPlaneName.Length -eq 0) {
+        $ControlPlanePrefix = "SDAF-" + $ControlPlaneCode
       }
       else {
-        $ControlPlanePrefix = "SDAF-" + $ControlPlaneCode
+        $ControlPlanePrefix = "SDAF-" + $ControlPlaneName
       }
 
       Write-Verbose "Control plane prefix: $ControlPlanePrefix"
