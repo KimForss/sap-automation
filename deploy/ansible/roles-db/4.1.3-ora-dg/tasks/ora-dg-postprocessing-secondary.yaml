@@ -220,7 +220,7 @@
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell: |
-                                       srvctl disable database -d {{ db_sid | upper }}_STDBY -force -noprompt
+                                       srvctl disable database -d {{ db_sid | upper }}_STDBY
       environment:
         ORACLE_HOME:                   "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
         PATH:                          "/oracle/GRID/{{ ora_version }}/bin:{{ ansible_env.PATH }}"
