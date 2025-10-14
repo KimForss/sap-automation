@@ -155,6 +155,15 @@
     owner:                             "{{ grid_user_name }}"
     group:                             oinstall
 
+- name:                                "ORACLE GRID UPDATE: Pre Processing set permissions"
+  when:                                oradism_stat.stat.exists
+  ansible.builtin.file:
+    path:                              "/oracle/{{ db_sid | upper }}/{{ ora_release }}"
+    state:                             file
+    mode:                              '0770'
+    owner:                             "{{ oracle_user_name }}"
+    group:                             oinstall
+
 # Step 2
 # since we deal with oracle home we need to run as oracle user
 - name:                                "ORACLE GRID UPDATE: Stop all CRS-managed resources associated with the RDBMS home"
