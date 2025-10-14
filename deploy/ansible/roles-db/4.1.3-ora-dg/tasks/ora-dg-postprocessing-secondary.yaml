@@ -215,23 +215,23 @@
         group:                         oinstall
 
 
-    # # Disable the automatic restart for database on Secondary.
-    # - name:                            "Oracle Data Guard: Disable automatic restart for database on Secondary"
-    #   become:                          true
-    #   become_user:                     "{{ oracle_user_name }}"
-    #   ansible.builtin.shell: |
-    #                                    srvctl disable database -d {{ db_sid | upper }}
-    #   environment:
-    #     ORACLE_HOME:                   "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
-    #     PATH:                          "/oracle/GRID/{{ ora_version }}/bin:{{ ansible_env.PATH }}"
-    #   args:
-    #     executable:                    /bin/csh
-    #   register:                        disable_restart_secondary
-    #   failed_when:
-    #                                    - disable_restart_primary.rc not in [0, 2]
-    #                                    - "'PRCC-1012' not in disable_restart_secondary.stdout"
-    #                                    - "'PRCR-1003' not in disable_restart_secondary.stdout"
-    #   changed_when:                    disable_restart_secondary.rc == 0
+    # Disable the automatic restart for database on Secondary.
+    - name:                            "Oracle Data Guard: Disable automatic restart for database on Secondary"
+      become:                          true
+      become_user:                     "{{ oracle_user_name }}"
+      ansible.builtin.shell: |
+                                       srvctl disable database -d {{ db_sid | upper }}_STDBY
+      environment:
+        ORACLE_HOME:                   "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
+        PATH:                          "/oracle/GRID/{{ ora_version }}/bin:{{ ansible_env.PATH }}"
+      args:
+        executable:                    /bin/csh
+      register:                        disable_restart_secondary
+      failed_when:
+                                       - disable_restart_primary.rc not in [0, 2]
+                                       - "'PRCC-1012' not in disable_restart_secondary.stdout"
+                                       - "'PRCR-1003' not in disable_restart_secondary.stdout"
+      changed_when:                    disable_restart_secondary.rc == 0
 
     - name:                            "Oracle Data Guard: Verify database is mounted on Secondary"
       become:                          true
