@@ -4,14 +4,14 @@
 ---
 # DGMGRL Config on Secondary for Enabling the Falshback logs.
 
-- name:                                "Oracle Data Guard -  Check SAP Restore on secondary is completed"
+- name:                                "4.1.3 Oracle Data Guard - Setup Secondary - Post Processing: Check SAP Restore on secondary is completed"
   when:                                node_tier in ["oracle","oracle-asm"]
   ansible.builtin.stat:
     path:                              /usr/sap/install/downloads/{{ db_sid | upper }}/post_processing_completed.txt
   register:                            primary_post_processing_completed
 
 # Create the dgmgrl file for enabling the flashback on secondary database.
-- name:                                "Oracle Data Guard - Post Processing: Create the secondary_log_apply_off file for Secondary"
+- name:                                "4.1.3 Oracle Data Guard - Setup Secondary - Post Processing: Create the secondary_log_apply_off file for Secondary"
   become:                              true
   become_user:                         oracle
   ansible.builtin.template:
@@ -22,7 +22,7 @@
     force:                             true
 
 
-- name:                                "Oracle Data Guard - Post Processing: Create the secondary_log_apply_on file for Secondary"
+- name:                                "4.1.3 Oracle Data Guard - Setup Secondary - Post Processing: Create the secondary_log_apply_on file for Secondary"
   become:                              true
   become_user:                         oracle
   ansible.builtin.template:
@@ -32,13 +32,13 @@
     mode:                              '0644'
     force:                             true
 
-- name:                                "Oracle Data Guard - Post Processing: Execute Block only if secondary DB restore is completed"
+- name:                                "4.1.3 Oracle Data Guard - Setup Secondary - Post Processing: Execute Block only if secondary DB restore is completed"
   when:
                                        - primary_post_processing_completed.stat.exists
   block:
 
     # Disable the Log apply on Secondary for enabling Flashback
-    - name:                            "Oracle Data Guard - Post Processing: Set Log apply off on Standby"
+    - name:                            "4.1.3 Oracle Data Guard - Setup Secondary - Post Processing: Set Log apply off on Standby"
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell:           dgmgrl / as sysdba @secondary_log_apply_off.dgmgrl
@@ -50,19 +50,19 @@
         executable:                    /bin/csh
 
 
-    - name:                            "Oracle Data Guard - Post Processing: Set Log apply off on Standby (Debug)"
+    - name:                            "4.1.3 Oracle Data Guard - Setup Secondary - Post Processing: Set Log apply off on Standby (Debug)"
       ansible.builtin.debug:
         var:                           secondary_log_apply_off_results.stdout_lines
         verbosity:                     2
 
-    - name:                            "Oracle Data Guard - Post Processing: Restart lsnrctl on Primary (save output)"
+    - name:                            "4.1.3 Oracle Data Guard - Setup Secondary - Post Processing: Restart lsnrctl on Primary (save output)"
       when:                            secondary_log_apply_off_results.stdout is defined
       ansible.builtin.copy:
         dest:                          /etc/sap_deployment_automation/secondary_log_apply_off.log
         content:                       "{{ secondary_log_apply_off_results.stdout }}"
         mode:                          '0777'
 
-    - name:                            "Oracle Data Guard - Post Processing: Create secondary_log_apply_off.txt"
+    - name:                            "4.1.3 Oracle Data Guard - Setup Secondary - Post Processing: Create secondary_log_apply_off.txt"
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       when:                            secondary_log_apply_off_results.rc == 0
@@ -72,7 +72,7 @@
         mode:                          '0755'
 
     # Enable Flashback on Secondary
-    - name:                            "Oracle Data Guard - Enable Flashback on Oracle Secondary DB"
+    - name:                            "4.1.3 Oracle Data Guard - Setup Secondary - Post Processing: Enable Flashback on Oracle Secondary DB"
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell:           sqlplus / as sysdba @turn_on_flashback.sql
@@ -83,12 +83,12 @@
        chdir:                          /etc/sap_deployment_automation/dataguard_scripts
        executable:                     /bin/csh
 
-    - name:                            "Oracle Data Guard - Setup Primary: Enable Flashback on Oracle Primary DB (debug)"
+    - name:                            "4.1.3 Oracle Data Guard - Setup Secondary - Post Processing: Enable Flashback on Oracle Secondary DB (debug)"
       ansible.builtin.debug:
         var:                           turn_on_flashback_secondary_results.stdout_lines
         verbosity:                     2
 
-    - name:                            "Oracle Data Guard - Setup Primary: Enable Flashback on Oracle Secondary DB (save output)"
+    - name:                            "4.1.3 Oracle Data Guard - Setup Secondary - Post Processing: Enable Flashback on Oracle Secondary DB (save output)"
       when:                            turn_on_flashback_secondary_results.stdout is defined
       ansible.builtin.copy:
         dest:                          /etc/sap_deployment_automation/dataguard_scripts/turn_on_flashback_secondary.log
@@ -96,7 +96,7 @@
         mode:                          '0755'
 
 
-    - name:                            "Oracle Data Guard - Setup Primary: Create turn_on_flashback_secondary.txt"
+    - name:                            "4.1.3 Oracle Data Guard - Setup Secondary - Post Processing: Create turn_on_flashback_secondary.txt"
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       when:
@@ -108,7 +108,7 @@
 
 
     # Enable the log apply on secondary DB after enabling Flashback
-    - name:                            "Oracle Data Guard - Post Processing: Set Log apply on on Standby"
+    - name:                            "4.1.3 Oracle Data Guard - Setup Secondary - Post Processing: Set Log apply on on Standby"
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell:           dgmgrl / as sysdba @secondary_log_apply_on.dgmgrl
@@ -120,12 +120,12 @@
         executable:                    /bin/csh
 
 
-    - name:                            "Oracle Data Guard - Post Processing: Set Log apply off on Standby (Debug)"
+    - name:                            "4.1.3 Oracle Data Guard - Setup Secondary - Post Processing: Set Log apply off on Standby (Debug)"
       ansible.builtin.debug:
         var:                           secondary_log_apply_off_results.stdout_lines
         verbosity:                     2
 
-    - name:                            "Oracle Data Guard - Post Processing: Restart lsnrctl on Primary (save output)"
+    - name:                            "4.1.3 Oracle Data Guard - Setup Secondary - Post Processing: Restart lsnrctl on Primary (save output)"
       when:                            secondary_log_apply_on_results.stdout is defined
       ansible.builtin.copy:
         dest:                          /etc/sap_deployment_automation/secondary_log_apply_on.log
@@ -133,7 +133,7 @@
         mode:                          '0777'
 
 
-    - name:                            "Oracle Data Guard - Post Processing: Create secondary_log_apply_on.txt"
+    - name:                            "4.1.3 Oracle Data Guard - Setup Secondary - Post Processing: Create secondary_log_apply_on.txt"
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       when:                            secondary_log_apply_off_results.rc == 0
@@ -143,7 +143,7 @@
         mode:                          '0755'
 
     # Stop the Secondary Database.
-    - name:                            "Oracle Data Guard - Setup Secondary: Stop secondary DB for oracle clusterware configuration."
+    - name:                            "4.1.3 Oracle Data Guard - Setup Secondary - Post Processing: Stop secondary DB for oracle clusterware configuration."
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       when:
@@ -157,14 +157,14 @@
         chdir:                         /etc/sap_deployment_automation/dataguard_scripts
         executable:                    /bin/csh
 
-    - name:                            "Oracle Data Guard - Setup Secondary: Stop secondary DB for oracle clusterware configuration. (Debug)"
+    - name:                            "4.1.3 Oracle Data Guard - Setup Secondary - Post Processing: Stop secondary DB for oracle clusterware configuration. (Debug)"
       when:                            secondary_shutdown_cfg_results.stdout is defined
       ansible.builtin.copy:
         dest:                          "/etc/sap_deployment_automation/dataguard_scripts/secondary_shutdown.log"
         content:                       "{{ secondary_shutdown_cfg_results.stdout }}"
         mode:                          '0777'
 
-    - name:                            "Oracle Data Guard - Setup Secondary: Create secondary_shutdown.txt"
+    - name:                            "4.1.3 Oracle Data Guard - Setup Secondary - Post Processing: Create secondary_shutdown.txt"
       become:                          true
       become_user:                     "root"
       when:
@@ -178,7 +178,7 @@
         group:                         oinstall
 
     # Start the Secondary Database for non-ASM.
-    - name:                            "Oracle Data Guard - Setup Secondary: Start secondary DB after HA Service configuration on non-ASM."
+    - name:                            "4.1.3 Oracle Data Guard - Setup Secondary - Post Processing: Start secondary DB after HA Service configuration on non-ASM."
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       when:
@@ -193,14 +193,14 @@
         chdir:                         /etc/sap_deployment_automation/dataguard_scripts
         executable:                    /bin/csh
 
-    - name:                            "Oracle Data Guard - Setup Secondary: Start secondary DB after HA Service configuration on non-ASM (Debug)"
+    - name:                            "4.1.3 Oracle Data Guard - Setup Secondary - Post Processing: Start secondary DB after HA Service configuration on non-ASM (Debug)"
       when:                            secondary_startup_cfg_results.stdout is defined
       ansible.builtin.copy:
         dest:                          "/etc/sap_deployment_automation/dataguard_scripts/secondary_startup.log"
         content:                       "{{ secondary_startup_cfg_results.stdout }}"
         mode:                          '0777'
 
-    - name:                            "Oracle Data Guard - Setup Secondary: Create secondary_startup_cfg.txt"
+    - name:                            "4.1.3 Oracle Data Guard - Setup Secondary - Post Processing: Create secondary_startup_cfg.txt"
       become:                          true
       become_user:                     "root"
       when:
@@ -216,7 +216,7 @@
 
 
     # Disable the automatic restart for database on Secondary.
-    - name:                            "Oracle Data Guard: Disable automatic restart for database on Secondary"
+    - name:                            "4.1.3 Oracle Data Guard - Setup Secondary - Post Processing: Disable automatic restart for database on Secondary"
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell: |
@@ -233,7 +233,7 @@
                                        - "'PRCR-1003' not in disable_restart_secondary.stdout"
       changed_when:                    disable_restart_secondary.rc == 0
 
-    - name:                            "Oracle Data Guard: Verify database is mounted on Secondary"
+    - name:                            "4.1.3 Oracle Data Guard - Setup Secondary - Post Processing: Verify database is mounted on Secondary"
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell: |
@@ -252,7 +252,7 @@
       failed_when:                     false
       changed_when:                    false
 
-    - name:                            "Oracle Data Guard: Ensure database is mounted (not open) on Secondary"
+    - name:                            "4.1.3 Oracle Data Guard - Setup Secondary - Post Processing: Ensure database is mounted (not open) on Secondary"
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell: |
@@ -269,13 +269,13 @@
       when:                            "'MOUNTED' not in secondary_open_mode.stdout"
       register:                        mount_secondary
 
-    - name:                            "Oracle Data Guard: Create disable_restart_secondary.txt"
+    - name:                            "4.1.3 Oracle Data Guard - Setup Secondary - Post Processing: Create disable_restart_secondary.txt"
       ansible.builtin.file:
         path:                          /etc/sap_deployment_automation/dataguard_scripts/disable_restart_secondary.txt
         state:                         touch
         mode:                          '0755'
 
-    - name:                            "Create post processing completed on secondary"
+    - name:                            "4.1.3 Oracle Data Guard - Setup Secondary - Post Processing: Create post processing completed on secondary"
       become:                          true
       become_user:                     root
       ansible.builtin.file:
@@ -287,7 +287,7 @@
 
 
     # Create User for SIDADM on Secondary Node.
-    - name:                            "2.5.1 SAP Users: -  Create Oracle ASM Users Assignment"
+    - name:                            "4.1.3 Oracle Data Guard - Setup Secondary - Post Processing: Create Oracle ASM Users Assignment"
       ansible.builtin.user:
         name:                          "{{ sap_sid | lower }}adm"
         uid:                           "{{ sidadm_uid }}"
@@ -297,7 +297,7 @@
         shell:                         /bin/csh
 
     # Update the tnsnames.ora for SAP application servers
-    - name:                            "Oracle Data Guard - Update tnsnames.ora for SAP application servers"
+    - name:                            "4.1.3 Oracle Data Guard - Setup Secondary - Post Processing: Update tnsnames.ora for SAP application servers"
       become:                          true
       become_user:                     "root"
       ansible.builtin.copy:

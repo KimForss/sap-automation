@@ -273,11 +273,11 @@
 
             - name:                    "Database High Availability Configuration Playbook - ORACLE : Oracle Data guard Step 1"
               ansible.builtin.include_role:
-                name:                  roles-db/4.1.3-ora-dg
+                name:                  roles-db/4.1.3-oracle-data-guard
               vars:
                 action:                'Prepare_Secondary'
               tags:
-                - 4.1.3-ora-dg-step1
+                - 4.1.3-oracle-data-guard-step1
 
             - name:                    "Database High Availability Configuration Playbook - ORACLE : Run post installation routines"
               ansible.builtin.include_role:
@@ -301,11 +301,11 @@
 
             - name:                    "Database High Availability Configuration Playbook - ORACLE : Oracle Data guard Step 2"
               ansible.builtin.include_role:
-                name:                  roles-db/4.1.3-ora-dg
+                name:                  roles-db/4.1.3-oracle-data-guard
               vars:
                 action:                'Prepare_and_Restore'
               tags:
-                - 4.1.3-ora-dg-step2
+                - 4.1.3-oracle-data-guard-step2
 
             - name:                    "Database High Availability Configuration Playbook - ORACLE : Run post installation routines"
               ansible.builtin.include_role:
@@ -330,11 +330,11 @@
           block:
             - name:                    "Database High Availability Configuration Playbook - ORACLE : Oracle Data guard Step 3"
               ansible.builtin.include_role:
-                name:                  roles-db/4.1.3-ora-dg
+                name:                  roles-db/4.1.3-oracle-data-guard
               vars:
                 action:                'Post_Processing_Primary'
               tags:
-                - 4.1.3-ora-dg-step3
+                - 4.1.3-oracle-data-guard-step3
 
             - name:                    "Database High Availability Configuration Playbook - ORACLE : Run post installation routines"
               ansible.builtin.include_role:
@@ -359,11 +359,11 @@
           block:
             - name:                    "Database High Availability Configuration Playbook - ORACLE : Oracle Data guard Step 4"
               ansible.builtin.include_role:
-                name:                  roles-db/4.1.3-ora-dg
+                name:                  roles-db/4.1.3-oracle-data-guard
               vars:
                 action:                'Post_Processing_Secondary'
               tags:
-                - 4.1.3-ora-dg
+                - 4.1.3-oracle-data-guard
 
             - name:                    "Database High Availability Configuration Playbook - ORACLE : Run post installation routines"
               ansible.builtin.include_role:
@@ -428,7 +428,7 @@
 
         - name:                            "Database High Availability Configuration Playbook - ORACLE Observer : Oracle Observer setup"
           ansible.builtin.include_role:
-            name:                          roles-db/4.1.3-ora-dg
+            name:                          roles-db/4.1.3-oracle-data-guard
           vars:
             tier:                          observer
 
