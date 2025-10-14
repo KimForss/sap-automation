@@ -33,7 +33,7 @@
 - name:                                "ORACLE ASM: Identify unconfigured {{ disk_group_name }} disks with LUN mapping"
   when:
                                        - item.rc != 0
-                                       - "'is not marked as an ASM disk' in item.stdout or 'is not a known' in item.stdout or 'does not exist or is not instantiated' in item.stdout or 'Unable to access device' in item.stdout"
+                                       - item.stdout is search('is not marked as an ASM disk|is not a known|does not exist or is not instantiated|Unable to access device')
   ansible.builtin.set_fact:
     disks_needing_config:              "{{ disks_needing_config + [item.item] }}"
     disk_config_map:                   "{{ disk_config_map | combine({item.item: disk_group_luns[ansible_loop.index0]}) }}"
@@ -72,6 +72,9 @@
   register:                            disk_creation_results
 
 - name:                                "ORACLE ASM: Set permissions on all {{ disk_group_name }} disk partitions"
+  become:                              true
+  become_user:                         root
+  when:                                disk_group_list | length > 0
   ansible.builtin.file:
     path:                              "{{ item }}1"
     owner:                             "{{ grid_user_name }}"
