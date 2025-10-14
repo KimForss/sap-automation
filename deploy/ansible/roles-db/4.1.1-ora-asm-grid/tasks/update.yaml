@@ -156,10 +156,10 @@
     group:                             oinstall
 
 # Step 2
-
+# since we deal with oracle home we need to run as oracle user
 - name:                                "ORACLE GRID UPDATE: Stop all CRS-managed resources associated with the RDBMS home"
   become:                              true
-  become_user:                         "{{ grid_user_name }}"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell: |
                                        env ORACLE_HOME=$OHRDBMS ORACLE_BASE=$OHRDBMS.dummybase $OHRDBMS/bin/srvctl stop home -o $OHRDBMS -s $OHRDBMS.srvctlstatus
   register:                            srvctlstatus_results
