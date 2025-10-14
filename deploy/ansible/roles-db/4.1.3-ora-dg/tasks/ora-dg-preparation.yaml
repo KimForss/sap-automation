@@ -594,11 +594,11 @@
     - node_tier == "oracle-asm"
     - current_host == ora_secondary
 
-- name:                                "Oracle Data Guard - Setup Secondary: Create enable_dg_broker.txt"
+- name:                                "Oracle Data Guard - Setup Secondary: Create asm_oraarch_created.txt"
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation/dataguard_scripts/enable_dg_broker.txt
+    path:                              /etc/sap_deployment_automation/dataguard_scripts/asm_oraarch_created.txt
     state:                             touch
     mode:                              '0755'
   when:
