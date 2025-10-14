@@ -5,20 +5,20 @@
 #
 # Description:  Add domain members to local groups
 #
-- name:                                     "Add domain users to a local group"
+- name:                                "2.5-sap-users: - Windows - Add domain users to a local group"
   ansible.windows.win_group_membership:
-    name:                                   "SAP_{{ sap_sid | upper }}_LocalAdmin"
+    name:                              "SAP_{{ sap_sid | upper }}_LocalAdmin"
     members:
       - '{{ win_sap_admin }}@{{ domain_name }}'
       - '{{ sap_sid }}adm@{{ domain_name }}'
-    state:                                  present
-  notify:                                   reboot
+    state:                             present
+  notify:                              reboot
 
-- name:                                     "Add {{ sap_sid }} to local group"
+- name:                                "2.5-sap-users: - Windows - Add {{ sap_sid }} to local group"
   ansible.windows.win_group_membership:
-    name:                                   "Administrators"
+    name:                              "Administrators"
     members:
       - '{{ sap_sid }}adm@{{ domain_name }}'
       - '{{ domain_service_account }}@{{ domain_name }}'
-    state:                                  present
-  notify:                                   reboot
+    state:                             present
+  notify:                              reboot

@@ -5,7 +5,7 @@
 #
 # Description:  Create a local admin group
 #
-- name:                                Create a new group
+- name:                                "2.5-sap-users: - Windows - Create a new group"
   ansible.windows.win_group:
     name:                              "SAP_{{ sap_sid | upper }}_LocalAdmin"
     description:                       Add LocalAdmin Group

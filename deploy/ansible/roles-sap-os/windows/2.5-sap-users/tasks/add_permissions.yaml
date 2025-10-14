@@ -2,12 +2,12 @@
 # Licensed under the MIT License.
 
 # Install the DSC modules
-- name:                                "Ensure DSC modules are installed"
+- name:                                "2.5-sap-users: - Windows - Ensure DSC modules are installed"
   community.windows.win_psmodule:
     name:                              SecurityPolicyDsc
     state:                             present
 
-- name:                                "WIN: Calculating the domain value from {{ domain_name }}"
+- name:                                "2.5-sap-users: - Windows - Calculating the domain value from {{ domain_name }}"
   ansible.builtin.set_fact:
     domain:                            "{{ domain_name | split('.') | first }}"
     cacheable:                         true
@@ -18,7 +18,7 @@
     - domain is not defined
 
 
-- name:                                "Assign Local Security Policies for {{ sap_sid }}adm"
+- name:                                "2.5-sap-users: - Windows - Assign Local Security Policies for {{ sap_sid }}adm"
   ansible.windows.win_dsc:
     resource_name:                     UserRightsAssignment
     Policy:                            "{{ item }}"
@@ -30,9 +30,9 @@
     - Allow_log_on_through_Remote_Desktop_Services
     - Allow_log_on_locally
     - Enable_computer_and_user_accounts_to_be_trusted_for_delegation
-  notify:                                   reboot
+  notify:                              reboot
 
-- name:                                "Assign Local Security Policies for sap_services_sid"
+- name:                                "2.5-sap-users: - Windows - Assign Local Security Policies for sap_services_sid"
   ansible.windows.win_dsc:
     resource_name:                     UserRightsAssignment
     Policy:                            "{{ item }}"
