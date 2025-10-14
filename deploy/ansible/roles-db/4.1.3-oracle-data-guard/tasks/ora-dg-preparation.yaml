@@ -174,6 +174,23 @@
     mode:                              '0755'
   when:                                node_tier == "oracle-asm"
 
+- name:                                "4.1.3 Oracle Data Guard ASM - Preparation: Create Control File"
+  become:                              true
+  become_user:                         "{{ oracle_user_name }}"
+  ansible.builtin.blockinfile:
+    create:                            true
+    path:                              /etc/sap_deployment_automation/dataguard_scripts/create_control_file.sql
+    marker_begin:                      "-- BEGIN"
+    marker_end:                        "-- END"
+    block: |
+        ALTER DATABASE CREATE STANDBY CONTROLFILE AS '{{ target_media_location }}/downloads/{{ db_sid | upper }}/{{ db_sid | upper }}_stby.ctl';
+        EXIT;
+
+        exit
+    mode:                              '0755'
+  when:                                node_tier == "oracle-asm"
+
+
 - name:                                "4.1.3 Oracle Data Guard ASM - Preparation: Create create_spfile.sql"
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
@@ -246,11 +263,11 @@
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.blockinfile:
-    create: true
-    path: /etc/sap_deployment_automation/dataguard_scripts/enable_dataguard_broker.sql
-    marker_begin: "-- BEGIN"
-    marker_end:   "-- END"
-    block: |
+    create:                            true
+    path:                              /etc/sap_deployment_automation/dataguard_scripts/enable_dataguard_broker.sql
+    marker_begin:                      "-- BEGIN"
+    marker_end:                        "-- END"
+    block:  |
          ALTER SYSTEM SET dg_broker_start=true;
          exit
     mode:                              '0755'
@@ -536,6 +553,7 @@
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell: |
                                        /oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir  +DATA/{{ db_sid | upper }}
+                                       /oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir  +DATA/{{ db_sid | upper }}/CONTROLFILE
                                        /oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir  +ARCH/{{ db_sid | upper }}
                                        /oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir  +ARCH/{{ db_sid | upper }}/oraarch
                                        /oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir  +ARCH/{{ db_sid | upper }}/ARCHIVELOG
@@ -567,6 +585,7 @@
     - node_tier == "oracle-asm"
     - current_host == ora_secondary
     - asm_oraarch_folders_created_results.rc 0
+
 
 ...
 # /*---------------------------------------------------------------------------8
