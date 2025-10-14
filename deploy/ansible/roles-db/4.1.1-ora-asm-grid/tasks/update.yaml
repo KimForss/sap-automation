@@ -136,7 +136,7 @@
     src:                               "{{ mopatch_path }}"
     dest:                              "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
     remote_src:                        true
-    mode:                              0777
+    mode:                              07757
     owner:                             "{{ grid_user_name }}"
     group:                             oinstall
 
@@ -151,7 +151,7 @@
   ansible.builtin.file:
     path:                              "/oracle/GRID/{{ ora_version }}/bin/oradism"
     state:                             file
-    mode:                              '0750'
+    mode:                              '0770'
     owner:                             "{{ grid_user_name }}"
     group:                             oinstall
 

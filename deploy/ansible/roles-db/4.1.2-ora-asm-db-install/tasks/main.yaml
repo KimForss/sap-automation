@@ -63,7 +63,7 @@
     recurse:                           true
     mode:                              "{{ item.mode }}"
   loop:
-    - { state: 'directory', mode: '0755', path: '/etc/sap_deployment_automation/' }
+    - { state: 'directory', mode: '0775', path: '/etc/sap_deployment_automation/' }
     - { state: 'directory', mode: '0755', path: '/etc/sap_deployment_automation/oracle' }
     - { state: 'directory', mode: '0755', path: "/etc/sap_deployment_automation/{{ sap_sid | upper }}" }
     - { state: 'directory', mode: '0755', path: "{{ tmp_directory }}/{{ db_sid | upper }}/{{ ora_version }}" }
@@ -78,7 +78,17 @@
     mode:                              "{{ item.mode }}"
   loop:
     - { state: 'directory', mode: '0755', path: "/oracle" }
-    - { state: 'directory', mode: '0755', path: "/oracle/GRID/{{ ora_version }}" }
+
+- name:                                "ORACLE ASM: Create and permission Oracle directories"
+  ansible.builtin.file:
+    path:                              "{{ item.path }}"
+    state:                             "{{ item.state }}"
+    owner:                             "{{ grid_user_name }}"
+    group:                             oinstall
+    recurse:                           true
+    mode:                              "{{ item.mode }}"
+  loop:
+    - { state: 'directory', mode: '0775', path: "/oracle/GRID/{{ ora_version }}" }
 
 - name:                                "Oracle ASM: Find Patch ID for GRID"
   become:                              true
