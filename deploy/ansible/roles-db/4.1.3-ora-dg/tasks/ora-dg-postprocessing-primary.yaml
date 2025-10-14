@@ -242,8 +242,12 @@
       args:
         executable:                    /bin/csh
       register:                        disable_restart_primary
-      failed_when:                     disable_restart_primary.rc != 0 and 'PRCD-1126' not in disable_restart_primary.stderr
-      changed_when:                    disable_restart_primary.rc == 0
+      failed_when:
+                                       - disable_restart_primary.rc not in [0, 2]
+                                       - "'PRCC-1012' not in disable_restart_primary.stdout"
+                                       - "'PRCR-1003' not in disable_restart_primary.stdout"
+      changed_when:
+                                       - disable_restart_primary.rc == 0
 
     - name:                            "Oracle Data Guard: Verify database is open on Primary"
       become:                          true

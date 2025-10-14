@@ -227,7 +227,10 @@
       args:
         executable:                    /bin/csh
       register:                        disable_restart_secondary
-      failed_when:                     disable_restart_secondary.rc != 0 and 'PRCD-1126' not in disable_restart_secondary.stderr
+      failed_when:
+                                       - disable_restart_primary.rc not in [0, 2]
+                                       - "'PRCC-1012' not in disable_restart_secondary.stdout"
+                                       - "'PRCR-1003' not in disable_restart_secondary.stdout"
       changed_when:                    disable_restart_secondary.rc == 0
 
     - name:                            "Oracle Data Guard: Verify database is mounted on Secondary"

@@ -127,7 +127,7 @@
     src:                               "{{ mopatch_path }}"
     dest:                              "/oracle/GRID/{{ ora_version }}"
     remote_src:                        true
-    mode:                              0777
+    mode:                              '0777'
     owner:                             "{{ grid_user_name }}"
     group:                             oinstall
 
@@ -136,7 +136,7 @@
     src:                               "{{ mopatch_path }}"
     dest:                              "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
     remote_src:                        true
-    mode:                              07757
+    mode:                              '0775'
     owner:                             "{{ grid_user_name }}"
     group:                             oinstall
 
