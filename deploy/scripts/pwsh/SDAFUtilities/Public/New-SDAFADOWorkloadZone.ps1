@@ -360,25 +360,21 @@ function New-SDAFADOWorkloadZone {
 
       #region Set up prefixes
 
-
-      #region Set up prefixes and pool names
-      if ($WorkloadZoneName.Length -eq 0) {
-        $WorkloadZonePrefix = "SDAF-" + $WorkloadZoneCode
+      if ($WorkloadZoneName.Length -ne 0) {
+        $WorkloadZonePrefix = "SDAF-" + $WorkloadZoneName
       }
       else {
-        $WorkloadZonePrefix = "SDAF-" + $WorkloadZoneName
+        $WorkloadZonePrefix = "SDAF-" + $WorkloadZoneCode
       }
       Write-Verbose "Workload zone prefix: $WorkloadZonePrefix"
 
-      #region Set up prefixes and pool names
-      if ($ControlPlaneName.Length -eq 0) {
+      if ($ControlPlaneName.Length -ne 0) {
         $ControlPlanePrefix = "SDAF-" + $ControlPlaneName
       }
       else {
         $ControlPlanePrefix = "SDAF-" + $ControlPlaneCode
       }
 
-      $ControlPlanePrefix = "SDAF-" + $ControlPlaneCode
       Write-Verbose "Control plane prefix: $ControlPlanePrefix"
 
       #endregion

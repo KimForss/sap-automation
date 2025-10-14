@@ -199,12 +199,13 @@ function Remove-SDAFADOWorkloadZone {
       #endregion
 
       #region Set up prefixes
-      if ($WorkloadZoneName.Length -eq 0) {
-        $WorkloadZonePrefix = "SDAF-" + $WorkloadZoneCode
-      }
-      else {
+      if ($WorkloadZoneName.Length -ne 0) {
         $WorkloadZonePrefix = "SDAF-" + $WorkloadZoneName
       }
+      else {
+        $WorkloadZonePrefix = "SDAF-" + $WorkloadZoneCode
+      }
+      Write-Host "Workload zone prefix: $WorkloadZonePrefix"
       Write-Verbose "Workload zone prefix: $WorkloadZonePrefix"
 
       #endregion

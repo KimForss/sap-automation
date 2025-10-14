@@ -101,7 +101,7 @@ function Remove-SDAFADOProject {
       #endregion
 
       #region Set up prefixes and pool names
-      if ($ControlPlaneName.Length -eq 0) {
+      if ($ControlPlaneName.Length -ne 0) {
         $ControlPlanePrefix = "SDAF-" + $ControlPlaneName
       }
       else {

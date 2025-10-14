@@ -372,9 +372,6 @@ function New-SDAFADOProject {
     [Parameter(Mandatory = $true, HelpMessage = "Control plane code (e.g., MGMT)")]
     [string]$ControlPlaneCode,
 
-    [Parameter(Mandatory = $false, HelpMessage = "Control plane name (e.g., MGMT-WEUE-DEP01)")]
-    [string]$ControlPlaneName = "",
-
     [Parameter(Mandatory = $true, HelpMessage = "Control plane subscription ID")]
     [ValidateScript({ [System.Guid]::TryParse($_, [ref][System.Guid]::Empty) })]
     [string]$ControlPlaneSubscriptionId,
@@ -396,6 +393,11 @@ function New-SDAFADOProject {
     [string]$ManagedIdentityObjectId,
 
     # Optional parameters
+
+    [Parameter(Mandatory = $false, HelpMessage = "Control plane name (e.g., MGMT-WEEU-DEP01)")]
+    [string]$ControlPlaneName = "",
+
+
     [Parameter(HelpMessage = "Agent Pool Name")]
     [ValidateLength(1, 100)]
     [string]$AgentPoolName,
@@ -1022,17 +1024,19 @@ resources:
       Write-Verbose "ADO Organization validated: $AdoOrganization"
 
       Write-Host "Using Control plane code: $ControlPlaneCode" -foregroundColor Yellow
+      Write-Host "Using Control plane name: $ControlPlaneName" -foregroundColor Yellow
       Write-Verbose "Control plane code validated: $ControlPlaneCode"
       #endregion
 
       #region Set up prefixes and pool names
-      if ($ControlPlaneName.Length -eq 0) {
+      if ($ControlPlaneName.Length -ne 0) {
         $ControlPlanePrefix = "SDAF-" + $ControlPlaneName
       }
       else {
         $ControlPlanePrefix = "SDAF-" + $ControlPlaneCode
       }
 
+      Write-Host "Control plane prefix: $ControlPlanePrefix"
       Write-Verbose "Control plane prefix: $ControlPlanePrefix"
 
       $AgentPoolNameFinal = $AgentPoolName
@@ -1654,7 +1658,7 @@ resources:
 
 # Export the function
 Export-ModuleMember -Function New-SDAFADOProject
-#EndRegion '.\Public\New-SDAFADOProject.ps1' 1378
+#EndRegion '.\Public\New-SDAFADOProject.ps1' 1382
 #Region '.\Public\New-SDAFADOWorkloadZone.ps1' -1
 
 #Requires -Version 5.1
@@ -2019,25 +2023,21 @@ function New-SDAFADOWorkloadZone {
 
       #region Set up prefixes
 
-
-      #region Set up prefixes and pool names
-      if ($WorkloadZoneName.Length -eq 0) {
-        $WorkloadZonePrefix = "SDAF-" + $WorkloadZoneCode
+      if ($WorkloadZoneName.Length -ne 0) {
+        $WorkloadZonePrefix = "SDAF-" + $WorkloadZoneName
       }
       else {
-        $WorkloadZonePrefix = "SDAF-" + $WorkloadZoneName
+        $WorkloadZonePrefix = "SDAF-" + $WorkloadZoneCode
       }
       Write-Verbose "Workload zone prefix: $WorkloadZonePrefix"
 
-      #region Set up prefixes and pool names
-      if ($ControlPlaneName.Length -eq 0) {
+      if ($ControlPlaneName.Length -ne 0) {
         $ControlPlanePrefix = "SDAF-" + $ControlPlaneName
       }
       else {
         $ControlPlanePrefix = "SDAF-" + $ControlPlaneCode
       }
 
-      $ControlPlanePrefix = "SDAF-" + $ControlPlaneCode
       Write-Verbose "Control plane prefix: $ControlPlanePrefix"
 
       #endregion
@@ -2193,7 +2193,7 @@ function New-SDAFADOWorkloadZone {
 
 # Export the function
 Export-ModuleMember -Function New-SDAFADOWorkloadZone
-#EndRegion '.\Public\New-SDAFADOWorkloadZone.ps1' 537
+#EndRegion '.\Public\New-SDAFADOWorkloadZone.ps1' 533
 #Region '.\Public\New-SDAFUserAssignedIdentity.ps1' -1
 
 function New-SDAFUserAssignedIdentity {
@@ -2427,7 +2427,7 @@ function Remove-SDAFADOProject {
       #endregion
 
       #region Set up prefixes and pool names
-      if ($ControlPlaneName.Length -eq 0) {
+      if ($ControlPlaneName.Length -ne 0) {
         $ControlPlanePrefix = "SDAF-" + $ControlPlaneName
       }
       else {
@@ -2799,12 +2799,13 @@ function Remove-SDAFADOWorkloadZone {
       #endregion
 
       #region Set up prefixes
-      if ($WorkloadZoneName.Length -eq 0) {
-        $WorkloadZonePrefix = "SDAF-" + $WorkloadZoneCode
-      }
-      else {
+      if ($WorkloadZoneName.Length -ne 0) {
         $WorkloadZonePrefix = "SDAF-" + $WorkloadZoneName
       }
+      else {
+        $WorkloadZonePrefix = "SDAF-" + $WorkloadZoneCode
+      }
+      Write-Host "Workload zone prefix: $WorkloadZonePrefix"
       Write-Verbose "Workload zone prefix: $WorkloadZonePrefix"
 
       #endregion
@@ -2879,7 +2880,7 @@ function Remove-SDAFADOWorkloadZone {
 
 # Export the function
 Export-ModuleMember -Function Remove-SDAFADOWorkloadZone
-#EndRegion '.\Public\Remove-SDAFADOWorkloadZone.ps1' 282
+#EndRegion '.\Public\Remove-SDAFADOWorkloadZone.ps1' 283
 #Region '.\Public\Remove-SDAFUserAssignedIdentity.ps1' -1
 
 function Remove-SDAFUserAssignedIdentity {

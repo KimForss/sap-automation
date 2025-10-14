@@ -93,9 +93,6 @@ function New-SDAFADOProject {
     [Parameter(Mandatory = $true, HelpMessage = "Control plane code (e.g., MGMT)")]
     [string]$ControlPlaneCode,
 
-    [Parameter(Mandatory = $false, HelpMessage = "Control plane name (e.g., MGMT-WEUE-DEP01)")]
-    [string]$ControlPlaneName = "",
-
     [Parameter(Mandatory = $true, HelpMessage = "Control plane subscription ID")]
     [ValidateScript({ [System.Guid]::TryParse($_, [ref][System.Guid]::Empty) })]
     [string]$ControlPlaneSubscriptionId,
@@ -117,6 +114,11 @@ function New-SDAFADOProject {
     [string]$ManagedIdentityObjectId,
 
     # Optional parameters
+
+    [Parameter(Mandatory = $false, HelpMessage = "Control plane name (e.g., MGMT-WEEU-DEP01)")]
+    [string]$ControlPlaneName = "",
+
+
     [Parameter(HelpMessage = "Agent Pool Name")]
     [ValidateLength(1, 100)]
     [string]$AgentPoolName,
@@ -743,17 +745,19 @@ resources:
       Write-Verbose "ADO Organization validated: $AdoOrganization"
 
       Write-Host "Using Control plane code: $ControlPlaneCode" -foregroundColor Yellow
+      Write-Host "Using Control plane name: $ControlPlaneName" -foregroundColor Yellow
       Write-Verbose "Control plane code validated: $ControlPlaneCode"
       #endregion
 
       #region Set up prefixes and pool names
-      if ($ControlPlaneName.Length -eq 0) {
+      if ($ControlPlaneName.Length -ne 0) {
         $ControlPlanePrefix = "SDAF-" + $ControlPlaneName
       }
       else {
         $ControlPlanePrefix = "SDAF-" + $ControlPlaneCode
       }
 
+      Write-Host "Control plane prefix: $ControlPlanePrefix"
       Write-Verbose "Control plane prefix: $ControlPlanePrefix"
 
       $AgentPoolNameFinal = $AgentPoolName
