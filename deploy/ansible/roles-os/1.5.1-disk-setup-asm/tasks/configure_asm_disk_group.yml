@@ -17,7 +17,7 @@
 #
 # -------------------------------------+---------------------------------------8
 
-- name:                                "ORACLE ASM: Query existing {{ disk_group_name }} disk configuration"
+- name:                                "1.5.1 Disk Setup - ORACLE ASM - Query existing {{ disk_group_name }} disk configuration"
   ansible.builtin.shell: |
                                        /usr/sbin/oracleasm querydisk "{{ item }}1" 2>&1
   loop:                                "{{ disk_group_list }}"
@@ -25,12 +25,12 @@
   failed_when:                         false
   changed_when:                        false
 
-- name:                                "ORACLE ASM: Build list of unconfigured {{ disk_group_name }} disks"
+- name:                                "1.5.1 Disk Setup - ORACLE ASM - Build list of un-configured {{ disk_group_name }} disks"
   ansible.builtin.set_fact:
     disks_needing_config:              []
     disk_config_map:                   {}
 
-- name:                                "ORACLE ASM: Identify unconfigured {{ disk_group_name }} disks with LUN mapping"
+- name:                                "1.5.1 Disk Setup - ORACLE ASM - Identify un-configured {{ disk_group_name }} disks with LUN mapping"
   when:
                                        - item.rc != 0
                                        - item.stdout is search('is not marked as an ASM disk|is not a known|does not exist or is not instantiated|Unable to access device')
@@ -41,14 +41,14 @@
   loop_control:
     extended:                          true
 
-- name:                                "ORACLE ASM: Debug - {{ disk_group_name }} disks requiring configuration"
+- name:                                "1.5.1 Disk Setup - ORACLE ASM - Debug - {{ disk_group_name }} disks requiring configuration"
   ansible.builtin.debug:
     msg:
       - "Disks to configure:           {{ disks_needing_config }}"
       - "Disk to LUN mapping:          {{ disk_config_map }}"
     verbosity:                         2
 
-- name:                                "ORACLE ASM: Partition unconfigured {{ disk_group_name }} disks"
+- name:                                "1.5.1 Disk Setup - ORACLE ASM - Partition un-configured {{ disk_group_name }} disks"
   become:                              true
   become_user:                         root
   when:                                disks_needing_config | length > 0
@@ -62,7 +62,7 @@
     part_end:                          100%
   loop:                                "{{ disks_needing_config }}"
 
-- name:                                "ORACLE ASM: Initialize {{ disk_group_name }} ASM disks with stable naming"
+- name:                                "1.5.1 Disk Setup - ORACLE ASM - Initialize {{ disk_group_name }} ASM disks with stable naming"
   when:                                disks_needing_config | length > 0
   ansible.builtin.shell: |
                                        lun_num="{{ disk_config_map[item] }}"
@@ -71,7 +71,7 @@
   loop:                                "{{ disks_needing_config }}"
   register:                            disk_creation_results
 
-- name:                                "ORACLE ASM: Set permissions on all {{ disk_group_name }} disk partitions"
+- name:                                "1.5.1 Disk Setup - ORACLE ASM - Set permissions on all {{ disk_group_name }} disk partitions"
   become:                              true
   become_user:                         root
   when:                                disk_group_list | length > 0
@@ -82,7 +82,7 @@
     mode:                              '0660'
   loop:                                "{{ disk_group_list }}"
 
-- name:                                "ORACLE ASM: Report {{ disk_group_name }} disk group configuration status"
+- name:                                "1.5.1 Disk Setup - ORACLE ASM - Report {{ disk_group_name }} disk group configuration status"
   ansible.builtin.debug:
     msg:
       - "Total {{ disk_group_name }} disks: {{ disk_group_list | length }}"

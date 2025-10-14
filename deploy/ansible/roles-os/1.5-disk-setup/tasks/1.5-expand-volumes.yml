@@ -21,39 +21,39 @@
 # -------------------------------------+---------------------------------------8
 #
 
-- name:                                "1.5 Expand Volumes - Gather facts"
+- name:                                "1.5 Expand Volumes: - Gather facts"
   ansible.builtin.setup:
   become:                              true
   become_user:                         root
 
-- name:                                "1.5 Expand Volumes - Check that {{ vg_root }} exists"
+- name:                                "1.5 Expand Volumes: - Check that {{ vg_root }} exists"
   ansible.builtin.set_fact:
     rootvg_exists:                     "{{ ansible_lvm.vgs[ vg_root ] is defined }}"
 
-- name:                                "1.5 Expand Volumes - Expand"
+- name:                                "1.5 Expand Volumes: - Expand"
   when:                                rootvg_exists | default(false)
   block:
 
-    - name:                            "1.5 Expand Volumes - Extract free size of the VG"
+    - name:                            "1.5 Expand Volumes: - Extract free size of the VG"
       ansible.builtin.shell:           set -o pipefail && vgdisplay --units g {{ vg_root }} | grep 'Free  PE / Size' | awk '{print $(NF-1)}'
       register:                        vg_info
       changed_when:                    false
 
-    - name:                            "1.5 Expand Volumes - Extract free size of the VG"
+    - name:                            "1.5 Expand Volumes: - Extract free size of the VG"
       ansible.builtin.set_fact:
         vg_free_size:                  "{{ vg_info.stdout | float }}"
       when:
         - vg_info is defined
         - vg_info.stdout is defined
 
-    - name:                            "1.5 Expand Volumes - Check if free size is more than 20 GB"
+    - name:                            "1.5 Expand Volumes: - Check if free size is more than 20 GB"
       ansible.builtin.set_fact:
         sufficient_vg_space:           "{{ vg_free_size | default(0) | float > 20.0 }}"
       when:
         - vg_free_size is defined
         - node_tier not in ['oracle', 'oracle-asm', 'hana', 'db2']
 
-    - name:                            "1.5 Expand Volumes - Check if free size is more than 30 GB (DB)"
+    - name:                            "1.5 Expand Volumes: - Check if free size is more than 30 GB (DB)"
       ansible.builtin.set_fact:
         sufficient_vg_space_db:        "{{ vg_free_size | default(0) | float > 30.0 }}"
       when:
@@ -62,7 +62,7 @@
 
 
     # ------------------<DEBUGGING>-------------------
-    - name:                            "1.5 Expand Volumes - Print volume group details"
+    - name:                            "1.5 Expand Volumes: - Print volume group details"
       ansible.builtin.debug:
         msg:
           - "vg_info:                  {{ vg_info }}"
@@ -73,15 +73,15 @@
         verbosity:                     2
     # ------------------</DEBUGGING>------------------
 
-    - name:                        "1.5 Expand Volumes - Extend the logical volumes and resize the FS"
+    - name:                            "1.5 Expand Volumes: - Extend the logical volumes and resize the FS"
       community.general.lvol:
-        vg:                        "{{ item.vg }}"
-        lv:                        "{{ item.lv }}"
-        size:                      "{{ item.size }}"
-        active:                    true
-        state:                     present
-        shrink:                    false
-        resizefs:                  true
+        vg:                            "{{ item.vg }}"
+        lv:                            "{{ item.lv }}"
+        size:                          "{{ item.size }}"
+        active:                        true
+        state:                         present
+        shrink:                        false
+        resizefs:                      true
       loop:
         - { vg: '{{ vg_root }}',    lv: 'rootlv',    size: '{{ lv_root_size }}' }
         - { vg: '{{ vg_root }}',    lv: 'tmplv',     size: '{{ lv_tmp_size }}'  }
@@ -89,15 +89,15 @@
         - sufficient_vg_space | default(false)
         - node_tier not in ['oracle', 'oracle-asm', 'hana', 'db2']
 
-    - name:                        "1.5 Expand Volumes - Extend the logical volumes and resize the FS (DB)"
+    - name:                            "1.5 Expand Volumes: - Extend the logical volumes and resize the FS (DB)"
       community.general.lvol:
-        vg:                        "{{ item.vg }}"
-        lv:                        "{{ item.lv }}"
-        size:                      "{{ item.size }}"
-        active:                    true
-        state:                     present
-        shrink:                    false
-        resizefs:                  true
+        vg:                            "{{ item.vg }}"
+        lv:                            "{{ item.lv }}"
+        size:                          "{{ item.size }}"
+        active:                        true
+        state:                         present
+        shrink:                        false
+        resizefs:                      true
       loop:
         - { vg: '{{ vg_root }}',    lv: 'rootlv',    size: '{{ lv_root_size_db }}' }
         - { vg: '{{ vg_root }}',    lv: 'tmplv',     size: '{{ lv_tmp_size }}'  }
@@ -107,14 +107,14 @@
 
 
     # ------------------<DEBUGGING>-------------------
-    - name:                            "1.5 Expand Volumes - Print recent Volume Group size and Logical Volume information"
+    - name:                            "1.5 Expand Volumes: - Print recent Volume Group size and Logical Volume information"
       ansible.builtin.shell: |
                                         set -o pipefail
                                         vgdisplay --units g {{ vg_root }} | grep 'Free  PE / Size' | awk '{print $(NF-1)}'
                                         lvdisplay {{ vg_root }}
       register:                        recent_info
 
-    - name:                            "1.5 Expand Volumes - Print volume group details"
+    - name:                            "1.5 Expand Volumes: - Print volume group details"
       ansible.builtin.debug:
         msg:
           - "vg_info:                  {{ recent_info | to_nice_json }}"
