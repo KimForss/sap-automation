@@ -379,7 +379,7 @@
         mode:                          0777
       when:                            orainstRoot_results.stdout is defined
 
-    - name:                            "ORACLE GRID: creates after a successful post processing script execution"
+    - name:                            "ORACLE GRID: creates after a successful post processing oraInstRoot script execution"
       ansible.builtin.file:
         path:                          /etc/sap_deployment_automation/grid/orainstRoot_rootscript.txt
         state:                         touch
@@ -413,6 +413,10 @@
     # |                       Oracle Grid: Execute Config tools                    |
     # |                                                                            |
     # +--------------------------------4------------------------------------------*/
+
+    - name:                            "ORACLE GRID: gridSetup ASM Config command"
+      ansible.builtin.debug:
+        msg:                           "Running ./gridSetup.sh -executeConfigTools -silent -responseFile ./{{ ansible_hostname }}_{{ db_sid }}_install.rsp"
 
     - name:                            "ORACLE GRID: Execute ASM Config tools"
       become:                          true
