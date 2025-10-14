@@ -159,7 +159,7 @@
   when:                                oradism_stat.stat.exists
   ansible.builtin.file:
     path:                              "/oracle/{{ db_sid | upper }}/{{ ora_release }}"
-    state:                             file
+    state:                             directory
     mode:                              '0770'
     owner:                             "{{ oracle_user_name }}"
     group:                             oinstall
