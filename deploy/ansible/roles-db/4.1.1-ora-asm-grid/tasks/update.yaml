@@ -187,30 +187,30 @@
     mode:                              '0755'
 
 # Step 5
-# - name:                                "ORACLE GRID UPDATE: Shut down the grid stack and unlock the grid home for patching"
-#   become:                              true
-#   become_user:                         root
-#   ansible.builtin.shell: |
-#                                        $OHGRID/crs/install/roothas.sh -prepatch
-#   register:                            grid_roothas_results
-#   environment:
-#     OHGRID:                            "/oracle/GRID/{{ ora_version }}"
-#   args:
-#     executable:                        /bin/csh
-#     creates:                           "/etc/sap_deployment_automation/grid/gridupdate_roothas.txt"
+- name:                                "ORACLE GRID UPDATE: Shut down the grid stack and unlock the grid home for patching"
+  become:                              true
+  become_user:                         root
+  ansible.builtin.shell: |
+                                       $OHGRID/crs/install/roothas.sh -prepatch
+  register:                            grid_roothas_results
+  environment:
+    OHGRID:                            "/oracle/GRID/{{ ora_version }}"
+  args:
+    executable:                        /bin/csh
+    creates:                           "/etc/sap_deployment_automation/grid/gridupdate_roothas.txt"
 
-# - name:                                "ORACLE GRID UPDATE: Debug: GRID roothas.sh output"
-#   ansible.builtin.copy:
-#     dest:                              "/etc/sap_deployment_automation/grid/grid_roothas.log"
-#     content:                           "{{ grid_roothas_results.stdout }}"
-#     mode:                              0777
-#   when:                                grid_roothas_results.stdout is defined
+- name:                                "ORACLE GRID UPDATE: Debug: GRID roothas.sh output"
+  ansible.builtin.copy:
+    dest:                              "/etc/sap_deployment_automation/grid/grid_roothas.log"
+    content:                           "{{ grid_roothas_results.stdout }}"
+    mode:                              0777
+  when:                                grid_roothas_results.stdout is defined
 
-# - name:                                "ORACLE GRID UPDATE: creates after a successful post processing script execution"
-#   ansible.builtin.file:
-#     path:                              "/etc/sap_deployment_automation/grid/gridupdate_roothas.txt"
-#     state:                             touch
-#     mode:                              '0755'
+- name:                                "ORACLE GRID UPDATE: creates after a successful post processing script execution"
+  ansible.builtin.file:
+    path:                              "/etc/sap_deployment_automation/grid/gridupdate_roothas.txt"
+    state:                             touch
+    mode:                              '0755'
 
 # Step 6
 - name:                                "ORACLE GRID UPDATE: pre processing reset permissions"
