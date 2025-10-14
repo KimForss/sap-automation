@@ -569,18 +569,44 @@
         exit
     mode:                              '0755'
 
-- name:                               "Oracle Data Guard - Preparation: Create ASM Directories for Secondary System"
-  become:                             true
-  become_user:                        oracle
-  ansible.builtin.template:
-    backup:                           true
-    src:                              asmfilesystems-secondary.j2
-    dest:                             "/etc/sap_deployment_automation/dataguard_scripts/asmfilesystems_secondary.sh"
-    mode:                             '0755'
-    force:                            true
+- name:                                "Oracle Data Guard - Preparation: Create ASM Directories for Secondary System"
+  become:                              true
+  become_user:                         "{{ oracle_user_name }}"
+  ansible.builtin.shell: |
+                                       /oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir  +DATA/{{ db_sid | upper }}
+                                       /oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir  +ARCH/{{ db_sid | upper }}
+                                       /oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir  +ARCH/{{ db_sid | upper }}/oraarch
+                                       /oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir  +ARCH/{{ db_sid | upper }}/ARCHIVELOG
+                                       /oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir  +ARCH/{{ db_sid | upper }}/CONTROLFILE
+                                       /oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir  +ARCH/{{ db_sid | upper }}/ONLINELOG
+                                       /oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir  +RECO/{{ db_sid | upper }}
+                                       /oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir  +RECO/{{ db_sid | upper }}/AUTOBACKUP
+                                       /oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir  +RECO/{{ db_sid | upper }}/CONTROLFILE
+                                       /oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir  +RECO/{{ db_sid | upper }}/FLASHBACK
+  register:                            asm_oraarch_folders_created_results
+  failed_when:
+    - asm_oraarch_folders_created_results.rc > 0
+    - not asm_oraarch_folders_created_results.stderr is search("ORA-15005") # Already Exists
+  args:
+    executable:                        /bin/csh
+    creates:                           /etc/sap_deployment_automation/dataguard_scripts/asm_oraarch_created.txt
   when:
-    - current_host == ora_secondary
     - node_tier == "oracle-asm"
+    - current_host == ora_secondary
+
+- name:                                "Oracle Data Guard - Setup Secondary: Create enable_dg_broker.txt"
+  become:                              true
+  become_user:                         "{{ oracle_user_name }}"
+  ansible.builtin.file:
+    path:                              /etc/sap_deployment_automation/dataguard_scripts/enable_dg_broker.txt
+    state:                             touch
+    mode:                              '0755'
+  when:
+    - node_tier == "oracle-asm"
+    - current_host == ora_secondary
+    - asm_oraarch_folders_created_results.rc 0
+
+
 
 ...
 # /*---------------------------------------------------------------------------8
