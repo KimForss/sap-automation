@@ -349,7 +349,7 @@
     marker_begin:                      "-- BEGIN"
     marker_end:                        "-- END"
     block: |
-        ALTER DATABASE CREATE STANDBY CONTROLFILE AS '{{ target_media_location }}/downloads/{{ db_sid | upper }}/{{ db_sid | upper }}_stby.ctl';
+        ALTER DATABASE CREATE STANDBY CONTROLFILE AS '{{ target_media_location }}/downloads/{{ db_sid | upper }}/{{ db_sid | upper }}_stdby.ctl';
         EXIT;
 
         exit

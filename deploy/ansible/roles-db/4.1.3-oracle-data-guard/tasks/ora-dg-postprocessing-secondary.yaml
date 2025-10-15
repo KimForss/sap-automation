@@ -11,7 +11,7 @@
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell: |
-                                       /oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir  cp {{ target_media_location }}/downloads/{{ db_sid | upper }}/{{ db_sid | upper }}_stby.ctl +DATA/CONTROLFILE/{{ db_sid | upper }}_stby.ctl
+                                       /oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir  cp {{ target_media_location }}/downloads/{{ db_sid | upper }}/{{ db_sid | upper }}_stdby.ctl +DATA/CONTROLFILE/{{ db_sid | upper }}_stdby.ctl
   register:                            asm_oraarch_copy_file_results
   failed_when:
     - asm_oraarch_copy_file_results.rc > 0
@@ -39,7 +39,7 @@
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.file:
-    path:                              /usr/sap/install/downloads/{{ db_sid || upper }}/{{ db_sid || upper }}_stby.ctl
+    path:                              /usr/sap/install/downloads/{{ db_sid || upper }}/{{ db_sid || upper }}_stdby.ctl
     state:                             absent
 
 

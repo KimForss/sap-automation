@@ -1,5 +1,5 @@
 { # Copyright (c) Microsoft Corporation.
  # Licensed under the MIT License.
 #}
-DUPLICATE TARGET DATABASE FOR STANDBY FROM ACTIVE DATABASE DORECOVER SPFILE SET DB_UNIQUE_NAME='{{ db_sid | upper }}_STDBY' COMMENT 'Set unique name for standby' SET CONTROL_FILES='+DATA/CONTROLFILE/{{ db_sid | upper }}_stby.ctl' COMMENT 'ASM controlfiles' NOFILENAMECHECK;
+DUPLICATE TARGET DATABASE FOR STANDBY FROM ACTIVE DATABASE DORECOVER SPFILE SET DB_UNIQUE_NAME='{{ db_sid | upper }}_STDBY' COMMENT 'Set unique name for standby' SET CONTROL_FILES='+DATA/CONTROLFILE/{{ db_sid | upper }}_stdby.ctl' COMMENT 'ASM controlfiles' NOFILENAMECHECK;
 
