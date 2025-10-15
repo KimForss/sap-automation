@@ -526,8 +526,8 @@
 
 - name:                                "4.1.3 Oracle Data Guard - Preparation: Create directories"
   when:
-    - current_host == ora_secondary
-    - node_tier == 'oracle'
+                                       - current_host == ora_secondary
+                                       - node_tier == 'oracle'
   ansible.builtin.file:
     path:                              "{{ item.path }}"
     state:                             directory
@@ -551,31 +551,32 @@
 - name:                                "4.1.3 Oracle Data Guard ASM - Preparation: Create ASM Directories for Secondary System"
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
+  when:
+                                       - node_tier == "oracle-asm"
+                                       - current_host == ora_secondary
   ansible.builtin.shell: |
-                                       /oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir  +DATA/{{ db_sid | upper }}
-                                       /oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir  +DATA/{{ db_sid | upper }}/CONTROLFILE
-                                       /oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir  +ARCH/{{ db_sid | upper }}
-                                       /oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir  +ARCH/{{ db_sid | upper }}/oraarch
-                                       /oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir  +ARCH/{{ db_sid | upper }}/ARCHIVELOG
-                                       /oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir  +ARCH/{{ db_sid | upper }}/CONTROLFILE
-                                       /oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir  +ARCH/{{ db_sid | upper }}/ONLINELOG
-                                       /oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir  +RECO/{{ db_sid | upper }}
-                                       /oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir  +RECO/{{ db_sid | upper }}/AUTOBACKUP
-                                       /oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir  +RECO/{{ db_sid | upper }}/CONTROLFILE
-                                       /oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir  +RECO/{{ db_sid | upper }}/FLASHBACK
-  register:                            asm_oraarch_folders_created_results
-  failed_when:
-    - asm_oraarch_folders_created_results.rc > 0
-    - not asm_oraarch_folders_created_results.stderr is search("ORA-15005") # Already Exists
+
+                                       setenv ORACLE_HOME "/oracle/GRID/{{ ora_version }}";
+                                       setenv ORACLE_SID "+ASM";
+                                       /oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir  +DATA/{{ db_sid | upper }};
+                                       /oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir  +DATA/{{ db_sid | upper }}/CONTROLFILE;
+                                       /oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir  +ARCH/{{ db_sid | upper }};
+                                       /oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir  +ARCH/{{ db_sid | upper }}/oraarch;
+                                       /oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir  +ARCH/{{ db_sid | upper }}/ARCHIVELOG;
+                                       /oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir  +ARCH/{{ db_sid | upper }}/CONTROLFILE;
+                                       /oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir  +ARCH/{{ db_sid | upper }}/ONLINELOG;
+                                       /oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir  +RECO/{{ db_sid | upper }};
+                                       /oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir  +RECO/{{ db_sid | upper }}/AUTOBACKUP;
+                                       /oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir  +RECO/{{ db_sid | upper }}/CONTROLFILE;
+                                       /oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir  +RECO/{{ db_sid | upper }}/FLASHBACK;
   args:
     executable:                        /bin/csh
     creates:                           /etc/sap_deployment_automation/dataguard_scripts/asm_oraarch_created.txt
-  environment:
-    ORACLE_HOME:                       /oracle/GRID/{{ ora_version }}
-    ORACLE_SID:                        +ASM
-  when:
-    - node_tier == "oracle-asm"
-    - current_host == ora_secondary
+  register:                            asm_oraarch_folders_created_results
+  failed_when:
+                                       - asm_oraarch_folders_created_results.rc > 0
+                                       - not asm_oraarch_folders_created_results.stderr is search("ORA-15005") # Already Exists
+
 
 - name:                                "4.1.3 Oracle Data Guard ASM - Preparation: Create asm_oraarch_created.txt"
   become:                              true
