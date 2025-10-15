@@ -555,9 +555,9 @@
                                        - node_tier == "oracle-asm"
                                        - current_host == ora_secondary
   ansible.builtin.shell: |
-                                      setenv ORACLE_HOME "/oracle/GRID/{{ ora_version }}";
+                                       setenv ORACLE_HOME "/oracle/GRID/{{ ora_version }}";
                                        setenv ORACLE_SID "+ASM";
-                                      "/oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir  {{ item.path }}";
+                                       "/oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir  {{ item.path }}";
   args:
     executable:                        /bin/csh
     creates:                           /etc/sap_deployment_automation/dataguard_scripts/asm_oraarch_created.txt
