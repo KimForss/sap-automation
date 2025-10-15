@@ -591,8 +591,8 @@
   when:
     - node_tier == "oracle-asm"
     - current_host == ora_secondary
+    - asm_oraarch_folders_created_results is defined
     - (asm_oraarch_folders_created_results.rc == 0) | bool
-
 
 ...
 # /*---------------------------------------------------------------------------8
