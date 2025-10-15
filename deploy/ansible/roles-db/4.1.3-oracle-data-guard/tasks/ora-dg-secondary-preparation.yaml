@@ -71,18 +71,17 @@
     mode:                              "{{ '0777' | int - (custom_umask | default('022') | int) }}"
 #  when: current_host == ora_primary
 
-# - name:                                "Oracle Data Guard - Preparation (Secondary): Copy orapwSID to temp location"
-#   become:                              true
-#   become_user:                         "root"
-#   ansible.builtin.copy:
-#     src:                               /oracle/{{ db_sid | upper }}/{{ ora_release }}/dbs/orapw{{ db_sid | upper }}
-#     dest:                              "{{ target_media_location }}/downloads/{{ db_sid | upper }}/orapw{{ db_sid | upper }}"
-#     remote_src:                        true
-#     force:                             true
-#     owner:                             oracle
-#     group:                             dba
-#     mode:                              "{{ '0777' | int - (custom_umask | default('022') | int) }}"
-# #   when: current_host == ora_primary
+- name:                                "Oracle Data Guard - Preparation (Secondary): Copy orapwSID to temp location"
+  become:                              true
+  become_user:                         "root"
+  ansible.builtin.copy:
+    src:                               /oracle/{{ db_sid | upper }}/{{ ora_release }}/dbs/orapw{{ db_sid | upper }}
+    dest:                              "{{ target_media_location }}/downloads/{{ db_sid | upper }}/orapw{{ db_sid | upper }}"
+    remote_src:                        true
+    force:                             true
+    owner:                             oracle
+    group:                             dba
+    mode:                              "{{ '0777' | int - (custom_umask | default('022') | int) }}"
 
 - name:                                "Oracle Data Guard - Preparation (Secondary): Copy dbs folder to temp location"
   become:                              true
