@@ -555,23 +555,25 @@
                                        - node_tier == "oracle-asm"
                                        - current_host == ora_secondary
   ansible.builtin.shell: |
-
-                                       setenv ORACLE_HOME "/oracle/GRID/{{ ora_version }}";
-                                       setenv ORACLE_SID "+ASM";
-                                       /oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir  +DATA/{{ db_sid | upper }};
-                                       /oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir  +DATA/{{ db_sid | upper }}/CONTROLFILE;
-                                       /oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir  +ARCH/{{ db_sid | upper }};
-                                       /oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir  +ARCH/{{ db_sid | upper }}/oraarch;
-                                       /oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir  +ARCH/{{ db_sid | upper }}/ARCHIVELOG;
-                                       /oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir  +ARCH/{{ db_sid | upper }}/CONTROLFILE;
-                                       /oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir  +ARCH/{{ db_sid | upper }}/ONLINELOG;
-                                       /oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir  +RECO/{{ db_sid | upper }};
-                                       /oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir  +RECO/{{ db_sid | upper }}/AUTOBACKUP;
-                                       /oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir  +RECO/{{ db_sid | upper }}/CONTROLFILE;
-                                       /oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir  +RECO/{{ db_sid | upper }}/FLASHBACK;
+                                      "/oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir  {{ item.path }}";
+  environment:
+                                       ORACLE_HOME:                   /oracle/GRID/{{ ora_version }}
+                                       ORACLE_SID:                    +ASM
   args:
     executable:                        /bin/csh
     creates:                           /etc/sap_deployment_automation/dataguard_scripts/asm_oraarch_created.txt
+  loop:
+    - { path: '+DATA/{{ db_sid | upper }}' }
+    - { path: '+DATA/{{ db_sid | upper }}/CONTROLFILE' }
+    - { path: '+ARCH/{{ db_sid | upper }}' }
+    - { path: '+ARCH/{{ db_sid | upper }}/oraarch' }
+    - { path: '+ARCH/{{ db_sid | upper }}/ARCHIVELOG' }
+    - { path: '+ARCH/{{ db_sid | upper }}/CONTROLFILE' }
+    - { path: '+ARCH/{{ db_sid | upper }}/ONLINELOG' }
+    - { path: '+RECO/{{ db_sid | upper }}' }
+    - { path: '+RECO/{{ db_sid | upper }}/AUTOBACKUP' }
+    - { path: '+RECO/{{ db_sid | upper }}/CONTROLFILE' }
+    - { path: '+RECO/{{ db_sid | upper }}/FLASHBACK' }
   register:                            asm_oraarch_folders_created_results
   failed_when:
                                        - asm_oraarch_folders_created_results.rc != 0
@@ -589,7 +591,7 @@
   when:
     - node_tier == "oracle-asm"
     - current_host == ora_secondary
-    - asm_oraarch_folders_created_results.rc 0
+    - asm_oraarch_folders_created_results.rc = 0
 
 
 ...
