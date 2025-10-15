@@ -570,6 +570,9 @@
   args:
     executable:                        /bin/csh
     creates:                           /etc/sap_deployment_automation/dataguard_scripts/asm_oraarch_created.txt
+  environment:
+    ORACLE_HOME:                       /oracle/GRID/{{ ora_version }}
+    ORACLE_SID:                        +ASM
   when:
     - node_tier == "oracle-asm"
     - current_host == ora_secondary
