@@ -204,7 +204,7 @@
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell:               sqlplus / as sysdba @create_control_file.sql
   register:                            create_control_file_results
-  failed_when:                         create_control_file.rc > 0
+  failed_when:                         create_control_file_results.rc > 0
   args:
     creates:                           /etc/sap_deployment_automation/dataguard_scripts/create_control_file.txt
     chdir:                             /etc/sap_deployment_automation/dataguard_scripts
