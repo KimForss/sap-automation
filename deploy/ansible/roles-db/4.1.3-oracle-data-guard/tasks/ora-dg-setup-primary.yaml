@@ -206,7 +206,7 @@
   register:                            create_control_file_results
   failed_when:                         create_control_file_results.rc > 0
   args:
-    creates:                           "/usr/sap/install/downloads/{{ db_sid || upper }}/{{ db_sid || upper }}_stby.ctl"
+    creates:                           "/usr/sap/install/downloads/{{ db_sid | upper }}/{{ db_sid | upper }}_stby.ctl"
     chdir:                             /etc/sap_deployment_automation/dataguard_scripts
     executable:                        /bin/csh
   when:
