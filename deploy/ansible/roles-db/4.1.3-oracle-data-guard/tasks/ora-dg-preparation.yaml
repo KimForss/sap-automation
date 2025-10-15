@@ -174,23 +174,6 @@
     mode:                              '0755'
   when:                                node_tier == "oracle-asm"
 
-- name:                                "4.1.3 Oracle Data Guard ASM - Preparation: Create Control File"
-  become:                              true
-  become_user:                         "{{ oracle_user_name }}"
-  ansible.builtin.blockinfile:
-    create:                            true
-    path:                              /etc/sap_deployment_automation/dataguard_scripts/create_control_file.sql
-    marker_begin:                      "-- BEGIN"
-    marker_end:                        "-- END"
-    block: |
-        ALTER DATABASE CREATE STANDBY CONTROLFILE AS '{{ target_media_location }}/downloads/{{ db_sid | upper }}/{{ db_sid | upper }}_stby.ctl';
-        EXIT;
-
-        exit
-    mode:                              '0755'
-  when:                                node_tier == "oracle-asm"
-
-
 - name:                                "4.1.3 Oracle Data Guard ASM - Preparation: Create create_spfile.sql"
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
@@ -219,18 +202,6 @@
               exit
     mode:                              '0755'
   when:
-    - node_tier == 'oracle-asm'
-- name:                                "4.1.3 Oracle Data Guard ASM - Preparation: Create rman-restore.rman for oracle-asm"
-  become:                              true
-  become_user:                         "{{ oracle_user_name }}"
-  ansible.builtin.template:
-    backup:                            true
-    src:                               rman-restore-asm.j2
-    dest:                              "/etc/sap_deployment_automation/dataguard_scripts/rman-restore.rman"
-    mode:                              '0644'
-    force:                             true
-  when:
-    - current_host == ora_secondary
     - node_tier == 'oracle-asm'
 
 - name:                                "4.1.3 Oracle Data Guard - Rescue Create shutdown_secondary.sql"
@@ -272,116 +243,6 @@
          exit
     mode:                              '0755'
 
-# Create Listener for primary node.
-
-- name:                                "4.1.3 Oracle Data Guard - Preparation: Create the Listener file for Primary"
-  become:                              true
-  become_user:                         "{{ oracle_user_name }}"
-  ansible.builtin.template:
-    backup:                            true
-    src:                               listener_primary.j2
-    dest:                              "/oracle/{{ db_sid | upper }}/{{ ora_version }}/network/admin/listener.ora"
-    mode:                              '0644'
-    force:                             true
-  vars:
-    hostname:  "{{ ora_primary }}"
-  when:  current_host == ora_primary
-
-# Create Listener for secondary node.
-
-- name:                                "4.1.3 Oracle Data Guard - Preparation: Create the Listener file for Secondary"
-  become:                              true
-  become_user:                         "{{ oracle_user_name }}"
-  ansible.builtin.template:
-    backup:                            true
-    src:                               listener_secondary.j2
-    dest:                              "/oracle/{{ db_sid | upper }}/{{ ora_version }}/network/admin/listener.ora"
-    mode:                              '0644'
-    force:                             true
-  vars:
-    hostname:  "{{ ora_secondary }}"
-  when:  current_host == ora_secondary
-
-# Create tnsnames.ora for primary node.
-
-- name:                                "4.1.3 Oracle Data Guard - Preparation: Create the tnsnames file for Primary"
-  become:                              true
-  become_user:                         "{{ oracle_user_name }}"
-  ansible.builtin.template:
-    backup:                            true
-    src:                               tnsnames_primary.j2
-    dest:                              "/oracle/{{ db_sid | upper }}/{{ ora_version }}/network/admin/tnsnames.ora"
-    mode:                              '0644'
-    force:                             true
-  vars:
-    hostname:  "{{ ora_primary }}"
-    sap_dbp_hostname: "{{ ora_primary }}"
-    sap_dbs_hostname: "{{ ora_secondary }}"
-  when:  current_host == ora_primary
-
-# tnsnames for observer
-
-- name:                                "4.1.3 Oracle Data Guard - Preparation: Create the tnsnames file for Observer"
-  become:                              true
-  become_user:                         root
-  ansible.builtin.template:
-    backup:                            true
-    src:                               tnsnames_primary.j2
-    dest:                              "{{ target_media_location }}/downloads/{{ db_sid | upper }}/tnsnames.ora"
-    mode:                              '0644'
-    force:                             true
-  vars:
-    hostname:                          "{{ ora_primary }}"
-    sap_dbp_hostname:                  "{{ ora_primary }}"
-    sap_dbs_hostname:                  "{{ ora_secondary }}"
-  when:  current_host == ora_primary
-# Create tnsnames.ora for secondary node.
-
-- name:                                "4.1.3 Oracle Data Guard - Preparation: Create the tnsnames file for Secondary"
-  become:                              true
-  become_user:                         "{{ oracle_user_name }}"
-  ansible.builtin.template:
-    backup:                            true
-    src:                               tnsnames_secondary.j2
-    dest:                              "/oracle/{{ db_sid | upper }}/{{ ora_version }}/network/admin/tnsnames.ora"
-    mode:                              '0644'
-    force:                             true
-  vars:
-    hostname:  "{{ ora_secondary }}"
-    sap_dbp_hostname: "{{ ora_primary }}"
-    sap_dbs_hostname: "{{ ora_secondary }}"
-  when:  current_host == ora_secondary
-
-- name:                                "4.1.3 Oracle Data Guard - Preparation: Create the sqlnet.ora for Secondary"
-  become:                              true
-  become_user:                         "{{ oracle_user_name }}"
-  ansible.builtin.template:
-    backup:                            true
-    src:                               sqlnet.ora.j2
-    dest:                              "/oracle/{{ db_sid | upper }}/{{ ora_version }}/network/admin/sqlnet.ora"
-    mode:                              '0644'
-    force:                             true
-  vars:
-    hostname:  "{{ ora_secondary }}"
-    sap_dbp_hostname: "{{ ora_primary }}"
-    sap_dbs_hostname: "{{ ora_secondary }}"
-  when:  current_host != ora_primary
-
-- name:                                "4.1.3 Oracle Data Guard - Preparation: Create the sqlnet.ora for Observer"
-  become:                              true
-  become_user:                         root
-  ansible.builtin.template:
-    backup:                            true
-    src:                               sqlnet.ora.j2
-    dest:                              "{{ target_media_location }}/downloads/{{ db_sid | upper }}/sqlnet.ora"
-    mode:                              '0644'
-    force:                             true
-  vars:
-    hostname:  "{{ ora_primary }}"
-    sap_dbp_hostname: "{{ ora_primary }}"
-    sap_dbs_hostname: "{{ ora_secondary }}"
-  when:  current_host != ora_primary
-
 # Create the sql script for updating the data guard specific parameters for Primary node.
 
 - name:                                "4.1.3 Oracle Data Guard - Preparation: Create the SQL for Dataguard parameters on Primary"
@@ -399,24 +260,6 @@
     sap_dbs_hostname: "{{ ora_secondary }}"
   when:  current_host == ora_primary
 
-
-# Create the tnsnames.ora for SAP.
-
-- name:                                "4.1.3 Oracle Data Guard - Preparation: Create TNSNAMES.ORA for SAP Application servers"
-  become:                              true
-  become_user:                         "{{ oracle_user_name }}"
-  ansible.builtin.template:
-    backup:                            true
-    src:                               tnsnamesforsap.j2
-    dest:                              "/etc/sap_deployment_automation/dataguard_scripts/tnsnames.ora"
-    mode:                              '0644'
-    force:                             true
-  vars:
-    hostname:  "{{ ora_primary }}"
-    sap_dbp_hostname: "{{ ora_primary }}"
-    sap_dbs_hostname: "{{ ora_secondary }}"
-
-
 # Create DB trigger sql for SAP HA Setup
 
 - name:                                "4.1.3 Oracle Data Guard - Preparation: Create the SQL for  DBTrigger on Primary"
@@ -429,31 +272,6 @@
     mode:                              '0644'
     force:                             true
   when:  current_host == ora_primary
-
-
-- name:                                "4.1.3 Oracle Data Guard - Preparation: Create dataguard_config.sh"
-  become:                              true
-  become_user:                         "{{ oracle_user_name }}"
-  ansible.builtin.template:
-    backup:                            true
-    src:                               dataguard_config.j2
-    dest:                              "/etc/sap_deployment_automation/dataguard_scripts/dataguard_config.dgmgrl"
-    mode:                              '0644'
-    force:                             true
-  when:  current_host == ora_primary
-
-- name:                                "4.1.3 Oracle Data Guard - Preparation: Create rman-restore.rman"
-  become:                              true
-  become_user:                         "{{ oracle_user_name }}"
-  ansible.builtin.template:
-    backup:                            true
-    src:                               rman-restore.j2
-    dest:                              "/etc/sap_deployment_aut  omation/dataguard_scripts/rman-restore.rman"
-    mode:                              '0644'
-    force:                             true
-  when:
-    - current_host == ora_secondary
-    - node_tier == 'oracle'
 
 - name:                                "4.1.3 Oracle Data Guard - Preparation: Create secondary_startup.sql"
   become:                              true
@@ -518,6 +336,186 @@
          ALTER DATABASE RECOVER MANAGED STANDBY DATABASE DISCONNECT FROM SESSION THROUGH LAST SWITCHOVER;
          exit
     mode: '0755'
+  when:
+    - current_host == ora_secondary
+    - node_tier == 'oracle'
+
+- name:                                "4.1.3 Oracle Data Guard ASM - Preparation: Create Control File"
+  become:                              true
+  become_user:                         "{{ oracle_user_name }}"
+  ansible.builtin.blockinfile:
+    create:                            true
+    path:                              /etc/sap_deployment_automation/dataguard_scripts/create_control_file.sql
+    marker_begin:                      "-- BEGIN"
+    marker_end:                        "-- END"
+    block: |
+        ALTER DATABASE CREATE STANDBY CONTROLFILE AS '{{ target_media_location }}/downloads/{{ db_sid | upper }}/{{ db_sid | upper }}_stby.ctl';
+        EXIT;
+
+        exit
+    mode:                              '0755'
+  when:                                node_tier == "oracle-asm"
+
+- name:                                "4.1.3 Oracle Data Guard ASM - Preparation: Create rman-restore.rman"
+  become:                              true
+  become_user:                         "{{ oracle_user_name }}"
+  ansible.builtin.template:
+    backup:                            true
+    src:                               rman-restore-asm.j2
+    dest:                              "/etc/sap_deployment_automation/dataguard_scripts/rman-restore.rman"
+    mode:                              '0644'
+    force:                             true
+  when:
+    - current_host == ora_secondary
+    - node_tier == 'oracle-asm'
+
+# Create Listener for primary node.
+
+- name:                                "4.1.3 Oracle Data Guard - Preparation: Create the Listener file for Primary"
+  become:                              true
+  become_user:                         "{{ oracle_user_name }}"
+  ansible.builtin.template:
+    backup:                            true
+    src:                               listener_primary.j2
+    dest:                              "/oracle/{{ db_sid | upper }}/{{ ora_version }}/network/admin/listener.ora"
+    mode:                              '0644'
+    force:                             true
+  vars:
+    hostname:  "{{ ora_primary }}"
+  when:  current_host == ora_primary
+
+# Create Listener for secondary node.
+
+- name:                                "4.1.3 Oracle Data Guard - Preparation: Create the Listener file for Secondary"
+  become:                              true
+  become_user:                         "{{ oracle_user_name }}"
+  ansible.builtin.template:
+    backup:                            true
+    src:                               listener_secondary.j2
+    dest:                              "/oracle/{{ db_sid | upper }}/{{ ora_version }}/network/admin/listener.ora"
+    mode:                              '0644'
+    force:                             true
+  vars:
+    hostname:  "{{ ora_secondary }}"
+  when:  current_host == ora_secondary
+
+# Create tnsnames.ora for primary node.
+
+- name:                                "4.1.3 Oracle Data Guard - Preparation: Create the tnsnames file for Primary"
+  become:                              true
+  become_user:                         "{{ oracle_user_name }}"
+  ansible.builtin.template:
+    backup:                            true
+    src:                               tnsnames_primary.j2
+    dest:                              "/oracle/{{ db_sid | upper }}/{{ ora_version }}/network/admin/tnsnames.ora"
+    mode:                              '0644'
+    force:                             true
+  vars:
+    hostname:  "{{ ora_primary }}"
+    sap_dbp_hostname: "{{ ora_primary }}"
+    sap_dbs_hostname: "{{ ora_secondary }}"
+  when:  current_host == ora_primary
+
+# tnsnames for observer
+
+- name:                                "4.1.3 Oracle Data Guard - Preparation: Create the tnsnames file for Observer"
+  become:                              true
+  become_user:                         root
+  ansible.builtin.template:
+    backup:                            true
+    src:                               tnsnames_primary.j2
+    dest:                              "{{ target_media_location }}/downloads/{{ db_sid | upper }}/tnsnames.ora"
+    mode:                              '0644'
+    force:                             true
+  vars:
+    hostname:                          "{{ ora_primary }}"
+    sap_dbp_hostname:                  "{{ ora_primary }}"
+    sap_dbs_hostname:                  "{{ ora_secondary }}"
+  when:  current_host == ora_primary
+
+# Create tnsnames.ora for secondary node.
+
+- name:                                "4.1.3 Oracle Data Guard - Preparation: Create the tnsnames file for Secondary"
+  become:                              true
+  become_user:                         "{{ oracle_user_name }}"
+  ansible.builtin.template:
+    backup:                            true
+    src:                               tnsnames_secondary.j2
+    dest:                              "/oracle/{{ db_sid | upper }}/{{ ora_version }}/network/admin/tnsnames.ora"
+    mode:                              '0644'
+    force:                             true
+  vars:
+    hostname:  "{{ ora_secondary }}"
+    sap_dbp_hostname: "{{ ora_primary }}"
+    sap_dbs_hostname: "{{ ora_secondary }}"
+  when:  current_host == ora_secondary
+
+- name:                                "4.1.3 Oracle Data Guard - Preparation: Create the sqlnet.ora for Secondary"
+  become:                              true
+  become_user:                         "{{ oracle_user_name }}"
+  ansible.builtin.template:
+    backup:                            true
+    src:                               sqlnet.ora.j2
+    dest:                              "/oracle/{{ db_sid | upper }}/{{ ora_version }}/network/admin/sqlnet.ora"
+    mode:                              '0644'
+    force:                             true
+  vars:
+    hostname:  "{{ ora_secondary }}"
+    sap_dbp_hostname: "{{ ora_primary }}"
+    sap_dbs_hostname: "{{ ora_secondary }}"
+  when:  current_host != ora_primary
+
+- name:                                "4.1.3 Oracle Data Guard - Preparation: Create the sqlnet.ora for Observer"
+  become:                              true
+  become_user:                         root
+  ansible.builtin.template:
+    backup:                            true
+    src:                               sqlnet.ora.j2
+    dest:                              "{{ target_media_location }}/downloads/{{ db_sid | upper }}/sqlnet.ora"
+    mode:                              '0644'
+    force:                             true
+  vars:
+    hostname:  "{{ ora_primary }}"
+    sap_dbp_hostname: "{{ ora_primary }}"
+    sap_dbs_hostname: "{{ ora_secondary }}"
+  when:  current_host != ora_primary
+
+# Create the tnsnames.ora for SAP.
+
+- name:                                "4.1.3 Oracle Data Guard - Preparation: Create TNSNAMES.ORA for SAP Application servers"
+  become:                              true
+  become_user:                         "{{ oracle_user_name }}"
+  ansible.builtin.template:
+    backup:                            true
+    src:                               tnsnamesforsap.j2
+    dest:                              "/etc/sap_deployment_automation/dataguard_scripts/tnsnames.ora"
+    mode:                              '0644'
+    force:                             true
+  vars:
+    hostname:  "{{ ora_primary }}"
+    sap_dbp_hostname: "{{ ora_primary }}"
+    sap_dbs_hostname: "{{ ora_secondary }}"
+
+- name:                                "4.1.3 Oracle Data Guard - Preparation: Create dataguard_config.dgmgrl"
+  become:                              true
+  become_user:                         "{{ oracle_user_name }}"
+  ansible.builtin.template:
+    backup:                            true
+    src:                               dataguard_config.j2
+    dest:                              "/etc/sap_deployment_automation/dataguard_scripts/dataguard_config.dgmgrl"
+    mode:                              '0644'
+    force:                             true
+  when:  current_host == ora_primary
+
+- name:                                "4.1.3 Oracle Data Guard - Preparation: Create rman-restore.rman"
+  become:                              true
+  become_user:                         "{{ oracle_user_name }}"
+  ansible.builtin.template:
+    backup:                            true
+    src:                               rman-restore.j2
+    dest:                              "/etc/sap_deployment_aut  omation/dataguard_scripts/rman-restore.rman"
+    mode:                              '0644'
+    force:                             true
   when:
     - current_host == ora_secondary
     - node_tier == 'oracle'
