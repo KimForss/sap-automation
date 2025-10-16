@@ -14,7 +14,7 @@
     (ADDRESS_LIST =
         (ADDRESS =
           (PROTOCOL = TCP)
-          (HOST = {{ sap_dbp_hostname }})
+          (HOST = {{ ora_primary }})
           (PORT = 1521)
         )
     )
@@ -29,7 +29,7 @@
     (ADDRESS_LIST =
         (ADDRESS =
           (PROTOCOL = TCP)
-          (HOST = {{ sap_dbs_hostname }})
+          (HOST = {{ ora_secondary }})
           (PORT = 1521)
         )
     )
