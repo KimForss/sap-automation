@@ -4,7 +4,7 @@
   ansible.builtin.template:
     src:                               tnsnames_secondary.ora.j2
     dest:                              "/oracle/{{ db_sid | upper }}/{{ ora_version }}/tnsnames.ora"
-    owner:                             "{{ oracle_user_name_name }}"
+    owner:                             "{{ oracle_user_name }}"
     group:                             "{{ oracle_group }}"
     mode:                              '0644'
     backup:                            true
