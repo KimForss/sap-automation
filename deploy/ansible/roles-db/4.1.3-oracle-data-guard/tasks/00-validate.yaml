@@ -5,7 +5,7 @@
     host:                              "{{ hostvars[item]['ansible_host'] }}"
     port:                              "{{ listener_port }}"
     timeout:                           10
-  loop:                                 "{{ groups['{{ sid | upper }}_DB'] }}"
+  loop:                                 "{{ ansible_play_hosts_all }}"
   when:                                item != inventory_hostname
   delegate_to:                         localhost
 

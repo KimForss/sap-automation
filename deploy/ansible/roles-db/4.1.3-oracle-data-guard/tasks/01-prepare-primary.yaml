@@ -153,4 +153,3 @@
     ORACLE_HOME:                       "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
     ORACLE_SID:                        "{{ db_sid | upper }}"
 ...
-
