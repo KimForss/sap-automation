@@ -15,7 +15,7 @@
   ansible.builtin.shell: |
                                        $ORACLE_HOME/bin/sqlplus / as sysasm <<EOF
                                        SET PAGESIZE 0 FEEDBACK OFF
-                                       SELECT name || ':' || state FROM v$asm_diskgroup;
+                                       SELECT name || ':' || state FROM v\$asm_diskgroup;
                                        EXIT;
                                        EOF
   register:                            asm_status
