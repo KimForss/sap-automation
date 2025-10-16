@@ -1,6 +1,6 @@
-{# Copyright (c) Microsoft Corporation.
- # Licensed under the MIT License.
-#}
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+#
 ################
 # Filename......: tnsnames.ora
 # Created.......: created by SAP AG, R/3 Rel. >= 6.10
@@ -10,15 +10,15 @@
 ################
 {{ db_sid | upper}}.WORLD=
   (DESCRIPTION =
-    (ADDRESS_LIST = 
-        (ADDRESS = 
+    (ADDRESS_LIST =
+        (ADDRESS =
           (PROTOCOL = TCP)
           (HOST = {{ sap_dbp_hostname }})
           (PORT = 1521)
         )
     )
-    (ADDRESS_LIST = 
-        (ADDRESS = 
+    (ADDRESS_LIST =
+        (ADDRESS =
           (PROTOCOL = TCP)
           (HOST = {{ sap_dbs_hostname }})
           (PORT = 1521)

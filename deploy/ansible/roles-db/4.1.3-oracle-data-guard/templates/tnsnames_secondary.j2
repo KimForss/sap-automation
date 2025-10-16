@@ -1,6 +1,6 @@
-{# Copyright (c) Microsoft Corporation.
- # Licensed under the MIT License.
-#}
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+#
 ################
 # Filename......: tnsnames.ora
 # Created.......: created by SAP AG, R/3 Rel. >= 6.10
@@ -21,6 +21,7 @@
        (SID = {{ db_sid }} )
        (GLOBAL_NAME = {{ db_sid }}_STDBY.WORLD)
        (SERVICE_NAME={{ db_sid }}_STDBY)
+       (UR = A)
     )
   )
 {{ db_sid }}.WORLD=

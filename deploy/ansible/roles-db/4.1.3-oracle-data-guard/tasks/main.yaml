@@ -7,6 +7,18 @@
   ansible.builtin.set_fact:
     current_host:                      "{{ ansible_hostname }}"
 
+- name:                                "4.1.3 Oracle Data Guard: - Create Folder SAPTrace"
+  become:                              true
+  become_user:                         "root"
+  ansible.builtin.file:
+    path:                              "'/oracle/{{ db_sid | upper }}/saptrace'"
+    mode:                              '0755'
+    state:                             directory
+    owner:                             "{{ oracle_user_name }}"
+    group:                             oinstall
+
+
+
 - name:                                "4.1.3 Oracle Data Guard: - Create Folder for File sharing"
   become:                              true
   become_user:                         "root"
@@ -16,6 +28,8 @@
     state:                             directory
     owner:                             "{{ oracle_user_name }}"
     group:                             oinstall
+  when:
+    - inventory_hostname == ora_primary
 
 - name:                                "4.1.3 Oracle Data Guard: - Create Folder for dbs folder copy from primary to secondary"
   become:                              true
@@ -26,11 +40,11 @@
     state:                             directory
     owner:                             oracle
     group:                             oinstall
+  when:
+    - inventory_hostname == ora_primary
 
 - name:                                "4.1.3 Oracle Data Guard: - Preparation Create password file"
   when:
-                                       - action == 'Prepare_Secondary'
-                                       - ansible_hostname == ora_primary
                                        - tier != "observer"
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
@@ -49,7 +63,87 @@
 - name:                                "4.1.3 Oracle Data Guard: - Prepare primary node"
   when:
     - ora_primary == ansible_hostname
-  ansible.builtin.include_tasks:       "01-setup-primary.yaml"
+  ansible.builtin.include_tasks:       "01-prepare-primary.yaml"
+
+- name:                                "4.1.3 Oracle Data Guard: - Prepare secondary node"
+  when:
+    - ora_secondary == ansible_hostname
+  ansible.builtin.include_tasks:       "02-prepare-secondary.yaml"
+
+- name:                                "4.1.3 Oracle Data Guard - Prepare Secondary - Test connectivity primary -> standby"
+  ansible.builtin.shell:               |
+                                       sqlplus -s sys/{{ main_password }}@{{ db_sid | upper }}_STDBY as sysdba <<EOF
+                                       SELECT 'connected' FROM dual;
+                                       EXIT;
+                                       EOF
+  register:                            conn_test
+  changed_when:                        false
+  failed_when:                         "'connected' not in conn_test.stdout"
+  args:
+    chdir:                             "/oracle/{{ db_sid | upper }}/{{ ora_version }}/bin"
+  environment:
+    ORACLE_HOME:                       "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
+    ORACLE_SID:                        "{{ db_sid | upper }}_STDBY"
+  when:
+    - inventory_hostname == ora_primary
+    - "'connected' not in conn_test.stdout"
+
+
+- name:                                "4.1.3 Oracle Data Guard - Prepare Secondary - Test connectivity standby -> primary"
+  ansible.builtin.shell:               |
+                                       sqlplus -s sys/{{ main_password }}@{{ db_sid | upper }} as sysdba <<EOF
+                                       SELECT 'connected' FROM dual;
+                                       EXIT;
+                                       EOF
+  register:                            conn_test_reverse
+  changed_when:                        false
+  failed_when:                         "'connected' not in conn_test_reverse.stdout"
+  args:
+    chdir:                             "/oracle/{{ db_sid | upper }}/{{ ora_version }}/bin"
+  environment:
+    ORACLE_HOME:                       "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
+    ORACLE_SID:                        "{{ db_sid | upper }}_STDBY"
+  when:
+    - inventory_hostname == ora_secondary
+    - "'connected' not in conn_test_reverse.stdout"
+
+- name:                                "4.1.3 Oracle Data Guard - Prepare Secondary - Test connectivity primary -> standby"
+  ansible.builtin.shell:               |
+                                       sqlplus -s sys/{{ main_password }}@{{ db_sid | upper }}_STDBY as sysdba <<EOF
+                                       SELECT 'connected' FROM dual;
+                                       EXIT;
+                                       EOF
+  register:                            conn_test
+  changed_when:                        false
+  failed_when:                         "'connected' not in conn_test.stdout"
+  args:
+    chdir:                             "/oracle/{{ db_sid | upper }}/{{ ora_version }}/bin"
+  environment:
+    ORACLE_HOME:                       "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
+    ORACLE_SID:                        "{{ db_sid | upper }}_STDBY"
+  when:
+    - inventory_hostname == ora_primary
+    - "'connected' not in conn_test.stdout"
+
+
+- name:                                "4.1.3 Oracle Data Guard - Prepare Secondary - Test connectivity standby -> primary"
+  ansible.builtin.shell:               |
+                                       sqlplus -s sys/{{ main_password }}@{{ db_sid | upper }} as sysdba <<EOF
+                                       SELECT 'connected' FROM dual;
+                                       EXIT;
+                                       EOF
+  register:                            conn_test_reverse
+  changed_when:                        false
+  failed_when:                         "'connected' not in conn_test_reverse.stdout"
+  args:
+    chdir:                             "/oracle/{{ db_sid | upper }}/{{ ora_version }}/bin"
+  environment:
+    ORACLE_HOME:                       "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
+    ORACLE_SID:                        "{{ db_sid | upper }}_STDBY"
+  when:
+    - inventory_hostname == ora_secondary
+    - "'connected' not in conn_test_reverse.stdout"
+
 
 
 # FSFO is enabled from the Observer.

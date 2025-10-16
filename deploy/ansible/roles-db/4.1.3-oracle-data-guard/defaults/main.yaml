@@ -7,3 +7,8 @@ CV_ASSUME_DISTID:                  "{% if ansible_kernel is version('5.5', '<') 
 
 # Network
 listener_port:                     1521
+oracle_group:                      oinstall
+
+# Recovery Settings
+db_recovery_file_dest:             "+RECO"
+db_recovery_file_dest_size:        500M

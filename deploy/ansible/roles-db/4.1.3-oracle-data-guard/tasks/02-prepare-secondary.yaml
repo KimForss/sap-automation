@@ -1,0 +1,118 @@
+---
+
+- name:                                "4.1.3 Oracle Data Guard - Prepare Secondary - Deploy standby tnsnames.ora"
+  ansible.builtin.template:
+    src:                               tnsnames_secondary.ora.j2
+    dest:                              "/oracle/{{ db_sid | upper }}/{{ ora_version }}/tnsnames.ora"
+    owner:                             "{{ oracle_user_name_name }}"
+    group:                             "{{ oracle_group }}"
+    mode:                              '0644'
+    backup:                            true
+
+- name:                                "4.1.3 Oracle Data Guard - Prepare Secondary - Configure static listener registration"
+  ansible.builtin.template:
+    src:                               listener_secondary.ora.j2
+    dest:                              "/oracle/GRID/{{ ora_version }}/listener.ora"
+    owner:                             "{{ oracle_user_name }}"
+    group:                             "{{ oracle_group }}"
+    mode:                              '0644'
+    backup:                            true
+  register:                            listener_config
+
+- name:                                "4.1.3 Oracle Data Guard - Prepare Secondary - Reload listener"
+  become_user:                         "{{ oracle_user_name }}"
+  become:                              true
+  ansible.builtin.shell: |
+                                       lsnrctl reload
+  when:                                listener_config.changed
+  environment:
+    ORACLE_HOME:                       "/oracle/GRID/{{ ora_version }}"
+    ORACLE_SID:                        "{{ db_sid | upper }}"
+  args:
+    chdir:                             "/oracle/GRID/{{ ora_version }}/bin"
+
+- name:                                "4.1.3 Oracle Data Guard - Set Variables"
+  ansible.builtin.set_fact:
+    pga_temp_l4tb_std:                 "{{ ((ansible_memory_mb.real.total * 0.60 ) * 0.2) | round | int }}"
+    pga_temp_l4tb_dis:                 "{{ ((ansible_memory_mb.real.total * 0.80 ) * 0.2) | round | int }}"
+
+- name:                                "4.1.3 Oracle Data Guard - Set the SGA and PGA Sizes for RAM < 4TB"
+  ansible.builtin.set_fact:
+    main_mem1:                         "{{ ansible_memory_mb.real.total }}"
+    ora_sga:                           "{{ (ansible_memory_mb.real.total * 0.60) | round | int }}"
+    ora_pga:                           "{{ [(pga_temp_l4tb_std | int), 4194304] | min }}"
+  when:
+    - ansible_memory_mb.real.total < 4194304
+
+- name:                                "4.1.3 Oracle Data Guard - Set the SGA and PGA Sizes for RAM > 4TB"
+  ansible.builtin.set_fact:
+    ora_sga:                           "{{ (ansible_memory_mb.real.total * 0.65) | round | int }}"
+    ora_pga:                           "{{ ((ansible_memory_mb.real.total*0.65)*0.2) | round | int }}"
+  when:
+    - ansible_memory_mb.real.total > 4194304
+
+- name:                                "4.1.3 Oracle Data Guard - Show Main Memory"
+  ansible.builtin.debug:
+      msg:
+      - "Total memory:         {{ main_mem1 }}"
+      - "sga_max_size:         {{ ora_sga }}"
+      - "pga_aggregate_target: {{ ora_pga }}"
+
+- name:                                "4.1.3 Oracle Data Guard - Prepare Secondary - Create standby initialization file"
+  ansible.builtin.template:
+    src:                               init_standby.ora.j2
+    dest:                              "/oracle/{{ db_sid | upper }}/{{ ora_version }}/dbs/init{{ db_sid | upper }}_STDBY.ora"
+    owner:                             "{{ oracle_user_name }}"
+    group:                             "{{ oracle_group }}"
+    mode:                              '0644'
+  var:
+    sga_max_size:                      "{{ ora_sga }}M"
+    pga_aggregate_target:              "{{ ora_pga }}M"
+
+- name:                                "4.1.3 Oracle Data Guard - Prepare Secondary - Check for zombie standby processes"
+  ansible.builtin.shell: |
+                                       set -o pipefail
+                                       ps -ef | grep ora_pmon_{{ standby_sid }} | grep -v grep || true
+  register:                            standby_pmon
+  changed_when:                        false
+
+- name:                                "4.1.3 Oracle Data Guard - Prepare Secondary - Kill zombie standby processes"
+  ansible.builtin.shell:               kill -9 {{ item.split()[1] }}
+  loop:                                "{{ standby_pmon.stdout_lines }}"
+  when:                                standby_pmon.stdout | length > 0
+
+- name:                                "4.1.3 Oracle Data Guard - Prepare Secondary - Clean orphaned shared memory segments"
+  ansible.builtin.shell: |
+                                       set -o pipefail
+                                       for seg in $(ipcs -m | grep {{ oracle_user_name }} | awk '$6==0 {print $2}'); do
+                                         ipcrm -m $seg
+                                       done
+  when:                                standby_pmon.stdout | length > 0
+
+- name:                                "4.1.3 Oracle Data Guard - Prepare Secondary - Start standby instance in NOMOUNT"
+  become_user:                         "{{ oracle_user_name }}"
+  become:                              true
+  ansible.builtin.shell: |
+                                        sqlplus -s / as sysdba <<EOF
+                                        WHENEVER SQLERROR EXIT SQL.SQLCODE
+                                        STARTUP NOMOUNT PFILE='/oracle/{{ db_sid | upper }}/{{ ora_version }}/dbs/init{{ db_sid | upper }}_STDBY.ora';
+                                        ALTER SYSTEM REGISTER;
+                                        EXIT;
+                                        EOF
+  register:                             startup_result
+  failed_when:                          startup_result.rc != 0
+  environment:
+    ORACLE_HOME:                       "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
+    ORACLE_SID:                        "{{ db_sid | upper }}_STDBY"
+  args:
+    chdir:                             "/oracle/{{ db_sid | upper }}/{{ ora_version }}/bin"
+
+
+- name:                                "4.1.3 Oracle Data Guard - Prepare Secondary - Verify standby instance running"
+  ansible.builtin.shell: |
+                                       set -o pipefail
+                                       ps -ef | grep ora_pmon_{{ db_sid | upper }}_STDBY | grep -v grep
+  register:                            verify_pmon
+  changed_when:                        false
+  failed_when:                         verify_pmon.stdout | length == 0
+...
