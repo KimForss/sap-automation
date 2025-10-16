@@ -29,9 +29,6 @@
                                        $ORACLE_HOME/bin/sqlplus / as sysasm @check_asm_status.sql
   register:                            asm_status
   changed_when:                        false
-  environment:
-    ORACLE_HOME:                       "/oracle/GRID/{{ ora_version }}"
-    ORACLE_SID:                        "+ASM"
   args:
     chdir:                             "/etc/sap_deployment_automation/dataguard_scripts/"
     executable:                        /bin/csh
