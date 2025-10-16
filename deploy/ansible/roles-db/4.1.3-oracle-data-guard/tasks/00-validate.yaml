@@ -23,6 +23,9 @@
   become_user:                         "{{ oracle_user_name }}"
   become:                              true
   ansible.builtin.shell: |
+                                       setenv ORACLE_HOME=/oracle/GRID/{{ ora_version }}
+                                       setenv ORACLE_SID +ASM
+                                       setenv PATH $ORACLE_HOME/bin:$PATH
                                        $ORACLE_HOME/bin/sqlplus / as sysasm @check_asm_status.sql
   register:                            asm_status
   changed_when:                        false
