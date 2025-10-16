@@ -65,7 +65,7 @@
     owner:                             "{{ oracle_user_name }}"
     group:                             "{{ oracle_group }}"
     mode:                              '0644'
-  var:
+  vars:
     sga_max_size:                      "{{ ora_sga }}M"
     pga_aggregate_target:              "{{ ora_pga }}M"
 
