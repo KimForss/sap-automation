@@ -3,7 +3,7 @@
 #
 ################
 # Filename......: tnsnames.ora
-# Created.......: created by SAP AG, R/3 Rel. >= 6.10
+# Created.......: created by SDAF
 # Name..........:
 # Date..........:
 # @(#) $Id: //inst/inst_scripts/lmts_006_REL/tpls/ora/TNSNAMES.ORA#2 $
@@ -13,7 +13,7 @@
     (ADDRESS_LIST =
         (ADDRESS =
           (PROTOCOL = TCP)
-          (HOST = {{ sap_dbs_hostname }})
+          (HOST = {{ ora_secondary }})
           (PORT = 1521)
         )
     )
@@ -29,7 +29,7 @@
     (ADDRESS_LIST =
         (ADDRESS =
           (PROTOCOL = TCP)
-          (HOST = {{ sap_dbp_hostname }})
+          (HOST = {{ ora_primary }})
           (PORT = 1521)
         )
     )
