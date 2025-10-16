@@ -23,13 +23,17 @@
   become_user:                         "{{ oracle_user_name }}"
   become:                              true
   ansible.builtin.shell: |
-                                       setenv ORACLE_HOME=/oracle/GRID/{{ ora_version }}
+                                       setenv ORACLE_HOME /oracle/GRID/{{ ora_version }}
                                        setenv ORACLE_SID +ASM
                                        set path = ($path $ORACLE_HOME/bin)
                                        printenv
 
   register:                            variable_asm_status
   changed_when:                        false
+  environment:
+    ORACLE_HOME:                       "/oracle/GRID/{{ ora_version }}"
+    ORACLE_SID:                        "+ASM"
+    PATH:                              "$/oracle/GRID/{{ ora_version }}/bin:$PATH"
   args:
     chdir:                             "/etc/sap_deployment_automation/dataguard_scripts/"
     executable:                        /bin/csh
@@ -43,12 +47,16 @@
   become_user:                         "{{ oracle_user_name }}"
   become:                              true
   ansible.builtin.shell: |
-                                       setenv ORACLE_HOME=/oracle/GRID/{{ ora_version }}
+                                       setenv ORACLE_HOME /oracle/GRID/{{ ora_version }}
                                        setenv ORACLE_SID +ASM
                                        setenv PATH $ORACLE_HOME/bin:$PATH
                                        $ORACLE_HOME/bin/sqlplus / as sysasm @check_asm_status.sql
   register:                            asm_status
   changed_when:                        false
+  environment:
+    ORACLE_HOME:                       "/oracle/GRID/{{ ora_version }}"
+    ORACLE_SID:                        "+ASM"
+    PATH:                              "$ORACLE_HOME/bin:$PATH"
   args:
     chdir:                             "/etc/sap_deployment_automation/dataguard_scripts/"
     executable:                        /bin/csh
