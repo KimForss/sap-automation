@@ -16,7 +16,7 @@
                                        setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
                                        setenv ORACLE_SID {{ db_sid | upper }}
                                        setenv PATH /oracle/{{ db_sid | upper }}/{{ ora_version }}/bin:$PATH
-                                       $ORACLE_HOME/bin/sqlplus / as sysasm @configure_data_guard_parameters_on_primary.sql
+                                       $ORACLE_HOME/bin/sqlplus / as sysdba @configure_data_guard_parameters_on_primary.sql
   register:                            dg_config
   failed_when:                         dg_config.rc != 0
   args:
