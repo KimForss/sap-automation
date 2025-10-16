@@ -89,13 +89,33 @@
                                        done
   when:                                standby_pmon.stdout | length > 0
 
+  ###################################
+  #
+  # WHENEVER SQLERROR EXIT SQL.SQLCODE
+  # STARTUP NOMOUNT PFILE='/oracle/{{ db_sid | upper }}/{{ ora_version }}/dbs/init{{ db_sid | upper }}_STDBY.ora';
+  # ALTER SYSTEM REGISTER;
+  # EXIT;
+  #
+  ###################################
+
 - name:                                "4.1.3 Oracle Data Guard -  Configure Start standby instance in NOMOUNT SQL script"
   ansible.builtin.template:
-    src:                               start_standby_instance.j2
+    src:                               start_standby_instance.sql.j2
     dest:                              "/etc/sap_deployment_automation/dataguard_scripts/start_standby_instance.sql"
     owner:                             "{{ oracle_user_name }}"
     group:                             oinstall
     mode:                              '0644'
+
+  ###################################
+  #
+  # Start the standby instance in NOMOUNT
+  #
+  # WHENEVER SQLERROR EXIT SQL.SQLCODE
+  # STARTUP NOMOUNT PFILE='/oracle/{{ db_sid | upper }}/{{ ora_version }}/dbs/init{{ db_sid | upper }}_STDBY.ora';
+  # ALTER SYSTEM REGISTER;
+  # EXIT;
+  #
+  ###################################
 
 - name:                                "4.1.3 Oracle Data Guard - Prepare Secondary - Start standby instance in NOMOUNT"
   become_user:                         "{{ oracle_user_name }}"
