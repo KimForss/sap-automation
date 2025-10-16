@@ -1,0 +1,38 @@
+---
+
+- name:                                "4.1.3 Oracle Data Guard - Setup Primary: - Test network connectivity to peer"
+  ansible.builtin.wait_for:
+    host:                              "{{ hostvars[item]['ansible_host'] }}"
+    port:                              "{{ listener_port }}"
+    timeout:                           10
+  loop:                                 "{{ groups['{{ sid | upper }}_DB'] }}"
+  when:                                item != inventory_hostname
+  delegate_to:                         localhost
+
+- name:                                "4.1.3 Oracle Data Guard - Setup Primary: - Check ASM status (standby only)"
+  become_user:                         "{{ oracle_user_name }}"
+  become:                              true
+  ansible.builtin.shell: |
+                                       sqlplus -s / as sysasm <<EOF
+                                       SET PAGESIZE 0 FEEDBACK OFF
+                                       SELECT name || ':' || state FROM v$asm_diskgroup;
+                                       EXIT;
+                                       EOF
+  register:                            asm_status
+  changed_when:                        false
+  when:                                ora_secondary == ansible_hostname
+  environment:
+    ORACLE_HOME:                       "/oracle/GRID/{{ ora_version }}"
+    ORACLE_SID:                        "+ASM"
+  args:
+    chdir:                             "/oracle/GRID/{{ ora_version }}/bin"
+
+
+- name:                                "4.1.3 Oracle Data Guard - Setup Primary: -Validate ASM diskgroups mounted"
+  ansible.builtin.assert:
+    that:                              "'MOUNTED' in asm_status.stdout"
+    fail_msg:                          "ASM diskgroups not mounted"
+  when:
+    - asm_status is defined
+    - ora_secondary == ansible_hostname
+...

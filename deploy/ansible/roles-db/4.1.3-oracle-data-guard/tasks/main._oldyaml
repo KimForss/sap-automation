@@ -3,6 +3,15 @@
 
 ---
 
+# /*---------------------------------------------------------------------------8
+# | Prepare the sql script  for  data guard initial configuration.             |
+# |                                                                            |
+# |                                                                            |
+# | Step 1 create the SQL scripts for DG                                       |
+# +------------------------------------4--------------------------------------*/
+
+# Set Primary and Secondary node names.
+
 - name:                                "4.1.3 Oracle Data Guard: Setting the Current host name"
   ansible.builtin.set_fact:
     current_host:                      "{{ ansible_hostname }}"
@@ -43,13 +52,52 @@
     chdir:                             "{{ target_media_location }}/downloads/{{ db_sid | upper }}/dbs"
     executable:                        /bin/csh
 
-- name:                                "4.1.3 Oracle Data Guard: - Validate"
-  ansible.builtin.include_tasks:       "00-validate.yaml"
-
-- name:                                "4.1.3 Oracle Data Guard: - Prepare primary node"
+- name:                                "4.1.3 Oracle Data Guard: - Prepare secondary node"
   when:
-    - ora_primary == ansible_hostname
-  ansible.builtin.include_tasks:       "01-setup-primary.yaml"
+                                       - action == 'Prepare_Secondary'
+  ansible.builtin.include_tasks:       "ora-dg-secondary-preparation.yaml"
+
+
+- name:                                "4.1.3 Oracle Data Guard: - Prepare and Restore"
+  when:
+                                       - action    == 'Prepare_and_Restore'
+                                       - node_tier != "observer"
+  block:
+    - name:                            "4.1.3 Oracle Data Guard: - Preparation tasks"
+      ansible.builtin.include_tasks:   "ora-dg-preparation.yaml"
+
+    - name:                            "4.1.3 Oracle Data Guard: - Setup primary"
+      when:
+                                       - current_host == ora_primary
+      ansible.builtin.include_tasks:   "ora-dg-setup-primary.yaml"
+
+    - name:                            "4.1.3 Oracle Data Guard: - Setup secondary"
+      when:
+                                       - current_host == ora_secondary
+      ansible.builtin.include_tasks:   "ora-dg-setup-secondary.yaml"
+
+
+- name:                                "4.1.3 Oracle Data Guard: - Post processing on Primary"
+  when:
+                                       - node_tier != "observer"
+                                       - action    == 'Post_Processing_Primary'
+  ansible.builtin.include_tasks:       "ora-dg-postprocessing-primary.yaml"
+
+
+# Enable Flashback Logging on the Secondary for FSFO
+- name:                                "4.1.3 Oracle Data Guard: - Post processing on Secondary"
+  when:
+                                       - node_tier != "observer"
+                                       - action    == 'Post_Processing_Secondary'
+  ansible.builtin.include_tasks:       "ora-dg-postprocessing-secondary.yaml"
+
+
+# Enable Flashback Logging on the Secondary for FSFO
+- name:                                "4.1.3 Oracle Data Guard: - Post processing on Secondary"
+  when:
+                                       - node_tier != "observer"
+                                       - action    == 'Post_Processing_Secondary'
+  ansible.builtin.include_tasks:       "ora-dg-postprocessing-secondary.yaml"
 
 
 # FSFO is enabled from the Observer.
