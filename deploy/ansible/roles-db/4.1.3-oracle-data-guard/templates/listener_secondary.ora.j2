@@ -8,9 +8,10 @@
 # Date..........:
 # @(#) $Id: //inst/inst_scripts/lmts_006_REL/tpls/ora/LISTENER.ORA#2 $
 ################
-ADMIN_RESTRICTIONS_LISTENER = on
+
 LISTENER =
-  (ADDRESS_LIST =
+  (DESCRIPTION_LIST =
+    (DESCRIPTION =
         (ADDRESS =
           (PROTOCOL = IPC)
           (KEY = {{ db_sid | upper }}_STDBY.WORLD)
@@ -24,21 +25,18 @@ LISTENER =
           (HOST = {{ ansible_hostname }})
           (PORT = 1521)
         )
+    )
   )
-STARTUP_WAIT_TIME_LISTENER = 0
-CONNECT_TIMEOUT_LISTENER = 10
-TRACE_LEVEL_LISTENER = OFF
+
+ENABLE_GLOBAL_DYNAMIC_ENDPOINT_LISTENER=ON
+VALID_NODE_CHECKING_REGISTRATION_LISTENER=ON
 SID_LIST_LISTENER =
   (SID_LIST =
     (SID_DESC =
+      (GLOBAL_DBNAME = {{ db_sid | upper }}_STDBY.WORLD)
+      (ORACLE_HOME = /oracle/ORA/19.0.0)
       (SID_NAME = {{ db_sid | upper }}_STDBY)
-      (GLOBAL_DBNAME = {{ db_sid | upper }}_STDBY)
-    (ORACLE_HOME = /oracle/{{ db_sid | upper }}/{{ ora_release }})
-    )
- (SID_DESC =
-      (SID_NAME = {{ db_sid }}_STDBY)
-      (GLOBAL_DBNAME = {{ db_sid }}_STDBY_DGMGRL)
-      (ORACLE_HOME = /oracle/{{ db_sid | upper }}/{{ ora_release }})
     )
   )
+
 ADR_BASE_LISTENER = /oracle/{{ db_sid | upper }}/saptrace
