@@ -25,6 +25,10 @@ LISTENER =
           (HOST = {{ ansible_hostname }})
           (PORT = 1521)
         )
+        (ADDRESS =
+          (PROTOCOL = IPC)
+          (KEY = EXTPROC1521)
+        )
     )
   )
 
@@ -34,7 +38,7 @@ SID_LIST_LISTENER =
   (SID_LIST =
     (SID_DESC =
       (GLOBAL_DBNAME = {{ db_sid | upper }}_STDBY.WORLD)
-      (ORACLE_HOME = /oracle/ORA/19.0.0)
+      (ORACLE_HOME = /oracle/{{ db_sid | upper }}/{{ ora_release }})
       (SID_NAME = {{ db_sid | upper }}_STDBY)
     )
   )

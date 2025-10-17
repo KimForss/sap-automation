@@ -20,7 +20,7 @@
     (CONNECT_DATA =
        (SID = {{ db_sid | upper }}_STDBY)
        (GLOBAL_NAME = {{ db_sid | upper }}_STDBY.WORLD)
-       (SERVICE_NAME={{ db_sid | upper }}_STDBY)
+       (SERVICE_NAME = {{ db_sid | upper }}_STDBY)
        (UR = A)
     )
   )
@@ -36,7 +36,7 @@
     (CONNECT_DATA =
        (SID = {{ db_sid | upper }})
        (GLOBAL_NAME = {{ db_sid  | upper }}.WORLD)
-       (SERVICE_NAME={{ db_sid | upper }})
+       (SERVICE_NAME = {{ db_sid | upper }})
     )
   )
 
