@@ -3,7 +3,7 @@
 #
 ################
 # Filename......: tnsnames.ora
-# Created.......: created by SDAF
+# Created.......: created by SDAF for Secondary
 # Name..........:
 # Date..........:
 # @(#) $Id: //inst/inst_scripts/lmts_006_REL/tpls/ora/TNSNAMES.ORA#2 $
@@ -18,13 +18,13 @@
         )
     )
     (CONNECT_DATA =
-       (SID = {{ db_sid }} )
-       (GLOBAL_NAME = {{ db_sid }}_STDBY.WORLD)
-       (SERVICE_NAME={{ db_sid }}_STDBY)
+       (SID = {{ db_sid | upper }}_STDBY)
+       (GLOBAL_NAME = {{ db_sid | upper }}_STDBY.WORLD)
+       (SERVICE_NAME={{ db_sid | upper }}_STDBY)
        (UR = A)
     )
   )
-{{ db_sid }}.WORLD=
+{{ db_sid | upper}}.WORLD=
   (DESCRIPTION =
     (ADDRESS_LIST =
         (ADDRESS =
@@ -34,8 +34,8 @@
         )
     )
     (CONNECT_DATA =
-       (SID = {{ db_sid }})
-       (GLOBAL_NAME = {{ db_sid }}.WORLD)
-       (SERVICE_NAME={{ db_sid }})
+       (SID = {{ db_sid | upper }})
+       (GLOBAL_NAME = {{ db_sid  | upper }}.WORLD)
+       (SERVICE_NAME={{ db_sid | upper }})
     )
   )
