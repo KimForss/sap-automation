@@ -15,7 +15,7 @@
       become_user:                     "{{ oracle_user_name }}"
       become:                          true
       ansible.builtin.shell: |
-                                       setenv ORACLE_SID={{ db_sid | upper }}_STDBY
+                                       setenv ORACLE_SID {{ db_sid | upper }}_STDBY
                                        $ORACLE_HOME/bin/sqlplus -s / as sysdba @configure_data_guard_standby_instance.sql
       register:                        standby_config
       failed_when:                     standby_config.rc != 0
@@ -79,18 +79,18 @@
       become_user:                     "{{ oracle_user_name }}"
       become:                          true
       ansible.builtin.shell: |
-                                       setenv ORACLE_SID={{ db_sid | upper }}_STDBY
+                                       setenv ORACLE_SID {{ db_sid | upper }}_STDBY
                                        $ORACLE_HOME/bin/sqlplus -s / as sysdba @check_standby_redo_logs.sql
       register:                        srl_count
       failed_when:                     false
       args:
-        chdir:                             "/etc/sap_deployment_automation/dataguard_scripts/"
-        executable:                        /bin/csh
+        chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
+        executable:                    /bin/csh
 
     - name:                            "4.1.3 Oracle Data Guard - Setup Primary: - Show Configure check standby redo logs results"
       ansible.builtin.debug:
         var:                           srl_count.stdout_lines
-        verbosity:                         2
+        verbosity:                     2
 
     - name:                            "4.1.3 Oracle Data Guard - Save configure check standby redo logs results"
       ansible.builtin.copy:
@@ -98,7 +98,6 @@
         content:                       "{{ srl_count.stdout }}"
         mode:                          '0777'
       when:                            srl_count.stdout is defined
-
 
     - name:                            "4.1.3 Oracle Data Guard -  Configure check standby redo logs SQL script"
       ansible.builtin.template:
