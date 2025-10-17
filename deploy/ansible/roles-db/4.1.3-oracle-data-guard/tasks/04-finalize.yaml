@@ -111,7 +111,7 @@
       become_user:                     "{{ oracle_user_name }}"
       become:                          true
       ansible.builtin.shell: |
-                                       setenv ORACLE_SID={{ db_sid | upper }}_STDBY
+                                       setenv ORACLE_SID {{ db_sid | upper }}_STDBY
                                        $ORACLE_HOME/bin/sqlplus -s / as sysdba @check_standby_redo_logs.sql
       register:                        srl_count
       failed_when:                     false
@@ -146,7 +146,7 @@
       when:
         - srl_count.stdout | trim | int == 0
       ansible.builtin.shell: |
-                                       setenv ORACLE_SID={{ db_sid | upper }}_STDBY
+                                       setenv ORACLE_SID {{ db_sid | upper }}_STDBY
                                        $ORACLE_HOME/bin/sqlplus -s / as sysdba @add_standby_redo_logs.sql
       register:                        add_srl_standby
       failed_when:                     add_srl_standby.rc != 0
