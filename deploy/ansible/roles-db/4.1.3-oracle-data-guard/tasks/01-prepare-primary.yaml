@@ -153,7 +153,7 @@
                                        lsnrctl services
   register:                            listener_check
   changed_when:                        false
-  failed_when:                         listener_check.stdout is not search("Service {{ db_sid | upper }}")
+  failed_when:                         listener_check.stdout is not search("Service \"{{ db_sid | upper }}\"")
   environment:
     ORACLE_HOME:                       "/oracle/GRID/{{ ora_version }}"
     ORACLE_SID:                        "{{ db_sid | upper }}"

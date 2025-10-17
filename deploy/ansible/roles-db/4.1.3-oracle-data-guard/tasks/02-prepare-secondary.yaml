@@ -141,9 +141,9 @@
       become:                          true
       ansible.builtin.shell: |
                                        /oracle/GRID/{{ ora_version }}/bin/sqlplus -s / as sysdba <<EOF
-                                          SHUTDOWN IMMEDIATE;
-                                        EXIT;
-                                        EOF
+                                       SHUTDOWN IMMEDIATE;
+                                       EXIT;
+                                       EOF
       register:                        shutdown_result
       args:
         chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
