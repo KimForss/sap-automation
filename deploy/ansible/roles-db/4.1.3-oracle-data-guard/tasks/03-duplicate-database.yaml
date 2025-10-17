@@ -22,17 +22,14 @@
   async:                               28800  # 8 hours timeout
   poll:                                60
 
-- name:                                "4.1.3 Oracle Data Guard - Setup Primary: - Show Execute RMAN DUPLICATE output"
-  ansible.builtin.debug:
-    var:                               rman_duplicate.stdout.stdout_lines
-    verbosity:                         2
-
-- name:                                "4.1.3 Oracle Data Guard - Save RMAN log"
-  ansible.builtin.copy:
-    dest:                              /etc/sap_deployment_automation/dataguard_scripts/rman_duplicate_{{ ansible_date_time.epoch }}.log
-    content:                           "{{ rman_duplicate.stdout }}"
-    mode:                              '0777'
-  when:                                rman_duplicate.stdout is defined
+- name:                                "4.1.3 Oracle Data Guard - Execute - Wait for asynchronous job to end"
+  ansible.builtin.async_status:
+    jid:                               "{{ rman_duplicate.ansible_job_id }}"
+  register:                            job_result
+  until:                               job_result.finished
+  retries:                             5
+  delay:                               60
+  when:                                rman_duplicate.ansible_job_id is defined
 
 - name:                                "4.1.3 Oracle Data Guard - Save RMAN flag file"
   ansible.builtin.file:
@@ -45,9 +42,23 @@
    - rman_duplicate.stdout is defined
    - rman_duplicate.rc == 0
 
+- name:                                "4.1.3 Oracle Data Guard - Setup Primary: - Show Execute RMAN DUPLICATE output"
+  ansible.builtin.debug:
+    var:                               job_result.stdout.stdout_lines
+    verbosity:                         2
+  when:                                job_result.stdout is defined
+
+- name:                                "4.1.3 Oracle Data Guard - Save RMAN log"
+  ansible.builtin.copy:
+    dest:                              /etc/sap_deployment_automation/dataguard_scripts/rman_duplicate_{{ ansible_date_time.epoch }}.log
+    content:                           "{{ job_result.stdout }}"
+    mode:                              '0777'
+  when:                                job_result.stdout is defined
+
+
 - name:                                "4.1.3 Oracle Data Guard - Verify DUPLICATE completion"
   ansible.builtin.assert:
-    that:                              "'Finished Duplicate Db' in rman_duplicate.stdout"
+    that:                              "'Finished Duplicate Db' in job_result.stdout"
     fail_msg:                          "RMAN DUPLICATE did not complete successfully"
 
 - name:                                "4.1.3 Oracle Data Guard -  Configure check standby database mounted SQL script"
