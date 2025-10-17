@@ -8,7 +8,7 @@
   ansible.builtin.shell: |
                                        /oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/sqlplus -S / as sysdba <<EOF
                                        SET PAGESIZE 0 FEEDBACK OFF
-                                       SELECT COUNT(*) FROM v\$datafile WHERE name LIKE '+DATA/{{ standby_db_unique_name }}%';
+                                       SELECT COUNT(*) FROM v$datafile WHERE name LIKE '+DATA/{{ db_sid | upper }}_STDBY%';
                                        EXIT;
                                        EOF
   register:                            datafile_count
