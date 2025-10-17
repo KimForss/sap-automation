@@ -3,7 +3,7 @@
 #
 
 ################
-# Filename......: listener.ora
+# Filename......: listener.ora on Primary
 # Created.......: created by SDAF
 # Name..........:
 # Date..........:
@@ -22,7 +22,7 @@ LISTENER =
         )
         (ADDRESS =
           (PROTOCOL = TCP)
-          (HOST = {{ hostname }})
+          (HOST = {{ ansible_hostname }})
           (PORT = 1521)
         )
   )
