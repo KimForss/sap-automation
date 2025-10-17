@@ -128,7 +128,7 @@
       become_user:                     "{{ oracle_user_name }}"
       become:                          true
       ansible.builtin.shell: |
-                                       /oracle/GRID/{{ ora_version }}/bin/sqlplus -s / as sysdba @start_standby_instance.sql
+                                       /oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/sqlplus -s / as sysdba @start_standby_instance.sql
       register:                        startup_result
       failed_when:                     startup_result.rc != 0
       args:
@@ -158,7 +158,7 @@
       become_user:                     "{{ oracle_user_name }}"
       become:                          true
       ansible.builtin.shell: |
-                                       /oracle/GRID/{{ ora_version }}/bin/sqlplus -s / as sysdba @start_standby_instance.sql
+                                       /oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/sqlplus -s / as sysdba @start_standby_instance.sql
       register:                        startup_result
       failed_when:                     startup_result.rc != 0
       args:
