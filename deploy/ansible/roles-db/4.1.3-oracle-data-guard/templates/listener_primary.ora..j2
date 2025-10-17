@@ -36,12 +36,12 @@ SID_LIST_LISTENER =
       (GLOBAL_DBNAME = {{ db_sid | upper }})
       (ORACLE_HOME = /oracle/{{ db_sid | upper }}/{{ ora_release }})
     )
-  (SID_DESC =
+    (SID_DESC =
       (SID_NAME = {{ db_sid | upper }})
       (GLOBAL_DBNAME = {{ db_sid }}_DGMGRL)
       (ORACLE_HOME = /oracle/{{ db_sid | upper }}/{{ ora_release }})
     )
-  (SID_DESC =
+    (SID_DESC =
       (GLOBAL_DBNAME = {{ db_sid | upper }}_STDBY.WORLD)
       (ORACLE_HOME = /oracle/ORA/19.0.0)
       (SID_NAME = {{ db_sid | upper }}_STDBY)
