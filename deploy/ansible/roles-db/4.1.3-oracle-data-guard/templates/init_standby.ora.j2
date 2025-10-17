@@ -4,6 +4,7 @@
 *.db_block_size=8192
 *.compatible='{{ ora_version }}'
 *.diagnostic_dest='/oracle/{{ db_sid | upper }}/saptrace'
+*.audit_file_dest='/oracle/{{ db_sid | upper }}/saptrace/audit'
 
 # Memory configuration
 *.sga_max_size={{ sga_max_size }}
