@@ -71,7 +71,7 @@
   ansible.builtin.shell: |
                                        setenv ORACLE_SID {{ db_sid | upper }}
                                        setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
-                                       sqlplus -S sys/{{ main_password }}@{{ db_sid | upper }}_STDBY as sysdba <<EOF
+                                       sqlplus -S sys/'{{ main_password }}'@{{ db_sid | upper }}_STDBY as sysdba <<EOF
                                        SELECT 'connected' FROM dual;
                                        EXIT;
                                        EOF
@@ -89,7 +89,7 @@
   ansible.builtin.shell: |
                                        setenv ORACLE_SID {{ db_sid | upper }}_STDBY
                                        setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
-                                       sqlplus -S sys/{{ main_password }}@{{ db_sid | upper }} as sysdba <<EOF
+                                       sqlplus -S sys/'{{ main_password }}'@{{ db_sid | upper }} as sysdba <<EOF
                                        SELECT 'connected' FROM dual;
                                        EXIT;
                                        EOF
