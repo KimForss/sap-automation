@@ -62,13 +62,12 @@
   become_user:                         "{{ oracle_user_name }}"
   become:                              true
   ansible.builtin.shell: |
-                                      setenv ORACLE_SID {{ db_sid | upper }}_STDBY
-                                      $ORACLE_HOME/bin/sqlplus -s / as sysdba @check_standby_database_mounted.sql
+                                       setenv ORACLE_SID {{ db_sid | upper }}_STDBY
+                                       $ORACLE_HOME/bin/sqlplus -s / as sysdba @check_standby_database_mounted.sql
   register:                            db_status
   changed_when:                        false
   failed_when:                         "'PHYSICAL STANDBY:MOUNTED' not in db_status.stdout"
   args:
     chdir:                             "/etc/sap_deployment_automation/dataguard_scripts/"
     executable:                        /bin/csh
-
 
