@@ -200,7 +200,7 @@
       become_user:                     "{{ oracle_user_name }}"
       become:                          true
       ansible.builtin.shell: |
-                                       /oracle/GRID/{{ ora_version }}/bin/sqlplus -s / as sysdba <<EOF
+                                       /oracle/GRID/{{ ora_version }}/bin/sqlplus -S / as sysdba <<EOF
                                        SHUTDOWN IMMEDIATE;
                                        EXIT;
                                        EOF
@@ -218,13 +218,53 @@
       become_user:                     "{{ oracle_user_name }}"
       become:                          true
       ansible.builtin.shell: |
-                                       /oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/sqlplus -s / as sysdba @start_standby_instance.sql
+                                       /oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/sqlplus -S / as sysdba @start_standby_instance.sql
       register:                        startup_result
       failed_when:                     startup_result.rc != 0
       args:
         chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
         executable:                    /bin/csh
-        creates:                       /etc/sap_deployment_automation/dataguard_scripts/standby_started.txt
+
+    - name:                            "4.1.3 Oracle Data Guard - Prepare Secondary - Create PFile to SPFile for standby"
+      become_user:                     "{{ oracle_user_name }}"
+      become:                          true
+      ansible.builtin.shell: |
+                                       /oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/sqlplus -S / as sysdba <<EOF
+                                       CREATE SPFILE='+DATA/{{ db_sid | upper }}_STDBY/PARAMETERFILE/spfile{{ db_sid | upper }}.ora' from pfile='/oracle/{{ db_sid | upper }}/{{ ora_release }}/dbs/init{{ db_sid | upper }}.ora';
+                                       EXIT;
+                                       EOF
+      register:                        create_pfile_result
+      failed_when:                     create_pfile_result.rc != 0
+      args:
+        chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
+        executable:                    /bin/csh
+
+    - name:                            "4.1.3 Oracle Data Guard - Prepare Secondary - Shutdown standby instance SPFile creation"
+      become_user:                     "{{ oracle_user_name }}"
+      become:                          true
+      ansible.builtin.shell: |
+                                       /oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/sqlplus -S / as sysdba <<EOF
+                                       SHUTDOWN IMMEDIATE;
+                                       EXIT;
+                                       EOF
+      register:                        shutdown_result
+      args:
+        chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
+        executable:                    /bin/csh
+
+    - name:                            "4.1.3 Oracle Data Guard - Prepare Secondary - Startup standby instance SPFile creation"
+      become_user:                     "{{ oracle_user_name }}"
+      become:                          true
+      ansible.builtin.shell: |
+                                       /oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/sqlplus -S / as sysdba <<EOF
+                                       STARTUP NOMOUNT;
+                                       EXIT;
+                                       EOF
+      register:                        startup_result
+      args:
+        chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
+        executable:                    /bin/csh
+
 
 - name:                                "4.1.3 Oracle Data Guard - Prepare Secondary - Verify standby instance running"
   ansible.builtin.shell: |
