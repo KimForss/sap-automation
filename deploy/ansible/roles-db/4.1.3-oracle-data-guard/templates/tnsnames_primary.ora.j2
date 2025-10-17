@@ -39,3 +39,33 @@
        (UR = A)
     )
   )
+{{ db_sid }}=
+  (DESCRIPTION =
+    (ADDRESS_LIST =
+        (ADDRESS =
+          (PROTOCOL = TCP)
+          (HOST = {{ ora_primary }})
+          (PORT = 1521)
+        )
+    )
+    (CONNECT_DATA =
+       (SID = {{ db_sid }})
+       (GLOBAL_NAME = {{ db_sid }}.WORLD)
+       (SERVICE_NAME = {{ db_sid }})
+    )
+  )
+{{ db_sid }}_STDBY=
+  (DESCRIPTION =
+    (ADDRESS_LIST =
+        (ADDRESS =
+          (PROTOCOL = TCP)
+          (HOST = {{ ora_secondary }})
+          (PORT = 1521)
+        )
+    )
+    (CONNECT_DATA =
+       (SID = {{ db_sid }})
+       (SERVICE_NAME = {{ db_sid }}_STDBY)
+       (UR = A)
+    )
+  )
