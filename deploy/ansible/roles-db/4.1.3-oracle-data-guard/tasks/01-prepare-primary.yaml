@@ -17,7 +17,7 @@
 - name:                                "4.1.3 Oracle Data Guard -  Configure Data Guard parameters on primary SQL script"
   ansible.builtin.template:
     src:                               configure_data_guard_parameters_on_primary.sql.j2
-    dest:                              "/etc/sap_deployment_automation/dataguard_scripts/configure_data_guard_parameters_on_primary.sql"
+    dest:                              "/etc/sap_deployment_automation/dataguard_scripts/02_configure_data_guard_parameters_on_primary.sql"
     owner:                             "{{ oracle_user_name }}"
     group:                             oinstall
     mode:                              '0644'
@@ -26,7 +26,7 @@
   become_user:                         "{{ oracle_user_name }}"
   become:                              true
   ansible.builtin.shell: |
-                                       $ORACLE_HOME/bin/sqlplus / as sysdba @configure_data_guard_parameters_on_primary.sql
+                                       $ORACLE_HOME/bin/sqlplus / as sysdba @02_configure_data_guard_parameters_on_primary.sql
   register:                            dg_config
   failed_when:                         dg_config.rc != 0
   args:
@@ -57,7 +57,7 @@
 - name:                                "4.1.3 Oracle Data Guard -  Configure Check for standby redo logs on primary SQL script"
   ansible.builtin.template:
     src:                               configure_check_standby_redo_logs_on_primary.sql.j2
-    dest:                              "/etc/sap_deployment_automation/dataguard_scripts/configure_check_standby_redo_logs_on_primary.sql"
+    dest:                              "/etc/sap_deployment_automation/dataguard_scripts/03_configure_check_standby_redo_logs_on_primary.sql"
     owner:                             "{{ oracle_user_name }}"
     group:                             oinstall
     mode:                              '0644'
@@ -75,7 +75,7 @@
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell: |
-                                       sqlplus -s / as sysdba @configure_check_standby_redo_logs_on_primary.sql
+                                       sqlplus -s / as sysdba @03_configure_check_standby_redo_logs_on_primary.sql
   register:                            srl_count
   changed_when:                        false
   args:
@@ -107,7 +107,7 @@
 - name:                                "4.1.3 Oracle Data Guard -  Configure Add standby redo logs on primary SQL script"
   ansible.builtin.template:
     src:                               configure_add_standby_redo_logs_on_primary.sql.j2
-    dest:                              "/etc/sap_deployment_automation/dataguard_scripts/configure_add_standby_redo_logs_on_primary.sql"
+    dest:                              "/etc/sap_deployment_automation/dataguard_scripts/04_configure_add_standby_redo_logs_on_primary.sql"
     owner:                             "{{ oracle_user_name }}"
     group:                             oinstall
     mode:                              '0644'
@@ -119,7 +119,7 @@
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell: |
-                                       sqlplus -s / as sysdba @configure_add_standby_redo_logs_on_primary.sql
+                                       sqlplus -s / as sysdba @04_configure_add_standby_redo_logs_on_primary.sql
   changed_when:                        false
   register:                            add_srl
   failed_when:                         add_srl.rc != 0
@@ -184,7 +184,7 @@
 - name:                                "4.1.3 Oracle Data Guard -  Configure primary with listener SQL script"
   ansible.builtin.template:
     src:                               register_primary_with_listener_on_primary.sql.j2
-    dest:                              "/etc/sap_deployment_automation/dataguard_scripts/register_primary_with_listener_on_primary.sql"
+    dest:                              "/etc/sap_deployment_automation/dataguard_scripts/05_register_primary_with_listener_on_primary.sql"
     owner:                             "{{ oracle_user_name }}"
     group:                             oinstall
     mode:                              '0644'
