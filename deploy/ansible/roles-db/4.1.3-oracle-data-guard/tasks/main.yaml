@@ -13,7 +13,7 @@
   ansible.builtin.file:
     path:                              "{{ item.path }}"
     state:                             directory
-    owner:                             oracle
+    owner:                             "{{ oracle_user_name }}"
     group:                             oinstall
     mode:                              "{{ item.mode }}"
   loop:
@@ -40,7 +40,7 @@
     mode:                              "{{ item.mode }}"
   loop:
     - { mode: '0775', path: '{{ target_media_location }}/downloads/{{ sap_sid | upper }}' }
-    - { mode: '075', path: '{{ target_media_location }}/downloads/{{ sap_sid | upper }}/dbs' }
+    - { mode: '0775', path: '{{ target_media_location }}/downloads/{{ sap_sid | upper }}/dbs' }
   when:
     - ora_primary == ansible_hostname
 
