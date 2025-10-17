@@ -31,12 +31,12 @@ TRACE_LEVEL_LISTENER = OFF
 SID_LIST_LISTENER =
   (SID_LIST =
     (SID_DESC =
-      (SID_NAME = {{ db_sid | upper }})
+      (SID_NAME = {{ db_sid | upper }}_STDBY)
       (GLOBAL_DBNAME = {{ db_sid | upper }}_STDBY)
     (ORACLE_HOME = /oracle/{{ db_sid | upper }}/{{ ora_release }})
     )
  (SID_DESC =
-      (SID_NAME = {{ db_sid }})
+      (SID_NAME = {{ db_sid }}_STDBY)
       (GLOBAL_DBNAME = {{ db_sid }}_STDBY_DGMGRL)
       (ORACLE_HOME = /oracle/{{ db_sid | upper }}/{{ ora_release }})
     )
