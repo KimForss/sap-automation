@@ -782,13 +782,12 @@
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.copy:
-        dest:                          init{{ db_sid | upper}}.ora_backup_after_restore
-        src:                           init{{ db_sid | upper}}.ora
+        dest:                          /oracle/{{ db_sid |upper }}/{{ ora_release}}/dbs/init{{ db_sid | upper}}.ora_backup_after_restore
+        src:                           /oracle/{{ db_sid |upper }}/{{ ora_release}}/dbs/init{{ db_sid | upper}}.ora
+        mode:                          '0755'
       register:                        backup_pfile_results
       failed_when:                     backup_pfile_results.rc > 0
-      args:
-        chdir:                         /oracle/{{ db_sid |upper }}/{{ ora_release}}/dbs
-        executable:                    /bin/csh
+
 
     - name:                            "4.1.3 Oracle Data Guard ASM - Update the Local_Listener Value on secondary"
       become:                          true
