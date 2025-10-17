@@ -13,11 +13,11 @@ LISTENER =
   (ADDRESS_LIST =
         (ADDRESS =
           (PROTOCOL = IPC)
-          (KEY = {{ db_sid | upper }}.WORLD)
+          (KEY = {{ db_sid | upper }}_STDBY.WORLD)
         )
         (ADDRESS=
           (PROTOCOL = IPC)
-          (KEY = {{ db_sid | upper }})
+          (KEY = {{ db_sid | upper }}_STDBY)
         )
         (ADDRESS =
           (PROTOCOL = TCP)
