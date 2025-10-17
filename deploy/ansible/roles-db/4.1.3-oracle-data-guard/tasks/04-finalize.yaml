@@ -47,7 +47,7 @@
       become_user:                     "{{ oracle_user_name }}"
       become:                          true
       ansible.builtin.shell: |
-                                       setenv ORACLE_SID={{ db_sid | upper }}_STDBY
+                                       setenv ORACLE_SID {{ db_sid | upper }}_STDBY
                                        $ORACLE_HOME/bin/sqlplus -s / as sysdba @10_restart_standby.sql
       register:                        standby_restart
       failed_when:                     standby_restart.rc != 0
