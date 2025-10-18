@@ -24,7 +24,7 @@
                                        setenv ORACLE_HOME /oracle/GRID/{{ ora_version }}
                                        setenv ORACLE_SID +ASM
                                        setenv PATH /oracle/GRID/{{ ora_version }}/bin:$PATH
-                                       $ORACLE_HOME/bin/sqlplus / as sysasm @01_check_asm_status.sql
+                                       $ORACLE_HOME/bin/sqlplus /S / as sysasm @01_check_asm_status.sql
   register:                            asm_status
   changed_when:                        false
   args:
@@ -66,7 +66,7 @@
       become:                          true
       ansible.builtin.shell: |
                                        setenv ORACLE_SID {{ db_sid | upper }}
-                                       $ORACLE_HOME/bin/sqlplus -s / as sysdba @16_verify_data_guard_configuration.sql
+                                       $ORACLE_HOME/bin/sqlplus -S / as sysdba @16_verify_data_guard_configuration.sql
       register:                        dg_status
       changed_when:                    false
       failed_when:                     false
@@ -96,7 +96,7 @@
       become:                          true
       ansible.builtin.shell: |
                                       setenv ORACLE_SID {{ db_sid | upper }}_STDBY
-                                      $ORACLE_HOME/bin/sqlplus -s / as sysdba @16_verify_data_guard_configuration.sql
+                                      $ORACLE_HOME/bin/sqlplus -S / as sysdba @16_verify_data_guard_configuration.sql
       args:
         chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
         executable:                    /bin/csh

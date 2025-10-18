@@ -26,7 +26,7 @@
   become_user:                         "{{ oracle_user_name }}"
   become:                              true
   ansible.builtin.shell: |
-                                       $ORACLE_HOME/bin/sqlplus / as sysdba @02_configure_data_guard_parameters_on_primary.sql
+                                       $ORACLE_HOME/bin/sqlplus -S / as sysdba @02_configure_data_guard_parameters_on_primary.sql
   register:                            dg_config
   failed_when:                         dg_config.rc != 0
   args:
