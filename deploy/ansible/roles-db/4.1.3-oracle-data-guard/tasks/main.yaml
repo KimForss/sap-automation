@@ -71,41 +71,58 @@
     - secondary_dg_configured is not defined or not secondary_dg_configured
   ansible.builtin.include_tasks:       "02-prepare-secondary.yaml"
 
-- name:                                "4.1.3 Oracle Data Guard - Prepare Secondary - Test connectivity primary -> standby"
+- name:                                "4.1.3 Oracle Data Guard - Test connectivity primary -> standby"
   become_user:                         "{{ oracle_user_name }}"
   become:                              true
   when:                                inventory_hostname == ora_primary
-  ansible.builtin.shell: |
+  block:
+    - name:                            "4.1.3 Oracle Data Guard - Test connectivity primary -> standby"
+      ansible.builtin.shell: |
                                        setenv ORACLE_SID {{ db_sid | upper }}
                                        setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
                                        sqlplus -S sys/'{{ main_password }}'@{{ db_sid | upper }}_STDBY as sysdba <<EOF
                                        SELECT 'connected' FROM dual;
                                        EXIT;
                                        EOF
-  register:                            conn_test
-  changed_when:                        false
-  failed_when:                         "'connected' not in conn_test.stdout"
-  args:
-    chdir:                             "/oracle/{{ db_sid | upper }}/{{ ora_version }}/bin"
-    executable:                        /bin/csh
+      register:                        conn_test
+      changed_when:                    false
+      failed_when:                     false
+      args:
+        chdir:                         "/oracle/{{ db_sid | upper }}/{{ ora_version }}/bin"
+        executable:                    /bin/csh
 
-- name:                                "4.1.3 Oracle Data Guard - Prepare Secondary - Test connectivity standby -> primary"
+    - name:                            "4.1.3 Oracle Data Guard - Test connectivity primary -> standby - Assert"
+      ansible.builtin.assert:
+        that:
+          - "'connected' in conn_test.stdout"
+        fail_msg:                   "Could not connect from primary to standby database. Please check tnsnames.ora and listener configuration."
+
+
+- name:                                "4.1.3 Oracle Data Guard - Test connectivity standby -> primary"
   become_user:                         "{{ oracle_user_name }}"
   become:                              true
   when:                                inventory_hostname == ora_secondary
-  ansible.builtin.shell: |
+  block:
+    - name:                            "4.1.3 Oracle Data Guard - Test connectivity standby -> primary"
+      ansible.builtin.shell: |
                                        setenv ORACLE_SID {{ db_sid | upper }}_STDBY
                                        setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
                                        sqlplus -S sys/'{{ main_password }}'@{{ db_sid | upper }} as sysdba <<EOF
                                        SELECT 'connected' FROM dual;
                                        EXIT;
                                        EOF
-  register:                            conn_test_reverse
-  changed_when:                        false
-  failed_when:                         "'connected' not in conn_test_reverse.stdout"
-  args:
-    chdir:                             "/oracle/{{ db_sid | upper }}/{{ ora_version }}/bin"
-    executable:                        /bin/csh
+      register:                        conn_test_reverse
+      changed_when:                    false
+      failed_when:
+      args:
+        chdir:                         "/oracle/{{ db_sid | upper }}/{{ ora_version }}/bin"
+        executable:                    /bin/csh
+
+    - name:                            "4.1.3 Oracle Data Guard - Test connectivity standby -> primary"
+      ansible.builtin.assert:
+        that:
+          - "'connected' not in conn_test_reverse.stdout"
+        fail_msg:                   "Could not connect from standby to primary database. Please check tnsnames.ora and listener configuration."
 
 - name:                                "4.1.3 Oracle Data Guard: - Duplicate the database"
   when:
