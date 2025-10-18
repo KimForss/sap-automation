@@ -1,3 +1,0 @@
-SET PAGESIZE 0 FEEDBACK OFF
-SELECT COUNT(*) FROM v$datafile WHERE name LIKE '+DATA/{{ db_sid | upper }}_STDBY%';
-EXIT;
