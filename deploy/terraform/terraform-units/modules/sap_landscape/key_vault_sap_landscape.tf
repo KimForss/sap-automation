@@ -32,7 +32,7 @@ resource "azurerm_key_vault" "kv_user" {
   soft_delete_retention_days           = var.soft_delete_retention_days
   purge_protection_enabled             = var.enable_purge_control_for_keyvaults
   sku_name                             = "standard"
-  enable_rbac_authorization            = var.enable_rbac_authorization_for_keyvault
+  rbac_authorization_enabled           = var.enable_rbac_authorization_for_keyvault
 
   public_network_access_enabled        = var.public_network_access_enabled
   tags                                 = var.tags
@@ -221,10 +221,24 @@ resource "azurerm_key_vault_access_policy" "kv_user_spn" {
                                         ]
 }
 
-
+resource "azurerm_role_assignment" "role_assignment_msi" {
+  provider                             = azurerm.deployer
+  count                                = var.enable_rbac_authorization_for_keyvault && var.options.assign_permissions ? 1 : 0
+  scope                                = var.key_vault.user.exists ? (
+                                           data.azurerm_key_vault.kv_user[0].id) : (
+                                           azurerm_key_vault.kv_user[0].id
+                                         )
+  role_definition_name                 = "Key Vault Administrator"
+  principal_id                         = var.deployer_tfstate.deployer_uai.principal_id
+  timeouts                             {
+                                          read   = "1m"
+                                          create = "5m"
+                                          delete = "5m"
+                                       }
+}
 resource "azurerm_key_vault_access_policy" "kv_user_msi" {
   provider                             = azurerm.main
-  count                                = !var.key_vault.user.exists && !var.enable_rbac_authorization_for_keyvault && var.options.assign_permissions && (contains(keys(var.deployer_tfstate),"deployer_uai") ? length(var.deployer_tfstate.deployer_uai.principal_id) > 0 : false) ? 1 : 0
+  count                                = !var.enable_rbac_authorization_for_keyvault && var.options.assign_permissions  ? 1 : 0
   key_vault_id                         = var.key_vault.user.exists ? (
                                            data.azurerm_key_vault.kv_user[0].id) : (
                                            azurerm_key_vault.kv_user[0].id
