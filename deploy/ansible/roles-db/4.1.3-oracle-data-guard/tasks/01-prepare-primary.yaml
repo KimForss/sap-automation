@@ -1,32 +1,22 @@
 ---
 
-  ###################################
-  #
-  # WHENEVER SQLERROR EXIT SQL.SQLCODE
-  # ALTER SYSTEM SET DB_UNIQUE_NAME='{{ db_sid | upper }}' SCOPE=SPFILE;
-  # ALTER SYSTEM SET LOG_ARCHIVE_CONFIG='DG_CONFIG=({{ db_sid | upper }},{{ db_sid | upper }}_STDBY)' SCOPE=BOTH;
-  # ALTER SYSTEM SET FAL_SERVER='{{ db_sid | upper }}' SCOPE=BOTH;
-  # ALTER SYSTEM SET FAL_CLIENT='{{ db_sid | upper }}_STDBY' SCOPE=BOTH;
-  # ALTER SYSTEM SET STANDBY_FILE_MANAGEMENT=AUTO SCOPE=BOTH;
-  # ALTER SYSTEM SET LOG_ARCHIVE_DEST_2='' SCOPE=BOTH;
-  # ALTER SYSTEM SET LOG_ARCHIVE_DEST_STATE_2='DEFER' SCOPE=BOTH;
-  # EXIT;
-  #
-  ###################################
-
-- name:                                "4.1.3 Oracle Data Guard -  Configure Data Guard parameters on primary SQL script"
-  ansible.builtin.template:
-    src:                               configure_data_guard_parameters_on_primary.sql.j2
-    dest:                              "/etc/sap_deployment_automation/dataguard_scripts/02_configure_data_guard_parameters_on_primary.sql"
-    owner:                             "{{ oracle_user_name }}"
-    group:                             oinstall
-    mode:                              '0644'
-
 - name:                                "4.1.3 Oracle Data Guard - Setup Primary: - Configure Data Guard parameters on primary"
   become_user:                         "{{ oracle_user_name }}"
   become:                              true
   ansible.builtin.shell: |
-                                       $ORACLE_HOME/bin/sqlplus -S / as sysdba @02_configure_data_guard_parameters_on_primary.sql
+                                       setenv ORACLE_SID {{ db_sid | upper }}
+                                       $ORACLE_HOME/bin/sqlplus -S / as sysdba <<EOF
+                                       SET PAGESIZE 0 FEEDBACK OFF HEADING OFF
+                                       WHENEVER SQLERROR EXIT SQL.SQLCODE
+                                       ALTER SYSTEM SET DB_UNIQUE_NAME='{{ db_sid | upper }}' SCOPE=SPFILE;
+                                       ALTER SYSTEM SET LOG_ARCHIVE_CONFIG='DG_CONFIG=({{ db_sid | upper }},{{ db_sid | upper }}_STDBY)' SCOPE=BOTH;
+                                       ALTER SYSTEM SET FAL_SERVER='{{ db_sid | upper }}' SCOPE=BOTH;
+                                       ALTER SYSTEM SET FAL_CLIENT='{{ db_sid | upper }}_STDBY' SCOPE=BOTH;
+                                       ALTER SYSTEM SET STANDBY_FILE_MANAGEMENT=AUTO SCOPE=BOTH;
+                                       ALTER SYSTEM SET LOG_ARCHIVE_DEST_2='' SCOPE=BOTH;
+                                       ALTER SYSTEM SET LOG_ARCHIVE_DEST_STATE_2='DEFER' SCOPE=BOTH;
+                                       EXIT;
+                                       EOF
   register:                            dg_config
   failed_when:                         dg_config.rc != 0
   args:
@@ -45,23 +35,6 @@
     mode:                              '0777'
   when:                                dg_config.stdout is defined
 
-
-  ###################################
-  #
-  # SET PAGESIZE 0 FEEDBACK OFF
-  # SELECT COUNT(*) FROM v$standby_log;
-  # EXIT;
-  #
-  ###################################
-
-# - name:                                "4.1.3 Oracle Data Guard -  Configure Check for standby redo logs on primary SQL script"
-#   ansible.builtin.template:
-#     src:                               configure_check_standby_redo_logs_on_primary.sql.j2
-#     dest:                              "/etc/sap_deployment_automation/dataguard_scripts/03_configure_check_standby_redo_logs_on_primary.sql"
-#     owner:                             "{{ oracle_user_name }}"
-#     group:                             oinstall
-#     mode:                              '0644'
-
 - name:                                "4.1.3 Oracle Data Guard - Prepare Primary - Configure static listener registration"
   ansible.builtin.template:
     src:                               listener_primary.ora.j2
@@ -75,6 +48,7 @@
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell: |
+                                       setenv ORACLE_SID {{ db_sid | upper }}
                                        sqlplus -s / as sysdba << EOF
                                        SET PAGESIZE 0 FEEDBACK OFF
                                        SELECT COUNT(*) FROM v\$standby_log;
@@ -98,25 +72,6 @@
     mode:                              '0777'
   when:                                srl_count.stdout is defined
 
-  ###################################
-  #
-  # WHENEVER SQLERROR EXIT SQL.SQLCODE
-  # ALTER DATABASE ADD STANDBY LOGFILE THREAD 1 GROUP 10 ('+DATA','+RECO') SIZE {{ standby_redo_log_size }};
-  # ALTER DATABASE ADD STANDBY LOGFILE THREAD 1 GROUP 11 ('+DATA','+RECO') SIZE {{ standby_redo_log_size }};
-  # ALTER DATABASE ADD STANDBY LOGFILE THREAD 1 GROUP 12 ('+DATA','+RECO') SIZE {{ standby_redo_log_size }};
-  # ALTER DATABASE ADD STANDBY LOGFILE THREAD 1 GROUP 13 ('+DATA','+RECO') SIZE {{ standby_redo_log_size }};
-  # EXIT;
-  #
-  ###################################
-
-# - name:                                "4.1.3 Oracle Data Guard -  Configure Add standby redo logs on primary SQL script"
-#   ansible.builtin.template:
-#     src:                               configure_add_standby_redo_logs_on_primary.sql.j2
-#     dest:                              "/etc/sap_deployment_automation/dataguard_scripts/04_configure_add_standby_redo_logs_on_primary.sql"
-#     owner:                             "{{ oracle_user_name }}"
-#     group:                             oinstall
-#     mode:                              '0644'
-
 - name:                                "4.1.3 Oracle Data Guard - Setup Primary: - Add standby redo logs on primary"
   when:
     - srl_count.stdout is defined
@@ -124,7 +79,7 @@
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell: |
-  ansible.builtin.shell: |
+                                       setenv ORACLE_SID {{ db_sid | upper }}
                                        sqlplus -s / as sysdba << EOF
                                        ALTER DATABASE ADD STANDBY LOGFILE THREAD 1 GROUP 10 ('+DATA','+RECO') SIZE {{ standby_redo_log_size }} reuse;
                                        ALTER DATABASE ADD STANDBY LOGFILE THREAD 1 GROUP 11 ('+DATA','+RECO') SIZE {{ standby_redo_log_size }} reuse;
@@ -169,8 +124,7 @@
   ansible.builtin.shell: |
                                        setenv ORACLE_HOME /oracle/GRID/{{ ora_version }}
                                        setenv ORACLE_SID +ASM
-                                       setenv PATH /oracle/GRID/{{ ora_version }}/bin:$PATH
-                                       lsnrctl services
+                                       /oracle/GRID/{{ ora_version }}/bin/lsnrctl services
   register:                            listener_check
   changed_when:                        false
   failed_when:                         listener_check.stdout is not search("Service \" db_sid | upper \"")
@@ -186,27 +140,16 @@
     var:                               listener_check.stdout_lines
     verbosity:                         2
 
-  ###################################
-  #
-  # ALTER SYSTEM REGISTER;
-  # EXIT;
-  #
-  ###################################
-
-- name:                                "4.1.3 Oracle Data Guard -  Configure primary with listener SQL script"
-  ansible.builtin.template:
-    src:                               register_primary_with_listener_on_primary.sql.j2
-    dest:                              "/etc/sap_deployment_automation/dataguard_scripts/05_register_primary_with_listener_on_primary.sql"
-    owner:                             "{{ oracle_user_name }}"
-    group:                             oinstall
-    mode:                              '0644'
-
 - name:                                "4.1.3 Oracle Data Guard - Setup Primary: - Register primary with listener if needed"
   when:                                listener_check.rc != 0
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell: |
-                                        sqlplus -s / as sysdba @register_primary_with_listener_on_primary.sql
+                                       setenv ORACLE_SID {{ db_sid | upper }}
+                                       sqlplus -s / as sysdba <<EOF
+                                       ALTER SYSTEM REGISTER;
+                                       EXIT;
+                                       EOF
   args:
     chdir:                             "/oracle/GRID/{{ ora_version }}/bin"
     executable:                        /bin/csh

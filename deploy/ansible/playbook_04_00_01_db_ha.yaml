@@ -252,7 +252,7 @@
             primary_instance_name :    "{{ ansible_play_hosts_all[0] }}"        # Setting up Primary Instance Name
             secondary_instance_name:   "{{ ansible_play_hosts_all[1] }}"         # Setting up Secondary Instance Name
             ora_primary:               "{{ ansible_play_hosts_all[0] }}"         # Oracle Primary Host
-            ora_secondary:             "{{ ansible_play_hosts_all[1] }}"         # Oracle Secondary Host
+            ora_secondary:             "{{ ansible_play_hosts_all[1] | default ('(N/A)')}}"         # Oracle Secondary Host
             product_id:                 "NW_ABAP_DB:NW750.ORA.ABAP"
           when:
             - ansible_play_hosts_all | length >= 2
