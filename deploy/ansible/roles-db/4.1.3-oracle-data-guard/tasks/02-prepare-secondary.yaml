@@ -156,6 +156,7 @@
       become_user:                     "{{ oracle_user_name }}"
       become:                          true
       ansible.builtin.shell: |
+                                       setenv ORACLE_SID {{ db_sid | upper }}_STDBY
                                        /oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/sqlplus -s / as sysdba @06_start_standby_instance.sql
       register:                        startup_result
       failed_when:                     startup_result.rc != 0
@@ -168,6 +169,7 @@
       become_user:                     "{{ oracle_user_name }}"
       become:                          true
       ansible.builtin.shell: |
+                                       setenv ORACLE_SID {{ db_sid | upper }}_STDBY
                                        /oracle/GRID/{{ ora_version }}/bin/sqlplus -S / as sysdba <<EOF
                                        SHUTDOWN IMMEDIATE;
                                        EXIT;
@@ -197,6 +199,7 @@
       become_user:                     "{{ oracle_user_name }}"
       become:                          true
       ansible.builtin.shell: |
+                                       setenv ORACLE_SID {{ db_sid | upper }}_STDBY
                                        /oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/sqlplus -S / as sysdba <<EOF
                                        CREATE SPFILE='+DATA/{{ db_sid | upper }}_STDBY/PARAMETERFILE/spfile{{ db_sid | upper }}.ora' from pfile='/oracle/{{ db_sid | upper }}/{{ ora_release }}/dbs/init{{ db_sid | upper }}.ora';
                                        EXIT;
@@ -211,6 +214,7 @@
       become_user:                     "{{ oracle_user_name }}"
       become:                          true
       ansible.builtin.shell: |
+                                       setenv ORACLE_SID {{ db_sid | upper }}_STDBY
                                        /oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/sqlplus -S / as sysdba <<EOF
                                        SHUTDOWN IMMEDIATE;
                                        EXIT;
@@ -224,6 +228,7 @@
       become_user:                     "{{ oracle_user_name }}"
       become:                          true
       ansible.builtin.shell: |
+                                       setenv ORACLE_SID {{ db_sid | upper }}_STDBY
                                        /oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/sqlplus -S / as sysdba <<EOF
                                        STARTUP NOMOUNT;
                                        EXIT;
@@ -232,7 +237,6 @@
       args:
         chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
         executable:                    /bin/csh
-
 
 - name:                                "4.1.3 Oracle Data Guard - Prepare Secondary - Verify standby instance running"
   ansible.builtin.shell: |
