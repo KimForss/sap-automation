@@ -188,6 +188,7 @@
       become_user:                     "{{ oracle_user_name }}"
       become:                          true
       ansible.builtin.shell: |
+                                       setenv ORACLE_SID {{ db_sid | upper }}_STDBY
                                        /oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/sqlplus -S / as sysdba @start_standby_instance.sql
       register:                        startup_result
       failed_when:                     startup_result.rc != 0
