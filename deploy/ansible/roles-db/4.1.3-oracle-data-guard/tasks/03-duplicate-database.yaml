@@ -63,11 +63,11 @@
     #   retries:                         5
     #   delay:                           60
     #   when:                            rman_duplicate.ansible_job_id is defined
-    - name:                            "4.1.3 Oracle Data Guard - Setup Primary: - Show Execute RMAN DUPLICATE output"
-      ansible.builtin.debug:
-        var:                           job_result.stdout
-        verbosity:                     2
-      when:                            job_result.stdout is defined
+    # - name:                            "4.1.3 Oracle Data Guard - Setup Primary: - Show Execute RMAN DUPLICATE output"
+    #   ansible.builtin.debug:
+    #     var:                           job_result.stdout
+    #     verbosity:                     2
+    #   when:                            job_result.stdout is defined
 
     - name:                            "4.1.3 Oracle Data Guard - Save RMAN flag file"
       ansible.builtin.file:
