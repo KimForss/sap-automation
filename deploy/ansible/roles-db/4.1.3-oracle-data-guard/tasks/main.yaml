@@ -113,7 +113,7 @@
                                        EOF
       register:                        conn_test_reverse
       changed_when:                    false
-      failed_when:
+      failed_when:                     false
       args:
         chdir:                         "/oracle/{{ db_sid | upper }}/{{ ora_version }}/bin"
         executable:                    /bin/csh
