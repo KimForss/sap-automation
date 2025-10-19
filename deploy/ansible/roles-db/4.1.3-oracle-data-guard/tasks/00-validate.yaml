@@ -15,7 +15,7 @@
   ansible.builtin.shell: |
                                        setenv ORACLE_HOME /oracle/GRID/{{ ora_version }}
                                        setenv ORACLE_SID +ASM
-                                       $ORACLE_HOME/bin/sqlplus -S / as sysasm @01_check_asm_status.sql <<EOF
+                                       $ORACLE_HOME/bin/sqlplus -S / as sysasm <<EOF
                                        SET PAGESIZE 0 FEEDBACK OFF
                                        SELECT name || ':' || state FROM v\$asm_diskgroup;
                                        EXIT;
