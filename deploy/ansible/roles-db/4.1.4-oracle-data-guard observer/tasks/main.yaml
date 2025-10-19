@@ -28,7 +28,7 @@
   become:                              true
   become_user:                         root
   ansible.builtin.unarchive:
-    src:                               "{{ target_media_location }}/oraserver/LINUX_X86_64/{{ oracle_grid_home_zip }}"
+    src:                               "{{ target_media_location }}/oraserver/LINUX_X86_64/{{ oracle_client_zip }}"
 
     dest:                              /oracle/GRID/{{ ora_version }}
     creates:                           "/oracle/GRID/{{ ora_version }}/SIGNATURE.SMF"
