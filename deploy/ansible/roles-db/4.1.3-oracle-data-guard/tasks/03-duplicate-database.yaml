@@ -66,7 +66,7 @@
 
 - name:                                "4.1.3 Oracle Data Guard - Show if rman run is required"
   ansible.builtin.debug:
-    msg:                               "RMAN DUPLICATE required: {{ rman_duplicate_required }} (datafile count: {{ datafile_count.stdout | trim }})"
+    msg:                               "RMAN DUPLICATE required: {{ rman_duplicate_required }}"
 
 - name:                                "4.1.3 Oracle Data Guard - Configure Data Guard"
   when:
