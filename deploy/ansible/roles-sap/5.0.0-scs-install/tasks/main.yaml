@@ -67,7 +67,7 @@
 #     - scs_installed_according_to_sapinst is defined
 #     - scs_installed_according_to_sapinst | length > 0
 
-- name:                                "5.0.0. SCS Install - Reset"
+- name:                                "5.0.0. SCS Install - Reset the installation flag file if reinstall is requested"
   ansible.builtin.file:
     path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_scs.txt"
     state:                             absent
@@ -177,7 +177,7 @@
         state:                         directory
         mode:                          0755
 
-    - name:                            "5.0.0. SCS Install - Comment out required message server prots in /etc/services"
+    - name:                            "5.0.0. SCS Install - Comment out required message server ports in /etc/services"
       ansible.builtin.replace:
         path:                          /etc/services
         regexp:                        '^([a-z\-]+\s+36{{ scs_instance_number }}/.*)$'

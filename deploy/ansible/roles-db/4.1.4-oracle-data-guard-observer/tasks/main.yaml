@@ -23,6 +23,7 @@
   loop:
     - { state: 'directory', mode: '0755', path: "/oracle" }
     - { state: 'directory', mode: '0755', path: "/oracle/{{ db_sid | upper }}" }
+    - { state: 'directory', mode: '0755', path: "/oracle/{{ db_sid | upper }}/{{ ora_version }}" }
 
 - name:                                "4.1.4 Oracle Data Guard - Observer - Unzip the Client software"
   become:                              true
@@ -32,7 +33,7 @@
 
     dest:                              /oracle/{{ db_sid | upper }}/{{ ora_version }}
     creates:                           "/oracle/{{ db_sid | upper }}/{{ ora_version }}/SIGNATURE.SMF"
-    owner:                             "{{ grid_user_name }}"
+    owner:                             "{{ oracle_user_name }}"
     group:                             oinstall
     remote_src:                        true
 
