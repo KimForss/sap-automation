@@ -1,6 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 #
+
 ################
 # Filename......: tnsnames.ora
 # Created.......: created by SDAF for Secondary
@@ -8,6 +9,36 @@
 # Date..........:
 # @(#) $Id: //inst/inst_scripts/lmts_006_REL/tpls/ora/TNSNAMES.ORA#2 $
 ################
+{{ db_sid }}.WORLD=
+  (DESCRIPTION =
+    (ADDRESS_LIST =
+        (ADDRESS =
+          (PROTOCOL = TCP)
+          (HOST = {{ ora_primary }})
+          (PORT = 1521)
+        )
+    )
+    (CONNECT_DATA =
+       (SID = {{ db_sid }})
+       (GLOBAL_NAME = {{ db_sid }}.WORLD)
+       (SERVICE_NAME = {{ db_sid }})
+    )
+  )
+{{ db_sid }}=
+  (DESCRIPTION =
+    (ADDRESS_LIST =
+        (ADDRESS =
+          (PROTOCOL = TCP)
+          (HOST = {{ ora_primary }})
+          (PORT = 1521)
+        )
+    )
+    (CONNECT_DATA =
+       (SID = {{ db_sid }})
+       (GLOBAL_NAME = {{ db_sid }}.WORLD)
+       (SERVICE_NAME = {{ db_sid }})
+    )
+  )
 {{ db_sid }}_STDBY.WORLD=
   (DESCRIPTION =
     (ADDRESS_LIST =
@@ -18,25 +49,21 @@
         )
     )
     (CONNECT_DATA =
-       (SID = {{ db_sid | upper }}_STDBY)
-       (GLOBAL_NAME = {{ db_sid | upper }}_STDBY.WORLD)
-       (SERVICE_NAME = {{ db_sid | upper }}_STDBY)
+       (SID = {{ db_sid }}_STDBY)
        (UR = A)
     )
   )
-{{ db_sid | upper}}.WORLD=
+{{ db_sid }}_STDBY=
   (DESCRIPTION =
     (ADDRESS_LIST =
         (ADDRESS =
           (PROTOCOL = TCP)
-          (HOST = {{ ora_primary }})
+          (HOST = {{ ora_secondary }})
           (PORT = 1521)
         )
     )
     (CONNECT_DATA =
-       (SID = {{ db_sid | upper }})
-       (GLOBAL_NAME = {{ db_sid  | upper }}.WORLD)
-       (SERVICE_NAME = {{ db_sid | upper }})
+       (SID = {{ db_sid }}_STDBY)
+       (UR = A)
     )
   )
-

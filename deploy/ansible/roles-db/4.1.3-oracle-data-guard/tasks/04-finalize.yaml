@@ -1,22 +1,29 @@
 ---
 
+
 - name:                                "4.1.3 Oracle Data Guard -  Configure standby Data Guard"
   when:                                ansible_hostname == ora_secondary
   block:
-    - name:                            "4.1.3 Oracle Data Guard -  Configure standby Data Guard parameters SQL script"
-      ansible.builtin.template:
-        src:                           configure_data_guard_standby_instance.sql.j2
-        dest:                          "/etc/sap_deployment_automation/dataguard_scripts/configure_data_guard_standby_instance.sql"
-        owner:                         "{{ oracle_user_name }}"
-        group:                         oinstall
-        mode:                          '0644'
 
     - name:                            "4.1.3 Oracle Data Guard -  Configure standby Data Guard parameters"
       become_user:                     "{{ oracle_user_name }}"
       become:                          true
       ansible.builtin.shell: |
-                                       setenv ORACLE_SID={{ db_sid | upper }}_STDBY
-                                       $ORACLE_HOME/bin/sqlplus -s / as sysdba @configure_data_guard_standby_instance.sql
+                                       setenv ORACLE_SID {{ db_sid | upper }}_STDBY
+                                       $ORACLE_HOME/bin/sqlplus -s / as sysdba <<EOF
+                                       WHENEVER SQLERROR EXIT SQL.SQLCODE
+                                       ALTER SYSTEM SET DB_UNIQUE_NAME='{{ db_sid | upper }}_STDBY' SCOPE=SPFILE;
+                                       ALTER SYSTEM SET LOG_ARCHIVE_CONFIG='DG_CONFIG=({{ db_sid | upper }},{{ db_sid | upper }}_STDBY)' SCOPE=BOTH;
+                                       ALTER SYSTEM SET FAL_SERVER='{{ ora_primary }}' SCOPE=BOTH;
+                                       ALTER SYSTEM SET FAL_CLIENT='{{ ora_secondary }}' SCOPE=BOTH;
+                                       ALTER SYSTEM SET STANDBY_FILE_MANAGEMENT='AUTO' SCOPE=BOTH;
+                                       ALTER SYSTEM SET LOG_ARCHIVE_DEST_1='LOCATION=USE_DB_RECOVERY_FILE_DEST VALID_FOR=(ALL_LOGFILES,ALL_ROLES) DB_UNIQUE_NAME={{ db_sid | upper }}_STDBY' SCOPE=BOTH;
+                                       ALTER SYSTEM SET LOG_ARCHIVE_DEST_STATE_1='ENABLE' SCOPE=BOTH;
+                                       ALTER SYSTEM SET LOG_ARCHIVE_DEST_2='' SCOPE=BOTH;
+                                       ALTER SYSTEM SET LOG_ARCHIVE_DEST_STATE_2='DEFER' SCOPE=BOTH;
+                                       ALTER SYSTEM SET LOCAL_LISTENER='(ADDRESS=(PROTOCOL=TCP)(HOST={{ ora_secondary }})(PORT={{ listener_port }}))' SCOPE=BOTH;
+                                       EXIT;
+                                       EOF
       register:                        standby_config
       failed_when:                     standby_config.rc != 0
       args:
@@ -35,20 +42,17 @@
         mode:                          '0777'
       when:                            standby_config.stdout is defined
 
-    - name:                            "4.1.3 Oracle Data Guard -  Configure restart standby SQL script"
-      ansible.builtin.template:
-        src:                           restart_standby.sql.j2
-        dest:                          "/etc/sap_deployment_automation/dataguard_scripts/restart_standby.sql"
-        owner:                         "{{ oracle_user_name }}"
-        group:                         oinstall
-        mode:                          '0644'
-
     - name:                            "4.1.3 Oracle Data Guard -  Configure restart standby"
       become_user:                     "{{ oracle_user_name }}"
       become:                          true
       ansible.builtin.shell: |
-                                       setenv ORACLE_SID={{ db_sid | upper }}_STDBY
-                                       $ORACLE_HOME/bin/sqlplus -s / as sysdba @restart_standby.sql
+                                       setenv ORACLE_SID {{ db_sid | upper }}_STDBY
+                                       $ORACLE_HOME/bin/sqlplus -s / as sysdba <<EOF
+                                       SHUTDOWN IMMEDIATE;
+                                       STARTUP MOUNT;
+                                       ALTER SYSTEM REGISTER;
+                                       EXIT;
+                                       EOF
       register:                        standby_restart
       failed_when:                     standby_restart.rc != 0
       args:
@@ -67,53 +71,16 @@
         mode:                          '0777'
       when:                            standby_restart.stdout is defined
 
-    - name:                            "4.1.3 Oracle Data Guard -  Configure check standby redo logs SQL script"
-      ansible.builtin.template:
-        src:                           check_standby_redo_logs.sql.j2
-        dest:                          "/etc/sap_deployment_automation/dataguard_scripts/check_standby_redo_logs.sql"
-        owner:                         "{{ oracle_user_name }}"
-        group:                         oinstall
-        mode:                          '0644'
-
     - name:                            "4.1.3 Oracle Data Guard - Configure check standby redo logs"
       become_user:                     "{{ oracle_user_name }}"
       become:                          true
       ansible.builtin.shell: |
-                                       setenv ORACLE_SID={{ db_sid | upper }}_STDBY
-                                       $ORACLE_HOME/bin/sqlplus -s / as sysdba @check_standby_redo_logs.sql
-      register:                        srl_count
-      failed_when:                     false
-      args:
-        chdir:                             "/etc/sap_deployment_automation/dataguard_scripts/"
-        executable:                        /bin/csh
-
-    - name:                            "4.1.3 Oracle Data Guard - Setup Primary: - Show Configure check standby redo logs results"
-      ansible.builtin.debug:
-        var:                           srl_count.stdout_lines
-        verbosity:                         2
-
-    - name:                            "4.1.3 Oracle Data Guard - Save configure check standby redo logs results"
-      ansible.builtin.copy:
-        dest:                          /etc/sap_deployment_automation/dataguard_scripts/restart_standby_{{ ansible_date_time.epoch }}.log
-        content:                       "{{ srl_count.stdout }}"
-        mode:                          '0777'
-      when:                            srl_count.stdout is defined
-
-
-    - name:                            "4.1.3 Oracle Data Guard -  Configure check standby redo logs SQL script"
-      ansible.builtin.template:
-        src:                           check_standby_redo_logs.sql.j2
-        dest:                          "/etc/sap_deployment_automation/dataguard_scripts/check_standby_redo_logs.sql"
-        owner:                         "{{ oracle_user_name }}"
-        group:                         oinstall
-        mode:                          '0644'
-
-    - name:                            "4.1.3 Oracle Data Guard - Configure check standby redo logs"
-      become_user:                     "{{ oracle_user_name }}"
-      become:                          true
-      ansible.builtin.shell: |
-                                       setenv ORACLE_SID={{ db_sid | upper }}_STDBY
-                                       $ORACLE_HOME/bin/sqlplus -s / as sysdba @check_standby_redo_logs.sql
+                                       setenv ORACLE_SID {{ db_sid | upper }}_STDBY
+                                       $ORACLE_HOME/bin/sqlplus -s / as sysdba <<EOF
+                                       SET PAGESIZE 0 FEEDBACK OFF
+                                       SELECT COUNT(*) FROM v\$standby_log;
+                                       EXIT;
+                                       EOF
       register:                        srl_count
       failed_when:                     false
       args:
@@ -132,70 +99,36 @@
         mode:                          '0777'
       when:                            srl_count.stdout is defined
 
-
-    - name:                            "4.1.3 Oracle Data Guard -  Configure add standby redo logs SQL script"
-      ansible.builtin.template:
-        src:                           add_standby_redo_logs.sql.j2
-        dest:                          "/etc/sap_deployment_automation/dataguard_scripts/add_standby_redo_logs.sql"
-        owner:                         "{{ oracle_user_name }}"
-        group:                         oinstall
-        mode:                          '0644'
-
-    - name:                            "4.1.3 Oracle Data Guard - Add standby redo logs"
-      become_user:                     "{{ oracle_user_name }}"
-      become:                          true
-      when:
-        - srl_count.stdout | trim | int == 0
-      ansible.builtin.shell: |
-                                       setenv ORACLE_SID={{ db_sid | upper }}_STDBY
-                                       $ORACLE_HOME/bin/sqlplus -s / as sysdba @add_standby_redo_logs.sql
-      register:                        add_srl_standby
-      failed_when:                     add_srl_standby.rc != 0
-      args:
-        chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
-        executable:                    /bin/csh
-
-    - name:                            "4.1.3 Oracle Data Guard - Setup Primary: - Show add standby redo logs results"
-      ansible.builtin.debug:
-        var:                           add_srl_standby.stdout_lines
-        verbosity:                     2
-
-    - name:                            "4.1.3 Oracle Data Guard - Save add standby redo logs results"
-      ansible.builtin.copy:
-        dest:                          /etc/sap_deployment_automation/dataguard_scripts/add_standby_redo_logs{{ ansible_date_time.epoch }}.log
-        content:                       "{{ add_srl_standby.stdout }}"
-        mode:                          '0777'
-      when:                            add_srl_standby.stdout is defined
 
 - name:                                "4.1.3 Oracle Data Guard -  Configure standby Data Guard"
   when:                                ansible_hostname == ora_primary
   block:
 
-    - name:                            "4.1.3 Oracle Data Guard -  Configure enable log shipping on primary SQL script"
-      ansible.builtin.template:
-        src:                           enable_log_shipping_on_primary.sql.j2
-        dest:                          "/etc/sap_deployment_automation/dataguard_scripts/enable_log_shipping_on_primary.sql"
-        owner:                         "{{ oracle_user_name }}"
-        group:                         oinstall
-        mode:                          '0644'
-
     - name:                            "4.1.3 Oracle Data Guard - Enable log shipping on primary"
       become_user:                     "{{ oracle_user_name }}"
       become:                          true
       ansible.builtin.shell: |
-                                       $ORACLE_HOME/bin/sqlplus -s / as sysdba @enable_log_shipping_on_primary.sql
+                                       setenv ORACLE_SID {{ db_sid | upper }}
+                                       $ORACLE_HOME/bin/sqlplus -s / as sysdba <<EOF
+                                       WHENEVER SQLERROR EXIT SQL.SQLCODE
+                                       ALTER SYSTEM SET LOG_ARCHIVE_DEST_2='SERVICE={{ db_sid | upper }}_STDBY ASYNC VALID_FOR=(ONLINE_LOGFILES,PRIMARY_ROLE) DB_UNIQUE_NAME={{ db_sid | upper }}_STDBY' SCOPE=BOTH;
+                                       ALTER SYSTEM SET LOG_ARCHIVE_DEST_STATE_2='ENABLE' SCOPE=BOTH;
+                                       ALTER SYSTEM SWITCH LOGFILE;
+                                       ALTER SYSTEM SWITCH LOGFILE;
+                                       EXIT;
+                                       EOF
       register:                        enable_shipping
       failed_when:                     enable_shipping.rc != 0
       args:
         chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
         executable:                    /bin/csh
 
-    - name:                                "4.1.3 Oracle Data Guard - Setup Primary: - Show enable log shipping on primary"
+    - name:                            "4.1.3 Oracle Data Guard - Setup Primary: - Show enable log shipping on primary"
       ansible.builtin.debug:
         var:                           enable_shipping.stdout_lines
         verbosity:                     2
 
-    - name:                                "4.1.3 Oracle Data Guard - Save enable log shipping on primary results"
+    - name:                            "4.1.3 Oracle Data Guard - Save enable log shipping on primary results"
       ansible.builtin.copy:
         dest:                          /etc/sap_deployment_automation/dataguard_scripts/enable_shipping_{{ ansible_date_time.epoch }}.log
         content:                       "{{ enable_shipping.stdout }}"
@@ -206,19 +139,15 @@
   when:                                ansible_hostname == ora_secondary
   block:
 
-    - name:                            "4.1.3 Oracle Data Guard - Configure start managed recovery on standby SQL script"
-      ansible.builtin.template:
-        src:                           start_managed_recovery_on_standby.sql.j2
-        dest:                          "/etc/sap_deployment_automation/dataguard_scripts/start_managed_recovery_on_standby.sql"
-        owner:                         "{{ oracle_user_name }}"
-        group:                         oinstall
-        mode:                          '0644'
-
     - name:                            "4.1.3 Oracle Data Guard - Start managed recovery on standby"
       become_user:                     "{{ oracle_user_name }}"
       become:                          true
       ansible.builtin.shell: |
-                                       $ORACLE_HOME/bin/sqlplus -s / as sysdba @start_managed_recovery_on_standby.sql
+                                       $ORACLE_HOME/bin/sqlplus -s / as sysdba <<EOF
+                                       WHENEVER SQLERROR EXIT SQL.SQLCODE
+                                       ALTER DATABASE RECOVER MANAGED STANDBY DATABASE USING CURRENT LOGFILE DISCONNECT FROM SESSION;
+                                       EXIT;
+                                       EOF
       register:                        start_recovery
       failed_when:                     start_recovery.rc != 0
       args:
@@ -239,16 +168,8 @@
 
 
 - name:                                "4.1.3 Oracle Data Guard - Verify Data Guard configuration"
-  when:                                ansible_hostname == ora_primary
+  when:                                ansible_hostname == ora_secondary
   block:
-    - name:                            "4.1.3 Oracle Data Guard - Configure verify Data Guard configuration SQL script"
-      ansible.builtin.template:
-        src:                           verify_data_guard_configuration.sql.j2
-        dest:                          "/etc/sap_deployment_automation/dataguard_scripts/verify_data_guard_configuration.sql"
-        owner:                         "{{ oracle_user_name }}"
-        group:                         oinstall
-        mode:                          '0644'
-
 
     - name:                            "4.1.3 Oracle Data Guard - Wait for MRP to start"
       ansible.builtin.pause:
@@ -259,15 +180,213 @@
       become:                          true
       ansible.builtin.shell: |
                                       setenv ORACLE_SID {{ item.sid }}
-                                      $ORACLE_HOME/bin/sqlplus -s / as sysdba @verify_data_guard_configuration.sql
+                                      $ORACLE_HOME/bin/sqlplus -s / as sysdba <<EOF
+                                      SET PAGESIZE 0 FEEDBACK OFF HEADING OFF
+                                      SELECT database_role || ',' || open_mode || ',' || db_unique_name FROM v\$database;
+                                      EXIT;
+                                      EOF
       loop:
-        - { sid: "{{ db_sid | upper }}", host: "primary" }
         - { sid: "{{ db_sid | upper }}_STDBY", host: "standby" }
       register:                        dg_status
       changed_when:                    false
+      args:
+        chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
+        executable:                    /bin/csh
+
+    # Disable the automatic restart for database on Secondary.
+    - name:                            "4.1.3 Oracle Data Guard - Secondary - Post Processing: Check if database registered with restart on Secondary"
+      become:                          true
+      become_user:                     "{{ oracle_user_name }}"
+      ansible.builtin.shell: |
+                                       setenv ORACLE_SID {{ db_sid | upper }}_STDBY
+                                       srvctl config database -d {{ db_sid | upper }}_STDBY
+      environment:
+        ORACLE_HOME:                   "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
+        PATH:                          "/oracle/GRID/{{ ora_version }}/bin:{{ ansible_env.PATH }}"
+      args:
+        executable:                    /bin/csh
+      register:                        srvctl_check
+      failed_when:                     false
+      changed_when:                    false
+
+    - name:                            "4.1.3 Oracle Data Guard - Secondary - Post Processing: Disable automatic restart for database on Secondary"
+      when :
+                                      - srvctl_check.rc == 0
+                                      - "'PRCC-1120' not in srvctl_check.stdout"
+                                      - "'PRCC-1001' not in srvctl_check.stdout"
+      become:                          true
+      become_user:                     "{{ oracle_user_name }}"
+      ansible.builtin.shell: |
+                                       setenv ORACLE_SID {{ item.sid }}
+                                       srvctl disable database -d {{ db_sid | upper }}_STDBY
+      environment:
+        ORACLE_HOME:                   "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
+        PATH:                          "/oracle/GRID/{{ ora_version }}/bin:{{ ansible_env.PATH }}"
+      args:
+        executable:                    /bin/csh
+      register:                        disable_restart_secondary
+      failed_when:
+                                       - disable_restart_primary.rc not in [0, 2]
+                                       - "'PRCC-1012' not in disable_restart_secondary.stdout"
+                                       - "'PRCR-1003' not in disable_restart_secondary.stdout"
+                                       - "'PRCR-1001' not in disable_restart_secondary.stdout"
+      changed_when:                    disable_restart_secondary.rc == 0
+
+    - name:                            "4.1.3 Oracle Data Guard - Secondary - Post Processing: Verify database is mounted on Secondary"
+      become:                          true
+      become_user:                     "{{ oracle_user_name }}"
+      ansible.builtin.shell: |
+                                       sqlplus -s / as sysdba << EOF
+                                       SET HEADING OFF
+                                       SET FEEDBACK OFF
+                                       SELECT open_mode FROM v\$database;
+                                       EXIT;
+                                       EOF
+      environment:
+        ORACLE_SID:                    "{{ db_sid | upper }}"
+        ORACLE_HOME:                   "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
+      args:
+        executable:                    /bin/csh
+      register:                        secondary_open_mode
+      failed_when:                     false
+      changed_when:                    false
+
+    - name:                            "4.1.3 Oracle Data Guard - Secondary - Post Processing: Ensure database is mounted (not open) on Secondary"
+      become:                          true
+      become_user:                     "{{ oracle_user_name }}"
+      ansible.builtin.shell: |
+                                       sqlplus -s / as sysdba << EOF
+                                       SHUTDOWN IMMEDIATE;
+                                       STARTUP MOUNT;
+                                       EXIT;
+                                       EOF
+      environment:
+        ORACLE_SID:                    "{{ db_sid | upper }}"
+        ORACLE_HOME:                   "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
+      args:
+        executable:                    /bin/csh
+      when:                            "'MOUNTED' not in secondary_open_mode.stdout"
+      register:                        mount_secondary
+
+    # Update the tnsnames.ora for SAP application servers
+    - name:                            "4.1.3 Oracle Data Guard - Secondary - Post Processing: Update tnsnames.ora for SAP application servers"
+      become:                          true
+      become_user:                     "root"
+      ansible.builtin.copy:
+        src:                           /etc/sap_deployment_automation/dataguard_scripts/tnsnames.ora
+        dest:                          /sapmnt/{{ sap_sid |upper }}/profile/oracle/tnsnames.ora
+        remote_src:                    true
+        owner:                         '{{ sap_sid |lower }}adm'
+        group:                         sapsys
+        mode:                          "{{ '0777' | int - (custom_umask | default('022') | int) }}"
+
+- name:                                "4.1.3 Oracle Data Guard - Verify Data Guard configuration"
+  when:                                ansible_hostname == ora_primary
+  block:
+    - name:                            "4.1.3 Oracle Data Guard - Display Data Guard status"
+      ansible.builtin.debug:
+        msg:                           "{{ item.stdout_lines }}"
+      loop:                            "{{ dg_status.results }}"
+      when:                            item.skipped is not defined
+
+    - name:                            "4.1.3 Oracle Data Guard - Verify Data Guard configuration"
+      become_user:                     "{{ oracle_user_name }}"
+      become:                          true
+      ansible.builtin.shell: |
+                                       setenv ORACLE_SID {{ item.sid }}
+                                       $ORACLE_HOME/bin/sqlplus -s / as sysdba <<EOF
+                                       SET PAGESIZE 0 FEEDBACK OFF HEADING OFF
+                                       SELECT database_role || ',' || open_mode || ',' || db_unique_name FROM v\$database;
+                                       EXIT;
+                                       EOF
+      loop:
+        - { sid: "{{ db_sid | upper }}", host: "primary" }
+      register:                        dg_status
+      changed_when:                    false
+      args:
+        chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
+        executable:                    /bin/csh
 
     - name:                            "4.1.3 Oracle Data Guard - Display Data Guard status"
       ansible.builtin.debug:
         msg:                           "{{ item.stdout_lines }}"
       loop:                            "{{ dg_status.results }}"
       when:                            item.skipped is not defined
+
+
+    # Disable the automatic restart for database on Secondary.
+    - name:                            "4.1.3 Oracle Data Guard - Primary - Post Processing: Check if database registered with restart on Primary"
+      become:                          true
+      become_user:                     "{{ oracle_user_name }}"
+      ansible.builtin.shell: |
+                                       setenv ORACLE_SID {{ db_sid | upper }}
+                                       srvctl config database -d {{ db_sid | upper }}
+      environment:
+        ORACLE_HOME:                   "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
+        PATH:                          "/oracle/GRID/{{ ora_version }}/bin:{{ ansible_env.PATH }}"
+      args:
+        executable:                    /bin/csh
+      register:                        srvctl_check
+      failed_when:                     false
+      changed_when:                    false
+
+    - name:                            "4.1.3 Oracle Data Guard - Primary - Post Processing: Disable automatic restart for database on Primary"
+      when :
+                                      - srvctl_check.rc == 0
+                                      - "'PRCC-1120' not in srvctl_check.stdout"
+                                      - "'PRCC-1001' not in srvctl_check.stdout"
+      become:                          true
+      become_user:                     "{{ oracle_user_name }}"
+      ansible.builtin.shell: |
+                                       srvctl disable database -d {{ db_sid | upper }}
+      environment:
+        ORACLE_HOME:                   "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
+        PATH:                          "/oracle/GRID/{{ ora_version }}/bin:{{ ansible_env.PATH }}"
+      args:
+        executable:                    /bin/csh
+      register:                        disable_restart_primary
+      failed_when:
+                                       - disable_restart_primary.rc not in [0, 2]
+                                       - "'PRCC-1012' not in disable_restart_primary.stdout"
+                                       - "'PRCR-1003' not in disable_restart_primary.stdout"
+                                       - "'PRCR-1001' not in disable_restart_primary.stdout"
+      changed_when:
+                                       - disable_restart_primary.rc == 0
+
+    - name:                            "4.1.3 Oracle Data Guard - Primary - Post Processing: Verify database is open on Primary"
+      become:                          true
+      become_user:                     "{{ oracle_user_name }}"
+      ansible.builtin.shell: |
+                                       sqlplus -s / as sysdba << EOF
+                                       SET HEADING OFF
+                                       SET FEEDBACK OFF
+                                       SELECT open_mode FROM v\$database;
+                                       EXIT;
+                                       EOF
+      environment:
+        ORACLE_SID:                    "{{ db_sid | upper }}"
+        ORACLE_HOME:                   "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
+      args:
+        executable:                    /bin/csh
+      register:                        primary_open_mode
+      failed_when:                     "'READ WRITE' not in primary_open_mode.stdout"
+      changed_when:                    false
+
+    - name:                            "4.1.3 Oracle Data Guard - Primary - Post Processing: Ensure database is open on Primary"
+      become:                          true
+      become_user:                     "{{ oracle_user_name }}"
+      ansible.builtin.shell: |
+                                       sqlplus -s / as sysdba << EOF
+                                       ALTER DATABASE OPEN;
+                                       EXIT;
+                                       EOF
+      environment:
+        ORACLE_SID:                    "{{ db_sid | upper }}"
+        ORACLE_HOME:                   "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
+      args:
+        executable:                    /bin/csh
+      when:                            "'READ WRITE' not in primary_open_mode.stdout"
+      register:                        open_primary
+      failed_when:                     open_primary.rc != 0 and 'ORA-01531' not in open_primary.stderr
+
+...

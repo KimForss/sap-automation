@@ -164,7 +164,7 @@
       register:                        orainstaller_results
       failed_when:                     orainstaller_results.rc >= 2              # installer returns rc=1 (exited with warning) by default when run is silent mode as the oratab file is created only after running the root.sh
       environment:
-        DB_SID:                        "{{ db_sid }}"
+        DB_SID:                        "{{ db_sid | upper }}"
         CV_ASSUME_DISTID:              "{{ CV_ASSUME_DISTID }}"
       args:
         executable:                    /bin/csh
@@ -227,7 +227,7 @@
     - name:                            "Oracle ASM:  Post Processing - Run root.sh"
       become:                          true
       become_user:                     root
-      ansible.builtin.shell:           /oracle/{{ db_sid }}/{{ ora_version }}/root.sh
+      ansible.builtin.shell:           /oracle/{{ db_sid | upper }}/{{ ora_version }}/root.sh
       register:                        rootscript_results
       args:
         creates:                       "/etc/sap_deployment_automation/oracle/rootscripts_executed.txt"
@@ -258,6 +258,17 @@
         owner:                         oracle
         mode:                          '6751'
 
+- name:                                "Oracle ASM: Set sid variable"
+  ansible.builtin.set_fact:
+    this_sid:                          "{{ db_sid | upper }}"
+
+- name:                                "Oracle ASM: Set sid variable"
+  ansible.builtin.set_fact:
+    this_sid:                          "{{ db_sid | upper }}_STDBY"
+  when:
+    ansible_hostname == ora_secondary
+
+
 - name:                                "Oracle ASM: environment variables to the Bash profile"
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
@@ -266,12 +277,12 @@
     insertafter:                       'fi '
     block: |
         # User Specific environment
-        export ORACLE_HOME=/oracle/{{ db_sid }}/{{ ora_release }}
-        export ORACLE_SID={{ db_sid }}
-        export ORACLE_BASE=/oracle/{{ db_sid }}
+        export ORACLE_HOME=/oracle/{{ db_sid | upper }}/{{ ora_release }}
+        export ORACLE_SID={{ this_sid }}
+        export ORACLE_BASE=/oracle/{{ db_sid | upper }}
         export LD_LIBRARY_PATH=$ORACLE_HOME/lib
         export TNS_ADMIN=$ORACLE_HOME/network/admin
-        export DB_SID={{ db_sid }}
+        export DB_SID={{ db_sid | upper }}
         PATH="$PATH:$ORACLE_HOME/bin"
         export PATH
 
@@ -285,12 +296,12 @@
     marker_end:                        "-- END"
     block: |
         # User Specific environment
-        setenv  ORACLE_HOME /oracle/{{ db_sid }}/{{ ora_release }}
-        setenv  ORACLE_SID  {{ db_sid }}
-        setenv  ORACLE_BASE /oracle/{{ db_sid }}
+        setenv  ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_release }}
+        setenv  ORACLE_SID  {{ this_sid }}
+        setenv  ORACLE_BASE /oracle/{{ db_sid | upper }}
         setenv  LD_LIBRARY_PATH $ORACLE_HOME/lib
         setenv  TNS_ADMIN $ORACLE_HOME/network/admin
-        setenv  DB_SID {{ db_sid }}
+        setenv  DB_SID {{ db_sid | upper }}
         set path = ($path $ORACLE_HOME/bin)
     mode:                              '0755'
 

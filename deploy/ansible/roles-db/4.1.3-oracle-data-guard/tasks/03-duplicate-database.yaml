@@ -1,14 +1,15 @@
 ---
 
-
 # In dg_duplicate/tasks/main.yml
+
 - name:                                "4.1.3 Oracle Data Guard - Check if standby already restored"
   become_user:                         "{{ oracle_user_name }}"
   become:                              true
   ansible.builtin.shell: |
+                                       setenv ORACLE_SID {{ db_sid | upper }}_STDBY
                                        /oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/sqlplus -S / as sysdba <<EOF
                                        SET PAGESIZE 0 FEEDBACK OFF
-                                       SELECT COUNT(*) FROM v$datafile WHERE name LIKE '+DATA/{{ db_sid | upper }}_STDBY%';
+                                       SELECT COUNT(*) FROM v\$datafile WHERE name LIKE '+DATA/{{ db_sid | upper }}_STDBY%';
                                        EXIT;
                                        EOF
   register:                            datafile_count
@@ -18,10 +19,53 @@
   changed_when:                        false
   failed_when:                         false
 
-- name:                                "4.1.3 Oracle Data Guard - Execute RMAN DUPLICATE if not already done flag"
+- name:                                "4.1.3 Oracle Data Guard - Check if rman already ran"
   ansible.builtin.set_fact:
-    rman_duplicate_required:           datafile_count.stdout | trim | int == 0
+    rman_duplicate_required:           "{{ datafile_count.stdout | trim | int == 0 }}"
 
+- name:                                "4.1.3 Oracle Data Guard - Prepare Secondary - Startup standby if not 'Running'"
+  when:                                datafile_count.stdout is search('ORA-01034')
+  block:
+
+    - name:                            "4.1.3 Oracle Data Guard - Prepare Secondary - Startup standby if not 'Running'"
+      become_user:                     "{{ oracle_user_name }}"
+      become:                          true
+      ansible.builtin.shell: |
+                                       setenv ORACLE_SID {{ db_sid | upper }}_STDBY
+                                       /oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/sqlplus -S / as sysdba <<EOF
+                                       STARTUP NOMOUNT;
+                                       EXIT;
+                                       EOF
+      register:                        startup_result
+      args:
+        chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
+        executable:                    /bin/csh
+
+    - name:                            "4.1.3 Oracle Data Guard - Check if standby already restored"
+      become_user:                     "{{ oracle_user_name }}"
+      become:                          true
+      ansible.builtin.shell: |
+                                       setenv ORACLE_SID {{ db_sid | upper }}_STDBY
+                                       /oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/sqlplus -S / as sysdba <<EOF
+                                       SET PAGESIZE 0 FEEDBACK OFF
+                                       SELECT COUNT(*) FROM v\$datafile WHERE name LIKE '+DATA/{{ db_sid | upper }}_STDBY%';
+                                       EXIT;
+                                       EOF
+      register:                        datafile_count
+      args:
+        chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
+        executable:                    /bin/csh
+      changed_when:                    false
+      failed_when:                     false
+
+    - name:                                "4.1.3 Oracle Data Guard - Check if rman already ran"
+      ansible.builtin.set_fact:
+        rman_duplicate_required:           "{{ datafile_count.stdout | trim | int == 0 }}"
+
+
+- name:                                "4.1.3 Oracle Data Guard - Show if rman run is required"
+  ansible.builtin.debug:
+    msg:                               "RMAN DUPLICATE required: {{ rman_duplicate_required }} (datafile count: {{ datafile_count.stdout | trim }})"
 
 - name:                                "4.1.3 Oracle Data Guard - Configure Data Guard"
   when:
@@ -39,24 +83,16 @@
       become_user:                     "{{ oracle_user_name }}"
       become:                          true
       ansible.builtin.shell: |
-                                       rman TARGET sys/{{ main_password }}@{{ db_sid | upper }} AUXILIARY sys/{{ main_password }}@{{ db_sid | upper }}_STDBY @rman-restore.rman
+                                       rman TARGET sys/'{{ main_password }}'@{{ db_sid | upper }} AUXILIARY sys/'{{ main_password }}'@{{ db_sid | upper }}_STDBY <<EOF
+                                       DUPLICATE TARGET DATABASE FOR STANDBY FROM ACTIVE DATABASE NOFILENAMECHECK;
+                                       EXIT;
+                                       EOF
       args:
         chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
         executable:                    /bin/csh
         creates:                       /etc/sap_deployment_automation/dataguard_scripts/rman-restore.txt
       register:                        rman_duplicate
       failed_when:                     rman_duplicate.rc != 0
-      async:                           28800  # 8 hours timeout
-      poll:                            60
-
-    - name:                            "4.1.3 Oracle Data Guard - Execute - Wait for asynchronous job to end"
-      ansible.builtin.async_status:
-        jid:                           "{{ rman_duplicate.ansible_job_id }}"
-      register:                        job_result
-      until:                           job_result.finished
-      retries:                         5
-      delay:                           60
-      when:                            rman_duplicate.ansible_job_id is defined
 
     - name:                            "4.1.3 Oracle Data Guard - Save RMAN flag file"
       ansible.builtin.file:
@@ -71,37 +107,33 @@
 
     - name:                            "4.1.3 Oracle Data Guard - Setup Primary: - Show Execute RMAN DUPLICATE output"
       ansible.builtin.debug:
-        var:                           job_result.stdout.stdout_lines
-        verbosity:                     2
+        msg:                           "RMAN results: {{ rman_duplicate.stdout }}"
       when:                            job_result.stdout is defined
 
     - name:                            "4.1.3 Oracle Data Guard - Save RMAN log"
       ansible.builtin.copy:
         dest:                          /etc/sap_deployment_automation/dataguard_scripts/rman_duplicate_{{ ansible_date_time.epoch }}.log
-        content:                       "{{ job_result.stdout }}"
+        content:                       "{{ rman_duplicate.stdout }}"
         mode:                          '0777'
-      when:                            job_result.stdout is defined
+      when:                            rman_duplicate.stdout is defined
 
 
     - name:                            "4.1.3 Oracle Data Guard - Verify DUPLICATE completion"
       ansible.builtin.assert:
-        that:                          "'Finished Duplicate Db' in job_result.stdout"
+        that:                          "'Finished Duplicate Db' in rman_duplicate.stdout"
         fail_msg:                      "RMAN DUPLICATE did not complete successfully"
-
-    - name:                            "4.1.3 Oracle Data Guard -  Configure check standby database mounted SQL script"
-      ansible.builtin.template:
-        src:                           check_standby_database_mounted.sql.j2
-        dest:                          "/etc/sap_deployment_automation/dataguard_scripts/check_standby_database_mounted.sql"
-        owner:                         "{{ oracle_user_name }}"
-        group:                         oinstall
-        mode:                          '0644'
 
     - name:                            "4.1.3 Oracle Data Guard - Check standby database mounted"
       become_user:                     "{{ oracle_user_name }}"
       become:                          true
       ansible.builtin.shell: |
                                        setenv ORACLE_SID {{ db_sid | upper }}_STDBY
-                                       $ORACLE_HOME/bin/sqlplus -s / as sysdba @check_standby_database_mounted.sql
+                                       $ORACLE_HOME/bin/sqlplus -s / as sysdba <<EOF
+                                       SET PAGESIZE 0 FEEDBACK OFF
+                                       SELECT database_role || ':' || open_mode FROM v\$database;
+                                       EXIT;
+                                       EOF
+
       register:                        db_status
       changed_when:                    false
       failed_when:                     "'PHYSICAL STANDBY:MOUNTED' not in db_status.stdout"
@@ -111,7 +143,7 @@
 
     - name:                            "4.1.3 Oracle Data Guard - Setup Primary: - Show Check standby database mounted output"
       ansible.builtin.debug:
-        var:                           db_status.stdout_lines
+        msg:                           "Database mount information: {{ db_status.stdout }}"
         verbosity:                     2
 
     - name:                            "4.1.3 Oracle Data Guard - Save Check standby database mounted"
@@ -120,3 +152,14 @@
         content:                       "{{ db_status.stdout }}"
         mode:                          '0777'
       when:                            db_status.stdout is defined
+
+    - name:                            "4.1.3 Oracle Data Guard - Set Data Guard configuration status"
+      ansible.builtin.set_fact:
+        secondary_dg_configured:       "{{ (dg_status.stdout | default('UNKNOWN')) is search('PHYSICAL STANDBY')  }}"
+
+    - name:                            "4.1.3 Oracle Data Guard - Display Data Guard status"
+      ansible.builtin.debug:
+        msg:
+          - "Database instance:        {{ ansible_hostname }}"
+          - "Database role:            {{ dg_status.stdout }}"
+          - "Data guard configured:    {{ secondary_dg_configured }}"
