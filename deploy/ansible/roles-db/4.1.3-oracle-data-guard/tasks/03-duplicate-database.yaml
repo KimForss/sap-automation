@@ -24,6 +24,46 @@
   ansible.builtin.set_fact:
     rman_duplicate_required:           "{{ datafile_count.stdout | trim | int == 0 }}"
 
+- name:                                "4.1.3 Oracle Data Guard - Prepare Secondary - Startup standby if not 'Running'"
+  when:                                datafile_count.stdout is search('ORA-01034: ORACLE not available')
+  block:
+
+    - name:                            "4.1.3 Oracle Data Guard - Prepare Secondary - Startup standby if not 'Running'"
+      become_user:                     "{{ oracle_user_name }}"
+      become:                          true
+      ansible.builtin.shell: |
+                                       setenv ORACLE_SID {{ db_sid | upper }}_STDBY
+                                       /oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/sqlplus -S / as sysdba <<EOF
+                                       STARTUP NOMOUNT;
+                                       EXIT;
+                                       EOF
+      register:                        startup_result
+      args:
+        chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
+        executable:                    /bin/csh
+
+    - name:                            "4.1.3 Oracle Data Guard - Check if standby already restored"
+      become_user:                     "{{ oracle_user_name }}"
+      become:                          true
+      ansible.builtin.shell: |
+                                       setenv ORACLE_SID {{ db_sid | upper }}_STDBY
+                                       /oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/sqlplus -S / as sysdba <<EOF
+                                       SET PAGESIZE 0 FEEDBACK OFF
+                                       SELECT COUNT(*) FROM v\$datafile WHERE name LIKE '+DATA/{{ db_sid | upper }}_STDBY%';
+                                       EXIT;
+                                       EOF
+      register:                        datafile_count
+      args:
+        chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
+        executable:                    /bin/csh
+      changed_when:                    false
+      failed_when:                     false
+
+    - name:                                "4.1.3 Oracle Data Guard - Check if rman already ran"
+      ansible.builtin.set_fact:
+        rman_duplicate_required:           "{{ datafile_count.stdout | trim | int == 0 }}"
+
+
 - name:                                "4.1.3 Oracle Data Guard - Show if rman run is required"
   ansible.builtin.debug:
     msg:                               "RMAN DUPLICATE required: {{ rman_duplicate_required }} (datafile count: {{ datafile_count.stdout | trim }})"
