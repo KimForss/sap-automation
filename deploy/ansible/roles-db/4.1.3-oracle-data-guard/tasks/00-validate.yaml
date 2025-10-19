@@ -29,7 +29,7 @@
 
 - name:                                "4.1.3 Oracle Data Guard - Setup Primary: -Validate ASM diskgroups mounted"
   ansible.builtin.debug:
-    var:                               asm_status
+    msg:                               "ASM Diskgroup Status: {{ asm_status.stdout }}"
 
   when:
     - asm_status is defined
@@ -88,8 +88,8 @@
       become_user:                     "{{ oracle_user_name }}"
       become:                          true
       ansible.builtin.shell: |
-                                      setenv ORACLE_SID {{ db_sid | upper }}_STDBY
-                                      $ORACLE_HOME/bin/sqlplus -S / as sysdba <<EOF
+                                       setenv ORACLE_SID {{ db_sid | upper }}_STDBY
+                                       $ORACLE_HOME/bin/sqlplus -S / as sysdba <<EOF
                                        SET PAGESIZE 0 FEEDBACK OFF HEADING OFF
                                        SELECT database_role || ',' || open_mode || ',' || db_unique_name FROM v\$database;
                                        EXIT;

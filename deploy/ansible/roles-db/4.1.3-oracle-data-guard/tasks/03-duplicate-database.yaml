@@ -20,11 +20,11 @@
   changed_when:                        false
   failed_when:                         false
 
-- name:                                "4.1.3 Oracle Data Guard - Execute RMAN DUPLICATE if not already done flag"
+- name:                                "4.1.3 Oracle Data Guard - Check if rman already ran"
   ansible.builtin.set_fact:
     rman_duplicate_required:           "{{ datafile_count.stdout | trim | int == 0 }}"
 
-- name:                                "4.1.3 Oracle Data Guard - Execute RMAN DUPLICATE if not already done flag"
+- name:                                "4.1.3 Oracle Data Guard - Show if rman run is required"
   ansible.builtin.debug:
     msg:                               "RMAN DUPLICATE required: {{ rman_duplicate_required }} (datafile count: {{ datafile_count.stdout | trim }})"
 
@@ -65,21 +65,20 @@
 
     - name:                            "4.1.3 Oracle Data Guard - Setup Primary: - Show Execute RMAN DUPLICATE output"
       ansible.builtin.debug:
-        var:                           job_result.stdout
-        verbosity:                     2
+        msg:                           "RMAN results: {{ rman_duplicate.stdout }}"
       when:                            job_result.stdout is defined
 
     - name:                            "4.1.3 Oracle Data Guard - Save RMAN log"
       ansible.builtin.copy:
         dest:                          /etc/sap_deployment_automation/dataguard_scripts/rman_duplicate_{{ ansible_date_time.epoch }}.log
-        content:                       "{{ job_result.stdout }}"
+        content:                       "{{ rman_duplicate.stdout }}"
         mode:                          '0777'
-      when:                            job_result.stdout is defined
+      when:                            rman_duplicate.stdout is defined
 
 
     - name:                            "4.1.3 Oracle Data Guard - Verify DUPLICATE completion"
       ansible.builtin.assert:
-        that:                          "'Finished Duplicate Db' in job_result.stdout"
+        that:                          "'Finished Duplicate Db' in rman_duplicate.stdout"
         fail_msg:                      "RMAN DUPLICATE did not complete successfully"
 
     - name:                            "4.1.3 Oracle Data Guard - Check standby database mounted"
@@ -102,7 +101,7 @@
 
     - name:                            "4.1.3 Oracle Data Guard - Setup Primary: - Show Check standby database mounted output"
       ansible.builtin.debug:
-        var:                           db_status.stdout_lines
+        msg:                           "Database mount information: {{ db_status.stdout }}"
         verbosity:                     2
 
     - name:                            "4.1.3 Oracle Data Guard - Save Check standby database mounted"
