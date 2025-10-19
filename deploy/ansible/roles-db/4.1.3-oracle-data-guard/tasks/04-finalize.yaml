@@ -194,7 +194,26 @@
         executable:                    /bin/csh
 
     # Disable the automatic restart for database on Secondary.
+    - name:                            "4.1.3 Oracle Data Guard - Secondary - Post Processing: Check if database registered with restart on Secondary"
+      become:                          true
+      become_user:                     "{{ oracle_user_name }}"
+      ansible.builtin.shell: |
+                                       setenv ORACLE_SID {{ db_sid | upper }}_STDBY
+                                       srvctl config database -d {{ db_sid | upper }}_STDBY
+      environment:
+        ORACLE_HOME:                   "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
+        PATH:                          "/oracle/GRID/{{ ora_version }}/bin:{{ ansible_env.PATH }}"
+      args:
+        executable:                    /bin/csh
+      register:                        srvctl_check
+      failed_when:                     false
+      changed_when:                    false
+
     - name:                            "4.1.3 Oracle Data Guard - Secondary - Post Processing: Disable automatic restart for database on Secondary"
+      when :
+                                      - srvctl_check.rc == 0
+                                      - "'PRCC-1120' not in srvctl_check.stdout"
+                                      - "'PRCC-1001' not in srvctl_check.stdout"
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell: |
@@ -294,7 +313,28 @@
       loop:                            "{{ dg_status.results }}"
       when:                            item.skipped is not defined
 
+
+    # Disable the automatic restart for database on Secondary.
+    - name:                            "4.1.3 Oracle Data Guard - Primary - Post Processing: Check if database registered with restart on Primary"
+      become:                          true
+      become_user:                     "{{ oracle_user_name }}"
+      ansible.builtin.shell: |
+                                       setenv ORACLE_SID {{ db_sid | upper }}
+                                       srvctl config database -d {{ db_sid | upper }}
+      environment:
+        ORACLE_HOME:                   "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
+        PATH:                          "/oracle/GRID/{{ ora_version }}/bin:{{ ansible_env.PATH }}"
+      args:
+        executable:                    /bin/csh
+      register:                        srvctl_check
+      failed_when:                     false
+      changed_when:                    false
+
     - name:                            "4.1.3 Oracle Data Guard - Primary - Post Processing: Disable automatic restart for database on Primary"
+      when :
+                                      - srvctl_check.rc == 0
+                                      - "'PRCC-1120' not in srvctl_check.stdout"
+                                      - "'PRCC-1001' not in srvctl_check.stdout"
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell: |
