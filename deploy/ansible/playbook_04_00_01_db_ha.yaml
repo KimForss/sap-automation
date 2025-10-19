@@ -424,7 +424,7 @@
 
         - name:                            "Database High Availability Configuration Playbook - ORACLE Observer : Oracle Observer setup"
           ansible.builtin.include_role:
-            name:                          roles-db/4.1.3-oracle-data-guard
+            name:                          roles-db/4.1.4-oracle-data-guard-observer
           vars:
             tier:                          observer
 
