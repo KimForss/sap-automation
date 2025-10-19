@@ -22,17 +22,15 @@
     mode:                              "{{ item.mode }}"
   loop:
     - { state: 'directory', mode: '0755', path: "/oracle" }
-    - { state: 'directory', mode: '0755', path: "/oracle/{{ db_sid | upper }}" }
-    - { state: 'directory', mode: '0755', path: "/oracle/{{ db_sid | upper }}/{{ ora_version }}" }
+    - { state: 'directory', mode: '0755', path: "/oracle/media" }
 
 - name:                                "4.1.4 Oracle Data Guard - Observer - Unzip the Client software"
   become:                              true
   become_user:                         root
   ansible.builtin.unarchive:
     src:                               "{{ target_media_location }}/oraserver/LINUX_X86_64/{{ oracle_client_zip }}"
-
-    dest:                              /oracle/{{ db_sid | upper }}/{{ ora_version }}
-    creates:                           "/oracle/{{ db_sid | upper }}/{{ ora_version }}/SIGNATURE.SMF"
+    dest:                              /oracle/media
+    creates:                           "/oracle/media/SIGNATURE.SMF"
     owner:                             "{{ oracle_user_name }}"
     group:                             oinstall
     remote_src:                        true
@@ -42,14 +40,14 @@
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.template:
     src:                               client.rsp.j2
-    dest:                              "/oracle/{{ db_sid | upper }}/{{ ora_version }}/{{ ansible_hostname }}_{{ db_sid }}_install.rsp"
+    dest:                              "/oracle/media/{{ ansible_hostname }}_{{ db_sid }}_install.rsp"
     mode:                              '0644'
     force:                             true
   vars:
 
 - name:                                "4.1.4 Oracle Data Guard - Observer - Execute RUNINSTALLER command"
   ansible.builtin.debug:
-    msg:                               "Running /oracle/{{ db_sid | upper }}/{{ ora_version }}/client/runInstaller -silent  -responseFile ./{{ ansible_hostname }}_{{ db_sid }}_install.rsp"
+    msg:                               "Running /oracle/media/client/runInstaller -silent  -responseFile /oracle/media/{{ ansible_hostname }}_{{ db_sid }}_install.rsp -ignoreSysPrereqs"
 
 - name:                                "4.1.4 Oracle Data Guard - Observer - Execute RUNINSTALLER"
   become:                              true
@@ -64,6 +62,7 @@
   args:
     executable:                        /bin/csh
     creates:                           "/etc/sap_deployment_automation/observer/oracle_installed.txt"
+
 
 - name:                                "4.1.4 Oracle Data Guard - Observer - Debug: installer output"
   ansible.builtin.debug:
