@@ -4,12 +4,27 @@
 
 ################
 # Filename......: tnsnames.ora
-# Created.......: created by SDAF
+# Created.......: created by SDAF for Secondary
 # Name..........:
 # Date..........:
 # @(#) $Id: //inst/inst_scripts/lmts_006_REL/tpls/ora/TNSNAMES.ORA#2 $
 ################
 {{ db_sid }}.WORLD=
+  (DESCRIPTION =
+    (ADDRESS_LIST =
+        (ADDRESS =
+          (PROTOCOL = TCP)
+          (HOST = {{ ora_primary }})
+          (PORT = 1521)
+        )
+    )
+    (CONNECT_DATA =
+       (SID = {{ db_sid }})
+       (GLOBAL_NAME = {{ db_sid }}.WORLD)
+       (SERVICE_NAME = {{ db_sid }})
+    )
+  )
+{{ db_sid }}=
   (DESCRIPTION =
     (ADDRESS_LIST =
         (ADDRESS =
@@ -34,24 +49,8 @@
         )
     )
     (CONNECT_DATA =
-       (SID = {{ db_sid }})
-       (SERVICE_NAME = {{ db_sid }}_STDBY)
+       (SID = {{ db_sid }}_STDBY)
        (UR = A)
-    )
-  )
-{{ db_sid }}=
-  (DESCRIPTION =
-    (ADDRESS_LIST =
-        (ADDRESS =
-          (PROTOCOL = TCP)
-          (HOST = {{ ora_primary }})
-          (PORT = 1521)
-        )
-    )
-    (CONNECT_DATA =
-       (SID = {{ db_sid }})
-       (GLOBAL_NAME = {{ db_sid }}.WORLD)
-       (SERVICE_NAME = {{ db_sid }})
     )
   )
 {{ db_sid }}_STDBY=
@@ -64,8 +63,7 @@
         )
     )
     (CONNECT_DATA =
-       (SID = {{ db_sid }})
-       (SERVICE_NAME = {{ db_sid }}_STDBY)
+       (SID = {{ db_sid }}_STDBY)
        (UR = A)
     )
   )
