@@ -273,7 +273,7 @@
       become:                          true
       become_user:                     "root"
       ansible.builtin.copy:
-        src:                           /etc/sap_deployment_automation/dataguard_scripts/tnsnames.ora
+        src:                           "{{ target_media_location }}/downloads/{{ sap_sid | upper }}/tnsnames.ora"
         dest:                          /sapmnt/{{ sap_sid |upper }}/profile/oracle/tnsnames.ora
         remote_src:                    true
         owner:                         '{{ sap_sid |lower }}adm'
