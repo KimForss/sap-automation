@@ -276,7 +276,7 @@
         src:                           "{{ target_media_location }}/downloads/{{ sap_sid | upper }}/tnsnames.ora"
         dest:                          /sapmnt/{{ sap_sid |upper }}/profile/oracle/tnsnames.ora
         remote_src:                    true
-        owner:                         '{{ sap_sid |lower }}adm'
+        owner:                         '{{ sidadm_uid }}'
         group:                         sapsys
         mode:                          "{{ '0777' | int - (custom_umask | default('022') | int) }}"
 
