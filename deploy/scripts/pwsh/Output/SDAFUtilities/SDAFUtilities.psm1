@@ -275,6 +275,110 @@ function Copy-AzDevOpsVariableGroupVariable {
 # Export the function if this script is being imported as a module
 Export-ModuleMember -Function Copy-AzDevOpsVariableGroupVariable
 #EndRegion '.\Public\Copy-AzDevOpsVariableGroupValues.ps1' 183
+#Region '.\Public\Get-SDAFUserAssignedIdentity.ps1' -1
+
+function Get-SDAFUserAssignedIdentity {
+  [CmdletBinding()]
+  param (
+    [Parameter(Mandatory = $true)]
+    [string]$ManagedIdentityName,
+
+    [Parameter(Mandatory = $true)]
+    [string]$ResourceGroupName,
+
+    [Parameter(Mandatory = $true)]
+    [string]$SubscriptionId
+
+  )
+
+  begin {
+
+    Write-Verbose "Starting retrieval of user-assigned identity: $ManagedIdentityName"
+
+    # Ensure Azure CLI is logged in
+    try {
+      $account = az account show --query name -o tsv
+      if (-not $account) {
+        throw "Not logged in to Azure CLI"
+      }
+      Write-Verbose "Currently logged in to Azure account: $account"
+    }
+    catch {
+      Write-Error "Please login to Azure CLI first using 'az login'"
+      return
+    }
+    # Set the subscription context
+    try {
+      az account set --subscription $SubscriptionId
+      Write-Verbose "Set subscription context to: $SubscriptionId"
+    }
+    catch {
+      Write-Error "Failed to set subscription context to $SubscriptionId. Please verify the subscription ID is correct."
+      return
+    }
+
+    # Verify resource group exists
+    try {
+      $rgExists = az group exists --name $ResourceGroupName
+      if ($rgExists -eq "false") {
+        Write-Error "Resource group '$ResourceGroupName' does not exist in subscription '$SubscriptionId'"
+        return
+      }
+      Write-Verbose "Resource group '$ResourceGroupName' exists"
+    }
+    catch {
+      Write-Error "Failed to verify resource group existence: $_"
+      return
+    }
+  }
+
+  process {
+    try {
+      Write-Host "Retrieving user-assigned identity '$ManagedIdentityName' in resource group '$ResourceGroupName'..." -ForegroundColor Yellow
+
+      # Get the user-assigned identity
+      $identity = az identity list `
+        --resource-group $ResourceGroupName `
+        --query "[?name=='$ManagedIdentityName'].{id:id, principalId:principalId, clientId:clientId}" `
+        -o json | ConvertFrom-Json
+
+      if ($identity) {
+        Write-Host "Successfully retrieved user-assigned identity '$ManagedIdentityName'" -ForegroundColor Green
+        Write-Verbose "Identity ID: $($identity.id)"
+        Write-Verbose "Principal ID: $($identity.principalId)"
+        Write-Verbose "Client ID: $($identity.clientId)"
+
+        # Return the identity object
+        return [PSCustomObject]@{
+          Name             = $ManagedIdentityName
+          ResourceGroup    = $ResourceGroupName
+          SubscriptionId   = $SubscriptionId
+          IdentityId       = $identity.id
+          PrincipalId      = $identity.principalId
+          ClientId         = $identity.clientId
+          RoleAssignmentId = $roleAssignment
+        }
+      }
+      else {
+        Write-Error "Failed to retrieve user-assigned identity"
+        return
+      }
+    }
+    catch {
+      Write-Error "An error occurred while retrieving the identity: $_"
+      return
+    }
+  }
+
+  end {
+    Write-Verbose "Completed retrieval of user-assigned identity: $ManagedIdentityName"
+  }
+}
+
+
+# Export the function
+Export-ModuleMember -Function Get-SDAFUserAssignedIdentity
+#EndRegion '.\Public\Get-SDAFUserAssignedIdentity.ps1' 102
 #Region '.\Public\New-SDAFADOProject.ps1' -1
 
 #Requires -Version 5.1
@@ -1335,9 +1439,13 @@ resources:
           $id = $(az identity list --query "[?name=='$identity'].id" --subscription $subscription --output tsv)
           $ManagedIdentityObjectId = $(az identity show --ids $id --query "principalId" --output tsv)
         }
+        else {
+          $id = $(az identity list --query "[?principalId=='$ManagedIdentityObjectId'].id" --subscription $ControlPlaneSubscriptionId --output tsv)
+        }
 
         SetVariableGroupVariable -VariableGroupId $ControlPlaneVariableGroupId -VariableName "ARM_OBJECT_ID" -VariableValue $ManagedIdentityObjectId
         SetVariableGroupVariable -VariableGroupId $ControlPlaneVariableGroupId -VariableName "USE_MSI" -VariableValue "true"
+        SetVariableGroupVariable -VariableGroupId $ControlPlaneVariableGroupId -VariableName "MSI_ID" -VariableValue $id
 
         $ManagedIdentityClientId = (az ad sp show --id $ManagedIdentityObjectId --query appId --output tsv)
         SetVariableGroupVariable -VariableGroupId $ControlPlaneVariableGroupId -VariableName "ARM_CLIENT_ID" -VariableValue $ManagedIdentityClientId
@@ -1657,7 +1765,7 @@ resources:
 
 # Export the function
 Export-ModuleMember -Function New-SDAFADOProject
-#EndRegion '.\Public\New-SDAFADOProject.ps1' 1381
+#EndRegion '.\Public\New-SDAFADOProject.ps1' 1385
 #Region '.\Public\New-SDAFADOWorkloadZone.ps1' -1
 
 #Requires -Version 5.1
@@ -2064,8 +2172,29 @@ function New-SDAFADOWorkloadZone {
       }
 
       if ($AuthenticationMethod -eq "Managed Identity") {
+        $Roles = @(
+          "Contributor",
+          "Role Based Access Control Administrator",
+          "Storage Blob Data Owner",
+          "Key Vault Administrator",
+          "App Configuration Data Owner"
+        )
 
-        $ServiceEndpointExists = (az devops.service-endpoint list --query "[?name=='$ServiceConnectionName'].name | [0]"  --out tsv)
+        foreach ($RoleName in $Roles) {
+
+          Write-Host "Assigning role" $RoleName "to the Managed Identity" -ForegroundColor Green
+          $roleAssignment = az role assignment create --assignee-object-id $identity.principalId --assignee-principal-type ServicePrincipal --role $RoleName --scope /subscriptions/$WorkloadZoneSubscriptionId --query id --output tsv --only-show-errors
+          if ($roleAssignment) {
+            Write-Host "Successfully assigned $RoleName role to identity" -ForegroundColor Green
+            Write-Verbose "Role assignment ID: $roleAssignment"
+          }
+          else {
+            Write-Warning "Identity created but role assignment may have failed"
+          }
+        }
+
+
+        $ServiceEndpointExists = (az devops service-endpoint list --query "[?name=='$ServiceConnectionName'].name | [0]"  --out tsv)
         if ($ServiceEndpointExists.Length -eq 0) {
           CreateServiceConnection -ConnectionName $ServiceConnectionName `
             -ServiceConnectionDescription "$WorkloadZoneCode Service Connection" `
@@ -2192,7 +2321,7 @@ function New-SDAFADOWorkloadZone {
 
 # Export the function
 Export-ModuleMember -Function New-SDAFADOWorkloadZone
-#EndRegion '.\Public\New-SDAFADOWorkloadZone.ps1' 533
+#EndRegion '.\Public\New-SDAFADOWorkloadZone.ps1' 554
 #Region '.\Public\New-SDAFUserAssignedIdentity.ps1' -1
 
 function New-SDAFUserAssignedIdentity {

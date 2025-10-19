@@ -402,6 +402,27 @@ function New-SDAFADOWorkloadZone {
       }
 
       if ($AuthenticationMethod -eq "Managed Identity") {
+        $Roles = @(
+          "Contributor",
+          "Role Based Access Control Administrator",
+          "Storage Blob Data Owner",
+          "Key Vault Administrator",
+          "App Configuration Data Owner"
+        )
+
+        foreach ($RoleName in $Roles) {
+
+          Write-Host "Assigning role" $RoleName "to the Managed Identity" -ForegroundColor Green
+          $roleAssignment = az role assignment create --assignee-object-id $identity.principalId --assignee-principal-type ServicePrincipal --role $RoleName --scope /subscriptions/$WorkloadZoneSubscriptionId --query id --output tsv --only-show-errors
+          if ($roleAssignment) {
+            Write-Host "Successfully assigned $RoleName role to identity" -ForegroundColor Green
+            Write-Verbose "Role assignment ID: $roleAssignment"
+          }
+          else {
+            Write-Warning "Identity created but role assignment may have failed"
+          }
+        }
+
 
         $ServiceEndpointExists = (az devops service-endpoint list --query "[?name=='$ServiceConnectionName'].name | [0]"  --out tsv)
         if ($ServiceEndpointExists.Length -eq 0) {

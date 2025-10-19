@@ -1056,9 +1056,13 @@ resources:
           $id = $(az identity list --query "[?name=='$identity'].id" --subscription $subscription --output tsv)
           $ManagedIdentityObjectId = $(az identity show --ids $id --query "principalId" --output tsv)
         }
+        else {
+          $id = $(az identity list --query "[?principalId=='$ManagedIdentityObjectId'].id" --subscription $ControlPlaneSubscriptionId --output tsv)
+        }
 
         SetVariableGroupVariable -VariableGroupId $ControlPlaneVariableGroupId -VariableName "ARM_OBJECT_ID" -VariableValue $ManagedIdentityObjectId
         SetVariableGroupVariable -VariableGroupId $ControlPlaneVariableGroupId -VariableName "USE_MSI" -VariableValue "true"
+        SetVariableGroupVariable -VariableGroupId $ControlPlaneVariableGroupId -VariableName "MSI_ID" -VariableValue $id
 
         $ManagedIdentityClientId = (az ad sp show --id $ManagedIdentityObjectId --query appId --output tsv)
         SetVariableGroupVariable -VariableGroupId $ControlPlaneVariableGroupId -VariableName "ARM_CLIENT_ID" -VariableValue $ManagedIdentityClientId

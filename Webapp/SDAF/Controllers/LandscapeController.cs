@@ -196,13 +196,20 @@ namespace SDAFWebApp.Controllers
                     landscape.Id = Helper.GenerateId(landscape);
                     DateTime currentDateAndTime = DateTime.Now;
                     landscape.LastModified = currentDateAndTime.ToShortDateString();
-                    landscape.subscription_id = landscape.subscription.Replace("/subscriptions/", "");
+                    if (!landscape.subscription.IsNullOrEmpty())
+                    {
+                        landscape.subscription_id = landscape.subscription.Replace("/subscriptions/", "");
+                    }
 
                     if(landscape.environment.IsNullOrEmpty() && !landscape.workload_zone.IsNullOrEmpty())
                     {
                         landscape.environment=landscape.workload_zone.Split('-')[0];
                     }
-                                            
+                    if (landscape.network_logical_name.IsNullOrEmpty() && !landscape.workload_zone.IsNullOrEmpty())
+                    {
+                        landscape.network_logical_name = landscape.workload_zone.Split('-')[2];
+                    }
+
                     await _landscapeService.CreateAsync(new LandscapeEntity(landscape));
                     TempData["success"] = "Successfully created workload zone " + landscape.Id;
                     string id = landscape.Id;
@@ -331,9 +338,18 @@ namespace SDAFWebApp.Controllers
             {
                 ActionResult<LandscapeModel> result = await GetById(id, partitionKey);
                 LandscapeModel landscape = result.Value;
+                if (!landscape.subscription.IsNullOrEmpty())
+                {
+                    landscape.subscription_id = landscape.subscription.Replace("/subscriptions/", "");
+                }
+
                 if (landscape.environment.IsNullOrEmpty() && !landscape.workload_zone.IsNullOrEmpty())
                 {
                     landscape.environment = landscape.workload_zone.Split('-')[0];
+                }
+                if (landscape.network_logical_name.IsNullOrEmpty() && !landscape.workload_zone.IsNullOrEmpty())
+                {
+                    landscape.network_logical_name = landscape.workload_zone.Split('-')[2];
                 }
 
                 landscapeView.SapObject = landscape;
@@ -393,7 +409,23 @@ namespace SDAFWebApp.Controllers
                         {
                             landscape.environment = landscape.workload_zone.Split('-')[0];
                         }
+                        if (landscape.network_logical_name.IsNullOrEmpty() && !landscape.workload_zone.IsNullOrEmpty())
+                        {
+                            landscape.network_logical_name = landscape.workload_zone.Split('-')[2];
+                        }
+                                            if (!landscape.subscription.IsNullOrEmpty())
+                    {
+                        landscape.subscription_id = landscape.subscription.Replace("/subscriptions/", "");
+                    }
 
+                    if(landscape.environment.IsNullOrEmpty() && !landscape.workload_zone.IsNullOrEmpty())
+                    {
+                        landscape.environment=landscape.workload_zone.Split('-')[0];
+                    }
+                    if (landscape.network_logical_name.IsNullOrEmpty() && !landscape.workload_zone.IsNullOrEmpty())
+                    {
+                        landscape.network_logical_name = landscape.workload_zone.Split('-')[2];
+                    }
 
                         await _landscapeService.UpdateAsync(new LandscapeEntity(landscape));
                         TempData["success"] = "Successfully updated workload zone " + landscape.Id;

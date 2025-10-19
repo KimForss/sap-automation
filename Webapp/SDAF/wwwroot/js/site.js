@@ -451,7 +451,7 @@ function populateLocations(id, value) {
 // EVENT LISTENERS
 // ===============
 
-$("#subscription_id").on("change", function () {
+$("#subscription").on("change", function () {
     var subscriptionid = $(this).val();
     var dropdownsAffected = [
         {
@@ -599,25 +599,17 @@ $("#network_arm_id").on("change", function () {
 $("#workload_zone").on("change", function () {
   var workloadzoneid = $(this).val();
   if (workloadzoneid) {
+    var environmentVal = workloadzoneid.split("-")[0];
+    var networkLogicalNameVal = workloadzoneid.split("-")[2];
+    var locationVal = workloadzoneid.split("-")[1];
     var confirmMessage = "Are you sure? Selecting this value will populate certain inputs with values from the workload zone: " + workloadzoneid;
     if (confirm(confirmMessage)) {
-      $.ajax({
-        type: "GET",
-        url: "/Landscape/GetByIdJson",
-        data: {
-          id: workloadzoneid,
-        },
-        success: function (data) {
-          entireSystem = JSON.parse(data);
-          partialSystem = {};
-          partialSystem["location"] = entireLandscape["location"];
-          partialSystem["environment"] = entireLandscape["environment"];
-          partialSystem["network_logical_name"] = entireLandscape["network_logical_name"];
-          updateModel(partialSystem);
-        },
-        error: function () { alert("Error populating data for given workload zone"); }
-      });
-    } else {
+      $("#environment").val(environmentVal);
+      $("#network_logical_name").val(networkLogicalNameVal);
+      $("#locationCode").val(locationVal);
+
+    }
+    else {
       $("#workload_zone").val(null);
     }
   }

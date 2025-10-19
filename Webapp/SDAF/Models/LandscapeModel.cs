@@ -1,6 +1,8 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
+using SDAFWebApp.Controllers;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using static SDAFWebApp.Models.CustomValidators;
@@ -39,7 +41,9 @@ namespace SDAFWebApp.Models
         [DisplayName("Workload zone")]
         public string workload_zone { get; set; }
 
-        [RequiredIfNotDefault]
+        public string? workload_zone_id { get; set; }
+
+
         [DisplayName("Environment")]
         public string environment { get; set; }
 
@@ -48,6 +52,7 @@ namespace SDAFWebApp.Models
         [LocationValidator(ErrorMessage = "Location is not a valid Azure region")]
         public string location { get; set; }
 
+        public string locationCode { get; set; } = "";
         public string Description { get; set; }
 
         public string name_override_file { get; set; }
@@ -72,7 +77,6 @@ namespace SDAFWebApp.Models
         |                                                                            |
         +------------------------------------4--------------------------------------*/
 
-        [RequiredIfNotDefault]
         [DisplayName("Network name")]
         [RegularExpression(@"^\w{0,7}$", ErrorMessage = "Logical network name cannot exceed seven characters")]
         public string network_logical_name { get; set; }
