@@ -139,7 +139,6 @@
       ansible.builtin.shell: |
                                        setenv ORACLE_SID {{ db_sid | upper }}_STDBY
                                        /oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/sqlplus -s / as sysdba <<EOF
-                                       WHENEVER SQLERROR EXIT SQL.SQLCODE
                                        STARTUP NOMOUNT PFILE='/oracle/{{ db_sid | upper }}/{{ ora_version }}/dbs/init{{ db_sid | upper }}_STDBY.ora';
                                        ALTER SYSTEM REGISTER;
                                        EXIT;
