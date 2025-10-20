@@ -257,7 +257,7 @@
           when:
             - ansible_play_hosts_all | length >= 2
 
-set
+
 # /*----------------------------------------------------------------------------8
 # |                                                                            |
 # |                         PLAY FOR Observer Node setup                       |
