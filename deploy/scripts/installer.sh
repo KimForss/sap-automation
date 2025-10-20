@@ -248,6 +248,7 @@ if [ "${deployment_system}" == sap_deployer ]; then
 	deployer_tfstate_key=${key}.terraform.tfstate
 	ARM_SUBSCRIPTION_ID=$STATE_SUBSCRIPTION
 	export ARM_SUBSCRIPTION_ID
+
 fi
 
 network_logical_name=""
@@ -437,6 +438,15 @@ if [ "${deployment_system}" == sap_system ]; then
 		fi
 	fi
 fi
+
+if [[ -n $landscape_tfstate_key ]]; then
+	az storage blob list --container-name tfstate --account-name "${REMOTE_STATE_SA}" --auth-mode login --query "[?name=='$landscape_tfstate_key'].{name:name,size:properties.contentLength,lease:lease.status}" --output table
+fi
+
+if [[ -n $deployer_tfstate_key ]]; then
+	az storage blob list --container-name tfstate --account-name "${REMOTE_STATE_SA}" --auth-mode login --query "[?name=='$deployer_tfstate_key'].{name:name,size:properties.contentLength,lease:lease.status}" --output table
+fi
+
 
 if [[ -z $STATE_SUBSCRIPTION ]]; then
 	load_config_vars "${system_environment_file_name}" "STATE_SUBSCRIPTION"
