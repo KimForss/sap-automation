@@ -1,3 +1,4 @@
+---
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
@@ -276,16 +277,6 @@
 
 #  SBP_DBRU:                                  37960098
 #  SBP_JDKRU:                                 37860476
-
-
-
-
-
-
-
-
-
-
 
 - name:                                "4.1.4 Oracle Data Guard - Observer: - Copy tnsnames.ora TO Observer"
   become:                              true
