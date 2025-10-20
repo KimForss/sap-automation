@@ -103,14 +103,14 @@
     chdir:                             /etc/sap_deployment_automation/{{ db_sid | upper }}
     executable:                        /bin/csh
 
-- name:                               "5.1. Database Load - ORACLE : Debug: SGA Change Output"
+- name:                               "5.1. Database Load - ORACLE - Debug: SGA Change Output"
   ansible.builtin.copy:
     dest:                             "/etc/sap_deployment_automation/oracle/updatesga_results.log"
     content:                          "{{ updatesga_results.stdout }}"
     mode:                              0755
   when:                                updatesga_results.stdout is defined
 
-- name:                                "5.1. Database Load - ORACLE : Create ora_sga_updated.txt"
+- name:                                "5.1. Database Load - ORACLE - Create ora_sga_updated.txt"
   ansible.builtin.file:
     path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/ora_sga_updated.txt"
     state:                             touch
@@ -120,32 +120,32 @@
 # Wait for creation of HugePages
 # Reboot the VM to avoid the error "ORA-27102: out of memory"
 
-- name:                                "5.1. Database Load - ORACLE : DB VM reboot"
+- name:                                "5.1. Database Load - ORACLE - DB VM reboot"
   block:
 
-    - name:                            "ORACLE Post Processing: Reboot after the Enabling HugePages"
+    - name:                            "5.1. Database Load - ORACLE - Reboot after the Enabling HugePages"
       ansible.builtin.debug:
         msg:                           "Reboot after the Enabling HugePages"
 
-    - name:                            "5.1. Database Load - ORACLE : Reboot after the Enabling HugePages"
+    - name:                            "5.1. Database Load - ORACLE - Reboot after the Enabling HugePages"
       become:                          true
       become_user:                     root
       ansible.builtin.reboot:
         reboot_timeout:                300
       failed_when:                     false
 
-    - name:                            "5.1. Database Load - ORACLE : Clear the failed state of hosts"
+    - name:                            "5.1. Database Load - ORACLE - Clear the failed state of hosts"
       ansible.builtin.meta:            clear_host_errors
 
   # Wait for Connection after reboot
-    - name:                            "5.1. Database Load - ORACLE : Wait for Connection after reboot"
+    - name:                            "5.1. Database Load - ORACLE - Wait for Connection after reboot"
       ansible.builtin.wait_for_connection:
         delay:                         10
         timeout:                       300
   when:
     - not sga_update_status.stat.exists
 
-- name:                                "5.1. Database Load - ORACLE : Start Oracle after SGA Change"
+- name:                                "5.1. Database Load - ORACLE - Start Oracle after SGA Change"
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell: |
@@ -161,7 +161,7 @@
     executable:                        /bin/csh
 
 # Create a block for starting the oracle listener on primary node
-- name:                                "5.1. Database Load - ORACLE : Start lsnrctl on Primary"
+- name:                                "5.1. Database Load - ORACLE - Start lsnrctl on Primary"
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell:               lsnrctl start
