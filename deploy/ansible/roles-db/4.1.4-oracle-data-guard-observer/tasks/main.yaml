@@ -39,6 +39,8 @@
     state:                             "{{ item.state }}"
     recurse:                           true
     mode:                              "{{ item.mode }}"
+    owner:                             "{{ oracle_user_name }}"
+    group:                             oinstall
   loop:
     - { state: 'directory', mode: '0775', path: '/etc/sap_deployment_automation/' }
     - { state: 'directory', mode: '0755', path: '/etc/sap_deployment_automation/observer' }
@@ -130,11 +132,9 @@
     executable:                        /bin/csh
     creates:                           "/etc/sap_deployment_automation/observer/oracle_installed.txt"
 
-
 - name:                                "4.1.4 Oracle Data Guard - Observer - Debug: installer output"
   ansible.builtin.debug:
     var:                               orainstaller_results.stdout_lines
-    verbosity:                         2
 
 - name:                                "4.1.4 Oracle Data Guard - Observer - Debug installer output log"
   ansible.builtin.copy:
@@ -148,7 +148,9 @@
     path:                              "/etc/sap_deployment_automation/observer/oracle_installed.txt"
     state:                             touch
     mode:                              '0755'
-  when:                                orainstaller_results.rc <= 2
+    owner:                             "{{ oracle_user_name }}"
+    group:                             oinstall
+  when:                                orainstaller_results.rc == 0
 
 # /*---------------------------------------------------------------------------8
 # | Start of Oracle software installation using SAP RUNINSTALLER wrapper.      |
