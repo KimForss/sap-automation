@@ -64,7 +64,7 @@ module "common_infrastructure" {
   application_tier_ppg_names                    = module.sap_namegenerator.naming_new.app_ppg_names
   authentication                                = local.authentication
   azure_files_sapmnt_id                         = var.azure_files_sapmnt_id
-  custom_disk_sizes_filename                    = var.custom_disk_sizes_filename
+  custom_disk_sizes_filename                    = try(coalesce(var.custom_disk_sizes_filename, var.db_disk_sizes_filename), "")
   custom_prefix                                 = var.use_prefix ? var.custom_prefix : " "
   database                                      = local.database
   database_dual_nics                            = var.database_dual_nics
