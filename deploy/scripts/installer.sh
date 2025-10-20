@@ -447,6 +447,8 @@ if [[ -n $landscape_tfstate_key ]]; then
 	if [ "$workloadZone_State_file_Size" -lt 50000 ]; then
 			print_banner "Installer" "Workload zone terraform state file ('$landscape_tfstate_key') is empty" "error"
 			unset TF_DATA_DIR
+
+			az storage blob list --container-name tfstate --account-name "${REMOTE_STATE_SA}" --auth-mode login --query "[].{name:name,size:properties.contentLength,lease:lease.status}" --output table
 			exit 2
 	fi
 fi
@@ -461,6 +463,8 @@ if [[ -n $deployer_tfstate_key ]]; then
 	if [ "$deployer_Statefile_Size" -lt 50000 ]; then
 			print_banner "Installer" "Deployer terraform state file ('$deployer_tfstate_key') is empty" "error"
 			unset TF_DATA_DIR
+
+			az storage blob list --container-name tfstate --account-name "${REMOTE_STATE_SA}" --auth-mode login --query "[].{name:name,size:properties.contentLength,lease:lease.status}" --output table
 			exit 2
 	fi
 fi
