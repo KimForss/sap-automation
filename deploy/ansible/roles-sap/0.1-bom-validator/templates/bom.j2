@@ -14,7 +14,7 @@ InstanceType:  {% if root_bom.InstanceType is defined %}{{ root_bom.InstanceType
 
 patch_information:
 {% if root_bom.patch_information is defined %}
-{%   for pKey,pValue in root_bom.patch.items() %}
+{%   for pKey,pValue in root_bom.patch_information.items() %}
 {{'  %-10s' | format(pKey | trim +':') }}{{' \"%s\"' | format(pValue | trim) }}
 {%   endfor %}
 {% endif %}
