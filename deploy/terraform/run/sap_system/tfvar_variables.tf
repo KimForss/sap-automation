@@ -760,7 +760,7 @@ variable "app_tier_authentication_type"         {
 variable "sid"                                  {
                                                   description = "Application SID"
                                                   validation    {
-                                                                  condition     = length(var.sid) != 3
+                                                                  condition     = length(var.sid) == 3
                                                                   error_message = "The 'sid' variable must be exactly 3 characters long."
                                                                 }
                                                 }
