@@ -11,6 +11,6 @@ oracle_group:                      oinstall
 
 # Recovery Settings
 db_recovery_file_dest:             "+RECO"
-db_recovery_file_dest_size:        500M
+db_recovery_file_dest_size:        30000M
 
 standby_redo_log_size:             512M
