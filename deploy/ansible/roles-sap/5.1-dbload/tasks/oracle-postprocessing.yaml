@@ -6,8 +6,11 @@
     path:                              "{{ item.path }}"
     state:                             directory
     mode:                              '{{ item.mode }}'
+    owner:                             "{{ oracle_user_name }}"
+    group:                             oinstall
   loop:
     - { mode: '0755', path: '/etc/sap_deployment_automation/oracle' }
+    - { mode: '0755', path: '/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}' }
 
 - name:                                "5.1. Database Load - ORACLE: Set Runtime Variables"
   ansible.builtin.set_fact:
