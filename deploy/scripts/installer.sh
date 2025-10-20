@@ -454,7 +454,6 @@ if [[ -n $landscape_tfstate_key ]]; then
 fi
 
 if [[ -n $deployer_tfstate_key ]]; then
-	az storage blob list --container-name tfstate --account-name "${REMOTE_STATE_SA}" --auth-mode login --query "[?name=='$deployer_tfstate_key'].{name:name,size:properties.contentLength,lease:lease.status}" --output table
 
   deployer_Statefile_Size_String=$(az storage blob list --container-name tfstate --account-name "${REMOTE_STATE_SA}" --auth-mode login --query "[?name=='$deployer_tfstate_key'].properties.contentLength" --output tsv)
 

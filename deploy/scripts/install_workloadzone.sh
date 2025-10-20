@@ -300,6 +300,23 @@ load_config_vars "${deployer_environment_file_name}" ""
 deployer_tfstate_key="${deployerTerraformStatefileName}"
 save_config_var "deployer_tfstate_key" "${workload_environment_file_name}"
 
+
+if [[ -n $deployer_tfstate_key ]]; then
+
+  deployer_Statefile_Size_String=$(az storage blob list --container-name tfstate --account-name "${REMOTE_STATE_SA}" --auth-mode login --query "[?name=='$deployer_tfstate_key'].properties.contentLength" --output tsv)
+
+	deployer_Statefile_Size=$(expr "$deployer_Statefile_Size_String")
+
+	if [ "$deployer_Statefile_Size" -lt 50000 ]; then
+			print_banner "Installer" "Deployer terraform state file ('$deployer_tfstate_key') is empty" "error"
+			unset TF_DATA_DIR
+
+			az storage blob list --container-name tfstate --account-name "${REMOTE_STATE_SA}" --auth-mode login --query "[].{name:name,size:properties.contentLength,lease:lease.status}" --output table
+			exit 2
+	fi
+fi
+
+
 if [ -n "$REMOTE_STATE_SA" ]; then
 	getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${workload_environment_file_name}"
 fi
