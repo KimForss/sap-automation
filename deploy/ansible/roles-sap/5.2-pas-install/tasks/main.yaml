@@ -132,7 +132,7 @@
     name:                             "roles-db/4.0.4-hdb-schema"
     public:                           true
 
-- name:                                "PAS Install"
+- name:                                "5.2 Primary Application Server Installation - Installation block"
   block:
 
     # *====================================4=======================================8
@@ -236,7 +236,7 @@
         - database_high_availability
         - platform == 'HANA'
 
-    - name:                            "Starting PAS installation"
+    - name:                            "5.2 Primary Application Server Installation - Start installation"
       block:
 
         - name:                        "5.2 Primary Application Server Installation - Set DB Virtual Host name ({{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }})"
