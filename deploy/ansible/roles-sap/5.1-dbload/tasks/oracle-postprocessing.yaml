@@ -1,12 +1,24 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+- name:                                "5.1. Database Load - ORACLE - Create directories"
+  ansible.builtin.file:
+    path:                              "{{ item.path }}"
+    state:                             directory
+    mode:                              '{{ item.mode }}'
+  loop:
+    - { mode: '0755', path: '/etc/sap_deployment_automation/oracle' }
+
 - name:                                "5.1. Database Load - ORACLE: Set Runtime Variables"
   ansible.builtin.set_fact:
     is_UEK6:                           "{{ ansible_kernel is version('5.5', '<') }}"
     CV_ASSUME_DISTID:                  "{% if ansible_kernel is version('5.5', '<') %} OEL7 {% else %} OL8 {% endif %}"
 
 # Step 17
+- name:                                "5.1. Database Load - ORACLE: Show Status message"
+  ansible.builtin.debug:
+    msg:                               "5.1. Database Load - ORACLE: Run the post-installation script catsbp"
+
 - name:                                "5.1. Database Load - ORACLE: Run run the post-installation script catsbp"
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
@@ -20,7 +32,6 @@
     ORACLE_SID:                        "{{ sap_sid | upper }}"
   args:
     executable:                        /bin/csh
-    creates:                           "/etc/sap_deployment_automation/oracle/update_catsbp.txt"
 
 - name:                                "5.1. Database Load - ORACLE: Debug: GRID prepatch output"
   ansible.builtin.copy:
@@ -28,12 +39,6 @@
     content:                           "{{ catsbp_results.stdout }}"
     mode:                              0777
   when:                                catsbp_results.stdout is defined
-
-- name:                                "5.1. Database Load - ORACLE: creates update_catsbp.txt after a successful post processing script execution"
-  ansible.builtin.file:
-    path:                              "/etc/sap_deployment_automation/oracle/update_catsbp.txt"
-    state:                             touch
-    mode:                              '0755'
 
 - name:                                "5.1. Database Load - ORACLE: Set Variables"
   ansible.builtin.set_fact:
