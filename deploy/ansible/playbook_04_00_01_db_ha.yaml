@@ -272,6 +272,7 @@
               vars:
                 prefix:                "{{ product_id.replace('.', '/').replace('/ABAP', '').split(':')[1] }}"
                 suffix:                "_DC_ACTION"
+                path:                  "/etc/sap_deployment_automation/dataguard_scripts/"
 
 
 # /*----------------------------------------------------------------------------8
