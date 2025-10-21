@@ -1,6 +1,7 @@
-{# Copyright (c) Microsoft Corporation.
- # Licensed under the MIT License.
-#}
+# BOM Template File
+#
+# Downloaded on {{ ansible_date_time.date }} at {{ ansible_date_time.time }}
+
 name:          {{ root_bom.name }}
 filename:      {% if root_bom.filename is defined %}{{ root_bom.filename }}{% endif %}
 
