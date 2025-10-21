@@ -127,7 +127,7 @@
 
                                        /oracle/media/client/runInstaller -silent -responseFile /oracle/media/{{ ansible_hostname }}_{{ db_sid | upper }}_install.rsp -ignoreSysPrereqs -waitForCompletion
   register:                            orainstaller_results
-  failed_when:                         orainstaller_results.rc >= 2              # installer returns rc=1 (exited with warning) by default when run is silent mode as the oratab file is created only after running the root.sh
+  failed_when:                         "'Successfully Setup Software' not in orainstaller_results.stdout"
   environment:
     DB_SID:                            "{{ db_sid | upper }}"
     CV_ASSUME_DISTID:                  "{{ CV_ASSUME_DISTID }}"
