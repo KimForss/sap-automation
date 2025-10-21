@@ -92,7 +92,7 @@
       become:                          true
       ansible.builtin.shell: |
                                        rman TARGET sys/'{{ main_password }}'@{{ db_sid | upper }} AUXILIARY sys/'{{ main_password }}'@{{ db_sid | upper }}_STDBY <<EOF
-                                       DUPLICATE TARGET DATABASE FOR STANDBY FROM ACTIVE RECOVER DATABASE NOFILENAMECHECK;
+                                       DUPLICATE TARGET DATABASE FOR STANDBY FROM ACTIVE DORECOVER DATABASE NOFILENAMECHECK;
                                        EXIT;
                                        EOF
       args:
