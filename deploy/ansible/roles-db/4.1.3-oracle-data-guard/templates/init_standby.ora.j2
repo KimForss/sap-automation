@@ -10,6 +10,10 @@
 *.sga_max_size={{ sga_max_size }}
 *.pga_aggregate_target={{ pga_aggregate_target }}
 
+# Control files
+*.control_files='+DATA/{{ db_sid | upper }}_STDBY/control01.ctl','{{ db_recovery_file_dest }}/{{ db_sid | upper }}_STDBY/control02.ctl'
+
+
 # Recovery settings
 *.db_recovery_file_dest='{{ db_recovery_file_dest }}'
 *.db_recovery_file_dest_size='{{ db_recovery_file_dest_size }}'
