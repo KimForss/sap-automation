@@ -30,25 +30,25 @@
 # -------------------------------------+---------------------------------------8
 #
 
-- name:                                "1.5 Disk setup: - Check if installation root directory exists"
+- name:                                "1.5 Disk setup - Check if installation root directory exists"
   ansible.builtin.stat:
     path:                              "{{ tmp_directory }}"
   register:                            tmp_dir
 
-- name:                                "1.5 Disk setup: - Ensure installation root directory exists"
+- name:                                "1.5 Disk setup - Ensure installation root directory exists"
   ansible.builtin.file:
     path:                              "{{ tmp_directory }}"
     state:                             directory
     mode:                              0775
   when: not tmp_dir.stat.isdir
 
-- name:                                "1.5 Disk setup: - Default to no shared disk"
+- name:                                "1.5 Disk setup - Default to no shared disk"
   ansible.builtin.set_fact:
     shareddisk:                        0
 
 # NVMe CHECK
 # -------------------------------------+---------------------------------------8
-- name:                                "1.5 Disk setup: - NVMe Preflight Check - Debug hostvars"
+- name:                                "1.5 Disk setup - NVMe Preflight Check - Debug hostvars"
   when:
                                        - hostvars[ansible_hostname]['use_nvme_disks'] is defined
                                        - hostvars[ansible_hostname]['use_nvme_disks'] | default(false) | bool
@@ -58,7 +58,7 @@
   tags:
                                        - sapos-nvme-debug
 
-- name:                                "1.5 Disk setup: - NVMe Preflight Check"
+- name:                                "1.5 Disk setup - NVMe Preflight Check"
   when:
                                        - hostvars[ansible_hostname]['use_nvme_disks'] is defined
                                        - hostvars[ansible_hostname]['use_nvme_disks'] | default(false) | bool
@@ -68,7 +68,7 @@
 
 # -------------------------------------+---------------------------------------8
 
-- name:                                "1.5 Disk setup: - Check if the shared disk exists"
+- name:                                "1.5 Disk setup - Check if the shared disk exists"
   ansible.builtin.set_fact:
     shareddisk:                        "{{ disks | selectattr('host', 'defined') |
       selectattr('host', 'equalto', inventory_hostname) |
@@ -77,26 +77,26 @@
       list | length }}"
   when: hana_shared_mountpoint is not defined
 
-- name:                                "1.5 Disk setup: - Load the disk configuration settings"
+- name:                                "1.5 Disk setup - Load the disk configuration settings"
   ansible.builtin.include_vars:        disks_config.yml
 
-- name:                                "1.5 Disk setup: - Append 'install' if needed"
+- name:                                "1.5 Disk setup - Append 'install' if needed"
   ansible.builtin.set_fact:
     logical_volumes:                   "{{ logical_volumes + logical_volumes_install }}"
   when: usr_sap_install_mountpoint is not defined
 
-- name:                                "1.5 Disk setup: - Append 'sapmnt' if neeeded"
+- name:                                "1.5 Disk setup - Append 'sapmnt' if neeeded"
   ansible.builtin.set_fact:
     logical_volumes:                   "{{ logical_volumes_sapmnt + logical_volumes }}"
   when: sap_mnt is not defined
 
-- name:                                "1.5 Disk setup: - Append 'hanashared' if needed"
+- name:                                "1.5 Disk setup - Append 'hanashared' if needed"
   ansible.builtin.set_fact:
     logical_volumes:                   "{{ logical_volumes_hanashared | default([]) + logical_volumes }}"
   when:
     - hana_shared_mountpoint is undefined or hana_shared_mountpoint | length == 0
 
-- name:                                "1.5 Disk setup: - Show disk info"
+- name:                                "1.5 Disk setup - Show disk info"
   ansible.builtin.debug:
     msg:
       - "Unique disks:           {{ disktypes }} "
@@ -112,7 +112,7 @@
 # CREATE VOLUME GROUPS BASED ON sap-parameters.yaml
 # -------------------------------------+---------------------------------------8
 #
-- name:                                "1.5 Disk setup: - Volume Group creation"
+- name:                                "1.5 Disk setup - Volume Group creation"
   when:
     - tier == "sapos"
   community.general.lvg:
@@ -123,7 +123,7 @@
   loop:                                "{{ volume_groups }}"
   register:                            vgscreated
 
-- name:                                "1.5 Disk setup: - Print vgcreated details"
+- name:                                "1.5 Disk setup - Print vgcreated details"
   when:
     - tier == "sapos"
     - vgscreated is defined
@@ -134,7 +134,7 @@
                                        - sapos-vgcreated
                                        - skip_ansible_lint
 
-- name:                                "1.5 Disk setup: - Filter the volume group names from vgscreated results"
+- name:                                "1.5 Disk setup - Filter the volume group names from vgscreated results"
   when:
     - tier == "sapos"
   ansible.builtin.set_fact:
@@ -146,7 +146,7 @@
 # CREATE LOGICAL VOLUMES BASED ON VGCREATEDLIST
 # -------------------------------------+---------------------------------------8
 #
-- name:                                "1.5 Disk setup: - Logical Volume creation"
+- name:                                "1.5 Disk setup - Logical Volume creation"
   community.general.lvol:
     lv:                                "{{ item.lv }}"
     vg:                                "{{ item.vg }}"
@@ -164,19 +164,19 @@
       item.node_tier in [ 'all', supported_tiers ] | flatten(levels=1)
     - item.vg in vgcreatedlist
 
-- name:                                "1.5 Disk setup: - Filter the logical volumes created results"
+- name:                                "1.5 Disk setup - Filter the logical volumes created results"
   ansible.builtin.set_fact:
     lvcreatedlist_tmp:                 "{{ lvscreated.results | rejectattr('skipped', 'defined') | list }}"
   when:
     - tier == "sapos"
 
-- name:                                "1.5 Disk setup: - Get the logical volumes from the list"
+- name:                                "1.5 Disk setup - Get the logical volumes from the list"
   ansible.builtin.set_fact:
     lvcreatedlist:                     "{{ lvcreatedlist_tmp | map(attribute='item.lv') | list }}"
   when:
     - tier == "sapos"
 
-- name:                                "1.5 Disk setup: - Filesystem creation"
+- name:                                "1.5 Disk setup - Filesystem creation"
   community.general.filesystem:
     dev:                               "{{ dev_path_from_lv_item }}"
     fstype:                            "{{ item.fstype }}"
@@ -190,13 +190,13 @@
     - item.fstype is defined
     - item.lv in lvcreatedlist
 
-- name:                                "1.5 Disk setup: - Filter the filesystem created results"
+- name:                                "1.5 Disk setup - Filter the filesystem created results"
   ansible.builtin.set_fact:
     fscreatedlist_tmp:                 "{{ filesystemscreated.results | rejectattr('skipped', 'defined') | list }}"
   when:
     - tier == "sapos"
 
-- name:                                "1.5 Disk setup: - Debug disk information"
+- name:                                "1.5 Disk setup - Debug disk information"
   ansible.builtin.debug:
     msg:
       - "Created Volume Groups:    {{ vgcreatedlist }} "
@@ -206,19 +206,19 @@
   when:
     - tier == "sapos"
 
-- name:                                "1.5 Disk setup: - Show Custom Logical Volumes"
+- name:                                "1.5 Disk setup - Show Custom Logical Volumes"
   ansible.builtin.debug:
     var:                               custom_logical_volumes
   when:
     - custom_logical_volumes is defined
 
 
-- name:                                "1.5 Disk setup: - Custom Disks"
+- name:                                "1.5 Disk setup - Custom Disks"
   ansible.builtin.include_tasks:       "1.5-custom-disks.yml"
   when:
     - custom_logical_volumes is defined
 
-- name:                                "1.5 Disk setup: - Expand Volumes"
+- name:                                "1.5 Disk setup - Expand Volumes"
   ansible.builtin.include_tasks:       "1.5-expand-volumes.yml"
   when:
     - ansible_os_family | upper == 'REDHAT'
