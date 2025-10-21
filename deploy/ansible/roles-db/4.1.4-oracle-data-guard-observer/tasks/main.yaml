@@ -120,7 +120,7 @@
   register:                            oracle_exists
 
 - name:                                "4.1.4 Oracle Data Guard - Observer - Post Processing - Run orainstRoot.sh"
-  when:                                oracle_exists.stat.exists
+  when:                                not oracle_exists.stat.exists
   block:
 
     - name:                            "4.1.4 Oracle Data Guard - Observer - Execute RUNINSTALLER command"
