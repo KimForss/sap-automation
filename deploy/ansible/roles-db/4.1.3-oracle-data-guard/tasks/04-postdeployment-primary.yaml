@@ -108,7 +108,7 @@
                                        exit;
                                        EOF
       register:                        dgconfig_secondary_results
-      failed_when:                     dgconfig_results.rc > 0
+      failed_when:                     dgconfig_secondary_results.rc > 0
       args:
         executable:                    /bin/csh
 
