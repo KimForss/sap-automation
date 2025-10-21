@@ -98,7 +98,6 @@
       args:
         chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
         executable:                    /bin/csh
-        creates:                       /etc/sap_deployment_automation/dataguard_scripts/rman-restore.txt
       register:                        rman_duplicate
       failed_when:                     rman_duplicate.rc != 0
 
