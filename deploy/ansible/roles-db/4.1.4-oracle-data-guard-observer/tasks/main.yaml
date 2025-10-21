@@ -122,7 +122,10 @@
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell: |
-                                       /oracle/media/client/runInstaller -silent -responseFile /oracle/media/{{ ansible_hostname }}_{{ db_sid }}_install.rsp -ignoreSysPrereqs
+                                       setenv CV_ASSUME_DISTID {{ CV_ASSUME_DISTID }}
+                                       setenv  ORACLE_SID  {{ db_sid | upper }}
+
+                                       /oracle/media/client/runInstaller -silent -responseFile /oracle/media/{{ ansible_hostname }}_{{ db_sid | upper }}_install.rsp -ignoreSysPrereqs -waitForCompletion
   register:                            orainstaller_results
   failed_when:                         orainstaller_results.rc >= 2              # installer returns rc=1 (exited with warning) by default when run is silent mode as the oratab file is created only after running the root.sh
   environment:
