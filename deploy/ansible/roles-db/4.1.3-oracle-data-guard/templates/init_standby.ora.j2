@@ -14,10 +14,6 @@
 *.db_recovery_file_dest='{{ db_recovery_file_dest }}'
 *.db_recovery_file_dest_size='{{ db_recovery_file_dest_size }}'
 
-*.DG_BROKER_CONFIG_FILE1 = '+DATA/DG_CONFIG/dg_broker1.dat' SCOPE=BOTH;
-*.DG_BROKER_CONFIG_FILE2 = '+DATA/DG_CONFIG/dg_broker2.dat' SCOPE=BOTH;
-
-
 # Grid listener registration
 *.local_listener='(ADDRESS=(PROTOCOL=TCP)(HOST={{ ora_secondary }})(PORT={{ listener_port }}))'
 
