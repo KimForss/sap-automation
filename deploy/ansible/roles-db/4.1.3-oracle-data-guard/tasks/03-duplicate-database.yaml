@@ -195,7 +195,7 @@
                                        sqlplus -s / as sysdba << EOF
                                        WHENEVER SQLERROR EXIT SQL.SQLCODE
                                        ALTER SYSTEM SET STANDBY_FILE_MANAGEMENT=AUTO;
-                                       ALTER SYSTEM SET DG_BROKER_START = true SCOPE=BOTH;
+                                       ALTER SYSTEM SET DG_BROKER_START = true;
                                        exit
                                        EOF
       environment:
