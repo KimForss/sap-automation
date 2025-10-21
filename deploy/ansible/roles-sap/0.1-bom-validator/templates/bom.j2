@@ -22,6 +22,15 @@ product_ids:
 {% endif %}
 
 
+patch_information:
+
+{% if root_bom.patch_information is defined %}
+{%   for pKey,pValue in root_bom.patch_information.items() %}
+{{'  %-20s' | format(pKey | trim +':') }}{{' \"%s\"' | format(pValue | trim) }}
+{%   endfor %}
+{% endif %}
+
+
 materials:
   media:
 {% for media in root_media_list %}
