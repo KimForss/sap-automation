@@ -96,6 +96,7 @@
   loop:
     - { path: 'DATA/{{ db_sid | upper }}_STDBY' }
     - { path: 'RECO/{{ db_sid | upper }}_STDBY' }
+    - { path: 'DATA/{{ db_sid | upper }}_STDBY/DG_CONFIG' }
   args:
     executable:                        /bin/csh
     chdir:                              "/oracle/GRID/{{ ora_version }}/bin"
