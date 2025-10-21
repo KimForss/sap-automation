@@ -114,53 +114,59 @@
     force:                             true
   vars:
 
-- name:                                "4.1.4 Oracle Data Guard - Observer - Execute RUNINSTALLER command"
-  ansible.builtin.debug:
-    msg:                               "Running /oracle/media/client/runInstaller -silent  -responseFile /oracle/media/{{ ansible_hostname }}_{{ db_sid }}_install.rsp -ignoreSysPrereqs"
+- name:                                "4.1.4 Oracle Data Guard - Observer - Post Processing - Check if Oracle already installed"
+  ansible.builtin.stat:
+    path:                              /etc/sap_deployment_automation/observer/oracle_installed.txt
+  register:                            oracle_exists
 
-- name:                                "4.1.4 Oracle Data Guard - Observer - Execute RUNINSTALLER"
-  become:                              true
-  become_user:                         "{{ oracle_user_name }}"
-  ansible.builtin.shell: |
+- name:                                "4.1.4 Oracle Data Guard - Observer - Post Processing - Run orainstRoot.sh"
+  when:                                oracle_exists.stat.exists
+  block:
+
+    - name:                            "4.1.4 Oracle Data Guard - Observer - Execute RUNINSTALLER command"
+      ansible.builtin.debug:
+        msg:                           "Running /oracle/media/client/runInstaller -silent  -responseFile /oracle/media/{{ ansible_hostname }}_{{ db_sid }}_install.rsp -ignoreSysPrereqs"
+
+    - name:                            "4.1.4 Oracle Data Guard - Observer - Execute RUNINSTALLER"
+      become:                          true
+      become_user:                     "{{ oracle_user_name }}"
+      ansible.builtin.shell: |
                                        setenv CV_ASSUME_DISTID {{ CV_ASSUME_DISTID }}
                                        setenv  ORACLE_SID  {{ db_sid | upper }}
 
                                        /oracle/media/client/runInstaller -silent -responseFile /oracle/media/{{ ansible_hostname }}_{{ db_sid | upper }}_install.rsp -ignoreSysPrereqs -waitForCompletion
-  register:                            orainstaller_results
-  failed_when:                         "'Successfully Setup Software' not in orainstaller_results.stdout"
-  environment:
-    DB_SID:                            "{{ db_sid | upper }}"
-    CV_ASSUME_DISTID:                  "{{ CV_ASSUME_DISTID }}"
-  args:
-    executable:                        /bin/csh
-    creates:                           "/etc/sap_deployment_automation/observer/oracle_installed.txt"
+      register:                        orainstaller_results
+      failed_when:                     "'Successfully Setup Software' not in orainstaller_results.stdout"
+      environment:
+        DB_SID:                        "{{ db_sid | upper }}"
+        CV_ASSUME_DISTID:              "{{ CV_ASSUME_DISTID }}"
+      args:
+        executable:                    /bin/csh
+        creates:                       "/etc/sap_deployment_automation/observer/oracle_installed.txt"
 
-- name:                                "4.1.4 Oracle Data Guard - Observer - Debug: installer output"
-  ansible.builtin.debug:
-    var:                               orainstaller_results.stdout_lines
+    - name:                            "4.1.4 Oracle Data Guard - Observer - Debug: installer output"
+      ansible.builtin.debug:
+        var:                           orainstaller_results.stdout_lines
 
-- name:                                "4.1.4 Oracle Data Guard - Observer - Debug installer output log"
-  ansible.builtin.copy:
-    dest:                              "/etc/sap_deployment_automation/observer/oracle_install.log"
-    content   :                        "{{ orainstaller_results.stdout }}"
-    mode:                              '0777'
-  when:                                orainstaller_results.stdout is defined
+    - name:                            "4.1.4 Oracle Data Guard - Observer - Debug installer output log"
+      ansible.builtin.copy:
+        dest:                          "/etc/sap_deployment_automation/observer/oracle_install.log"
+        content   :                    "{{ orainstaller_results.stdout }}"
+        mode:                          '0777'
+      when:                            orainstaller_results.stdout is defined
 
-- name:                                "4.1.4 Oracle Data Guard - Observer - Create oracle_installed.txt"
-  ansible.builtin.file:
-    path:                              "/etc/sap_deployment_automation/observer/oracle_installed.txt"
-    state:                             touch
-    mode:                              '0755'
-    owner:                             "{{ oracle_user_name }}"
-    group:                             oinstall
-  when:                                orainstaller_results.rc == 0
+    - name:                            "4.1.4 Oracle Data Guard - Observer - Create oracle_installed.txt"
+      ansible.builtin.file:
+        path:                          "/etc/sap_deployment_automation/observer/oracle_installed.txt"
+        state:                         touch
+        mode:                          '0755'
+        owner:                         "{{ oracle_user_name }}"
+        group:                         oinstall
+      when:                            orainstaller_results.rc == 0
 
 # /*---------------------------------------------------------------------------8
-# | Start of Oracle software installation using SAP RUNINSTALLER wrapper.      |
-# | Before running Installer set DB_SID and CV_ASSUME_DISTID according to      |
-# | SAP Note 2660017 Oracle Software Installation on Unix                      |
 # |                                                                            |
-# | Step 3 Post processing                                                     |
+# | Post processing                                                     |
 # +------------------------------------4--------------------------------------*/
 
 - name:                                "4.1.4 Oracle Data Guard - Observer - Post Processing - Run orainstRoot.sh exists"
