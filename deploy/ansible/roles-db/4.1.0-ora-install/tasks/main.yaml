@@ -56,8 +56,8 @@
   loop:
     - { state: 'directory', mode: '0775', path: '/oracle' }
     - { state: 'directory', mode: '0775', path: '/etc/sap_deployment_automation' }
-    - { state: 'directory', mode: '0755', path: '/etc/sap_deployment_automation/{{ sap_sid | upper }}' }
-    - { state: 'directory', mode: '0755', path: '{{ tmp_directory }}/{{ sap_sid | upper }}' }
+    - { state: 'directory', mode: '0755', path: '/etc/sap_deployment_automation/{{ db_sid | upper }}' }
+    - { state: 'directory', mode: '0755', path: '{{ tmp_directory }}/{{ db_sid | upper }}' }
 
 - name:                                "4.1.0 Oracle Installation - check if installed"
   ansible.builtin.stat:
