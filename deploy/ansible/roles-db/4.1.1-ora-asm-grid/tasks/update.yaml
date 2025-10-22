@@ -88,7 +88,7 @@
     mopatch_path:                      "{{ mopatch_directory.files[0].path }}"
   when:                                mopatch_directory.matched == 1
 
-- name:                                "4.1.1. ORACLE Grid Update - Patch ID for GRID"
+- name:                                "4.1.1. ORACLE Grid Update - Patch ID for Database Release Update"
   become:                              true
   become_user:                         root
   ansible.builtin.find:
@@ -98,9 +98,9 @@
     recurse:                           true
   register:                            patch_grid_id_directory
 
-- name:                                "4.1.1. ORACLE Grid Update - Find Patch ID for GRID"
+- name:                                "4.1.1. ORACLE Grid Update - Find Patch ID for Database Release Update"
   ansible.builtin.fail:
-    msg:                               "No Patch Ids"
+    msg:                               "No Database Release Update found"
   when:                                patch_grid_id_directory.matched != 1
 
 - name:                                "4.1.1. ORACLE Grid Update - SaveOPatch ID"

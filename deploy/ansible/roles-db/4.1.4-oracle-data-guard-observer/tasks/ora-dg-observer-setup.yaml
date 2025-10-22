@@ -101,7 +101,7 @@
     - { mode: '0755', path: '/oracle' }
 
 
-- name:                                "4.1.3 Oracle Data Guard - Observer: - Search for bundle.xml to find patch root"
+- name:                                "4.1.3 Oracle Data Guard - Observer: - Search Database Release Update"
   become:                              true
   become_user:                         root
   ansible.builtin.find:
@@ -111,9 +111,9 @@
     recurse:                           true
   register:                            patch_grid_id_directory
 
-- name:                                "4.1.3 Oracle Data Guard - Observer: - Find Patch ID for GRID"
+- name:                                "4.1.3 Oracle Data Guard - Observer: - Find Patch ID for Database Release Update"
   ansible.builtin.fail:
-    msg:                               "No Patch Ids"
+    msg:                               "No Database Release Update found"
   when:                                patch_grid_id_directory.matched != 1
 
 - name:                                "4.1.3 Oracle Data Guard - Observer: - Get OPatch ID"
