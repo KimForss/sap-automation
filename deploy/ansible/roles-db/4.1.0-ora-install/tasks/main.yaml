@@ -126,6 +126,11 @@
         path:                          "{{ patch_copy_name }}"
       register:                        opatchgrid_stat
 
+    - name:                            "4.1.0. Oracle Installation - Check if backup exists for GRID"
+      ansible.builtin.stat:
+        path:                          "/oracle/{{ db_sid | upper }}/{{ ora_version }}/OPatch"
+      register:                        opatch_exists_stat
+
     - name:                            "4.1.0. Oracle Installation - Backup OPatch"
       ansible.builtin.copy:
         src:                           "/oracle/{{ db_sid | upper }}/{{ ora_version }}/OPatch"
@@ -135,7 +140,7 @@
         owner:                         "{{ oracle_user_name }}"
         group:                         oinstall
       when:
-        - not opatchgrid_stat.stat.exists
+        - opatch_exists_stat.stat.exists
 
     - name:                            "4.1.0. Oracle Installation - Remove old OPatch"
       ansible.builtin.file:
