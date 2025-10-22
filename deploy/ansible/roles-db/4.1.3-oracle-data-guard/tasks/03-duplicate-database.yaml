@@ -78,7 +78,7 @@
       ansible.builtin.shell: |
                                        setenv ORACLE_SID {{ db_sid | upper }}_STDBY
                                        /oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/sqlplus -S / as sysdba <<EOF
-                                       STARTUP;
+                                       STARTUP NOMOUNT;
                                        EXIT;
                                        EOF
       register:                        startup_result
