@@ -224,6 +224,13 @@ mssql_collation:                        'SQL_Latin1_General_CP850_BIN2'
 
 # "CSD"  if you are using the cluster shared drive or Choose "FS" if you are using the File Share.
 win_cluster_share_type:                 'CSD'
+mssql_ag_name:                          "SDAF-{{ sap_sid | upper }}AG"
+
+# DNN Configuration
+use_dnn_listener:                       false
+mssql_dnn_name:                         "{{ sap_sid | upper }}DNN"
+mssql_dnn_listener_port:                1433
+mssql_dnn_health_probe_port:            59999
 
 # -------------------------------------+---------------------------------------8
 

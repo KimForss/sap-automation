@@ -2,14 +2,14 @@
 # Licensed under the MIT License.
 
 - name:                                "WIN: Calculating the domain value from {{ domain_name }}"
+  when:
+                                       - domain_name is defined
+                                       - domain_name | type_debug != 'NoneType'
+                                       - domain_name | trim | length > 1
+                                       - domain is not defined
   ansible.builtin.set_fact:
     domain:                            "{{ domain_name | split('.') | first }}"
     cacheable:                         true
-  when:
-    - domain_name is defined
-    - domain_name | type_debug != 'NoneType'
-    - domain_name | trim | length > 1
-    - domain is not defined
 
 - name:                                "WIN: Joining the domain {{ domain }}"
   ansible.builtin.debug:
@@ -19,9 +19,55 @@
       - "hostname:                     {{ ansible_hostname }}"
     verbosity:                         2
 
+# CRITICAL: Configure DNS to point to domain controller BEFORE attempting domain join
+- name:                                "WIN: Get primary network adapter name"
+  ansible.windows.win_shell: |
+                                       $adapter = Get-NetAdapter | Where-Object {$_.Status -eq 'Up'} | Select-Object -First 1
+                                       $adapter.Name
+  register:                            primary_adapter
+  changed_when:                        false
+
+- name:                                "WIN: Configure DNS to point to domain controller"
+  ansible.windows.win_dns_client:
+    adapter_names:                     "{{ primary_adapter.stdout | trim }}"
+    dns_servers:                       "{{ domain_dns_servers }}"
+  register:                            dns_configured
+
+- name:                                "WIN: Verify domain reachability via DNS"
+  ansible.windows.win_shell: |
+                                       $ErrorActionPreference = 'Stop'
+                                       try {
+                                         $dcRecord = Resolve-DnsName -Name "{{ domain_name }}" -Type A -ErrorAction Stop
+                                         Write-Output "Successfully resolved domain {{ domain_name }}"
+                                         Write-Output "Domain Controller IPs: $($dcRecord.IPAddress -join ', ')"
+                                         exit 0
+                                       } catch {
+                                         Write-Error "Failed to resolve domain {{ domain_name }}: $_"
+                                         exit 1
+                                       }
+  register:                            domain_dns_test
+  changed_when:                        false
+  failed_when:                         domain_dns_test.rc != 0
+
+- name:                                "WIN: Verify domain controller connectivity"
+  ansible.windows.win_shell: |
+                                       $ErrorActionPreference = 'Stop'
+                                       $dcIp = "{{ domain_dns_servers[0] }}"
+                                       if (Test-NetConnection -ComputerName $dcIp -Port 389 -InformationLevel Quiet) {
+                                         Write-Output "Successfully connected to domain controller at $dcIp on LDAP port 389"
+                                       } else {
+                                         throw "Cannot connect to domain controller at $dcIp on LDAP port 389"
+                                       }
+  register:                            dc_connectivity_test
+  changed_when:                        false
+
 # domain_ou_path needs to be defined in the ansible-input-api.yaml file
 # in the format as an example: 'OU=Windows,OU=Servers,DC=ansible,DC=local'
-- name:                                "WIN: Joining the domain {{ domain }}"
+- name:                                "WIN: Joining the domain {{ domain }} with OU path"
+  when:
+                                       - domain_ou_path is defined
+                                       - domain_ou_path | type_debug != 'NoneType'
+                                       - domain_ou_path | trim | length > 1
   microsoft.ad.membership:
     dns_domain_name:                   "{{ domain_name }}"
     domain_admin_user:                 "{{ domain_service_account }}@{{ domain_name }}"
@@ -30,12 +76,13 @@
     hostname:                          "{{ ansible_hostname }}"
     state:                             domain
   register:                            domain_state
-  when:
-    - domain_ou_path is defined
-    - domain_ou_path | type_debug != 'NoneType'
-    - domain_ou_path | trim | length > 1
+  vars:
+    ansible_winrm_transport:              credssp
+    ansible_winrm_server_cert_validation: ignore
 
-- name:                                "WIN: Joining the domain {{ domain }}"
+- name:                                "WIN: Joining the domain {{ domain }} without OU path"
+  when:
+    - domain_ou_path is not defined or domain_ou_path | type_debug == 'NoneType' or domain_ou_path | trim | length == 0
   microsoft.ad.membership:
     dns_domain_name:                   "{{ domain_name }}"
     domain_admin_user:                 "{{ domain_service_account }}@{{ domain_name }}"
@@ -43,10 +90,11 @@
     hostname:                          "{{ ansible_hostname }}"
     state:                             domain
   register:                            domain_state
-  when:
-    - domain_ou_path is not defined or domain_ou_path | type_debug == 'NoneType' or domain_ou_path | trim | length == 0
+  vars:
+    ansible_winrm_transport:              credssp
+    ansible_winrm_server_cert_validation: ignore
 
 - name:                                "WIN: Joining the domain {{ domain }} - reboot"
+  when:                                domain_state.reboot_required
   ansible.windows.win_reboot:
     post_reboot_delay:                 60
-  when:                                domain_state.reboot_required
