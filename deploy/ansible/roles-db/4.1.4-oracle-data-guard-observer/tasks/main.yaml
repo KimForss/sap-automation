@@ -416,7 +416,7 @@
                                        EOF
   register:                            create_wallet_results
   args:
-    chdir:                             /oracle/{{ db_sid | upper }}/{{ ora_release }}/bin
+    chdir:                             /oracle/{{ db_sid | upper }}/{{ ora_version }}/bin
     executable:                        /bin/csh
 
 - name:                                "4.1.4 Oracle Data Guard - Observer - Create Password for {{ db_sid | upper }}"
@@ -429,7 +429,7 @@
                                        EOF
   register:                            create_password_results
   args:
-    chdir:                             /oracle/{{ db_sid | upper }}/{{ ora_release }}/bin
+    chdir:                             /oracle/{{ db_sid | upper }}/{{ ora_version }}/bin
     executable:                        /bin/csh
 
 
