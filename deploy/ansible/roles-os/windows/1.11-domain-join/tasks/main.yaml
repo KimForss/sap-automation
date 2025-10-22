@@ -22,10 +22,32 @@
 # CRITICAL: Configure DNS to point to domain controller BEFORE attempting domain join
 - name:                                "WIN: Get primary network adapter name"
   ansible.windows.win_shell: |
-                                       $adapter = Get-NetAdapter | Where-Object {$_.Status -eq 'Up' -and $_.InterfaceDescription -notlike "*Mellanox*"} | Select-Object -First 1
-                                       $adapter.Name
+                                       Import-Module NetAdapter -ErrorAction Stop
+
+                                       # Adapter with existing DNS servers configured
+                                       $adapter = Get-NetAdapter | Where-Object {
+                                         $_.Status -eq 'Up' -and
+                                         $_.InterfaceDescription -notlike '*Mellanox*' -and
+                                         (Get-DnsClientServerAddress -InterfaceIndex $_.ifIndex -AddressFamily IPv4).ServerAddresses.Count -gt 0
+                                       } | Select-Object -First 1
+
+                                       # First active physical adapter if no DNS configured
+                                       if (-not $adapter) {
+                                         $adapter = Get-NetAdapter | Where-Object {
+                                           $_.Status -eq 'Up' -and
+                                           $_.InterfaceDescription -notlike '*Mellanox*' -and
+                                           $_.PhysicalAdapter -eq $true
+                                         } | Select-Object -First 1
+                                       }
+
+                                       if ($adapter) {
+                                         Write-Output $adapter.Name
+                                       } else {
+                                         throw "No suitable network adapter found for DNS configuration"
+                                       }
   register:                            primary_adapter
   changed_when:                        false
+  failed_when:                         primary_adapter.rc != 0
 
 - name:                                "WIN: Configure DNS to point to domain controller"
   ansible.windows.win_dns_client:
