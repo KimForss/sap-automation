@@ -352,7 +352,7 @@
   ansible.builtin.shell:               tnsping {{ db_sid | upper }}
   register:                            tnsping_primary_results
   args:
-    chdir:                             /oracle/{{ db_sid | upper }}/{{ ora_release }}/bin
+    chdir:                             /oracle/{{ db_sid | upper }}/{{ ora_version }}/bin
     executable:                        /bin/csh
 
 - name:                                "4.1.4 Oracle Data Guard - Observer - Show tnsping Primary output"
@@ -376,7 +376,7 @@
   ansible.builtin.shell:               tnsping {{ db_sid | upper }}_STDBY
   register:                            tnsping_secondary_results
   args:
-    chdir:                             /oracle/{{ db_sid | upper }}/{{ ora_release }}/bin
+    chdir:                             /oracle/{{ db_sid | upper }}/{{ ora_version }}/bin
     executable:                        /bin/csh
 
 - name:                                "4.1.4 Oracle Data Guard - Observer - Show tnsping Secondary output"
