@@ -460,7 +460,7 @@
 
 - name:                                "4.1.4 Oracle Data Guard - Observer - Create default_password for {{ db_sid | upper }}"
   become:                              true
-  become_user:                         "{{ main_password }}"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell: |
                                        mkstore -wrl /oracle/observer/wallet  -createEntry oracle.security.client.default_password '{{ main_password | replace ('$', '\\$') }}' << EOF
                                        {{ main_password | replace ('$', '') }}
