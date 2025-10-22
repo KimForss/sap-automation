@@ -411,8 +411,8 @@
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell: |
                                        mkstore -wrl /oracle/observer/wallet -create <<EOF
-                                       '{{ main_password }}'
-                                       '{{ main_password }}'
+                                       {{ main_password }}
+                                       {{ main_password }}
                                        EOF
   register:                            create_wallet_results
   args:
@@ -424,14 +424,13 @@
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell: |
                                        mkstore -wrl /oracle/observer/wallet -createCredential {{ db_sid | upper }} sys <<EOF
-                                       '{{ main_password }}'
-                                       '{{ main_password }}'
+                                       {{ main_password }}
+                                       {{ main_password }}
                                        EOF
   register:                            create_password_results
   args:
     chdir:                             /oracle/{{ db_sid | upper }}/{{ ora_version }}/bin
     executable:                        /bin/csh
-
 
 ...
 # /*---------------------------------------------------------------------------8
