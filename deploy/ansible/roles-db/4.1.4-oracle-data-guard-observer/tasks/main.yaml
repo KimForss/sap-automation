@@ -428,6 +428,11 @@
       - "Wallet password: {{ main_password | replace ('$', '') }}"
       - "Observer Wallet path: /oracle/observer/wallet"
       - "User passwprd: {{ main_password | replace ('$', '\\$') }}"
+      - "Command: mkstore -wrl /oracle/observer/wallet  -createEntry oracle.security.client.default_password << EOF
+                                       {{ main_password | replace ('$', '\\$') }}
+                                       {{ main_password | replace ('$', '\\$') }}
+                                       {{ main_password | replace ('$', '') }}
+                                       EOF
 
 
 
@@ -462,7 +467,9 @@
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell: |
-                                       mkstore -wrl /oracle/observer/wallet  -createEntry oracle.security.client.default_password '{{ main_password | replace ('$', '\\$') }}' << EOF
+                                       mkstore -wrl /oracle/observer/wallet  -createEntry oracle.security.client.default_password << EOF
+                                       {{ main_password | replace ('$', '\\$') }}
+                                       {{ main_password | replace ('$', '\\$') }}
                                        {{ main_password | replace ('$', '') }}
                                        EOF
   register:                            create_password_results
