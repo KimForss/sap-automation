@@ -11,7 +11,6 @@
                                        setenv ORACLE_SID {{ db_sid | upper }}_STDBY
                                        $ORACLE_HOME/bin/sqlplus -s / as sysdba <<EOF
                                        WHENEVER SQLERROR EXIT SQL.SQLCODE
-                                       ALTER SYSTEM SET DB_UNIQUE_NAME='{{ db_sid | upper }}_STDBY' SCOPE=SPFILE;
                                        ALTER SYSTEM SET LOG_ARCHIVE_CONFIG='DG_CONFIG=({{ db_sid | upper }},{{ db_sid | upper }}_STDBY)' SCOPE=BOTH;
                                        ALTER SYSTEM SET FAL_SERVER='{{ ora_primary }}' SCOPE=BOTH;
                                        ALTER SYSTEM SET FAL_CLIENT='{{ ora_secondary }}' SCOPE=BOTH;

@@ -27,7 +27,6 @@
                                        $ORACLE_HOME/bin/sqlplus -S / as sysdba <<EOF
                                        SET PAGESIZE 0 FEEDBACK OFF HEADING OFF
                                        WHENEVER SQLERROR EXIT SQL.SQLCODE
-                                       ALTER SYSTEM SET DB_UNIQUE_NAME='{{ db_sid | upper }}' SCOPE=BOTH;
                                        ALTER SYSTEM SET LOG_ARCHIVE_CONFIG='DG_CONFIG=({{ db_sid | upper }},{{ db_sid | upper }}_STDBY)' SCOPE=BOTH;
                                        ALTER SYSTEM SET FAL_SERVER='{{ db_sid | upper }}' SCOPE=BOTH;
                                        ALTER SYSTEM SET FAL_CLIENT='{{ db_sid | upper }}_STDBY' SCOPE=BOTH;
