@@ -322,24 +322,24 @@
 
         # Specify the active tier for this playbook run
 
-        - name:                            "Database High Availability Configuration Playbook - ORACLE Observer : Check if the mounts are made"
-          ansible.builtin.include_role:
-            name:                          roles-sap-os/2.6-sap-mounts
-          vars:
-            tier:                          sapos
+        # - name:                            "Database High Availability Configuration Playbook - ORACLE Observer : Check if the mounts are made"
+        #   ansible.builtin.include_role:
+        #     name:                          roles-sap-os/2.6-sap-mounts
+        #   vars:
+        #     tier:                          sapos
 
-        - name:                            "Database High Availability Configuration Playbook - ORACLE Observer : Oracle Observer setup"
-          ansible.builtin.include_role:
-            name:                          roles-db/4.1.4-oracle-data-guard-observer
-          vars:
-            tier:                          observer
+        # - name:                            "Database High Availability Configuration Playbook - ORACLE Observer : Oracle Observer setup"
+        #   ansible.builtin.include_role:
+        #     name:                          roles-db/4.1.4-oracle-data-guard-observer
+        #   vars:
+        #     tier:                          observer
 
-        - name:                            "Database High Availability Configuration Playbook - ORACLE Observer : Run post installation routines"
-          ansible.builtin.include_role:
-            name:                          roles-sap/7.0.0-post-install
-          vars:
-            suffix:                        "_OBSERVER"
-            tier:                          'oracle'
+        # - name:                            "Database High Availability Configuration Playbook - ORACLE Observer : Run post installation routines"
+        #   ansible.builtin.include_role:
+        #     name:                          roles-sap/7.0.0-post-install
+        #   vars:
+        #     suffix:                        "_OBSERVER"
+        #     tier:                          'oracle'
 
 # # /*-------------------------------------------------------------------------8
 # # |                                                                          |
