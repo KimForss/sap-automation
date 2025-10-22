@@ -633,6 +633,9 @@
           ansible.builtin.set_fact:
             tier:                      ora                                    # Actions for Oracle DB Servers
             main_password:             "{{ hostvars.localhost.sap_password }}"
+            sapbits_sas_token:         "{{ hostvars.localhost.sapbits_sas_token }}"
+            ora_primary:               "{{ ansible_play_hosts_all[0] }}"         # Oracle Primary Host
+            ora_secondary:             "{{ ansible_play_hosts_all[1] | default ('(N/A)')}}"         # Oracle Secondary Host
           tags:
             - always
 
