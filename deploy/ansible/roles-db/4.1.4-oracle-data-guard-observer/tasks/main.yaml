@@ -432,9 +432,7 @@
                                        {{ main_password | replace ('$', '\\$') }}
                                        {{ main_password | replace ('$', '\\$') }}
                                        {{ main_password | replace ('$', '') }}
-                                       EOF
-
-
+                                       EOF"
 
 # Create Wallet for storing the credentials
 
