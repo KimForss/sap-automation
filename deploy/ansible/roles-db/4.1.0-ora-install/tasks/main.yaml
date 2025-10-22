@@ -163,7 +163,14 @@
         - oracle_installer_results.rc >= 3
 
     # Step 4
+
+    - name:                            "4.1.1. ORACLE Installation - Check if oradism exists"
+      ansible.builtin.stat:
+        path:                          "/oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/oradism"
+      register:                         oradism_stat
+
     - name:                            "4.1.0 Oracle Installation - pre processing reset permissions"
+      when:                            oradism_stat.stat.exists
       ansible.builtin.file:
         path:                          "/oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/oradism"
         state:                         file
@@ -172,7 +179,7 @@
         group:                         oinstall
 
     # Step 5
-    - name:                            "4.1.0 Oracle Installation - Post Processing - DB SBP Patching - progress"
+    - name:                            "4.1.0 Oracle Installation - DB SBP Patching - progress"
       ansible.builtin.debug:
         msg:                           "Running SBP Patching, env ORACLE_HOME=$IHRDBMS  $IHRDBMS /MOPatch/mopatch.sh -v -s {{ target_media_location }}/SBP/{{ oracle_sbp_patch }}, please wait"
 
