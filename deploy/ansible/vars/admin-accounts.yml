@@ -393,19 +393,6 @@ admin_users:
 # ####
 # Admin users for Oracle Non-ASM Multi-SID
 
-  # - name:         "ora{{ sap_sid | lower }}"
-  #   comment:      "Oracle Database System Administrator"
-  #   uid:          "{{ orasid_uid }}"
-  #   group:        dba
-  #   groups:       ["oper","sapinst","oinstall"]
-  #   sudoers_role: "admin_no_password"
-  #   password:     "{{ main_password }}"
-  #   shell:        /bin/csh
-  #   state:        present
-  #   tier:         ora
-  #   node_tier:    oracle-multi-sid
-  #   enabled:      true
-
   - name:         "{{ oracle_user_name }}"
     comment:      "Oracle Database software Administrator"
     uid:          "{{ oracle_uid }}"
