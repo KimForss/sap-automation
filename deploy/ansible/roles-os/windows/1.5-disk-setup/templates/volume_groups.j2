@@ -2,7 +2,7 @@
  # Licensed under the MIT License.
 #}
 {#
- # Windows Disk Volume Groups Template
+ # Windows Disk Volume Groups Template - Corrected Version
  #
  # Purpose: Transform Azure disk configuration into Windows disk configuration
  #          Supports both drive letters and mount points
@@ -52,15 +52,13 @@
 #}
 {%   for disk in disks if (disk.host == inventory_hostname) and (disk.type == disktype) %}
 {#
-      Skip this disk if its LUN is in the excluded list (sbdDevices)
+      Only process if LUN is NOT in excluded list (sbdDevices)
 #}
-{%     if disk.LUN in excluded_luns %}
-{%       continue %}
-{%     endif %}
+{%     if disk.LUN not in excluded_luns %}
 {#
       Build regex to match Azure LUN in disk location attribute
 #}
-{%     set regex_string = 'LUN\s+' ~ disk.LUN ~ '(?:\s|$)' %}
+{%       set regex_string = 'LUN\s+' ~ disk.LUN ~ '(?:\s|$)' %}
 {#
       Find matching disk in ansible_facts.disks with defensive filtering:
       1. Exclude Disk 0 (OS disk)
@@ -68,21 +66,19 @@
       3. Match LUN via location attribute regex
       4. Return unique_id for DSC Disk resource
 #}
-{%     set os_disk_id = ansible_facts.disks
-         | rejectattr('number', 'equalto', 0)
-         | selectattr('partition_style', 'equalto', 'RAW')
-         | selectattr('location', 'match', regex_string)
-         | map(attribute='unique_id')
-         | list
-         | first
-         | default('')
+{%       set os_disk_id = ansible_facts.disks
+           | rejectattr('number', 'equalto', 0)
+           | selectattr('partition_style', 'equalto', 'RAW')
+           | selectattr('location', 'match', regex_string)
+           | map(attribute='unique_id')
+           | list
+           | first
+           | default('')
 %}
 {#
-      Skip disk if no matching unique_id found (disk not attached or already formatted)
+      Only process if valid unique_id found (disk attached and unformatted)
 #}
-{%     if os_disk_id == '' %}
-{%       continue %}
-{%     endif %}
+{%       if os_disk_id != '' %}
 {#
       Determine drive letter and mount point configuration per disk type
 #}
@@ -106,7 +102,7 @@
 {%       set force_driveletter = false %}
 {%     elif disktype == 'tempdb' %}
 {%       set tempdb_disk_counter.value = tempdb_disk_counter.value + 1 %}
-{%       set startlettercharacter = 'UVWX'[tempdb_disk_counter.value - 1] %}
+{%       set startlettercharacter = 'UVWXYZ'[tempdb_disk_counter.value - 1] %}
 {%       set mount_folder_name = 'TEMPDB' ~ tempdb_disk_counter.value %}
 {%       set mount_base_path_type = base_mount_path ~ '\\TEMPDB' %}
 {%       set force_driveletter = false %}
@@ -153,9 +149,14 @@
            'use_mount_point': true
          })
 %}
+{%       endif %}
+{#     End of os_disk_id validation #}
 {%     endif %}
+{#     End of excluded_luns check #}
 {%   endfor %}
+{#   End of disk loop #}
 {% endfor %}
+{# End of disktype loop #}
 {#
     Output: Python list representation for Ansible consumption
 #}
