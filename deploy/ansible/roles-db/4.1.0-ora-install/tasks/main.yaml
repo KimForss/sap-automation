@@ -64,16 +64,6 @@
     path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sbp_installed.txt"
   register:                            oracle_installed
 
-
-- name:                                "4.1.0 Oracle Installation - Install compat packages for RHEL7/OL7"
-  when:                                distribution_id in ['redhat7', 'oraclelinux7']
-  ansible.builtin.dnf:
-    name:
-                                        - "{{ target_media_location }}/downloads/compat-libcap1-1.10-7.el7.x86_64.rpm"
-                                        - "{{ target_media_location }}/downloads/compat-libstdc++-33-3.2.3-72.el7.x86_64.rpm"
-    state:                             present
-    disable_gpg_check:                 true
-
 - name:                                "4.1.0 Oracle Installation - Find Patch ID for Database Release Update"
   become:                              true
   become_user:                         root
