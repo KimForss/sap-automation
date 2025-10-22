@@ -134,7 +134,7 @@
 
 - name:                                "4.1.3 Oracle Data Guard - Start standby instance in NOMOUNT"
   block:
-    - name:                            "4.1.3 Oracle Data Guard - Prepare Secondary - Start standby instance in NOMOUNT"
+    - name:                            "4.1.3 Oracle Data Guard - Prepare Secondary - Start standby instance in NOMOUNT using PFile"
       become_user:                     "{{ oracle_user_name }}"
       become:                          true
       ansible.builtin.shell: |
@@ -170,21 +170,21 @@
         msg:                           shutdown_result.stdout
         verbosity:                     2
 
-- name:                                "4.1.3 Oracle Data Guard - Prepare Secondary - Start standby instance in NOMOUNT"
-  become_user:                         "{{ oracle_user_name }}"
-  become:                              true
-  ansible.builtin.shell: |
+    - name:                            "4.1.3 Oracle Data Guard - Prepare Secondary - Start standby instance in NOMOUNT using PFile"
+      become_user:                     "{{ oracle_user_name }}"
+      become:                          true
+      ansible.builtin.shell: |
                                        setenv ORACLE_SID {{ db_sid | upper }}_STDBY
                                        /oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/sqlplus -s / as sysdba <<EOF
                                        STARTUP NOMOUNT PFILE='/oracle/{{ db_sid | upper }}/{{ ora_version }}/dbs/init{{ db_sid | upper }}_STDBY.ora';
                                        ALTER SYSTEM REGISTER;
                                        EXIT;
                                        EOF
-  register:                            startup_result
-  failed_when:                         startup_result.rc != 0
-  args:
-    chdir:                             "/etc/sap_deployment_automation/dataguard_scripts/"
-    executable:                        /bin/csh
+      register:                        startup_result
+      failed_when:                     startup_result.rc != 0
+      args:
+        chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
+        executable:                    /bin/csh
 
 - name:                                "4.1.3 Oracle Data Guard - Prepare Secondary - Create PFile to SPFile for standby"
   become_user:                         "{{ oracle_user_name }}"
@@ -215,7 +215,7 @@
     chdir:                             "/etc/sap_deployment_automation/dataguard_scripts/"
     executable:                        /bin/csh
 
-- name:                                "4.1.3 Oracle Data Guard - Prepare Secondary - Startup standby with NOMOUNT using SPFile"
+- name:                                "4.1.3 Oracle Data Guard - Prepare Secondary - Startup standby instance with NOMOUNT using SPFile"
   become_user:                         "{{ oracle_user_name }}"
   become:                              true
   ansible.builtin.shell: |
