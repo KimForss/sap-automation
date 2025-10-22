@@ -181,10 +181,10 @@
         mopatch_path:                  "{{ mopatch_directory.files[0].path }}"
       when:                            mopatch_directory.matched == 1
 
-    - name:                            "4.1.0. Oracle Installation - Copy MOPatch for GRID"
+    - name:                            "4.1.0. Oracle Installation - Copy MOPatch"
       ansible.builtin.copy:
         src:                           "{{ mopatch_path }}"
-        dest:                          "/oracle/GRID/{{ ora_version }}"
+        dest:                          "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
         remote_src:                    true
         mode:                          '0755'
         owner:                         "{{ oracle_user_name }}"
@@ -224,7 +224,9 @@
       ansible.builtin.copy:
         dest:                          /etc/sap_deployment_automation/{{ db_sid | upper }}/{{ ansible_hostname }}_install.log
         content:                       "{{ oracle_installer_results.stdout }}"
-        mode:                          '0777'
+        mode:                          '0655'
+        owner:                         "{{ oracle_user_name }}"
+        group:                         oinstall
       when:                            oracle_installer_results.stdout is defined
 
     - name:                            "4.1.0. Oracle Installation - Create oracle_installed.txt"
@@ -281,7 +283,9 @@
       ansible.builtin.copy:
         dest:                          "/etc/sap_deployment_automation/oracle/mopatch_db.log"
         content:                       "{{ sbpscriptdb_results.stdout }}"
-        mode:                          '0777'
+        mode:                          '0655'
+        owner:                         "{{ oracle_user_name }}"
+        group:                         oinstall
       when:                            sbpscriptdb_results.stdout is defined
 
     # Step 6
