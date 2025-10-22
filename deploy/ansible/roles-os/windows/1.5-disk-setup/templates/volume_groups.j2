@@ -2,226 +2,161 @@
  # Licensed under the MIT License.
 #}
 {#
- # Windows Disk Volume Groups Template - Extended for Mount Point Support
+ # Windows Disk Volume Groups Template
  #
  # Purpose: Transform Azure disk configuration into Windows disk configuration
  #          Supports both drive letters and mount points
  #
- # Key Points:
- # - Azure LUN != Windows Disk Number (independent numbering)
- # - Matching via 'location' attribute with regex filter chains
- # - Handles undefined os_disk_id gracefully
- # - Outputs Python representation (not JSON) for undefined value compatibility
+ # Key Fixes:
+ # - Excludes OS disk (Disk 0) and system disks from matching
+ # - Requires RAW partition style for all data disks
+ # - Filters out sbdDevices (Azure Shared Disks) by LUN
+ # - SAP disk always uses 'S:\' drive letter regardless of strategy
+ # - Only processes disks explicitly listed in 'disks' dictionary for current host
  #
  # Variables:
  # - disk_mount_strategy: 'driveletter' or 'mountpoint' (default: 'driveletter')
- # - disk_base_mount_path: Base path for mount points (default: 'C:\SQLServerDisks')
+ # - disk_base_mount_path: Base path for mount points (default: 'C:\SQLServer')
+ # - disks: List of disk definitions with host, LUN, type
+ # - sbdDevices: Optional list of shared disk devices to exclude (by LUN)
  #}
-{% set vgs = [] %}
+{%   set pvlist = [] %}
+{%   set data_disk_counter = namespace(value=0) %}
+{%   set log_disk_counter = namespace(value=0) %}
+{%   set tempdb_disk_counter = namespace(value=0) %}
+{%   set backup_disk_counter = namespace(value=0) %}
+{%   set use_mount_point = hostvars[inventory_hostname]['disk_mount_strategy'] | default('driveletter') == 'mountpoint' %}
+{%   set base_mount_path = hostvars[inventory_hostname]['disk_base_mount_path'] | default('C:\\SQLServer') %}
 {#
-    Initialize counters and common variables
+    Build list of excluded LUNs from sbdDevices for current host
 #}
-{%     set startletter = namespace(value=101) %}
-{%     set data_disk_counter = namespace(value=0) %}
-{%     set log_disk_counter = namespace(value=0) %}
-{%     set tempdb_disk_counter = namespace(value=0) %}
-{%     set backup_disk_counter = namespace(value=0) %}
-{%     set pvlist = [] %}
-{%     set use_mount_point = disk_mount_strategy | default('driveletter') == 'mountpoint' %}
-{%     set base_mount_path = disk_base_mount_path | default('C:\\SQLServerDisks') %}
+{%   set excluded_luns = [] %}
+{%   if sbdDevices is defined %}
+{%     for sbd in sbdDevices if sbd.host == inventory_hostname %}
+{%       set _ = excluded_luns.append(sbd.lun) %}
+{%     endfor %}
+{%   endif %}
 {#
-    Outer Loop: Loop over disk types
+    Outer Loop: Iterate over disk types present in disks dictionary for this host
 #}
 {% for disktype in disktypes %}
 {#
-    Initialize VG dictionary with VG name derived from disk type
+    Determine allocation unit size based on disk type
 #}
-{%     set size = 4096 %}
-{% if disktype == 'data' %}
+{%   set size = 4096 %}
+{%   if disktype in ['data', 'log', 'tempdb', 'backup'] %}
 {%     set size = 65536 %}
-{% elif disktype == 'log' %}
-{%     set size = 65536 %}
-{% elif disktype == 'tempdb' %}
-{%     set size = 65536 %}
-{% endif %}
-{%     set vg = {'disktype': disktype} %}
+{%   endif %}
 {#
-    Inner Loop: Loop over list of disks that match the execution host and the disk type
+    Inner Loop: Process each disk matching current host and disk type
 #}
-{%     for disk in disks if (disk.host == inventory_hostname) and (disk.type == disktype) %}
-{%     set startletter.value = startletter.value + 1 %}
-{%     set regex_string = '^Integrated.+LUN\s('~ disk.LUN ~ ')$' %}
+{%   for disk in disks if (disk.host == inventory_hostname) and (disk.type == disktype) %}
 {#
-    Determine drive letter configuration based on disk type
+      Skip this disk if its LUN is in the excluded list (sbdDevices)
 #}
-{% if disktype == 'sap' %}
-{%     set startlettercharacter = "S" %}
-{%     set mount_folder_name = "SAP" %}
-{%     set mount_base_path = base_mount_path ~ "\\SAP" %}
-{% elif disktype == 'log' %}
-{%     set log_disk_counter.value = log_disk_counter.value + 1 %}
-{%     set startlettercharacter = "N" %}
-{%     set mount_folder_name = "LOG" ~ log_disk_counter.value %}
-{%     set mount_base_path = base_mount_path ~ "\\LOG" %}
-{% elif disktype == 'data' %}
-{%     set data_disk_counter.value = data_disk_counter.value + 1 %}
-{%     set startlettercharacter = "abcdefghijklmnopqrstuvwxyz"[startletter.value - 97] | upper %}
-{%     set mount_folder_name = "DATA" ~ data_disk_counter.value %}
-{%     set mount_base_path = base_mount_path ~ "\\DATA" %}
-{% elif disktype == 'backup' %}
-{%     set backup_disk_counter.value = backup_disk_counter.value + 1 %}
-{%     set startlettercharacter = "T" %}
-{%     set mount_folder_name = "BACKUP" ~ backup_disk_counter.value %}
-{%     set mount_base_path = base_mount_path ~ "\\BACKUP" %}
-{% elif disktype == 'tempdb' %}
-{%     set tempdb_disk_counter.value = tempdb_disk_counter.value + 1 %}
-{%     set startlettercharacter = "abcdefghijklmnopqrstuvwxyz"[startletter.value - 117] | upper %}
-{%     set mount_folder_name = "TEMPDB" ~ tempdb_disk_counter.value %}
-{%     set mount_base_path = base_mount_path ~ "\\TEMPDB" %}
-{% else %}
-{%     set startlettercharacter = "V" %}
-{%     set mount_folder_name = disktype | upper ~ loop.index %}
-{%     set mount_base_path = base_mount_path ~ "\\" ~ disktype | upper %}
-{% endif %}
+{%     if disk.LUN in excluded_luns %}
+{%       continue %}
+{%     endif %}
 {#
-    Disk Matching: Use proven filter chain pattern from production template
-    - Uses 'location' attribute (flat, always available)
-    - Filter chain handles nulls automatically
-    - Returns undefined if no match (handled with default)
+      Build regex to match Azure LUN in disk location attribute
 #}
-{%     set os_disk_id = ansible_facts.disks | selectattr('location', 'match', regex_string) | rejectattr('partition_style', 'equalto', 'MBR') | map(attribute='unique_id') | list | first | default('') %}
+{%     set regex_string = 'LUN\s+' ~ disk.LUN ~ '(?:\s|$)' %}
 {#
-    Build disk configuration based on mount strategy
+      Find matching disk in ansible_facts.disks with defensive filtering:
+      1. Exclude Disk 0 (OS disk)
+      2. Require RAW partition style (unformatted)
+      3. Match LUN via location attribute regex
+      4. Return unique_id for DSC Disk resource
 #}
-{% if use_mount_point %}
-{#     Mount point strategy: disks mounted under folder paths #}
-{%     if disktype == 'data' %}
-{%         set _ = pvlist.append({
-             'diskname': 'SQL' ~ disktype ~ data_disk_counter.value,
-             'LUN': disk.LUN,
-             'driveletter': none,
-             'mount_point': mount_base_path ~ "\\" ~ mount_folder_name,
-             'mount_base_path': mount_base_path,
-             'mount_folder_name': mount_folder_name,
-             'sector_size': size,
-             'disk_type': disktype,
-             'osdisk_id': os_disk_id,
-             'use_mount_point': true
-           }) %}
+{%     set os_disk_id = ansible_facts.disks
+         | rejectattr('number', 'equalto', 0)
+         | selectattr('partition_style', 'equalto', 'RAW')
+         | selectattr('location', 'match', regex_string)
+         | map(attribute='unique_id')
+         | list
+         | first
+         | default('')
+%}
+{#
+      Skip disk if no matching unique_id found (disk not attached or already formatted)
+#}
+{%     if os_disk_id == '' %}
+{%       continue %}
+{%     endif %}
+{#
+      Determine drive letter and mount point configuration per disk type
+#}
+{%     if disktype == 'sap' %}
+{#       SAP disk ALWAYS uses S:\ drive letter, never mount point #}
+{%       set startlettercharacter = 'S' %}
+{%       set mount_folder_name = 'SAP' %}
+{%       set mount_base_path_type = base_mount_path ~ '\\SAP' %}
+{%       set force_driveletter = true %}
+{%     elif disktype == 'data' %}
+{%       set data_disk_counter.value = data_disk_counter.value + 1 %}
+{%       set startlettercharacter = 'EFGHIJKLMNOP'[data_disk_counter.value - 1] %}
+{%       set mount_folder_name = 'DATA' ~ data_disk_counter.value %}
+{%       set mount_base_path_type = base_mount_path ~ '\\DATA' %}
+{%       set force_driveletter = false %}
 {%     elif disktype == 'log' %}
-{%         set _ = pvlist.append({
-             'diskname': 'SQL' ~ disktype ~ log_disk_counter.value,
-             'LUN': disk.LUN,
-             'driveletter': none,
-             'mount_point': mount_base_path ~ "\\" ~ mount_folder_name,
-             'mount_base_path': mount_base_path,
-             'mount_folder_name': mount_folder_name,
-             'sector_size': size,
-             'disk_type': disktype,
-             'osdisk_id': os_disk_id,
-             'use_mount_point': true
-           }) %}
+{%       set log_disk_counter.value = log_disk_counter.value + 1 %}
+{%       set startlettercharacter = 'N' %}
+{%       set mount_folder_name = 'LOG' ~ log_disk_counter.value %}
+{%       set mount_base_path_type = base_mount_path ~ '\\LOG' %}
+{%       set force_driveletter = false %}
 {%     elif disktype == 'tempdb' %}
-{%         set _ = pvlist.append({
-             'diskname': 'SQL' ~ disktype ~ tempdb_disk_counter.value,
-             'LUN': disk.LUN,
-             'driveletter': none,
-             'mount_point': mount_base_path ~ "\\" ~ mount_folder_name,
-             'mount_base_path': mount_base_path,
-             'mount_folder_name': mount_folder_name,
-             'sector_size': size,
-             'disk_type': disktype,
-             'osdisk_id': os_disk_id,
-             'use_mount_point': true
-           }) %}
+{%       set tempdb_disk_counter.value = tempdb_disk_counter.value + 1 %}
+{%       set startlettercharacter = 'UVWX'[tempdb_disk_counter.value - 1] %}
+{%       set mount_folder_name = 'TEMPDB' ~ tempdb_disk_counter.value %}
+{%       set mount_base_path_type = base_mount_path ~ '\\TEMPDB' %}
+{%       set force_driveletter = false %}
 {%     elif disktype == 'backup' %}
-{%         set _ = pvlist.append({
-             'diskname': disktype ~ backup_disk_counter.value,
-             'LUN': disk.LUN,
-             'driveletter': none,
-             'mount_point': mount_base_path ~ "\\" ~ mount_folder_name,
-             'mount_base_path': mount_base_path,
-             'mount_folder_name': mount_folder_name,
-             'sector_size': size,
-             'disk_type': disktype,
-             'osdisk_id': os_disk_id,
-             'use_mount_point': true
-           }) %}
+{%       set backup_disk_counter.value = backup_disk_counter.value + 1 %}
+{%       set startlettercharacter = 'T' %}
+{%       set mount_folder_name = 'BACKUP' ~ backup_disk_counter.value %}
+{%       set mount_base_path_type = base_mount_path ~ '\\BACKUP' %}
+{%       set force_driveletter = false %}
 {%     else %}
-{%         set _ = pvlist.append({
-             'diskname': disktype ~ loop.index,
-             'LUN': disk.LUN,
-             'driveletter': none,
-             'mount_point': mount_base_path ~ "\\" ~ mount_folder_name,
-             'mount_base_path': mount_base_path,
-             'mount_folder_name': mount_folder_name,
-             'sector_size': size,
-             'disk_type': disktype,
-             'osdisk_id': os_disk_id,
-             'use_mount_point': true
-           }) %}
+{%       set startlettercharacter = 'V' %}
+{%       set mount_folder_name = disktype | upper %}
+{%       set mount_base_path_type = base_mount_path ~ '\\' ~ disktype | upper %}
+{%       set force_driveletter = false %}
 {%     endif %}
-{% else %}
-{#     Drive letter strategy: traditional Windows drive letters (existing behavior) #}
-{%     if disktype == 'data' %}
-{%         set _ = pvlist.append({
-             'diskname': 'SQL' ~ disktype ~ loop.index,
-             'LUN': disk.LUN,
-             'driveletter': startlettercharacter,
-             'sector_size': size,
-             'disk_type': disktype,
-             'osdisk_id': os_disk_id,
-             'use_mount_point': false
-           }) %}
-{%     elif disktype == 'log' %}
-{%         set _ = pvlist.append({
-             'diskname': 'SQL' ~ disktype ~ loop.index,
-             'LUN': disk.LUN,
-             'driveletter': startlettercharacter,
-             'sector_size': size,
-             'disk_type': disktype,
-             'osdisk_id': os_disk_id,
-             'use_mount_point': false
-           }) %}
-{%     elif disktype == 'tempdb' %}
-{%         set _ = pvlist.append({
-             'diskname': 'SQL' ~ disktype ~ loop.index,
-             'LUN': disk.LUN,
-             'driveletter': startlettercharacter,
-             'sector_size': size,
-             'disk_type': disktype,
-             'osdisk_id': os_disk_id,
-             'use_mount_point': false
-           }) %}
+{#
+      Build disk configuration based on mount strategy
+      SAP disk always uses drive letter regardless of strategy
+#}
+{%     if force_driveletter or not use_mount_point %}
+{#       Drive letter strategy #}
+{%       set _ = pvlist.append({
+           'diskname': disktype ~ (loop.index if disktype == 'sap' else (data_disk_counter.value if disktype == 'data' else (log_disk_counter.value if disktype == 'log' else (tempdb_disk_counter.value if disktype == 'tempdb' else backup_disk_counter.value)))),
+           'LUN': disk.LUN,
+           'driveletter': startlettercharacter,
+           'sector_size': size,
+           'disk_type': disktype,
+           'osdisk_id': os_disk_id,
+           'use_mount_point': false
+         })
+%}
 {%     else %}
-{%         set _ = pvlist.append({
-             'diskname': disktype ~ loop.index,
-             'LUN': disk.LUN,
-             'driveletter': startlettercharacter,
-             'sector_size': size,
-             'disk_type': disktype,
-             'osdisk_id': os_disk_id,
-             'use_mount_point': false
-           }) %}
+{#       Mount point strategy #}
+{%       set _ = pvlist.append({
+           'diskname': disktype ~ (data_disk_counter.value if disktype == 'data' else (log_disk_counter.value if disktype == 'log' else (tempdb_disk_counter.value if disktype == 'tempdb' else backup_disk_counter.value))),
+           'LUN': disk.LUN,
+           'driveletter': none,
+           'mount_point': mount_base_path_type ~ '\\' ~ mount_folder_name,
+           'mount_base_path': mount_base_path_type,
+           'mount_folder_name': mount_folder_name,
+           'sector_size': size,
+           'disk_type': disktype,
+           'osdisk_id': os_disk_id,
+           'use_mount_point': true
+         })
+%}
 {%     endif %}
-{% endif %}
-{%     endfor %}
-{#
-    Add sector_size and disk list to VG dictionary
-    Note: '_' used as dummy variable that can be ignored
-#}
-{%     set _ = vg.update({'sector_size': size}) %}
-{%     set _ = vg.update({'disks': pvlist}) %}
-{#
-    Append VG dictionary to list of VGs
-    Note: '_' used as dummy variable that can be ignored
-#}
-{%     set _ = vgs.append(vg) %}
+{%   endfor %}
 {% endfor %}
 {#
-    Output List of Dictionaries
-
-    IMPORTANT: Output Python representation (not JSON) to handle undefined values
-    The consumer (disks_config.yml) loads this as volume_groups variable
+    Output: Python list representation for Ansible consumption
 #}
 {{ pvlist }}
