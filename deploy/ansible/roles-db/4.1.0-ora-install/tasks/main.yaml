@@ -128,27 +128,27 @@
 
     - name:                            "4.1.0. Oracle Installation - Backup OPatch"
       ansible.builtin.copy:
-        src:                           "/oracle/GRID/{{ ora_version }}/OPatch"
+        src:                           "/oracle/{{ db_sid | upper }}/{{ ora_version }}/OPatch"
         dest:                          "{{ patch_copy_name }}"
         remote_src:                    true
         mode:                          '0755'
-        owner:                         "{{ grid_user_name }}"
+        owner:                         "{{ oracle_user_name }}"
         group:                         oinstall
       when:
         - not opatchgrid_stat.stat.exists
 
     - name:                            "4.1.0. Oracle Installation - Remove old OPatch"
       ansible.builtin.file:
-        path:                          "/oracle/GRID/{{ ora_version }}/OPatch"
+        path:                          "/oracle/{{ db_sid | upper }}/{{ ora_version }}/OPatch"
         state:                         absent
 
     - name:                            "4.1.0. Oracle Installation - Copy OPatch for GRID from downloads"
       ansible.builtin.copy:
         src:                           "{{ target_media_location }}/SBP/OPATCH/OPatch"
-        dest:                          "/oracle/GRID/{{ ora_version }}"
+        dest:                          "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
         remote_src:                    true
         mode:                          '0755'
-        owner:                         "{{ grid_user_name }}"
+        owner:                         "{{ oracle_user_name }}"
         group:                         oinstall
 
     - name:                            "4.1.0. Oracle Installation - Find MOPatch"
@@ -180,7 +180,7 @@
         dest:                          "/oracle/GRID/{{ ora_version }}"
         remote_src:                    true
         mode:                          '0755'
-        owner:                         "{{ grid_user_name }}"
+        owner:                         "{{ oracle_user_name }}"
         group:                         oinstall
 
 
