@@ -281,7 +281,7 @@
 
     - name:                            "4.1.0. Oracle Installation - Post processing installer output"
       ansible.builtin.copy:
-        dest:                          "/etc/sap_deployment_automation/oracle/mopatch_db.log"
+        dest:                          "/etc/sap_deployment_automation/{{ db_sid | upper }}/mopatch_db.log"
         content:                       "{{ sbpscriptdb_results.stdout }}"
         mode:                          '0655'
         owner:                         "{{ oracle_user_name }}"
