@@ -410,20 +410,7 @@
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell: |
-                                       mkstore -wrl "/oracle/observer/wallet" -create <<EOF
-                                       '{{ main_password: }}'
-                                       '{{ main_password: }}'
-                                       EOF
-  register:                            create_wallet_results
-  args:
-    chdir:                             /oracle/{{ db_sid | upper }}/{{ ora_release }}/bin
-    executable:                        /bin/csh
-
-- name:                                "4.1.4 Oracle Data Guard - Observer - Create Wallet for Observer"
-  become:                              true
-  become_user:                         "{{ oracle_user_name }}"
-  ansible.builtin.shell: |
-                                       mkstore -wrl "/oracle/observer/wallet" -create <<EOF
+                                       mkstore -wrl /oracle/observer/wallet -create <<EOF
                                        '{{ main_password: }}'
                                        '{{ main_password: }}'
                                        EOF
@@ -436,7 +423,7 @@
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell: |
-                                       mkstore -wrl "/oracle/observer/wallet" -createCredential {{ db_sid | upper }} sys <<EOF
+                                       mkstore -wrl /oracle/observer/wallet -createCredential {{ db_sid | upper }} sys <<EOF
                                        '{{ main_password: }}'
                                        '{{ main_password: }}'
                                        EOF
