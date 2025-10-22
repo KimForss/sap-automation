@@ -58,18 +58,18 @@
 {#
       Build regex to match Azure LUN in disk location attribute
 #}
-{%       set regex_string = 'LUN\s+' ~ disk.LUN ~ '(?:\s|$)' %}
+{%       set regex_string = 'LUN\\s+' ~ disk.LUN ~ '(?:\\s|$)' %}
 {#
-      Find matching disk in ansible_facts.disks with defensive filtering:
-      1. Exclude Disk 0 (OS disk)
+      Find matching disk in ansible_facts.disks with filtering:
+      1. Exclude bootable disk (OS disk)
       2. Require RAW partition style (unformatted)
       3. Match LUN via location attribute regex
       4. Return unique_id for DSC Disk resource
 #}
 {%       set os_disk_id = ansible_facts.disks
-           | rejectattr('number', 'equalto', 0)
+           | rejectattr('bootable', 'equalto', true)
            | selectattr('partition_style', 'equalto', 'RAW')
-           | selectattr('location', 'match', regex_string)
+           | selectattr('location', 'search', regex_string)
            | map(attribute='unique_id')
            | list
            | first
