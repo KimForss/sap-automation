@@ -546,7 +546,7 @@ variable "database_platform"                    {
 
 variable "database_sid"                         {
                                                   description = "The database SID"
-                                                  default     = "HDB"
+                                                  default     = ""
                                                 }
 
 variable "database_server_count"                {
