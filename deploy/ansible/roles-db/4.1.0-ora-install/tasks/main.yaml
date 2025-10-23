@@ -61,7 +61,7 @@
 
 - name:                                "4.1.0. Oracle Installation - check if installed"
   ansible.builtin.stat:
-    path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sbp_installed.txt"
+    path:                              "/etc/sap_deployment_automation/{{ db_sid | upper }}/sbp_installed.txt"
   register:                            oracle_installed
 
 - name:                                "4.1.0. Oracle Installation - Find Patch ID for Database Release Update"
@@ -100,7 +100,7 @@
 
 - name:                                "4.1.0. Oracle Installation - check if installed"
   ansible.builtin.stat:
-    path:                              "/etc/sap_deployment_automation/oracle/oracle_installed.txt"
+    path:                              "/etc/sap_deployment_automation/{{ db_sid | upper }}/oracle_installed.txt"
   register:                            oracle_installed
 
 # /*---------------------------------------------------------------------------8
@@ -238,7 +238,7 @@
         mode:                          '0755'
       when:
         - oracle_installer_results is defined
-        - oracle_installer_results.rc >= 3
+        - oracle_installer_results.rc < 3
 
     # Step 4
 
