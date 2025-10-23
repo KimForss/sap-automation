@@ -19,6 +19,23 @@
 #   disk_mount_strategy: 'driveletter' or 'mountpoint' (default: 'driveletter')
 #   disk_base_mount_path: Base path for mount points (default: 'C:\SQLServerDisks')
 #
+# Features:
+#   - Idempotent: Can be run multiple times safely
+#   - Recoverable: Handles partially-initialized disks
+#   - SAP-aware: Always uses S:\ for SAP disks regardless of strategy
+#
+# Flow:
+# NOT_FOUND → [FAIL if SAP disk, WARN otherwise]
+#     ↓
+#   RAW → Initialize → Format → Assign Drive Letter/Mount Point
+#     ↓
+# INITIALIZED_NO_PARTITION → Create Partition → Format → Assign
+#     ↓
+# NEEDS_DRIVE_LETTER → Remove old → Assign correct letter
+#     ↓
+# NEEDS_MOUNT_POINT → Remove old paths → Add correct mount point
+#     ↓
+# CONFIGURED → Skip (idempotent)
 # -------------------------------------+---------------------------------------8
 
 - name:                                "1.5 Disk setup - Get disk facts"
@@ -34,17 +51,46 @@
     msg:
       - "Variables read into the task: {{ disk_config_vars }} "
       - "Unique disks:                 {{ disktypes }} "
-      - "Volume groups count:          {{ volume_groups | length }} "
-      - "Volume groups:                {{ volume_groups }}"
+      - "Volume groups count:          {{ volume_groups_config | length }} "
+      - "Volume groups:                {{ volume_groups_config }}"
     verbosity:                         2
+
+# ----------------------------------------
+# Validation: Check for unmatched disks
+# ----------------------------------------
+- name:                                "1.5 Disk setup - Validate disk discovery"
+  ansible.builtin.set_fact:
+    unmatched_disks:                   "{{ volume_groups_config | selectattr('osdisk_id', 'equalto', '') | list }}"
+
+- name:                                "1.5 Disk setup - Report unmatched disks"
+  ansible.builtin.debug:
+    msg:
+      - "WARNING: {{ unmatched_disks | length }} disk(s) defined in inventory but not found on system:"
+      - "{{ unmatched_disks | map(attribute='LUN') | list }}"
+  when:                                unmatched_disks | length > 0
+
+- name:                                "1.5 Disk setup - Fail if critical disks missing"
+  ansible.builtin.fail:
+    msg: |
+      CRITICAL: SAP disk (LUN {{ item.LUN }}) not found on system.
+      Expected disk at Azure LUN {{ item.LUN }} but no matching physical disk detected.
+      Verify:
+        1. Disk is attached to VM in Azure portal
+        2. VM has been rebooted since disk attachment
+        3. Disk is not already claimed by another system
+  loop:                                "{{ unmatched_disks }}"
+  when:
+    - item.is_sap_disk | default(false)
+  loop_control:
+    label:                             "LUN {{ item.LUN }}"
 
 # ----------------------------------------
 # Mount Point : Create directory structure
 # ----------------------------------------
 - name:                                "1.5 Disk setup - Create directory structure - Mountpoint"
   when:
-                                       - hostvars[ansible_hostname]['disk_mount_strategy'] is defined
-                                       - hostvars[ansible_hostname]['disk_mount_strategy'] == 'mountpoint'
+    - hostvars[ansible_hostname]['disk_mount_strategy'] is defined
+    - hostvars[ansible_hostname]['disk_mount_strategy'] == 'mountpoint'
   block:
     - name:                            "1.5 Disk setup - Create base mount point directory"
       ansible.windows.win_file:
@@ -52,147 +98,543 @@
         state:                         directory
 
     - name:                            "1.5 Disk setup - Create top-level mount directories"
-      when:                            item.use_mount_point | default(false)
+      when:
+        - item.use_mount_point | default(false)
+        - item.mount_base_path is not none
       ansible.windows.win_file:
         path:                          "{{ item.mount_base_path }}"
         state:                         directory
-      loop:                            "{{ volume_groups }}"
+      loop:                            "{{ volume_groups_config }}"
       loop_control:
         label:                         "{{ item.mount_base_path | default(item.diskname) }}"
 
     - name:                            "1.5 Disk setup - Create disk-level mount directories"
-      when:                            item.use_mount_point | default(false)
+      when:
+        - item.use_mount_point | default(false)
+        - item.mount_point is not none
       ansible.windows.win_file:
         path:                          "{{ item.mount_point }}"
         state:                         directory
-      loop:                            "{{ volume_groups }}"
+      loop:                            "{{ volume_groups_config }}"
       loop_control:
         label:                         "{{ item.mount_point | default(item.diskname) }}"
 
 # ----------------------------------------
-# Disk Initialization
+# Disk State Detection
 # ----------------------------------------
 
-- name:                                "1.5 Disk setup - Wait for disks to be available"
-  when:                                item.osdisk_id != ''
-  ansible.windows.win_dsc:
-    resource_name:                     "WaitForDisk"
-    DiskId:                            "{{ item.osdisk_id }}"
-    DiskIdType:                        'UniqueId'
-    RetryIntervalSec:                  60
-    RetryCount:                        10
-  loop:                                "{{ volume_groups }}"
+- name:                                "1.5 Disk setup - Detect current disk state (drive letter mode)"
+  when:
+    - hostvars[ansible_hostname]['disk_mount_strategy'] == 'driveletter' or not item.use_mount_point | default(false)
+    - item.osdisk_id != ''
+  ansible.windows.win_powershell:
+    script: |
+      $ErrorActionPreference = 'Stop'
+
+      $diskId = "{{ item.osdisk_id }}"
+      $targetDrive = "{{ item.driveletter }}"
+
+      if ([string]::IsNullOrEmpty($diskId)) {
+        Write-Output "NOT_FOUND"
+        exit 0
+      }
+
+      try {
+        $disk = Get-Disk | Where-Object { $_.UniqueId -eq $diskId }
+
+        if (-not $disk) {
+          Write-Output "NOT_FOUND"
+          exit 0
+        }
+
+        if ($disk.PartitionStyle -eq 'RAW') {
+          Write-Output "RAW"
+          exit 0
+        }
+
+        $partitions = Get-Partition -DiskNumber $disk.Number -ErrorAction SilentlyContinue
+
+        if (-not $partitions) {
+          Write-Output "INITIALIZED_NO_PARTITION"
+          exit 0
+        }
+
+        $hasCorrectDrive = $false
+        foreach ($partition in $partitions) {
+          if ($partition.DriveLetter -eq $targetDrive) {
+            $hasCorrectDrive = $true
+            break
+          }
+        }
+
+        if ($hasCorrectDrive) {
+          Write-Output "CONFIGURED"
+        } else {
+          Write-Output "NEEDS_DRIVE_LETTER"
+        }
+
+      } catch {
+        Write-Error "Error detecting disk state: $_"
+        exit 1
+      }
+  loop:                                "{{ volume_groups_config }}"
+  register:                            disk_states_driveletter
+  changed_when:                        false
   loop_control:
     label:                             "{{ item.diskname }} (LUN {{ item.LUN }})"
 
-# ----------------------------------------
-# Drive Letter : Use DriveLetter parameter
-# ----------------------------------------
-- name:                                "1.5 Disk setup - Disk initialization with - DriveLetter"
+- name:                                "1.5 Disk setup - Detect current disk state (mount point mode)"
   when:
-                                       - hostvars[ansible_hostname]['disk_mount_strategy'] is defined
-                                       - hostvars[ansible_hostname]['disk_mount_strategy'] == 'driveletter'
-  block:
+    - hostvars[ansible_hostname]['disk_mount_strategy'] == 'mountpoint'
+    - item.use_mount_point | default(false)
+    - item.osdisk_id != ''
+  ansible.windows.win_powershell:
+    script: |
+      $ErrorActionPreference = 'Stop'
 
-    - name:                            "1.5 Disk setup - Initialize disks with drive letters"
+      $diskId = "{{ item.osdisk_id }}"
+      $targetPath = "{{ item.mount_point }}"
+
+      if ([string]::IsNullOrEmpty($diskId)) {
+        Write-Output "NOT_FOUND"
+        exit 0
+      }
+
+      try {
+        $disk = Get-Disk | Where-Object { $_.UniqueId -eq $diskId }
+
+        if (-not $disk) {
+          Write-Output "NOT_FOUND"
+          exit 0
+        }
+
+        if ($disk.PartitionStyle -eq 'RAW') {
+          Write-Output "RAW"
+          exit 0
+        }
+
+        $partitions = Get-Partition -DiskNumber $disk.Number -ErrorAction SilentlyContinue
+
+        if (-not $partitions) {
+          Write-Output "INITIALIZED_NO_PARTITION"
+          exit 0
+        }
+
+        $hasCorrectMount = $false
+
+        foreach ($partition in $partitions) {
+          $accessPaths = $partition.AccessPaths
+          foreach ($path in $accessPaths) {
+            if ($path -eq $targetPath -or $path -eq ($targetPath + '\')) {
+              $hasCorrectMount = $true
+              break
+            }
+          }
+          if ($hasCorrectMount) { break }
+        }
+
+        if ($hasCorrectMount) {
+          Write-Output "CONFIGURED"
+        } else {
+          Write-Output "NEEDS_MOUNT_POINT"
+        }
+
+      } catch {
+        Write-Error "Error detecting disk state: $_"
+        exit 1
+      }
+  loop:                                "{{ volume_groups_config }}"
+  register:                            disk_states_mountpoint
+  changed_when:                        false
+  loop_control:
+    label:                             "{{ item.diskname }} (LUN {{ item.LUN }})"
+
+- name:                                "1.5 Disk setup - Combine disk states"
+  ansible.builtin.set_fact:
+    disk_states:                       "{{ disk_states_driveletter if (hostvars[ansible_hostname]['disk_mount_strategy'] | default('driveletter')) == 'driveletter' else disk_states_mountpoint }}"
+
+- name:                                "1.5 Disk setup - Show disk state detection results"
+  ansible.builtin.debug:
+    msg:
+      - "Disk: {{ item.item.diskname }}"
+      - "LUN: {{ item.item.LUN }}"
+      - "UniqueId: {{ item.item.osdisk_id }}"
+      - "Current State: {{ item.stdout | trim }}"
+      - "Target: {% raw %}{{ item.item.driveletter if not item.item.use_mount_point else item.item.mount_point }}{% endraw %}"
+    verbosity:                         2
+  loop:                                "{{ disk_states.results | default([]) }}"
+  when:
+    - item.stdout is defined
+    - item.skipped is not defined or not item.skipped
+  loop_control:
+    label:                             "{{ item.item.diskname }}"
+
+# ----------------------------------------
+# Disk Initialization: Wait for disks
+# ----------------------------------------
+
+- name:                                "1.5 Disk setup - Wait for disks to be available"
+  when:
+    - item.item.osdisk_id != ''
+    - item.stdout is defined
+    - item.stdout | trim != 'CONFIGURED'
+    - item.skipped is not defined or not item.skipped
+  ansible.windows.win_dsc:
+    resource_name:                     "WaitForDisk"
+    DiskId:                            "{{ item.item.osdisk_id }}"
+    DiskIdType:                        'UniqueId'
+    RetryIntervalSec:                  60
+    RetryCount:                        10
+  loop:                                "{{ disk_states.results | default([]) }}"
+  loop_control:
+    label:                             "{{ item.item.diskname }} (LUN {{ item.item.LUN }})"
+
+# ----------------------------------------
+# Drive Letter : Initialize with DSC
+# ----------------------------------------
+- name:                                "1.5 Disk setup - Initialize disks with drive letters"
+  when:
+    - hostvars[ansible_hostname]['disk_mount_strategy'] is defined
+    - hostvars[ansible_hostname]['disk_mount_strategy'] == 'driveletter'
+  block:
+    - name:                            "1.5 Disk setup - Initialize RAW disks with drive letters"
       when:
-                                       - not item.use_mount_point | default(false)
-                                       - item.osdisk_id != ''
+        - not item.item.use_mount_point | default(false)
+        - item.item.osdisk_id != ''
+        - item.stdout is defined
+        - item.stdout | trim in ['RAW', 'INITIALIZED_NO_PARTITION']
+        - item.skipped is not defined or not item.skipped
       ansible.windows.win_dsc:
         resource_name:                 "Disk"
-        DiskId:                        "{{ item.osdisk_id }}"
+        DiskId:                        "{{ item.item.osdisk_id }}"
         DiskIdType:                    'UniqueId'
-        DriveLetter:                   "{{ item.driveletter }}"
+        DriveLetter:                   "{{ item.item.driveletter }}"
         PartitionStyle:                "GPT"
-        FSLabel:                       "{{ item.diskname }}"
+        FSLabel:                       "{{ item.item.diskname }}"
         FSFormat:                      'NTFS'
-        AllocationUnitSize:            "{{ item.sector_size }}"
-      loop:                            "{{ volume_groups }}"
+        AllocationUnitSize:            "{{ item.item.sector_size }}"
+      loop:                            "{{ disk_states.results | default([]) }}"
       loop_control:
-        label:                         "{{ item.diskname }} -> {{ item.driveletter }}:"
-      register:                        win_disk_driveletter_results
+        label:                         "{{ item.item.diskname }} -> {{ item.item.driveletter }}:"
+      register:                        win_disk_driveletter_init
 
-# ----------------------------------------
-# Mount Point : Use AccessPath parameter
-# ----------------------------------------
-
-# TODO: Upgrade to StorageDSC 6.1.0 or later to use the native AccessPath parameter
-#       Currently the StorageDSC module 6.1.0 is in preview.
-# - name: "1.4-Packages: Ensure DSC modules are installed"
-#   ansible.windows.win_psmodule:
-#    name:                               StorageDsc
-#    state:                              present
-#    required_version:                   "6.1.0"  # or minimum_version: "6.1.0"
-#
-# - name:                                "1.5 Disk setup - Initialize disks with mount points"
-#   when:
-#                                        - disk_mount_strategy == 'mountpoint'
-#                                        - item.use_mount_point | default(false)
-#                                        - item.osdisk_id != ''
-#   ansible.windows.win_dsc:
-#     resource_name:                     "Disk"
-#     DiskId:                            "{{ item.osdisk_id }}"
-#     DiskIdType:                        'UniqueId'
-#     AccessPath:                        "{{ item.mount_point }}"
-#     PartitionStyle:                    "GPT"
-#     FSLabel:                           "{{ item.diskname }}"
-#     FSFormat:                          'NTFS'
-#     AllocationUnitSize:                "{{ item.sector_size }}"
-#   loop:                                "{{ volume_groups }}"
-#   loop_control:
-#     label:                             "{{ item.diskname }} -> {{ item.mount_point }}"
-#   register:                            win_disk_mountpoint_results
-
-- name:                                "1.5 Disk setup - Disk initialization with - MountPoint"
-  when:
-                                       - hostvars[ansible_hostname]['disk_mount_strategy'] is defined
-                                       - hostvars[ansible_hostname]['disk_mount_strategy'] == 'mountpoint'
-  block:
-    - name:                            "1.5 Disk setup - Initialize and mount disks with PowerShell"
+    - name:                            "1.5 Disk setup - Fix drive letter on misconfigured disks"
       when:
-                                       - hostvars[ansible_hostname]['disk_mount_strategy'] == 'mountpoint'
-                                       - item.use_mount_point | default(false)
-                                       - item.osdisk_id != ''
+        - not item.item.use_mount_point | default(false)
+        - item.item.osdisk_id != ''
+        - item.stdout is defined
+        - item.stdout | trim == 'NEEDS_DRIVE_LETTER'
+        - item.skipped is not defined or not item.skipped
       ansible.windows.win_powershell:
         script: |
-                                       $ErrorActionPreference = 'Stop'
+          $ErrorActionPreference = 'Stop'
 
-                                       $disk = Get-Disk | Where-Object { $_.UniqueId -eq '{{ item.osdisk_id }}' }
+          $diskId = "{{ item.item.osdisk_id }}"
+          $targetDrive = "{{ item.item.driveletter }}"
 
-                                       if ($disk.PartitionStyle -eq 'RAW') {
-                                         Initialize-Disk -Number $disk.Number -PartitionStyle GPT
-                                         $partition = New-Partition -DiskNumber $disk.Number -UseMaximumSize
-                                         Format-Volume -Partition $partition -FileSystem NTFS -NewFileSystemLabel '{{ item.diskname }}' -AllocationUnitSize {{ item.sector_size }} -Confirm:$false
-                                         Add-PartitionAccessPath -DiskNumber $disk.Number -PartitionNumber $partition.PartitionNumber -AccessPath '{{ item.mount_point }}'
-                                       }
-      loop:                            "{{ volume_groups }}"
+          $disk = Get-Disk | Where-Object { $_.UniqueId -eq $diskId }
+          $partition = Get-Partition -DiskNumber $disk.Number |
+                       Where-Object { $_.Type -eq 'Basic' } |
+                       Select-Object -First 1
+
+          if ($partition) {
+            if ($partition.DriveLetter) {
+              $currentDrive = $partition.DriveLetter
+              Remove-PartitionAccessPath -DiskNumber $disk.Number `
+                                         -PartitionNumber $partition.PartitionNumber `
+                                         -AccessPath "${currentDrive}:\" `
+                                         -ErrorAction SilentlyContinue
+            }
+
+            Set-Partition -DiskNumber $disk.Number `
+                          -PartitionNumber $partition.PartitionNumber `
+                          -NewDriveLetter $targetDrive
+
+            Write-Output "FIXED: Assigned drive letter ${targetDrive}:"
+          } else {
+            Write-Error "No suitable partition found on disk"
+            exit 1
+          }
+      loop:                            "{{ disk_states.results | default([]) }}"
       loop_control:
-        label:                         "{{ item.diskname }} -> {{ item.mount_point | default('N/A') }}"
-      register:                        win_disk_mountpoint_results
+        label:                         "{{ item.item.diskname }} -> {{ item.item.driveletter }}:"
+      register:                        win_disk_driveletter_fix
 
 # ----------------------------------------
-# Debug output
+# SAP Disk: Always use drive letter S:\
 # ----------------------------------------
-- name:                                "1.5 Disk setup - Show disk initialization results"
-  when:                                hostvars[ansible_hostname]['disk_mount_strategy'] is defined
+- name:                                "1.5 Disk setup - Initialize SAP disk with S:\ (RAW or no partition)"
+  when:
+    - item.item.is_sap_disk | default(false)
+    - item.item.osdisk_id != ''
+    - item.stdout is defined
+    - item.stdout | trim in ['RAW', 'INITIALIZED_NO_PARTITION']
+    - item.skipped is not defined or not item.skipped
+  ansible.windows.win_dsc:
+    resource_name:                     "Disk"
+    DiskId:                            "{{ item.item.osdisk_id }}"
+    DiskIdType:                        'UniqueId'
+    DriveLetter:                       "S"
+    PartitionStyle:                    "GPT"
+    FSLabel:                           "SAP"
+    FSFormat:                          'NTFS'
+    AllocationUnitSize:                "{{ item.item.sector_size }}"
+  loop:                                "{{ disk_states.results | default([]) }}"
+  loop_control:
+    label:                             "{{ item.item.diskname }} -> S:"
+
+- name:                                "1.5 Disk setup - Fix SAP disk drive letter"
+  when:
+    - item.item.is_sap_disk | default(false)
+    - item.item.osdisk_id != ''
+    - item.stdout is defined
+    - item.stdout | trim == 'NEEDS_DRIVE_LETTER'
+    - item.skipped is not defined or not item.skipped
+  ansible.windows.win_powershell:
+    script: |
+      $ErrorActionPreference = 'Stop'
+
+      $diskId = "{{ item.item.osdisk_id }}"
+
+      $disk = Get-Disk | Where-Object { $_.UniqueId -eq $diskId }
+      $partition = Get-Partition -DiskNumber $disk.Number |
+                   Where-Object { $_.Type -eq 'Basic' } |
+                   Select-Object -First 1
+
+      if ($partition) {
+        if ($partition.DriveLetter) {
+          $currentDrive = $partition.DriveLetter
+          Remove-PartitionAccessPath -DiskNumber $disk.Number `
+                                     -PartitionNumber $partition.PartitionNumber `
+                                     -AccessPath "${currentDrive}:\" `
+                                     -ErrorAction SilentlyContinue
+        }
+
+        Set-Partition -DiskNumber $disk.Number `
+                      -PartitionNumber $partition.PartitionNumber `
+                      -NewDriveLetter 'S'
+
+        Write-Output "FIXED: SAP disk assigned to S:"
+      } else {
+        Write-Error "No suitable partition found on SAP disk"
+        exit 1
+      }
+  loop:                                "{{ disk_states.results | default([]) }}"
+  loop_control:
+    label:                             "{{ item.item.diskname }} -> S:"
+
+# ----------------------------------------
+# Mount Point : Initialize with PowerShell
+# ----------------------------------------
+- name:                                "1.5 Disk setup - Initialize disks with mount points"
+  when:
+    - hostvars[ansible_hostname]['disk_mount_strategy'] is defined
+    - hostvars[ansible_hostname]['disk_mount_strategy'] == 'mountpoint'
   block:
-    - name:                            "1.5 Disk setup - Show disk initialization results (drive letters)"
+    - name:                            "1.5 Disk setup - Initialize RAW disks with mount points"
       when:
-                                       - hostvars[ansible_hostname]['disk_mount_strategy'] == 'driveletter'
-                                       - win_disk_driveletter_results is defined
-      ansible.builtin.debug:
-        msg:
-          - "Drive letter results:     {{ win_disk_driveletter_results }}"
-        verbosity:                     2
+        - item.item.use_mount_point | default(false)
+        - item.item.osdisk_id != ''
+        - item.stdout is defined
+        - item.stdout | trim in ['RAW', 'INITIALIZED_NO_PARTITION']
+        - item.skipped is not defined or not item.skipped
+      ansible.windows.win_powershell:
+        script: |
+          $ErrorActionPreference = 'Stop'
 
-    - name:                            "1.5 Disk setup - Show disk initialization results (mount points)"
+          $diskId = "{{ item.item.osdisk_id }}"
+          $diskName = "{{ item.item.diskname }}"
+          $targetPath = "{{ item.item.mount_point }}"
+          $allocationSize = {{ item.item.sector_size }}
+
+          $disk = Get-Disk | Where-Object { $_.UniqueId -eq $diskId }
+
+          if ($disk.PartitionStyle -eq 'RAW') {
+            Initialize-Disk -Number $disk.Number -PartitionStyle GPT
+          }
+
+          $partition = Get-Partition -DiskNumber $disk.Number -ErrorAction SilentlyContinue |
+                       Where-Object { $_.Type -eq 'Basic' } |
+                       Select-Object -First 1
+
+          if (-not $partition) {
+            $partition = New-Partition -DiskNumber $disk.Number -UseMaximumSize
+            Format-Volume -Partition $partition `
+                          -FileSystem NTFS `
+                          -NewFileSystemLabel $diskName `
+                          -AllocationUnitSize $allocationSize `
+                          -Confirm:$false
+          }
+
+          $existingPaths = $partition.AccessPaths
+          $hasMount = $false
+          foreach ($path in $existingPaths) {
+            if ($path -eq $targetPath -or $path -eq ($targetPath + '\')) {
+              $hasMount = $true
+              break
+            }
+          }
+
+          if (-not $hasMount) {
+            Add-PartitionAccessPath -DiskNumber $disk.Number `
+                                    -PartitionNumber $partition.PartitionNumber `
+                                    -AccessPath $targetPath
+            Write-Output "CONFIGURED: $targetPath"
+          } else {
+            Write-Output "ALREADY_MOUNTED: $targetPath"
+          }
+      loop:                            "{{ disk_states.results | default([]) }}"
+      loop_control:
+        label:                         "{{ item.item.diskname }} -> {{ item.item.mount_point | default('N/A') }}"
+      register:                        win_disk_mountpoint_init
+
+    - name:                            "1.5 Disk setup - Fix mount point on misconfigured disks"
       when:
-                                       - hostvars[ansible_hostname]['disk_mount_strategy'] == 'mountpoint'
-                                       - win_disk_mountpoint_results is defined
-      ansible.builtin.debug:
-        msg:
-          - "Mount point results:      {{ win_disk_mountpoint_results }}"
-        verbosity:                     2
+        - item.item.use_mount_point | default(false)
+        - item.item.osdisk_id != ''
+        - item.stdout is defined
+        - item.stdout | trim == 'NEEDS_MOUNT_POINT'
+        - item.skipped is not defined or not item.skipped
+      ansible.windows.win_powershell:
+        script: |
+          $ErrorActionPreference = 'Stop'
+
+          $diskId = "{{ item.item.osdisk_id }}"
+          $targetPath = "{{ item.item.mount_point }}"
+
+          $disk = Get-Disk | Where-Object { $_.UniqueId -eq $diskId }
+          $partition = Get-Partition -DiskNumber $disk.Number |
+                       Where-Object { $_.Type -eq 'Basic' } |
+                       Select-Object -First 1
+
+          if ($partition) {
+            foreach ($path in $partition.AccessPaths) {
+              if ($path -ne $targetPath -and $path -ne ($targetPath + '\')) {
+                Remove-PartitionAccessPath -DiskNumber $disk.Number `
+                                           -PartitionNumber $partition.PartitionNumber `
+                                           -AccessPath $path `
+                                           -ErrorAction SilentlyContinue
+              }
+            }
+
+            Add-PartitionAccessPath -DiskNumber $disk.Number `
+                                    -PartitionNumber $partition.PartitionNumber `
+                                    -AccessPath $targetPath
+
+            Write-Output "FIXED: Mount point $targetPath"
+          } else {
+            Write-Error "No suitable partition found on disk"
+            exit 1
+          }
+      loop:                            "{{ disk_states.results | default([]) }}"
+      loop_control:
+        label:                         "{{ item.item.diskname }} -> {{ item.item.mount_point | default('N/A') }}"
+      register:                        win_disk_mountpoint_fix
+
+# ----------------------------------------
+# Verification
+# ----------------------------------------
+- name:                                "1.5 Disk setup - Verify final disk configuration"
+  ansible.windows.win_powershell:
+    script: |
+      $ErrorActionPreference = 'Stop'
+
+      $diskId = "{{ item.item.osdisk_id }}"
+
+      $disk = Get-Disk | Where-Object { $_.UniqueId -eq $diskId }
+
+      if (-not $disk) {
+        Write-Output "ERROR: Disk not found"
+        exit 1
+      }
+
+      $partitions = Get-Partition -DiskNumber $disk.Number -ErrorAction SilentlyContinue
+
+      if (-not $partitions) {
+        Write-Output "ERROR: No partitions on disk"
+        exit 1
+      }
+
+      $verified = $false
+
+      {% raw %}
+      {% if item.item.use_mount_point | default(false) %}
+      {% endraw %}
+      $targetPath = "{{ item.item.mount_point }}"
+
+      foreach ($partition in $partitions) {
+        foreach ($path in $partition.AccessPaths) {
+          if ($path -eq $targetPath -or $path -eq ($targetPath + '\')) {
+            Write-Output "SUCCESS: Mount point $targetPath configured"
+            $verified = $true
+            break
+          }
+        }
+        if ($verified) { break }
+      }
+
+      if (-not $verified) {
+        Write-Output "ERROR: Mount point not configured correctly"
+        exit 1
+      }
+      {% raw %}
+      {% else %}
+      {% endraw %}
+      $targetDrive = "{{ item.item.driveletter }}"
+
+      foreach ($partition in $partitions) {
+        if ($partition.DriveLetter -eq $targetDrive) {
+          Write-Output "SUCCESS: Drive letter ${targetDrive}: configured"
+          $verified = $true
+          break
+        }
+      }
+
+      if (-not $verified) {
+        Write-Output "ERROR: Drive letter not configured correctly"
+        exit 1
+      }
+      {% raw %}
+      {% endif %}
+      {% endraw %}
+  loop:                                "{{ disk_states.results | default([]) }}"
+  when:
+    - item.item.osdisk_id != ''
+    - item.stdout is defined
+    - item.skipped is not defined or not item.skipped
+  register:                            disk_verification
+  changed_when:                        false
+  failed_when:                         false
+  loop_control:
+    label:                             "{{ item.item.diskname }}"
+
+- name:                                "1.5 Disk setup - Show verification results"
+  ansible.builtin.debug:
+    msg:
+      - "Disk: {{ item.item.item.diskname }}"
+      - "Status: {{ item.stdout | trim }}"
+    verbosity:                         1
+  loop:                                "{{ disk_verification.results | default([]) }}"
+  when:
+    - item.stdout is defined
+    - item.skipped is not defined or not item.skipped
+  loop_control:
+    label:                             "{{ item.item.item.diskname }}"
+
+- name:                                "1.5 Disk setup - Report configuration failures"
+  ansible.builtin.fail:
+    msg: |
+      Disk configuration verification failed for {{ item.item.item.diskname }}:
+      {{ item.stdout | trim }}
+
+      Manual intervention may be required to resolve disk configuration issues.
+  loop:                                "{{ disk_verification.results | default([]) }}"
+  when:
+    - item.stdout is defined
+    - item.stdout | trim is search('ERROR')
+    - item.skipped is not defined or not item.skipped
+  loop_control:
+    label:                             "{{ item.item.item.diskname }}"
 
 ...
 # /*---------------------------------------------------------------------------8
