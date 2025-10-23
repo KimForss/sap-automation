@@ -503,7 +503,7 @@
   become_user:                         root
   ansible.builtin.shell: |
                                        semanage fcontext -a -t bin_t /opt/oracle/admin/observer/scripts/start_observer.sh
-                                       restorecon -vfi /opt/oracle/admin/observer/scripts/start_observer.sh
+                                       restorecon /opt/oracle/admin/observer/scripts/start_observer.sh
 
   register:                            se_linux_results
   when:                                ansible_selinux is defined and ansible_selinux and ansible_selinux.status == 'enabled'
