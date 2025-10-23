@@ -2,10 +2,10 @@
  # Licensed under the MIT License.
 #}
 {#
- # Windows Disk Volume Groups Configuration Template - Idempotent Version
+ # Windows Disk Volume Groups Configuration Template
  #
  # Purpose: Transform Azure disk configuration into Windows disk configuration
- #          WITHOUT filtering by partition style (for idempotency)
+ #          without filtering by partition style (for idempotency)
  #
  # Key Changes from Original:
  # - Does NOT filter by partition_style='RAW' (allows recovery of partial configs)
@@ -49,14 +49,9 @@
 {%     set vg = {'disktype': disktype} %}
 {#
     Inner Loop: Loop over list of disks that match the execution host and the disk type
+    Exclude SBD devices (Azure Shared Disks used for STONITH in HA configurations)
 #}
-{%     for disk in disks if (disk.host == inventory_hostname) and (disk.type == disktype) %}
-{#
-    Skip SBD devices (Azure Shared Disks used for STONITH in HA configurations)
-#}
-{%     if disk.LUN in sbd_luns_list %}
-{%       continue %}
-{%     endif %}
+{%     for disk in disks if (disk.host == inventory_hostname) and (disk.type == disktype) and (disk.LUN not in sbd_luns_list) %}
 {%     set startletter.value = startletter.value + 1 %}
 {%     set regex_string = '^Integrated.+LUN\s('~ disk.LUN ~ ')$' %}
 {#
