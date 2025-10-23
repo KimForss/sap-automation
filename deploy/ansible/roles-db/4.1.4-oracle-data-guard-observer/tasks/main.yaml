@@ -502,14 +502,11 @@
   become:                              true
   become_user:                         root
   ansible.builtin.shell: |
-                                       enforcing=$(getenforce 2>/dev/null)
-                                       if [ "$enforcing" == "Enforcing" ]; then
-                                         sudo semanage fcontext -a -t bin_t /opt/oracle/admin/observer/scripts/start_observer.sh
-                                         sudo restorecon -v /opt/oracle/admin/observer/scripts/start_observer.sh
-                                       fi
+                                       semanage fcontext -a -t bin_t /opt/oracle/admin/observer/scripts/start_observer.sh
+                                       restorecon -vfi /opt/oracle/admin/observer/scripts/start_observer.sh
 
   register:                            se_linux_results
-  when:                                ansible_selinux is defined and ansible_selinux != False and ansible_selinux.status == 'enabled'
+  when:                                ansible_selinux is defined and ansible_selinux and ansible_selinux.status == 'enabled'
   args:
     chdir:                             /oracle/{{ db_sid | upper }}/{{ ora_version }}/bin
     executable:                        /bin/csh
