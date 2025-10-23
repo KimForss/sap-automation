@@ -38,6 +38,7 @@
 # CONFIGURED → Skip (idempotent)
 # -------------------------------------+---------------------------------------8
 
+
 - name:                                "1.5 Disk setup - Get disk facts"
   community.windows.win_disk_facts:
 
@@ -259,12 +260,12 @@
       - "Disk: {{ item.item.diskname }}"
       - "LUN: {{ item.item.LUN }}"
       - "UniqueId: {{ item.item.osdisk_id }}"
-      - "Current State: {{ item.stdout | trim }}"
+      - "Current State: {{ item.output[0] | default('UNKNOWN') }}"
       - "Target: {% raw %}{{ item.item.driveletter if not item.item.use_mount_point else item.item.mount_point }}{% endraw %}"
     verbosity:                         2
   loop:                                "{{ disk_states.results | default([]) }}"
   when:
-    - item.stdout is defined
+    - item.output is defined
     - item.skipped is not defined or not item.skipped
   loop_control:
     label:                             "{{ item.item.diskname }}"
@@ -276,8 +277,8 @@
 - name:                                "1.5 Disk setup - Wait for disks to be available"
   when:
     - item.item.osdisk_id != ''
-    - item.stdout is defined
-    - item.stdout | trim != 'CONFIGURED'
+    - item.output is defined
+    - item.output[0] | default('') | trim != 'CONFIGURED'
     - item.skipped is not defined or not item.skipped
   ansible.windows.win_dsc:
     resource_name:                     "WaitForDisk"
@@ -301,8 +302,8 @@
       when:
         - not item.item.use_mount_point | default(false)
         - item.item.osdisk_id != ''
-        - item.stdout is defined
-        - item.stdout | trim in ['RAW', 'INITIALIZED_NO_PARTITION']
+        - item.output is defined
+        - item.output[0] | default('') | trim in ['RAW', 'INITIALIZED_NO_PARTITION']
         - item.skipped is not defined or not item.skipped
       ansible.windows.win_dsc:
         resource_name:                 "Disk"
@@ -322,8 +323,8 @@
       when:
         - not item.item.use_mount_point | default(false)
         - item.item.osdisk_id != ''
-        - item.stdout is defined
-        - item.stdout | trim == 'NEEDS_DRIVE_LETTER'
+        - item.output is defined
+        - item.output[0] | default('') | trim == 'NEEDS_DRIVE_LETTER'
         - item.skipped is not defined or not item.skipped
       ansible.windows.win_powershell:
         script: |
@@ -367,8 +368,8 @@
   when:
     - item.item.is_sap_disk | default(false)
     - item.item.osdisk_id != ''
-    - item.stdout is defined
-    - item.stdout | trim in ['RAW', 'INITIALIZED_NO_PARTITION']
+    - item.output is defined
+    - item.output[0] | default('') | trim in ['RAW', 'INITIALIZED_NO_PARTITION']
     - item.skipped is not defined or not item.skipped
   ansible.windows.win_dsc:
     resource_name:                     "Disk"
@@ -387,8 +388,8 @@
   when:
     - item.item.is_sap_disk | default(false)
     - item.item.osdisk_id != ''
-    - item.stdout is defined
-    - item.stdout | trim == 'NEEDS_DRIVE_LETTER'
+    - item.output is defined
+    - item.output[0] | default('') | trim == 'NEEDS_DRIVE_LETTER'
     - item.skipped is not defined or not item.skipped
   ansible.windows.win_powershell:
     script: |
@@ -435,8 +436,8 @@
       when:
         - item.item.use_mount_point | default(false)
         - item.item.osdisk_id != ''
-        - item.stdout is defined
-        - item.stdout | trim in ['RAW', 'INITIALIZED_NO_PARTITION']
+        - item.output is defined
+        - item.output[0] | default('') | trim in ['RAW', 'INITIALIZED_NO_PARTITION']
         - item.skipped is not defined or not item.skipped
       ansible.windows.win_powershell:
         script: |
@@ -492,8 +493,8 @@
       when:
         - item.item.use_mount_point | default(false)
         - item.item.osdisk_id != ''
-        - item.stdout is defined
-        - item.stdout | trim == 'NEEDS_MOUNT_POINT'
+        - item.output is defined
+        - item.output[0] | default('') | trim == 'NEEDS_MOUNT_POINT'
         - item.skipped is not defined or not item.skipped
       ansible.windows.win_powershell:
         script: |
@@ -600,7 +601,7 @@
   loop:                                "{{ disk_states.results | default([]) }}"
   when:
     - item.item.osdisk_id != ''
-    - item.stdout is defined
+    - item.output is defined
     - item.skipped is not defined or not item.skipped
   register:                            disk_verification
   changed_when:                        false
@@ -612,11 +613,11 @@
   ansible.builtin.debug:
     msg:
       - "Disk: {{ item.item.item.diskname }}"
-      - "Status: {{ item.stdout | trim }}"
+      - "Status: {{ item.output[0] | default('UNKNOWN') }}"
     verbosity:                         1
   loop:                                "{{ disk_verification.results | default([]) }}"
   when:
-    - item.stdout is defined
+    - item.output is defined
     - item.skipped is not defined or not item.skipped
   loop_control:
     label:                             "{{ item.item.item.diskname }}"
@@ -625,13 +626,13 @@
   ansible.builtin.fail:
     msg: |
       Disk configuration verification failed for {{ item.item.item.diskname }}:
-      {{ item.stdout | trim }}
+      {{ item.output[0] | default('UNKNOWN') }}
 
       Manual intervention may be required to resolve disk configuration issues.
   loop:                                "{{ disk_verification.results | default([]) }}"
   when:
-    - item.stdout is defined
-    - item.stdout | trim is search('ERROR')
+    - item.output is defined
+    - item.output[0] | default('') is search('ERROR')
     - item.skipped is not defined or not item.skipped
   loop_control:
     label:                             "{{ item.item.item.diskname }}"
