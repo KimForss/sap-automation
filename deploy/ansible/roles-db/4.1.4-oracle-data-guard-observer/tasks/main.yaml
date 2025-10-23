@@ -502,34 +502,28 @@
   become:                              true
   become_user:                         root
   ansible.builtin.shell: |
-                                       if [ "$(getenforce 2>/dev/null)" = "Enforcing" ]; then
-                                         sudo semanage fcontext -a -t bin_t "/opt/oracle/admin/observer/scripts/start_observer.sh"
+                                       enforcing=$(getenforce 2>/dev/null)
+                                       if [ "$enforcing" == "Enforcing" ]; then
+                                         sudo semanage fcontext -a -t bin_t /opt/oracle/admin/observer/scripts/start_observer.sh
                                          sudo restorecon -v /opt/oracle/admin/observer/scripts/start_observer.sh
                                        fi
+
   register:                            se_linux_results
+  when:                                ansible_selinux is defined and ansible_selinux != False and ansible_selinux.status == 'enabled'
   args:
     chdir:                             /oracle/{{ db_sid | upper }}/{{ ora_version }}/bin
     executable:                        /bin/csh
-  failed_when:                         se_linux_results.rc != 0 and 'PKI-03001' not in se_linux_results.stdout
 
 - name:                                "4.1.4 Oracle Data Guard - Observer - Ensure systemctl daemon is reloaded"
   ansible.builtin.systemd:
     daemon_reload:                     true
 
 - name:                                "4.1.4 Oracle Data Guard - Observer - systemctl enable sdaf-oracle-fsfo-observer.service"
-  ansible.builtin.systemd:
+  become:                              true
+  ansible.builtin.service:
     name:                              sdaf-oracle-fsfo-observer.service
     enabled:                           true
-    daemon_reload:                     true
-
-
-- name:                                "4.1.4 Oracle Data Guard - Observer - systemctl start sdaf-oracle-fsfo-observer.service"
-  ansible.builtin.systemd:
-    name:                              sdaf-oracle-fsfo-observer.service
-    started:                           true
-    daemon_reload:                     true
-
-
+    state:                             started
 ...
 # /*---------------------------------------------------------------------------8
 # |                                   END                                      |
