@@ -87,14 +87,24 @@
 {%     set mount_base_path_type = base_mount_path ~ "\\" ~ disktype | upper %}
 {% endif %}
 {#
-    Disk Matching: Use proven filter chain pattern from production template
-    CRITICAL CHANGE: Do NOT filter by partition_style (allows matching formatted disks)
-    - Exclude bootable disk (OS disk)
-    - Match by location (Azure LUN mapping)
-    - Returns undefined if no match (handled with default)
+    Disk Matching: Use filter chain pattern from existing template
+    1. Exclude bootable disk (OS disk)
+    2. Exclude Azure temporary disk by partition style heuristic:
+       - Azure managed disks: Initially RAW, or GPT if previously initialized
+       - Azure temporary disk: Pre-provisioned as MBR with partition
+       - Strategy: Accept RAW or GPT only (excludes pre-existing MBR temp disk)
+    3. Match by location (Azure LUN mapping)
+
+    This maintains idempotency:
+    - RAW disks: Will be initialized
+    - GPT disks: Already initialized by us, will be recovered/verified
+    - MBR disks: Assumed to be Azure temp disk, excluded
+
+    Returns undefined if no match (handled with default)
 #}
 {%     set matched_disk = ansible_facts.disks
          | rejectattr('bootable', 'equalto', true)
+         | selectattr('partition_style', 'in', ['RAW', 'GPT'])
          | selectattr('location', 'search', regex_string)
          | list | first | default(none) %}
 {%     set os_disk_id = matched_disk.unique_id if matched_disk else '' %}
