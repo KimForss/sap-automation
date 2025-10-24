@@ -1,3 +1,45 @@
 {# Copyright (c) Microsoft Corporation.
  # Licensed under the MIT License.
 #}
+{#
+ # Generate CREATE DATABASE T-SQL for SQL Server
+ # Supports both drive letter and mount point disk strategies
+ # File paths: {directory}\{diskname}.{extension}
+#}
+{% set data_files = [] %}
+{% set log_files = [] %}
+{% set db_name = db_sid | upper %}
+
+{% for disk in volume_groups %}
+{%   if disk.disk_type == 'data' %}
+{%     if disk.use_mount_point | default(false) %}
+{%       set dir_path = disk.mount_point %}
+{%     else %}
+{%       set dir_path = disk.driveletter ~ ':\\' ~ disk.diskname %}
+{%     endif %}
+{%     set file_path = dir_path ~ '\\' ~ disk.diskname ~ '.mdf' %}
+{%     set _ = data_files.append({'name': disk.diskname, 'path': file_path}) %}
+{%   elif disk.disk_type == 'log' %}
+{%     if disk.use_mount_point | default(false) %}
+{%       set dir_path = disk.mount_point %}
+{%     else %}
+{%       set dir_path = disk.driveletter ~ ':\\' ~ disk.diskname %}
+{%     endif %}
+{%     set file_path = dir_path ~ '\\' ~ disk.diskname ~ '.ldf' %}
+{%     set _ = log_files.append({'name': disk.diskname, 'path': file_path}) %}
+{%   endif %}
+{% endfor %}
+CREATE DATABASE [{{ db_name }}]
+CONTAINMENT = NONE
+ON PRIMARY
+{% for file in data_files %}
+( NAME = N'{{ file.name }}', FILENAME = N'{{ file.path }}', SIZE = 2097152KB, MAXSIZE = UNLIMITED, FILEGROWTH = 61440KB ){% if not loop.last %},{% endif %}
+
+{% endfor %}
+LOG ON
+{% for file in log_files %}
+( NAME = N'{{ file.name }}', FILENAME = N'{{ file.path }}', SIZE = 1155072KB, MAXSIZE = 2048GB, FILEGROWTH = 65536KB ){% if not loop.last %},{% endif %}
+
+{% endfor %}
+WITH CATALOG_COLLATION = DATABASE_DEFAULT
+GO

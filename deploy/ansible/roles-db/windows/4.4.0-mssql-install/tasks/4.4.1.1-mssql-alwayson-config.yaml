@@ -81,7 +81,6 @@
       register:                        sql_always_on_endpoint_permission
 
 
-    # restart SQL Server service
     - name:                            "Restart SQL Server service on {{ ansible_hostname }}"
       ansible.windows.win_service:
         name:                          MSSQLSERVER
@@ -110,8 +109,6 @@
         PsDscRunAsCredential_password: "{{ domain_service_password }}"
       register:                        sql_ag_creation
 
-    # The assumption is that the system has only one network adapter
-    # and the load balancer is in the same subnet as the db machine.
     - name:                            "calculate subnet prefix"
       ansible.builtin.set_fact:
         db_subnet_prefix:              "{{ sap_cluster_ip_address.split('/')[1] }}"
@@ -132,7 +129,6 @@
           - "LB IP with subnet prefix: {{ database_loadbalancer_ipv4 }}"
           - "Subnet mask: {{ db_subnet_mask }}"
 
-    # restart SQL Server service
     - name:                            "Restart SQL Server service on {{ ansible_hostname }}"
       ansible.windows.win_service:
         name:                          MSSQLSERVER
@@ -172,26 +168,23 @@
     - ansible_hostname == mssql_secondary_node
   block:
 
-    - name:                            "SQL Disks"
-      ansible.builtin.set_fact:
-        vm_data_disks: '{{ sql_disk_list[0] | list }}'
-        vm_log_disks:  '{{ sql_disk_list[1] | list }}'
-      vars:
-        sql_disk_list: '{{ lookup("template", "sql_disks.j2") }}'
+    - name:                            "Validate volume_groups configuration"
+      ansible.builtin.assert:
+        that:
+          - volume_groups is defined
+          - volume_groups | length > 0
+        fail_msg:                      "volume_groups must be configured by 1.5-disk-setup role"
 
-    - name:                            "create the directory for SQL Server data files"
+    - name:                            "Create directories for drive letter strategy only"
       ansible.windows.win_file:
-        path:                          '{{ item.1 }}'
+        path:                          "{{ item.driveletter }}:\\{{ item.diskname }}"
         state:                         directory
-      with_indexed_items:
-        - '{{ vm_data_disks }}'
-
-    - name:                            "create the directory for SQL Server log files"
-      ansible.windows.win_file:
-        path:                          '{{ item.1 }}'
-        state:                         directory
-      with_indexed_items:
-        - '{{ vm_log_disks }}'
+      loop:                            "{{ volume_groups }}"
+      when:
+        - not item.use_mount_point | default(false)
+        - item.disk_type in ['data', 'log']
+      loop_control:
+        label:                         "{{ item.diskname }} ({{ 'mountpoint' if item.use_mount_point | default(false) else 'driveletter' }})"
 
     - name:                            "Enable SQL Server Always On Service"
       ansible.windows.win_dsc:
@@ -207,7 +200,6 @@
       retries:                         6
       delay:                           20
 
-    # restart SQL Server service
     - name:                            "ReStart SQL Server service on {{ ansible_hostname }}"
       ansible.windows.win_service:
         name:                          MSSQLSERVER
