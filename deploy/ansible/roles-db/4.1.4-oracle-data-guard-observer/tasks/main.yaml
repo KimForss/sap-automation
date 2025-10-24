@@ -515,7 +515,7 @@
   ansible.builtin.systemd:
     daemon_reload:                     true
 
-- name:                                "4.1.4 Oracle Data Guard - Observer - systemctl enable sdaf-oracle-fsfo-observer.service"
+- name:                                "4.1.4 Oracle Data Guard - Observer - systemctl enable and start sdaf-oracle-fsfo-observer.service"
   become:                              true
   ansible.builtin.service:
     name:                              sdaf-oracle-fsfo-observer.service
