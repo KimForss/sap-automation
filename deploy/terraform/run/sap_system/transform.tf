@@ -520,11 +520,11 @@ locals {
                                            (length(local.frontend_ips)      > 0                   ? { loadbalancer   = { frontend_ips = local.frontend_ips } } : { loadbalancer = { frontend_ips = [] } }),
                                            (length(local.db_tags)           > 0                   ? { tags           = local.db_tags }                         : null),
                                            ( var.use_fence_kdump &&
-                                             var.database_high_availability )                     ? { fence_kdump_disk_size = var.use_fence_kdump_size_gb_db } : { fence_kdump_disk_size = 0 } ), (
-                                           ( var.use_fence_kdump &&
+                                             var.database_high_availability )                     ? { fence_kdump_disk_size = var.use_fence_kdump_size_gb_db } : { fence_kdump_disk_size = 0 } ,
+                                             ( var.use_fence_kdump &&
                                              var.database_high_availability )                     ? { fence_kdump_lun_number = var.use_fence_kdump_lun_db } : { fence_kdump_lun_number = -1 }
                                            )
-                                         )
+
 
 
   authentication                       = merge(local.authentication_temp, (
