@@ -167,19 +167,14 @@ locals {
   db_sid_specified                  = (length(var.database_sid) + length(try(var.databases[0].sid, ""))) > 0
 
   instance                          = {
-                                        sid = upper(try(coalesce(
+                                        sid = upper(coalesce(
                                            var.database_sid,
-                                           try(var.databases[0].sid, "")),
                                            upper(var.database_platform) == "HANA" ? (
                                              "HDB"
                                              ) : (
                                            substr(var.database_platform, 0, 3))
                                         ))
-                                        number = upper(local.databases_temp.platform) == "HANA" ? (
-                                           var.database_instance_number
-                                           ) : (
-                                           "00"
-                                          )
+                                        number = coalesce(var.database_instance_number,"00")
                                        }
 
   app_authentication                = {
