@@ -74,7 +74,7 @@ resource "azurerm_network_interface_application_security_group_association" "web
 
 resource "azurerm_network_interface" "web_admin" {
   provider                             = azurerm.main
-  count                                = local.enable_deployment && var.application_tier.dual_nics && length(try(var.admin_subnet.id, "")) > 0 ? (
+  count                                = local.enable_deployment && var.application_tier.dual_network_interfaces && length(try(var.admin_subnet.id, "")) > 0 ? (
                                            local.webdispatcher_count) : (
                                            0
                                          )
@@ -145,7 +145,7 @@ resource "azurerm_linux_virtual_machine" "web" {
   //If length of zones > 1 distribute servers evenly across zones
   zone                                 = local.use_web_avset ? null : try(local.web_zones[count.index % max(local.web_zone_count, 1)], null)
 
-  network_interface_ids                = var.application_tier.dual_nics ? (
+  network_interface_ids                = var.application_tier.dual_network_interfaces ? (
                                            var.options.legacy_nic_order ? (
                                              [
                                                azurerm_network_interface.web_admin[count.index].id,
@@ -307,7 +307,7 @@ resource "azurerm_windows_virtual_machine" "web" {
                                            try(local.web_zones[count.index % max(local.web_zone_count, 1)], null)
                                          )
 
-  network_interface_ids                = var.application_tier.dual_nics ? (
+  network_interface_ids                = var.application_tier.dual_network_interfaces ? (
                                            var.options.legacy_nic_order ? (
                                              [
                                                azurerm_network_interface.web_admin[count.index].id,
