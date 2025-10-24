@@ -218,7 +218,7 @@
                                        -opatchLocation {{ OPatchPath }}                          \
                                        -silent -ignorePrereqWarnings
       register:                        oracle_installer_results
-      failed_when:                     oracle_installer_results.rc >=  3
+      failed_when:                     oracle_installer_results.rc >=  2
       environment:
         DB_SID:                        "{{ db_sid | upper }}"
         CV_ASSUME_DISTID:              "{{ CV_ASSUME_DISTID }}"
