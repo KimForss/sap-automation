@@ -129,6 +129,17 @@
     path:                              "/etc/sap_deployment_automation/oracle/oracle_installed.txt"
   register:                            oracle_installed
 
+- name:                                "4.1.2. ORACLE ASM Database Installation - check updated installation media exists"
+  ansible.builtin.stat:
+    path:                              "{{ target_media_location }}/RUNINSTALLER/SAP/RUNINSTALLER"
+  register:                            oracle_media_installed
+
+- name:                                "4.1.2. ORACLE ASM Database Installation - check oradism exists"
+  ansible.builtin.assert:
+    that:
+      - oracle_media_installed.stat.exists
+    fail_msg:                          "ORACLE ASM Database installation requires the updated RUNINSTALLER media to be available at {{ target_media_location }}/RUNINSTALLER/SAP/RUNINSTALLER"
+
 # /*---------------------------------------------------------------------------8
 # | Start of Oracle software installation using SAP RUNINSTALLER wrapper.      |
 # | Before running Installer set DB_SID and CV_ASSUME_DISTID according to      |
