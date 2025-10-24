@@ -103,6 +103,19 @@
     path:                              "/etc/sap_deployment_automation/{{ db_sid | upper }}/oracle_installed.txt"
   register:                            oracle_installed
 
+- name:                                "4.1.2. Oracle Installation - check updated installation media exists"
+  ansible.builtin.stat:
+    path:                              "{{ target_media_location }}/SAP/RUNINSTALLER"
+  register:                            oracle_media_installed
+
+- name:                                "4.1.2. Oracle Installation - check oradism exists"
+  ansible.builtin.assert:
+    that:
+      - oracle_media_installed.stat.exists
+    fail_msg:                          "Oracle Database installation requires the updated RUNINSTALLER media to be available at {{ target_media_location }}/SAP/RUNINSTALLER"
+
+
+
 # /*---------------------------------------------------------------------------8
 # | Start of Oracle software installation using SAP RUNINSTALLER wrapper.      |
 # | Before running Installer set DB_SID and CV_ASSUME_DISTID according to      |
@@ -193,13 +206,13 @@
 
     - name:                            "4.1.0. Oracle Installation - Execute RUNINSTALLER command"
       ansible.builtin.debug:
-        msg:                           "Running {{ target_media_location }}/RUNINSTALLER/SAP/RUNINSTALLER -oracle_image {{ OracleImage }} -applyRU {{ ApplyRU }} -opatchLocation {{ OPatchPath }} -silent -ignorePrereqWarnings"
+        msg:                           "Running {{ target_media_location }}/SAP/RUNINSTALLER -oracle_image {{ OracleImage }} -applyRU {{ ApplyRU }} -opatchLocation {{ OPatchPath }} -silent -ignorePrereqWarnings"
 
     - name:                            "4.1.0. Oracle Installation - Execute RUNINSTALLER"
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell: |
-                                       {{ target_media_location }}/RUNINSTALLER/SAP/RUNINSTALLER \
+                                       {{ target_media_location }}/SAP/RUNINSTALLER \
                                        -oracle_image {{ OracleImage }}                           \
                                        -applyRU {{ ApplyRU }}                                    \
                                        -opatchLocation {{ OPatchPath }}                          \
