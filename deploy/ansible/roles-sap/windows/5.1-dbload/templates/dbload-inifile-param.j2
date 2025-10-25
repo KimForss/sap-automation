@@ -13,22 +13,6 @@ SAPINST.CD.PACKAGE.CD1                                     = {{ download_directo
 SAPINST.CD.PACKAGE.CD2                                     = {{ download_directory_windows }}\CD_EXPORT\DATA_UNITS\EXP2
 SAPINST.CD.PACKAGE.CD3                                     = {{ download_directory_windows }}\CD_EXPORT\DATA_UNITS\EXP3
 
-
-# Password for the Diagnostics Agent specific <dasid>adm user. Provided value may be encoded.
-# DiagnosticsAgent.dasidAdmPassword =
-
-# Windows domain in which the Diagnostics Agent users must be created. This is an optional property (Windows only).
-# DiagnosticsAgent.domain =
-
-# Windows only: Password for the Diagnostics Agent specific 'SAPService<DASID>' user.
-# DiagnosticsAgent.sapServiceDASIDPassword =
-
-# Specify whether you want to decluster during the import.
-# InitDeclusteringForImport.decluster =
-
-# Specify if you want the database to use row versioning and place no locks on data during data read. Set it to 'true' to switch READ_COMMITTED_SNAPSHOT 'ON'.
-# MSS.DBCFG.SET_READ_COMMITTED_SNAPSHOT = false
-
 # Password of database user '<sapsid>'
 MSS.DBUSER.AbapPassword                                                      = {{ main_password }}
 
@@ -39,7 +23,11 @@ MSS.DBUSER.JavaPassword                                                      = {
 MSS.DataDrive                                                                = {{ data_disks }}
 
 # Specify whether Software Provisioning Manager is to create ('CRE') a new database or re-use ('USE') an existing database.
-MSS.Database.Action                                                          = CRE
+# Conditional logic:
+#   - USE: When database was pre-created by 4.4.1-mssql-create-DB task (AlwaysOn scenarios)
+#   - CRE: When SWPM should create the database (standalone scenarios)
+#   - Inventory override: mss_database_action variable can force specific behavior
+MSS.Database.Action                                                          = {{ mss_database_action | default('USE') }}
 
 # The expected DB size can be 'BIG', 'MEDIUM' or 'SMALL'. It determines the number of database files.
 # MSS.DatabaseTShirtSize = MEDIUM
@@ -89,9 +77,6 @@ NW_ABAP_Import_Dialog.migmonJobNum                                           = 2
 # Additional 'R3load' arguments for the LOAD phase
 NW_ABAP_Import_Dialog.migmonLoadArgs                                         = -loadprocedure fast
 
-# System copy AS Java with product instance Process Integration and/or Development Infrastructure: Specify whether the target system should replace the source system. Possible values are  'true' or 'false'.
-# NW_CreateDBandLoad.movePVCforUsagePiAndDi =
-
 # Master password
 NW_GetMasterPassword.masterPwd                                               = {{ main_password }}
 
@@ -100,9 +85,6 @@ NW_MSS_DBINFO.dbhost                                                         = {
 
 # Database system ID (DBSID)
 NW_MSS_DBINFO.dbsid                                                          = {{ db_sid }}
-
-# SAP INTERNAL USE ONLY
-# NW_adaptProfile.templateFiles =
 
 # ABAP message server port for connecting to the message server, leave empty for default
 NW_checkMsgServer.abapMSPort                                                 = 36{{ scs_instance_number }}
@@ -125,26 +107,23 @@ archives.downloadBasket                                                      = {
 # Password of the sidadm user.
 db2.sidAdmPassword                                                           = {{ domain_user_password }}
 
-# Windows only: The domain of the SAP Host Agent user
-# hostAgent.domain =
-
 # Password for the 'sapadm' user of the SAP Host Agent
 hostAgent.sapAdmPassword                                                     = {{ main_password }}
 
 # Windows only: The domain of all users of this SAP system. Leave empty for default.
-# nwUsers.sapDomain =
+nwUsers.sapDomain                                                            = {{ domain }}
 
-# The delimiter for nested Organisational Units (OU). Default value is '/'.
-# nwUsers.sapDomainOU.delimiter = /
+# Windows only: Password for the { <sapsid>adm } user
+nwUsers.sapDomainAdmPassword                                                 = {{ domain_user_password }}
 
-# Relative to the domain path of Organisational Units (OU)
-# nwUsers.sapDomainOU.path =
+# ABAP schema name
+nwUsers.sapDomainSAPSystemGlobalAdminName                                    = {{ domain_service_account }}
 
-# If this parameter is set to 'true', the path to one or more already existing Organisational Units (OU) has to be provided. In these OUs, domain users and groups are created by Software Provisioning Manager, if they do not already exist.
-# nwUsers.sapDomainOU.use = false
+# ABAP schema password
+nwUsers.sapDomainSIDAdmPassword                                              = {{ domain_user_password }}
 
-# Windows only: The password of the 'SAPServiceSID' user
-nwUsers.sapServiceSIDPassword                                                = {{ sid_service_password }}
+# Windows only: Password for the 'SAPService<SAPSID>' user
+nwUsers.sapDomainSAPServiceSIDPassword                                       = {{ domain_user_password }}
 
-# The password of the '<sapsid>adm' user
-nwUsers.sidadmPassword                                                       = {{ domain_user_password }}
+# Windows only: Password for the 'SAPMNT' user
+nwUsers.sapDomainSAPMNTAdmPassword                                           = {{ main_password }}

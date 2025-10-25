@@ -1,0 +1,332 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+---
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |          Configure Distributed Network Name (DNN) for SQL AG              |
+# |          Requires SQL Server 2019+ and Windows Server 2016+                |
+# |          Compatible with azureadm local account authentication             |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+- name:                                "DNN: Calculating the domain value from {{ domain_name }}"
+  ansible.builtin.set_fact:
+    domain:                            "{{ domain_name | split('.') | first }}"
+    cacheable:                         true
+  when:
+    - domain_name is defined
+    - domain_name | type_debug != 'NoneType'
+    - domain_name | trim | length > 1
+    - domain is not defined
+
+- name:                                "DNN: Define DNN configuration variables"
+  ansible.builtin.set_fact:
+    mssql_dnn_listener_name:           "{{ mssql_dnn_name | default(sap_sid | upper ~ 'DNN') }}"
+    mssql_dnn_port:                    "{{ mssql_dnn_listener_port | default(1433) }}"
+    mssql_dnn_probe_port:              "{{ mssql_dnn_health_probe_port | default('59999') }}"
+
+- name:                                "DNN: Validate SQL Server version supports DNN"
+  ansible.windows.win_shell: |
+    $ErrorActionPreference = 'Stop'
+    Import-Module SqlServer -ErrorAction SilentlyContinue
+
+    $sqlVersion = (Invoke-Sqlcmd -Query "SELECT SERVERPROPERTY('ProductVersion') AS Version" `
+                                  -ServerInstance localhost `
+                                  -TrustServerCertificate).Version
+    $majorVersion = [int]($sqlVersion.Split('.')[0])
+
+    if ($majorVersion -lt 15) {
+      throw "DNN requires SQL Server 2019 (version 15) or higher. Current version: $sqlVersion"
+    }
+    Write-Output "SQL Server version $sqlVersion supports DNN"
+  register:                            sql_version_check
+  changed_when:                        false
+  when:
+    - ansible_hostname == mssql_primary_node
+
+- name:                                "DNN: Check if Availability Group exists"
+  ansible.windows.win_shell: |
+    $ErrorActionPreference = 'Stop'
+    Import-Module SqlServer
+
+    $ag = Get-Item "SQLSERVER:\SQL\{{ ansible_hostname }}\{{ mssql_instance_name }}\AvailabilityGroups\{{ mssql_ag_name }}" `
+                   -ErrorAction SilentlyContinue
+
+    if ($ag) {
+      Write-Output "Availability Group '{{ mssql_ag_name }}' exists"
+      exit 0
+    } else {
+      Write-Output "Availability Group '{{ mssql_ag_name }}' not found"
+      exit 1
+    }
+  register:                            ag_exists_check
+  changed_when:                        false
+  failed_when:                         false
+  when:
+    - ansible_hostname == mssql_primary_node
+
+- name:                                "DNN: Fail if AG doesn't exist"
+  ansible.builtin.fail:
+    msg: "Availability Group '{{ mssql_ag_name }}' must exist before configuring DNN. Run AlwaysOn configuration first."
+  when:
+    - ansible_hostname == mssql_primary_node
+    - ag_exists_check.rc != 0
+
+- name:                                "DNN: Get existing VNN listener name (if exists)"
+  ansible.windows.win_shell: |
+    $ErrorActionPreference = 'Stop'
+    Import-Module SqlServer
+
+    $ag = Get-Item "SQLSERVER:\SQL\{{ ansible_hostname }}\{{ mssql_instance_name }}\AvailabilityGroups\{{ mssql_ag_name }}"
+    $listeners = $ag.AvailabilityGroupListeners
+
+    foreach ($listener in $listeners) {
+      Write-Output $listener.Name
+    }
+  register:                            existing_listeners
+  changed_when:                        false
+  when:
+    - ansible_hostname == mssql_primary_node
+
+- name:                                "DNN: Remove existing VNN listener (if exists)"
+  ansible.windows.win_shell: |
+    $ErrorActionPreference = 'Stop'
+    Import-Module SqlServer
+
+    $ag = Get-Item "SQLSERVER:\SQL\{{ ansible_hostname }}\{{ mssql_instance_name }}\AvailabilityGroups\{{ mssql_ag_name }}"
+    $listener = $ag.AvailabilityGroupListeners | Where-Object { $_.Name -eq '{{ item }}' }
+
+    if ($listener) {
+      # Remove the listener
+      Remove-SqlAvailabilityGroupListener -Path $listener.Urn.ToString() -Confirm:$false
+      Write-Output "Removed VNN listener '{{ item }}'"
+    }
+  loop:                                "{{ existing_listeners.stdout_lines }}"
+  when:
+    - ansible_hostname == mssql_primary_node
+    - existing_listeners.stdout_lines is defined
+    - existing_listeners.stdout_lines | length > 0
+    - item != mssql_dnn_listener_name
+  register:                            vnn_listener_removal
+
+- name:                                "DNN: Wait for VNN listener removal to complete"
+  ansible.builtin.pause:
+    seconds:                           10
+  when:
+    - ansible_hostname == mssql_primary_node
+    - vnn_listener_removal is changed
+
+- name:                                "DNN: Create DNN listener for Availability Group"
+  ansible.windows.win_shell: |
+    $ErrorActionPreference = 'Stop'
+    Import-Module SqlServer
+
+    # Get the AG object
+    $ag = Get-Item "SQLSERVER:\SQL\{{ ansible_hostname }}\{{ mssql_instance_name }}\AvailabilityGroups\{{ mssql_ag_name }}"
+
+    # Check if DNN already exists
+    $existingDnn = $ag.AvailabilityGroupListeners | Where-Object { $_.Name -eq '{{ mssql_dnn_listener_name }}' }
+
+    if (-not $existingDnn) {
+      # Create DNN listener
+      $dnn = New-SqlAvailabilityGroupListener `
+        -Name '{{ mssql_dnn_listener_name }}' `
+        -Path "SQLSERVER:\SQL\{{ ansible_hostname }}\{{ mssql_instance_name }}\AvailabilityGroups\{{ mssql_ag_name }}" `
+        -DnnPort {{ mssql_dnn_port }} `
+        -PassThru
+
+      Write-Output "CREATED"
+    } else {
+      Write-Output "ALREADY_EXISTS"
+    }
+  register:                            dnn_listener_creation
+  changed_when:                        "'CREATED' in dnn_listener_creation.stdout"
+  when:
+    - ansible_hostname == mssql_primary_node
+
+- name:                                "DNN: Configure firewall rule for DNN port"
+  ansible.windows.win_dsc:
+    resource_name:                     Firewall
+    Name:                              "SQL-DNN-{{ mssql_dnn_listener_name }}"
+    DisplayName:                       "SQL Server DNN Listener - {{ mssql_dnn_listener_name }}"
+    Group:                             "SQL Server"
+    Ensure:                            Present
+    Enabled:                           true
+    Profile:                           ['Domain', 'Private']
+    Direction:                         Inbound
+    LocalPort:                         "{{ mssql_dnn_port }}"
+    Protocol:                          TCP
+    Description:                       "Allow inbound SQL Server connections via DNN listener"
+
+- name:                                "DNN: Get cluster resource name for DNN"
+  ansible.windows.win_shell: |
+    $ErrorActionPreference = 'Stop'
+
+    # DNN resource name pattern: AG_Name_ListenerName
+    $expectedResourceName = "{{ mssql_ag_name }}_{{ mssql_dnn_listener_name }}"
+
+    # Get cluster resources related to the AG
+    $agResources = Get-ClusterGroup -Name "{{ mssql_ag_name }}" -ErrorAction SilentlyContinue
+
+    if ($agResources) {
+      $dnnResource = Get-ClusterResource | Where-Object {
+        $_.OwnerGroup.Name -eq "{{ mssql_ag_name }}" -and
+        $_.ResourceType -eq "Network Name" -and
+        $_.Name -like "*{{ mssql_dnn_listener_name }}*"
+      } | Select-Object -First 1
+
+      if ($dnnResource) {
+        Write-Output $dnnResource.Name
+      } else {
+        Write-Output "NOT_FOUND"
+      }
+    } else {
+      Write-Output "AG_NOT_CLUSTERED"
+    }
+  register:                            dnn_cluster_resource_name
+  changed_when:                        false
+  when:
+    - ansible_hostname == mssql_primary_node
+
+- name:                                "DNN: Configure cluster resource parameters"
+  ansible.windows.win_shell: |
+    $ErrorActionPreference = 'Stop'
+
+    $resourceName = "{{ dnn_cluster_resource_name.stdout | trim }}"
+
+    if ($resourceName -eq "NOT_FOUND" -or $resourceName -eq "AG_NOT_CLUSTERED") {
+      Write-Output "No cluster resource to configure"
+      exit 0
+    }
+
+    $resource = Get-ClusterResource -Name $resourceName
+
+    # Configure DNN-specific parameters
+    $resource | Set-ClusterParameter -Name RegisterAllProvidersIP -Value 0 -ErrorAction SilentlyContinue
+    $resource | Set-ClusterParameter -Name HostRecordTTL -Value 300 -ErrorAction SilentlyContinue
+
+    # Set health probe port for Azure Internal Load Balancer (if applicable)
+    $resource | Set-ClusterParameter -Name ProbePort -Value {{ mssql_dnn_probe_port }} -ErrorAction SilentlyContinue
+
+    Write-Output "Configured cluster parameters for DNN resource '$resourceName'"
+  register:                            dnn_cluster_config
+  changed_when:                        "'Configured cluster parameters' in dnn_cluster_config.stdout"
+  when:
+    - ansible_hostname == mssql_primary_node
+    - dnn_cluster_resource_name.stdout is defined
+    - dnn_cluster_resource_name.stdout | trim not in ['NOT_FOUND', 'AG_NOT_CLUSTERED', '']
+
+- name:                                "DNN: Verify DNN listener connectivity from primary"
+  ansible.windows.win_shell: |
+    $ErrorActionPreference = 'Stop'
+    Import-Module SqlServer
+
+    # Connection string with DNN listener name and port
+    $connectionString = "{{ mssql_dnn_listener_name }},{{ mssql_dnn_port }}"
+
+    try {
+      $result = Invoke-Sqlcmd -Query "SELECT @@SERVERNAME AS ServerName, @@VERSION AS Version" `
+                               -ServerInstance $connectionString `
+                               -TrustServerCertificate `
+                               -ConnectionTimeout 10 `
+                               -QueryTimeout 10
+
+      Write-Output "SUCCESS: Connected to '$connectionString'"
+      Write-Output "Server: $($result.ServerName)"
+    } catch {
+      Write-Output "FAILED: Cannot connect to '$connectionString': $_"
+      exit 1
+    }
+  register:                            dnn_connectivity_test
+  changed_when:                        false
+  failed_when:                         dnn_connectivity_test.rc != 0
+  when:
+    - ansible_hostname == mssql_primary_node
+
+- name:                                "DNN: Verify DNN listener connectivity from secondary"
+  ansible.windows.win_shell: |
+    $ErrorActionPreference = 'Stop'
+    Import-Module SqlServer
+
+    # Connection string with DNN listener name and port
+    $connectionString = "{{ mssql_dnn_listener_name }},{{ mssql_dnn_port }}"
+
+    try {
+      $result = Invoke-Sqlcmd -Query "SELECT @@SERVERNAME AS ServerName, DB_NAME() AS CurrentDB" `
+                               -ServerInstance $connectionString `
+                               -TrustServerCertificate `
+                               -ConnectionTimeout 10 `
+                               -QueryTimeout 10
+
+      Write-Output "SUCCESS: Connected to '$connectionString' from secondary node"
+      Write-Output "Connected to server: $($result.ServerName)"
+    } catch {
+      Write-Output "FAILED: Cannot connect to '$connectionString' from secondary: $_"
+      exit 1
+    }
+  register:                            dnn_secondary_connectivity_test
+  changed_when:                        false
+  failed_when:                         dnn_secondary_connectivity_test.rc != 0
+  when:
+    - ansible_hostname == mssql_secondary_node
+
+- name:                                "DNN: Update SAP profile connection strings (if SCS node exists)"
+  block:
+    - name:                            "DNN: Check if running on domain-joined system"
+      ansible.windows.win_shell: |
+        $computerSystem = Get-WmiObject -Class Win32_ComputerSystem
+        if ($computerSystem.PartOfDomain) {
+          Write-Output "DOMAIN_JOINED"
+        } else {
+          Write-Output "NOT_DOMAIN_JOINED"
+        }
+      register:                        domain_status
+      changed_when:                    false
+
+    - name:                            "DNN: Calculate SCS virtual hostname"
+      ansible.builtin.set_fact:
+        scs_virtual_hostname:          "{{ custom_scs_virtual_hostname | default(sap_sid | lower ~ 'scs' ~ scs_instance_number ~ 'cl1', true) }}"
+      when:
+        - "'DOMAIN_JOINED' in domain_status.stdout"
+
+    - name:                            "DNN: Update DEFAULT.PFL with DNN connection string"
+      community.windows.win_lineinfile:
+        backup:                        true
+        path:                          '\\{{ scs_virtual_hostname }}\sapmnt\{{ sap_sid | upper }}\SYS\profile\DEFAULT.PFL'
+        regexp:                        '{{ item.regex }}'
+        line:                          '{{ item.value }}'
+        state:                         present
+      with_items:
+        - { regex: '^SAPDBHOST\s*=',     value: 'SAPDBHOST = {{ mssql_dnn_listener_name }},{{ mssql_dnn_port }}'      }
+        - { regex: '^dbs/mss/server\s*=',value: 'dbs/mss/server = {{ mssql_dnn_listener_name }},{{ mssql_dnn_port }}' }
+        - { regex: '^j2ee/dbhost\s*=',   value: 'j2ee/dbhost = {{ mssql_dnn_listener_name }},{{ mssql_dnn_port }}'    }
+      when:
+        - "'DOMAIN_JOINED' in domain_status.stdout"
+        - scs_virtual_hostname is defined
+  when:
+    - ansible_hostname == mssql_primary_node
+
+- name:                                "DNN: Display DNN configuration summary"
+  ansible.builtin.debug:
+    msg:
+      - "=========================================="
+      - "DNN Configuration Summary"
+      - "=========================================="
+      - "DNN Listener Name:            {{ mssql_dnn_listener_name }}"
+      - "DNN Port:                     {{ mssql_dnn_port }}"
+      - "DNN Health Probe Port:        {{ mssql_dnn_probe_port }}"
+      - "Availability Group:           {{ mssql_ag_name }}"
+      - "Primary Node:                 {{ mssql_primary_node }}"
+      - "Secondary Node:               {{ mssql_secondary_node }}"
+      - "Connection String:            {{ mssql_dnn_listener_name }},{{ mssql_dnn_port }}"
+      - "Configuration Status:         {{ 'SUCCESS' if dnn_connectivity_test is succeeded else 'CHECK LOGS' }}"
+      - "=========================================="
+      - "Client Connection Examples:"
+      - "  ODBC: Server={{ mssql_dnn_listener_name }},{{ mssql_dnn_port }};MultiSubnetFailover=True"
+      - "  JDBC: jdbc:sqlserver://{{ mssql_dnn_listener_name }}:{{ mssql_dnn_port }};multiSubnetFailover=true"
+      - "=========================================="
+  when:
+    - ansible_hostname == mssql_primary_node
+
+...

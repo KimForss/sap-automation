@@ -93,4 +93,5 @@ __pycache__
 *.svclog
 *.scc
 .ansible/.lock
+.backup/
 

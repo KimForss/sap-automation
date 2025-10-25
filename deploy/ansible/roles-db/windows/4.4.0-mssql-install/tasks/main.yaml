@@ -29,6 +29,15 @@
     - tier == 'sqlserver'
     - not sql_installed.stat.exists
 
+- name:                                "WIN-SQL: Relocate TempDB to Mount Points"
+  ansible.builtin.include_tasks:
+    file:                              "4.4.2-mssql-relocate-tempdb.yaml"
+  when:
+    - tier == 'sqlserver'
+    - sql_installed.stat.exists
+    - volume_groups is defined
+    - volume_groups | selectattr('disk_type', 'equalto', 'tempdb') | list | length > 0
+
 - name:                                "WIN-SQL: Run SQL Server Always On Prerequisites"
   ansible.builtin.include_tasks:
     file:                              "4.4.1.0-mssql-alwayson-prerequisites.yaml"
@@ -44,6 +53,15 @@
     - tier == 'ha'
     - config_tier == 'sqlserverha'
     - sql_installed.stat.exists
+
+- name:                                "WIN-SQL: Configure Distributed Network Name (DNN)"
+  ansible.builtin.include_tasks:
+    file:                              "4.4.1.2-mssql-configure-dnn.yaml"
+  when:
+    - tier == 'ha'
+    - config_tier == 'sqlserverha'
+    - sql_installed.stat.exists
+    - use_dnn_listener | default(false) | bool
 
 ...
 

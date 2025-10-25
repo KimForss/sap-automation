@@ -1,0 +1,39 @@
+{# Copyright (c) Microsoft Corporation.
+ # Licensed under the MIT License.
+#}
+{#
+ # Generate ALTER DATABASE statements to relocate TempDB files
+ # Creates one data file per tempdb disk from volume_groups
+ # Places log file on first tempdb disk
+#}
+{% set tempdb_data_files = volume_groups | selectattr('disk_type', 'equalto', 'tempdb') | list %}
+{% set tempdb_log_location = tempdb_data_files[0] if tempdb_data_files | length > 0 else None %}
+{# Modify existing tempdb data file #}
+{% if tempdb_data_files | length > 0 %}
+{%   set first_disk = tempdb_data_files[0] %}
+{%   if first_disk.use_mount_point | default(false) %}
+{%     set file_path = first_disk.mount_point ~ '\\tempdev.mdf' %}
+{%   else %}
+{%     set file_path = first_disk.driveletter ~ ':\\tempdev.mdf' %}
+{%   endif %}
+ALTER DATABASE tempdb MODIFY FILE (NAME = tempdev, FILENAME = '{{ file_path }}', SIZE = 8GB, FILEGROWTH = 512MB);
+{% endif %}
+{# Add additional tempdb data files (one per disk, starting from disk 2) #}
+{% for disk in tempdb_data_files[1:] %}
+{%   set file_id = loop.index + 1 %}
+{%   if disk.use_mount_point | default(false) %}
+{%     set file_path = disk.mount_point ~ '\\tempdev{{ file_id }}.mdf' %}
+{%   else %}
+{%     set file_path = disk.driveletter ~ ':\\tempdev{{ file_id }}.mdf' %}
+{%   endif %}
+ALTER DATABASE tempdb ADD FILE (NAME = tempdev{{ file_id }}, FILENAME = '{{ file_path }}', SIZE = 8GB, FILEGROWTH = 512MB);
+{% endfor %}
+{# Modify tempdb log file #}
+{% if tempdb_log_location %}
+{%   if tempdb_log_location.use_mount_point | default(false) %}
+{%     set log_path = tempdb_log_location.mount_point ~ '\\templog.ldf' %}
+{%   else %}
+{%     set log_path = tempdb_log_location.driveletter ~ ':\\templog.ldf' %}
+{%   endif %}
+ALTER DATABASE tempdb MODIFY FILE (NAME = templog, FILENAME = '{{ log_path }}', SIZE = 4GB, FILEGROWTH = 512MB);
+{% endif %}
