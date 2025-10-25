@@ -88,7 +88,7 @@
                                        - (volume_groups is not defined) or (volume_groups | length == 0)
                                        - discovered_disks_raw is defined
   ansible.builtin.set_fact:
-    discovered_disks:                  "{{ discovered_disks_raw.output | from_json if discovered_disks_raw.output | length > 0 else [] }}"
+    discovered_disks:                  "{{ discovered_disks_raw.output if discovered_disks_raw.output | length > 0 else [] }}"
 
 
 - name:                                "Disk Discovery: Display discovered disk configuration"
