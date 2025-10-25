@@ -128,82 +128,6 @@
     - not oracle_installed.stat.exists
   block:
 
-    # Backup the existing OPatch and then copy the new Patch from the downloads folder
-
-    - name:                            "4.1.0. Oracle Installation - Create unique name for OPatch backup"
-      ansible.builtin.set_fact:
-        patch_copy_name:               "/oracle/{{ db_sid | upper }}/{{ ora_version }}/OPatch.{{ '%Y%m%d' | strftime(0) }}"
-
-    - name:                            "4.1.0. Oracle Installation - Check if backup exists for GRID"
-      ansible.builtin.stat:
-        path:                          "{{ patch_copy_name }}"
-      register:                        opatchgrid_stat
-
-    - name:                            "4.1.0. Oracle Installation - Check if backup exists for GRID"
-      ansible.builtin.stat:
-        path:                          "/oracle/{{ db_sid | upper }}/{{ ora_version }}/OPatch"
-      register:                        opatch_exists_stat
-
-    - name:                            "4.1.0. Oracle Installation - Backup OPatch"
-      ansible.builtin.copy:
-        src:                           "/oracle/{{ db_sid | upper }}/{{ ora_version }}/OPatch"
-        dest:                          "{{ patch_copy_name }}"
-        remote_src:                    true
-        mode:                          '0755'
-        owner:                         "{{ oracle_user_name }}"
-        group:                         oinstall
-      when:
-        - opatch_exists_stat.stat.exists
-
-    - name:                            "4.1.0. Oracle Installation - Remove old OPatch"
-      ansible.builtin.file:
-        path:                          "/oracle/{{ db_sid | upper }}/{{ ora_version }}/OPatch"
-        state:                         absent
-      when:
-        - opatchgrid_stat.stat.exists
-
-    - name:                            "4.1.0. Oracle Installation - Copy OPatch for from downloads"
-      ansible.builtin.copy:
-        src:                           "{{ target_media_location }}/SBP/OPATCH/OPatch"
-        dest:                          "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
-        remote_src:                    true
-        mode:                          '0755'
-        owner:                         "{{ oracle_user_name }}"
-        group:                         oinstall
-
-    - name:                            "4.1.0. Oracle Installation - Find MOPatch"
-      ansible.builtin.find:
-        paths:                          "{{ target_media_location }}/SBP/SGR19P"
-        patterns:                       ["MOPatch"]
-        file_type:                      directory
-        recurse:                        true
-      register:                         mopatch_directory
-
-    - name:                            "4.1.0. Oracle Installation - Too many MOPatches found"
-      ansible.builtin.fail:
-        msg:                           "Too many MOPatches found"
-      when:                            mopatch_directory.matched > 1
-
-    - name:                            "4.1.0. Oracle Installation - No MOPatch found"
-      ansible.builtin.fail:
-        msg:                           "No MOPatches found"
-      when:                            mopatch_directory.matched == 0
-
-    - name:                            "4.1.0. Oracle Installation - MOPatch path"
-      ansible.builtin.set_fact:
-        mopatch_path:                  "{{ mopatch_directory.files[0].path }}"
-      when:                            mopatch_directory.matched == 1
-
-    - name:                            "4.1.0. Oracle Installation - Copy MOPatch"
-      ansible.builtin.copy:
-        src:                           "{{ mopatch_path }}"
-        dest:                          "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
-        remote_src:                    true
-        mode:                          '0755'
-        owner:                         "{{ oracle_user_name }}"
-        group:                         oinstall
-
-
     - name:                            "4.1.0. Oracle Installation - Execute RUNINSTALLER command"
       ansible.builtin.debug:
         msg:                           "Running {{ target_media_location }}/SAP/RUNINSTALLER -oracle_image {{ OracleImage }} -applyRU {{ ApplyRU }} -opatchLocation {{ OPatchPath }} -silent -ignorePrereqWarnings"
@@ -252,6 +176,40 @@
       when:
         - oracle_installer_results is defined
         - oracle_installer_results.rc < 3
+
+    - name:                            "4.1.0. Oracle Installation - Find MOPatch"
+      ansible.builtin.find:
+        paths:                          "{{ target_media_location }}/SBP/SGR19P"
+        patterns:                       ["MOPatch"]
+        file_type:                      directory
+        recurse:                        true
+      register:                         mopatch_directory
+
+    - name:                            "4.1.0. Oracle Installation - Too many MOPatches found"
+      ansible.builtin.fail:
+        msg:                           "Too many MOPatches found"
+      when:                            mopatch_directory.matched > 1
+
+    - name:                            "4.1.0. Oracle Installation - No MOPatch found"
+      ansible.builtin.fail:
+        msg:                           "No MOPatches found"
+      when:                            mopatch_directory.matched == 0
+
+    - name:                            "4.1.0. Oracle Installation - MOPatch path"
+      ansible.builtin.set_fact:
+        mopatch_path:                  "{{ mopatch_directory.files[0].path }}"
+      when:                            mopatch_directory.matched == 1
+
+    - name:                            "4.1.0. Oracle Installation - Copy MOPatch"
+      ansible.builtin.copy:
+        src:                           "{{ mopatch_path }}"
+        dest:                          "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
+        remote_src:                    true
+        mode:                          '0755'
+        owner:                         "{{ oracle_user_name }}"
+        group:                         oinstall
+
+
 
     # Step 4
 
