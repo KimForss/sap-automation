@@ -48,7 +48,7 @@
     }, @{
         Name='Size';
         Expression={$_.Size}
-    }| Where-Object {$_.FileSystemLabel -ne ''''}
+    }| Where-Object {$_.FileSystemLabel -ne ""}
 
     # Get partition to disk mapping
     $partitions = Get-Partition | Select-Object DiskNumber, DriveLetter, AccessPaths, @{
