@@ -110,7 +110,7 @@
                                        - discovered_disks is defined
                                        - discovered_disks | length > 0
   ansible.builtin.set_fact:
-    volume_groups:                     "{{ lookup('template', 'volume_groups_from_discovery.j2') }}"
+    volume_groups:                     "{{ lookup('template', 'volume_groups_from_discovery.j2') | from_yaml }}"
   vars:
     discovered_disks_list:             "{{ discovered_disks }}"
     mount_strategy:                    "{{ disk_mount_strategy }}"
