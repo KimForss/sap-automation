@@ -1,0 +1,106 @@
+{# Copyright (c) Microsoft Corporation.
+ # Licensed under the MIT License.
+#}
+{#
+ # Reconstruct volume_groups from discovered Windows disk state
+ # This makes the SQL role self-contained and independent of prior fact caching
+ #
+ # Input: discovered_disks_list (from Windows Get-Disk/Get-Partition/Get-Volume)
+ # Output: volume_groups structure compatible with 1.5-disk-setup output
+#}
+{% set reconstructed = [] %}
+
+{% for disk in discovered_disks_list %}
+{%   if disk.LUN is not none %}
+{#     Determine disk type from label or mount point path #}
+{%     set disk_type = 'unknown' %}
+{%     set diskname = disk.Label if disk.Label else 'Disk' ~ disk.LUN %}
+{%     set use_mount = disk.MountPoint is not none and disk.MountPoint | length > 0 %}
+{%     set sector_size = 4096 %}
+
+{#     Type detection from label #}
+{%     if disk.Label %}
+{%       if 'tempdb' in disk.Label | lower or 'TEMPDB' in disk.Label %}
+{%         set disk_type = 'tempdb' %}
+{%         set sector_size = 65536 %}
+{%       elif 'data' in disk.Label | lower or 'DATA' in disk.Label %}
+{%         set disk_type = 'data' %}
+{%         set sector_size = 65536 %}
+{%       elif 'log' in disk.Label | lower or 'LOG' in disk.Label %}
+{%         set disk_type = 'log' %}
+{%         set sector_size = 65536 %}
+{%       elif 'backup' in disk.Label | lower or 'BACKUP' in disk.Label %}
+{%         set disk_type = 'backup' %}
+{%       elif 'sap' in disk.Label | lower or disk.Label | upper == 'SAP' %}
+{%         set disk_type = 'sap' %}
+{%       endif %}
+{%     endif %}
+
+{#     Type detection from mount point path if label didn't match #}
+{%     if disk_type == 'unknown' and use_mount %}
+{%       if 'TEMPDB' in disk.MountPoint | upper %}
+{%         set disk_type = 'tempdb' %}
+{%         set sector_size = 65536 %}
+{%       elif 'DATA' in disk.MountPoint | upper %}
+{%         set disk_type = 'data' %}
+{%         set sector_size = 65536 %}
+{%       elif 'LOG' in disk.MountPoint | upper %}
+{%         set disk_type = 'log' %}
+{%         set sector_size = 65536 %}
+{%       elif 'BACKUP' in disk.MountPoint | upper %}
+{%         set disk_type = 'backup' %}
+{%       endif %}
+{%     endif %}
+
+{#     Type detection from drive letter pattern if still unknown #}
+{%     if disk_type == 'unknown' and disk.DriveLetter %}
+{%       if disk.DriveLetter == 'S' %}
+{%         set disk_type = 'sap' %}
+{%       elif disk.DriveLetter == 'N' %}
+{%         set disk_type = 'log' %}
+{%         set sector_size = 65536 %}
+{%       elif disk.DriveLetter == 'T' %}
+{%         set disk_type = 'backup' %}
+{%       elif disk.DriveLetter in ['E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M'] %}
+{%         set disk_type = 'data' %}
+{%         set sector_size = 65536 %}
+{%       elif disk.DriveLetter in ['U', 'V', 'W', 'X', 'Y', 'Z'] %}
+{%         set disk_type = 'tempdb' %}
+{%         set sector_size = 65536 %}
+{%       endif %}
+{%     endif %}
+
+{#     Extract mount folder name from mount point #}
+{%     set mount_folder_name = none %}
+{%     set mount_base_path_actual = none %}
+{%     if use_mount %}
+{%       set path_parts = disk.MountPoint.split('\\') %}
+{%       if path_parts | length > 0 %}
+{%         set mount_folder_name = path_parts[-1] %}
+{%         set mount_base_path_actual = '\\'.join(path_parts[:-1]) %}
+{%       endif %}
+{%     endif %}
+
+{#     Build volume_groups entry #}
+{%     if disk_type != 'unknown' %}
+{%       set _ = reconstructed.append({
+          'diskname': diskname,
+          'LUN': disk.LUN,
+          'driveletter': disk.DriveLetter if not use_mount else none,
+          'mount_point': disk.MountPoint if use_mount else none,
+          'mount_base_path': mount_base_path_actual,
+          'mount_folder_name': mount_folder_name,
+          'sector_size': sector_size,
+          'disk_type': disk_type,
+          'osdisk_id': disk.UniqueId,
+          'use_mount_point': use_mount,
+          'is_sap_disk': disk_type == 'sap',
+          'current_partition_style': disk.PartitionStyle,
+          'discovered': true,
+          'size_gb': disk.SizeGB
+        }) %}
+{%     endif %}
+{%   endif %}
+{% endfor %}
+
+{{ reconstructed }}

@@ -10,6 +10,12 @@
       - "Current config tier:     {{ config_tier }}"
       - "Current execution host:  {{ inventory_hostname }}"
 
+- name:                                "WIN-SQL: Discover disk configuration"
+  ansible.builtin.include_tasks:
+    file:                              "4.4.0.2-mssql-discover-disks.yaml"
+  when:
+    - tier in ['sqlserver', 'ha']
+
 - name:                                "WIN-SQL: check if installed"
   ansible.windows.win_stat:
     path:                              '{{ sap_deployment_automation }}\{{ sap_sid | upper }}\sap_deployment_sqldb.txt'

@@ -53,7 +53,7 @@
                                        $ErrorActionPreference = 'Stop'
                                        Import-Module SqlServer -ErrorAction SilentlyContinue
                                        $query = @"
-                                       SELECT 
+                                       SELECT
                                            name,
                                            physical_name,
                                            type_desc,
@@ -138,7 +138,7 @@
                                        $ErrorActionPreference = 'Stop'
                                        Import-Module SqlServer -ErrorAction SilentlyContinue
                                        $query = @"
-                                       SELECT 
+                                       SELECT
                                            name,
                                            physical_name,
                                            type_desc
