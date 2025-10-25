@@ -27,8 +27,6 @@
   when:
     - volume_groups is not defined or volume_groups | length == 0
 
-# "Disk Discovery: Set disk mount strategy from inventory"
-
 - name:                                "Disk Discovery: Query mount points and volumes"
   ansible.windows.win_shell: |
     $ErrorActionPreference = 'Stop'
@@ -48,7 +46,7 @@
     }, @{
         Name='Size';
         Expression={$_.Size}
-    }| Where-Object {$_.FileSystemLabel -ne ""}
+    } | Where-Object {$_.FileSystemLabel -ne ""}
 
     # Get partition to disk mapping
     $partitions = Get-Partition | Select-Object DiskNumber, DriveLetter, AccessPaths, @{
