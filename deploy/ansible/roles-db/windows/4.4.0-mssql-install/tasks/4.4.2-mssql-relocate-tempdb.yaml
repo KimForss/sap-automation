@@ -68,7 +68,7 @@
 
     - name:                            "WIN-SQL: Parse current TempDB files"
       ansible.builtin.set_fact:
-        current_tempdb_info:           "{{ current_tempdb_files.output | from_json }}"
+        current_tempdb_info:           "{{ (current_tempdb_files.output | join('')) | from_json | default([]) }}"
 
     - name:                            "WIN-SQL: Display current TempDB locations"
       ansible.builtin.debug:
@@ -152,7 +152,7 @@
 
     - name:                            "WIN-SQL: Display new TempDB locations"
       ansible.builtin.debug:
-        msg:                           "New TempDB files: {{ (new_tempdb_files.output | from_json) | map(attribute='physical_name') | list }}"
+        msg:                           "New TempDB files: {{ (new_tempdb_files.output | join('') | from_json) | map(attribute='physical_name') | list }}"
 
     - name:                            "WIN-SQL: Clean up SQL script"
       ansible.windows.win_file:
