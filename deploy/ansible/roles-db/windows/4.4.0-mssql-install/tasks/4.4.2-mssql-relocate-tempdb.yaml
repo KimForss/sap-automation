@@ -62,13 +62,13 @@
                                        WHERE database_id = 2
                                        ORDER BY type, file_id
                                        "@
-                                       Invoke-Sqlcmd -Query $query -TrustServerCertificate | ConvertTo-Json
+                                       Invoke-Sqlcmd -Query $query | ConvertTo-Json
       register:                        current_tempdb_files
       changed_when:                    false
 
     - name:                            "WIN-SQL: Parse current TempDB files"
       ansible.builtin.set_fact:
-        current_tempdb_info:           "{{ current_tempdb_files.stdout | from_json }}"
+        current_tempdb_info:           "{{ current_tempdb_files.output | from_json }}"
 
     - name:                            "WIN-SQL: Display current TempDB locations"
       ansible.builtin.debug:
@@ -102,7 +102,7 @@
       ansible.windows.win_shell: |
                                        $ErrorActionPreference = 'Stop'
                                        Import-Module SqlServer -ErrorAction SilentlyContinue
-                                       Invoke-Sqlcmd -InputFile "{{ tempdb_relocation_script.path }}" -TrustServerCertificate
+                                       Invoke-Sqlcmd -InputFile "{{ tempdb_relocation_script.path }}"
       register:                        tempdb_relocation_result
       failed_when:                     tempdb_relocation_result.rc != 0
 
@@ -121,7 +121,7 @@
                                        $elapsed = 0
                                        while ($elapsed -lt $timeout) {
                                            try {
-                                               Invoke-Sqlcmd -Query "SELECT 1" -TrustServerCertificate -ErrorAction Stop
+                                               Invoke-Sqlcmd -Query "SELECT 1" -ErrorAction Stop
                                                exit 0
                                            }
                                            catch {
@@ -146,13 +146,13 @@
                                        WHERE database_id = 2
                                        ORDER BY type, file_id
                                        "@
-                                       Invoke-Sqlcmd -Query $query -TrustServerCertificate | ConvertTo-Json
+                                       Invoke-Sqlcmd -Query $query | ConvertTo-Json
       register:                        new_tempdb_files
       changed_when:                    false
 
     - name:                            "WIN-SQL: Display new TempDB locations"
       ansible.builtin.debug:
-        msg:                           "New TempDB files: {{ (new_tempdb_files.stdout | from_json) | map(attribute='physical_name') | list }}"
+        msg:                           "New TempDB files: {{ (new_tempdb_files.output | from_json) | map(attribute='physical_name') | list }}"
 
     - name:                            "WIN-SQL: Clean up SQL script"
       ansible.windows.win_file:
