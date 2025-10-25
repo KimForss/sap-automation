@@ -87,8 +87,10 @@
   when:
                                        - (volume_groups is not defined) or (volume_groups | length == 0)
                                        - discovered_disks_raw is defined
+                                       - discovered_disks_raw.output is defined
+                                       - discovered_disks_raw.output | length > 0
   ansible.builtin.set_fact:
-    discovered_disks:                  "{{ discovered_disks_raw.output if discovered_disks_raw.output | length > 0 else [] }}"
+    discovered_disks:                  "{{ (discovered_disks_raw.output | join('')) | from_json | default([]) }}"
 
 
 - name:                                "Disk Discovery: Display discovered disk configuration"
@@ -108,7 +110,7 @@
                                        - discovered_disks is defined
                                        - discovered_disks | length > 0
   ansible.builtin.set_fact:
-    volume_groups:                     "{{ lookup('template', 'volume_groups_from_discovery.j2') | from_yaml }}"
+    volume_groups:                     "{{ lookup('template', 'volume_groups_from_discovery.j2') }}"
   vars:
     discovered_disks_list:             "{{ discovered_disks }}"
     mount_strategy:                    "{{ disk_mount_strategy }}"
