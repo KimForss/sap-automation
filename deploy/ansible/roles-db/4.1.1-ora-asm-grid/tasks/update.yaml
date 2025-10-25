@@ -36,6 +36,7 @@
     - { parameter: 'bom.patch_information.ora_release', error: 'Oracle deployments requires that ora_release is provided' }
     - { parameter: 'bom.patch_information.ora_version', error: 'Oracle deployments requires that ora_version is provided' }
     - { parameter: 'bom.patch_information.oracle_sbp_patch', error: 'Oracle deployments requires that oracle_sbp_patch is provided' }
+    - { parameter: 'bom.patch_information.oracle_grid_sbp_patch', error: 'Oracle deployments requires that oracle_grid_sbp_patch is provided' }
   loop_control:
     loop_var: item_to_check
 
