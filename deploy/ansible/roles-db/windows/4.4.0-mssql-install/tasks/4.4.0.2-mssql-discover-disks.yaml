@@ -17,67 +17,64 @@
   when: (volume_groups is defined) and (volume_groups | length > 0)
 
 - name: "Disk Discovery: Query mount points and volumes"
-  ansible.windows.win_shell: |
-    $ErrorActionPreference = 'Stop'
+  ansible.windows.win_powershell:
+    script: |
+        $ErrorActionPreference = "Stop"
 
-    # Get all volumes with their properties
-    $volumes = Get-Volume | Where-Object {
-        $_.DriveLetter -ne $null -or $_.Path -ne $null
-    } | Select-Object @{
-        Name='DriveLetter';
-        Expression={if ($_.DriveLetter) {$_.DriveLetter.ToString()} else {$null}}
-    }, @{
-        Name='Path';
-        Expression={$_.Path}
-    }, @{
-        Name='FileSystemLabel';
-        Expression={$_.FileSystemLabel}
-    }, @{
-        Name='Size';
-        Expression={$_.Size}
-    } | Where-Object {$_.FileSystemLabel -ne ""}
+        $volumes = Get-Volume | Where-Object {
+            $_.DriveLetter -ne $null -or $_.Path -ne $null
+        } | Select-Object @{
+            Name       = "DriveLetter";
+            Expression = { if ($_.DriveLetter) { $_.DriveLetter.ToString() } else { $null } }
+        }, @{
+            Name       = "Path";
+            Expression = { $_.Path }
+        }, @{
+            Name       = "FileSystemLabel";
+            Expression = { $_.FileSystemLabel }
+        }, @{
+            Name       = "Size";
+            Expression = { $_.Size }
+        } | Where-Object { $_.FileSystemLabel -ne "" }
 
-    # Get partition to disk mapping
-    $partitions = Get-Partition | Select-Object DiskNumber, DriveLetter, AccessPaths, @{
-        Name='MountPoint';
-        Expression={
-            $accessPaths = $_.AccessPaths | Where-Object { $_ -notmatch '^[A-Z]:\\$' }
-            if ($accessPaths) { $accessPaths[0].TrimEnd('\') } else { $null }
-        }
-    } | Where-Object {$_.AccessPaths -ne $null}
+        $partitions = Get-Partition | Select-Object DiskNumber, DriveLetter, AccessPaths, @{
+            Name       = "MountPoint";
+            Expression = {
+                $accessPaths = $_.AccessPaths | Where-Object { $_ -notmatch "^[A-Z]:\\$" }
+                if ($accessPaths) { $accessPaths[0].TrimEnd("\") } else { $null }
+            }
+        } | Where-Object { $_.AccessPaths -ne $null }
 
-    # Get disk to LUN mapping
-    $disks = Get-Disk | Where-Object { -not $_.IsBoot } | Select-Object Number, @{
-        Name='LUN';
-        Expression={
-            if ($_.Location -match 'LUN\s+(\d+)') { [int]$Matches[1] } else { $null }
-        }
-    }, UniqueId, PartitionStyle
+        $disks = Get-Disk | Where-Object { -not $_.IsBoot } | Select-Object Number, @{
+            Name       = "LUN";
+            Expression = {
+                if ($_.Location -match "LUN\s+(\d+)") { [int]$Matches[1] } else { $null }
+            }
+        }, UniqueId, PartitionStyle
 
-    # Combine information
-    $result = @()
-    foreach ($disk in $disks) {
-        $partition = $partitions | Where-Object { $_.DiskNumber -eq $disk.Number } | Select-Object -First 1
-        if ($partition) {
-            $volume = $volumes | Where-Object {
-                ($_.DriveLetter -eq $partition.DriveLetter) -or
-                ($partition.MountPoint -and $_.Path -like "*$($partition.MountPoint)*")
-            } | Select-Object -First 1
-
-            $result += [PSCustomObject]@{
-                LUN = $disk.LUN
-                DiskNumber = $disk.Number
-                UniqueId = $disk.UniqueId
-                PartitionStyle = $disk.PartitionStyle
-                DriveLetter = $partition.DriveLetter
-                MountPoint = $partition.MountPoint
-                Label = if ($volume) { $volume.FileSystemLabel } else { $null }
-                SizeGB = if ($volume) { [math]::Round($volume.Size / 1GB, 2) } else { 0 }
+        $result = @()
+        foreach ($disk in $disks) {
+            $partition = $partitions | Where-Object { $_.DiskNumber -eq $disk.Number } | Select-Object -First 1
+            if ($partition) {
+                $volume = $volumes | Where-Object {
+                    ($partition.AccessPaths -contains $_.Path) -or
+                    ($_.DriveLetter -and $_.DriveLetter -eq $partition.DriveLetter) -or
+                    ($partition.MountPoint -and $_.Path -like "*$($partition.MountPoint)*")
+                } | Select-Object -First 1
+                $result += [PSCustomObject]@{
+                    LUN            = $disk.LUN
+                    DiskNumber     = $disk.Number
+                    UniqueId       = $disk.UniqueId
+                    PartitionStyle = $disk.PartitionStyle
+                    DriveLetter    = $partition.DriveLetter
+                    MountPoint     = $partition.MountPoint
+                    Label          = if ($volume) { $volume.FileSystemLabel } else { $null }
+                    SizeGB         = if ($volume) { [math]::Round($volume.Size / 1GB, 2) } else { 0 }
+                }
             }
         }
-    }
 
-    $result | ConvertTo-Json -Depth 3
+        $result | ConvertTo-Json -Depth 3
   register: discovered_disks_raw
   changed_when: false
   when: (volume_groups is not defined) or (volume_groups | length == 0)
