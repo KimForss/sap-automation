@@ -178,4 +178,9 @@
         - sql_restart_result.changed
         - sql_ready_check.rc == 0
 
+# might need these for future enhancements
+# DBCC DROPCLEANBUFFERS;
+# DBCC FREEPROCCACHE;
+# DBCC FREESESSIONCACHE;
+# DBCC FREESYSTEMCACHE ('ALL');
 ...
