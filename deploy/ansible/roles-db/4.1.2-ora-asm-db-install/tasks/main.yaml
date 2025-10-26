@@ -131,14 +131,14 @@
 
 - name:                                "4.1.2. Oracle ASM Database Installation - check updated installation media exists"
   ansible.builtin.stat:
-    path:                              "{{ target_media_location }}/SAP/RUNINSTALLER"
+    path:                              "{{ target_media_location }}/SAP/SAP/RUNINSTALLER"
   register:                            oracle_media_installed
 
 - name:                                "4.1.2. Oracle ASM Database Installation - check oradism exists"
   ansible.builtin.assert:
     that:
       - oracle_media_installed.stat.exists
-    fail_msg:                          "Oracle ASM Database installation requires the updated RUNINSTALLER media to be available at {{ target_media_location }}/SAP/RUNINSTALLER"
+    fail_msg:                          "Oracle ASM Database installation requires the updated RUNINSTALLER media to be available at {{ target_media_location }}/SAP/SAP/RUNINSTALLER"
 
 # /*---------------------------------------------------------------------------8
 # | Start of Oracle software installation using SAP RUNINSTALLER wrapper.      |
@@ -161,7 +161,7 @@
 # +------------------------------------4--------------------------------------*/
     - name:                            "4.1.2. Oracle ASM Database Installation - Execute RUNINSTALLER command"
       ansible.builtin.debug:
-        msg:                           "Running {{ target_media_location }}/SAP/RUNINSTALLER -oracle_image {{ OracleImage }} -applyRU {{ ApplyRU }} -opatchLocation {{ OPatchPath }} -silent -ignorePrereqWarnings"
+        msg:                           "Running {{ target_media_location }}/SAP/SAP/RUNINSTALLER -oracle_image {{ OracleImage }} -applyRU {{ ApplyRU }} -opatchLocation {{ OPatchPath }} -silent -ignorePrereqWarnings"
 
     - name:                            "4.1.2. Oracle ASM Database Installation - Execute RUNINSTALLER"
       become:                          true
