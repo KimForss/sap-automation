@@ -221,7 +221,7 @@
   ansible.builtin.unarchive:
     src:                               "{{ target_media_location }}/{% if item.path is undefined %}downloads{% else %}{{ item.path }}{% endif %}/\
                                         {% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}"
-    dest:                              "{{ target_media_location }}/{{ item.extractDir }}"
+    dest:                              "{% if item.extractDir is defined %}{{ target_media_location }}/{{ item.extractDir }}{% else %}{{ target_media_location }}{% endif %}"
     remote_src:                        true
     creates:                           "{{ target_media_location }}/{{ item.extractDir }}/{% if item.creates is defined %}\
                                         {{ item.creates }}{% else %}NOT_DEFINED{% endif %}"
