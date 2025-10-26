@@ -42,37 +42,42 @@
       ansible.builtin.set_fact:
         tempdb_disks:                  "{{ volume_groups | selectattr('disk_type', 'equalto', 'tempdb') | list }}"
 
-    - name:                            "WIN-SQL: Display TempDB configuration"
-      ansible.builtin.debug:
-        msg:
-          - "TempDB disks found: {{ tempdb_disks | length }}"
-          - "Configuration: {{ tempdb_disks | map(attribute='diskname') | list }}"
+    - name:                            "WIN-SQL: Query SQL Server installation directory"
+      ansible.windows.win_shell: |
+        (Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Microsoft SQL Server\MSSQL16.MSSQLSERVER\Setup').SQLDataRoot
+      register:                        sql_data_root
+      changed_when:                    false
 
     - name:                            "WIN-SQL: Query current TempDB file locations"
       ansible.windows.win_shell: |
-                                       $ErrorActionPreference = 'Stop'
-                                       Import-Module SqlServer -ErrorAction SilentlyContinue
-                                       $query = @"
-                                       SELECT
-                                           name,
-                                           physical_name,
-                                           type_desc,
-                                           size * 8 / 1024 AS size_mb
-                                       FROM sys.master_files
-                                       WHERE database_id = 2
-                                       ORDER BY type, file_id
-                                       "@
-                                       Invoke-Sqlcmd -Query $query | ConvertTo-Json
+        $ErrorActionPreference = 'Stop'
+        Import-Module SqlServer -ErrorAction SilentlyContinue
+        $query = @"
+        SELECT
+            name,
+            physical_name,
+            type_desc,
+            size * 8 / 1024 AS size_mb
+        FROM sys.master_files
+        WHERE database_id = 2
+        ORDER BY type, file_id
+        "@
+        Invoke-Sqlcmd -Query $query | ConvertTo-Json
       register:                        current_tempdb_files
       changed_when:                    false
 
-    - name:                            "WIN-SQL: Parse current TempDB files"
+    - name:                            "WIN-SQL: Parse current TempDB files and capture C:\ paths"
       ansible.builtin.set_fact:
         current_tempdb_info:           "{{ (current_tempdb_files.stdout | join('')) | from_json | default([]) }}"
+        c_drive_tempdb_files:          "{{ (current_tempdb_files.stdout | join('')) | from_json | default([]) | selectattr('physical_name', 'match', '^C:') | map(attribute='physical_name') | list }}"
 
-    - name:                            "WIN-SQL: Display current TempDB locations"
+    - name:                            "WIN-SQL: Display current TempDB configuration"
       ansible.builtin.debug:
-        msg:                           "Current TempDB files: {{ current_tempdb_info | map(attribute='physical_name') | list }}"
+        msg:
+          - "Current data files: {{ current_tempdb_info | selectattr('type_desc', 'equalto', 'ROWS') | list | length }}"
+          - "C:\ files to delete: {{ c_drive_tempdb_files | length }}"
+          - "Target disks: {{ tempdb_disks | length }}"
+          - "Total capacity: {{ tempdb_disks | map(attribute='size_gb') | sum }}GB"
 
     - name:                            "WIN-SQL: Generate TempDB relocation script"
       ansible.windows.win_tempfile:
@@ -91,18 +96,11 @@
         content:                       "{{ tempdb_alter_statements | join('\n') }}"
         dest:                          "{{ tempdb_relocation_script.path }}"
 
-    - name:                            "WIN-SQL: Display relocation plan"
-      ansible.builtin.debug:
-        msg:
-          - "SQL script: {{ tempdb_relocation_script.path }}"
-          - "Data files: {{ tempdb_disks | length }}"
-          - "Log file: {{ tempdb_disks[0].mount_point if tempdb_disks | length > 0 else 'C:\\SQLServer\\TEMPDB\\TEMPDB1' }}"
-
     - name:                            "WIN-SQL: Execute TempDB relocation"
       ansible.windows.win_shell: |
-                                       $ErrorActionPreference = 'Stop'
-                                       Import-Module SqlServer -ErrorAction SilentlyContinue
-                                       Invoke-Sqlcmd -InputFile "{{ tempdb_relocation_script.path }}"
+        $ErrorActionPreference = 'Stop'
+        Import-Module SqlServer -ErrorAction SilentlyContinue
+        Invoke-Sqlcmd -InputFile "{{ tempdb_relocation_script.path }}"
       register:                        tempdb_relocation_result
       failed_when:                     tempdb_relocation_result.rc != 0
 
@@ -115,44 +113,57 @@
 
     - name:                            "WIN-SQL: Wait for SQL Server to be ready"
       ansible.windows.win_shell: |
-                                       $ErrorActionPreference = 'Stop'
-                                       Import-Module SqlServer -ErrorAction SilentlyContinue
-                                       $timeout = 120
-                                       $elapsed = 0
-                                       while ($elapsed -lt $timeout) {
-                                           try {
-                                               Invoke-Sqlcmd -Query "SELECT 1" -ErrorAction Stop
-                                               exit 0
-                                           }
-                                           catch {
-                                               Start-Sleep -Seconds 5
-                                               $elapsed += 5
-                                           }
-                                       }
-                                       throw "SQL Server did not become ready within $timeout seconds"
+        $ErrorActionPreference = 'Stop'
+        Import-Module SqlServer -ErrorAction SilentlyContinue
+        $timeout = 120
+        $elapsed = 0
+        while ($elapsed -lt $timeout) {
+            try {
+                Invoke-Sqlcmd -Query "SELECT 1" -ErrorAction Stop
+                exit 0
+            }
+            catch {
+                Start-Sleep -Seconds 5
+                $elapsed += 5
+            }
+        }
+        throw "SQL Server did not become ready within $timeout seconds"
       register:                        sql_ready_check
       changed_when:                    false
 
     - name:                            "WIN-SQL: Verify TempDB new locations"
       ansible.windows.win_shell: |
-                                       $ErrorActionPreference = 'Stop'
-                                       Import-Module SqlServer -ErrorAction SilentlyContinue
-                                       $query = @"
-                                       SELECT
-                                           name,
-                                           physical_name,
-                                           type_desc
-                                       FROM sys.master_files
-                                       WHERE database_id = 2
-                                       ORDER BY type, file_id
-                                       "@
-                                       Invoke-Sqlcmd -Query $query | ConvertTo-Json
+        $ErrorActionPreference = 'Stop'
+        Import-Module SqlServer -ErrorAction SilentlyContinue
+        $query = @"
+        SELECT
+            name,
+            physical_name,
+            type_desc,
+            size * 8 / 1024 AS size_mb
+        FROM sys.master_files
+        WHERE database_id = 2
+        ORDER BY type, file_id
+        "@
+        Invoke-Sqlcmd -Query $query | ConvertTo-Json
       register:                        new_tempdb_files
       changed_when:                    false
 
-    - name:                            "WIN-SQL: Display new TempDB locations"
+    - name:                            "WIN-SQL: Display new TempDB configuration"
       ansible.builtin.debug:
-        msg:                           "New TempDB files: {{ (new_tempdb_files.stdout | join('') | from_json) | map(attribute='physical_name') | list }}"
+        msg:
+          - "Data files: {{ (new_tempdb_files.stdout | join('') | from_json) | selectattr('type_desc', 'equalto', 'ROWS') | list | length }}"
+          - "Locations: {{ (new_tempdb_files.stdout | join('') | from_json) | map(attribute='physical_name') | list }}"
+
+    - name:                            "WIN-SQL: Delete orphaned C:\ tempdb files"
+      ansible.windows.win_file:
+        path:                          "{{ item }}"
+        state:                         absent
+      loop:                            "{{ c_drive_tempdb_files }}"
+      when:
+        - c_drive_tempdb_files | length > 0
+        - sql_ready_check.rc == 0
+      failed_when:                     false
 
     - name:                            "WIN-SQL: Clean up SQL script"
       ansible.windows.win_file:
@@ -164,7 +175,7 @@
         path:                          '{{ sap_deployment_automation }}\{{ sap_sid | upper }}\sap_deployment_tempdb_relocated.txt'
         state:                         touch
       when:
-        - sql_restart_result is defined
+        - sql_restart_result.changed
         - sql_ready_check.rc == 0
 
 ...

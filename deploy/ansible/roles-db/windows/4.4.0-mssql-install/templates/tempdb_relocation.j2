@@ -1,39 +1,62 @@
-{# Copyright (c) Microsoft Corporation.
- # Licensed under the MIT License.
-#}
+{# Copyright (c) Microsoft Corporation. #}
+{# Licensed under the MIT License. #}
 {#
  # Generate ALTER DATABASE statements to relocate TempDB files
- # Creates one data file per tempdb disk from volume_groups
- # Places log file on first tempdb disk
+ # - Creates exactly 8 data files distributed round-robin across tempdb disks
+ # - Use 80% of total disk capacity with proportional sizing
+ # - Data files: 8/9 of usable space, Log file: 1/9 of usable space
+ # - Disables autogrowth (FILEGROWTH = 0)
 #}
-{% set tempdb_data_files = volume_groups | selectattr('disk_type', 'equalto', 'tempdb') | list %}
-{% set tempdb_log_location = tempdb_data_files[0] if tempdb_data_files | length > 0 else None %}
-{# Modify existing tempdb data file #}
-{% if tempdb_data_files | length > 0 %}
-{%   set first_disk = tempdb_data_files[0] %}
-{%   if first_disk.use_mount_point | default(false) %}
-{%     set file_path = first_disk.mount_point ~ '\\tempdev.mdf' %}
+{% set tempdb_disks = volume_groups | selectattr('disk_type', 'equalto', 'tempdb') | list %}
+{% set total_capacity_gb = tempdb_disks | map(attribute='size_gb') | sum %}
+{% set usable_capacity_gb = (total_capacity_gb * 0.80) | int %}
+{% set data_total_gb = (usable_capacity_gb / 1.25) | int %}
+{% set log_size_gb = (data_total_gb * 0.25) | int %}
+{% set per_file_size_gb = (data_total_gb / 8) | int %}
+{% set existing_data_files = current_tempdb_info | selectattr('type_desc', 'equalto', 'ROWS') | list %}
+{% set existing_file_count = existing_data_files | length %}
+{% set target_file_count = 8 %}
+
+{# MODIFY existing data files to new locations #}
+{% for file in existing_data_files %}
+{%   set file_index = loop.index0 %}
+{%   set disk_index = file_index % (tempdb_disks | length) %}
+{%   set target_disk = tempdb_disks[disk_index] %}
+{%   set file_name = file.name %}
+{%   set file_ext = 'mdf' if file_name == 'tempdev' else 'ndf' %}
+{%   if target_disk.use_mount_point | default(false) %}
+{%     set file_path = target_disk.mount_point ~ '\\' ~ file_name ~ '.' ~ file_ext %}
 {%   else %}
-{%     set file_path = first_disk.driveletter ~ ':\\tempdev.mdf' %}
+{%     set file_path = target_disk.driveletter ~ ':\\' ~ file_name ~ '.' ~ file_ext %}
 {%   endif %}
-ALTER DATABASE tempdb MODIFY FILE (NAME = tempdev, FILENAME = '{{ file_path }}', SIZE = 8GB, FILEGROWTH = 512MB);
-{% endif %}
-{# Add additional tempdb data files (one per disk, starting from disk 2) #}
-{% for disk in tempdb_data_files[1:] %}
-{%   set file_id = loop.index + 1 %}
-{%   if disk.use_mount_point | default(false) %}
-{%     set file_path = disk.mount_point ~ '\\tempdev{{ file_id }}.mdf' %}
-{%   else %}
-{%     set file_path = disk.driveletter ~ ':\\tempdev{{ file_id }}.mdf' %}
-{%   endif %}
-ALTER DATABASE tempdb ADD FILE (NAME = tempdev{{ file_id }}, FILENAME = '{{ file_path }}', SIZE = 8GB, FILEGROWTH = 512MB);
+ALTER DATABASE tempdb MODIFY FILE (NAME = {{ file_name }}, FILENAME = '{{ file_path }}', SIZE = {{ per_file_size_gb }}GB, FILEGROWTH = 0, MAXSIZE = {{ per_file_size_gb }}GB);
 {% endfor %}
-{# Modify tempdb log file #}
-{% if tempdb_log_location %}
-{%   if tempdb_log_location.use_mount_point | default(false) %}
-{%     set log_path = tempdb_log_location.mount_point ~ '\\templog.ldf' %}
-{%   else %}
-{%     set log_path = tempdb_log_location.driveletter ~ ':\\templog.ldf' %}
-{%   endif %}
-ALTER DATABASE tempdb MODIFY FILE (NAME = templog, FILENAME = '{{ log_path }}', SIZE = 4GB, FILEGROWTH = 512MB);
+
+{# ADD new files if needed to reach 8 total #}
+{% if existing_file_count < target_file_count %}
+{%   for i in range(existing_file_count, target_file_count) %}
+{%     set disk_index = i % (tempdb_disks | length) %}
+{%     set target_disk = tempdb_disks[disk_index] %}
+{%     if i == 1 %}
+{%       set file_name = 'temp' %}
+{%     else %}
+{%       set file_name = 'temp' ~ i %}
+{%     endif %}
+{%     if target_disk.use_mount_point | default(false) %}
+{%       set file_path = target_disk.mount_point ~ '\\' ~ file_name ~ '.ndf' %}
+{%     else %}
+{%       set file_path = target_disk.driveletter ~ ':\\' ~ file_name ~ '.ndf' %}
+{%     endif %}
+ALTER DATABASE tempdb ADD FILE (NAME = {{ file_name }}, FILENAME = '{{ file_path }}', SIZE = {{ per_file_size_gb }}GB, FILEGROWTH = 0, MAXSIZE = {{ per_file_size_gb }}GB);
+{%   endfor %}
 {% endif %}
+
+{# MODIFY log file #}
+{% set log_file = current_tempdb_info | selectattr('type_desc', 'equalto', 'LOG') | first %}
+{% set target_disk = tempdb_disks[0] %}
+{% if target_disk.use_mount_point | default(false) %}
+{%   set log_path = target_disk.mount_point ~ '\\' ~ log_file.name ~ '.ldf' %}
+{% else %}
+{%   set log_path = target_disk.driveletter ~ ':\\' ~ log_file.name ~ '.ldf' %}
+{% endif %}
+ALTER DATABASE tempdb MODIFY FILE (NAME = {{ log_file.name }}, FILENAME = '{{ log_path }}', SIZE = {{ log_size_gb }}GB, FILEGROWTH = 0, MAXSIZE = {{ log_size_gb }}GB);
