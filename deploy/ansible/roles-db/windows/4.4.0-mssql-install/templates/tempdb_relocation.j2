@@ -11,7 +11,7 @@
 {% set total_capacity_gb = tempdb_disks | map(attribute='size_gb') | sum %}
 {% set usable_capacity_gb = (total_capacity_gb * 0.80) | int %}
 {% set data_total_gb = (usable_capacity_gb / 1.25) | int %}
-{% set log_size_gb = (data_total_gb * 0.25) | int %}
+{% set log_size_gb = (data_total_gb * 0.1) | int %}
 {% set per_file_size_gb = (data_total_gb / 8) | int %}
 {% set existing_data_files = current_tempdb_info | selectattr('type_desc', 'equalto', 'ROWS') | list %}
 {% set existing_file_count = existing_data_files | length %}
