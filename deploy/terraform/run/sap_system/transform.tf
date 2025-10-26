@@ -192,7 +192,7 @@ locals {
                                         sid                             = var.sid
                                         enable_deployment               = local.enable_app_tier_deployment
                                         use_DHCP                        = var.app_tier_use_DHCP
-                                        dual_nics                       = var.app_tier_dual_nics
+                                        dual_network_interfaces         = var.app_tier_dual_nics
                                         vm_sizing_dictionary_key        = coalesce(var.app_tier_sizing_dictionary_key, var.application_size, "Optimized")
                                         app_instance_number             = coalesce(var.app_instance_number, "00")
                                         application_server_count        = local.enable_app_tier_deployment ? (
