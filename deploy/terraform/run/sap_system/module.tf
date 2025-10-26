@@ -124,7 +124,7 @@ module "hdb_node" {
   custom_disk_sizes_filename                    = try(coalesce(var.custom_disk_sizes_filename, var.db_disk_sizes_filename), "")
   database                                      = local.database
   database_active_active                        = var.database_active_active
-  database_dual_nics                            = var.database_dual_nics
+  database_dual_network_interfaces              = var.database_dual_nics
   database_server_count                         = upper(try(local.database.platform, "HANA")) == "HANA" ? (
                                                     local.database.high_availability ? (
                                                       2 * (var.database_server_count + var.stand_by_node_count)) : (
