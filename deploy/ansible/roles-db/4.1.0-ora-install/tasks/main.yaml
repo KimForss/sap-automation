@@ -114,6 +114,43 @@
       - oracle_media_installed.stat.exists
     fail_msg:                          "Oracle Database installation requires the updated RUNINSTALLER media to be available at {{ target_media_location }}/SAP/SAP/RUNINSTALLER"
 
+- name:                                "4.1.0. Oracle Installation - environment variables to the Bash profile"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.blockinfile:
+    path:                              /home/oracle/.bashrc
+    insertafter:                       'fi '
+    block: |
+        # User Specific environment
+        export ORACLE_HOME=/oracle/{{ db_sid | upper }}/{{ ora_release }}
+        export ORACLE_SID={{ db_sid | upper }}
+        export ORACLE_BASE=/oracle
+        export LD_LIBRARY_PATH=$ORACLE_HOME/lib
+        export TNS_ADMIN=$ORACLE_HOME/network/admin
+        export DB_SID={{ db_sid | upper }}
+        PATH="$PATH:$ORACLE_HOME/bin"
+        export PATH
+
+- name:                                "4.1.0. Oracle Installation - create .cshrc"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.blockinfile:
+    create:                            true
+    path:                              /home/oracle/.cshrc
+    marker_begin:                      "-- BEGIN"
+    marker_end:                        "-- END"
+    block: |
+        # User Specific environment
+        setenv  ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_release }}
+        setenv  ORACLE_SID  {{ db_sid | upper }}
+        setenv  ORACLE_BASE /oracle
+        setenv  LD_LIBRARY_PATH $ORACLE_HOME/lib
+        setenv  TNS_ADMIN $ORACLE_HOME/network/admin
+        setenv  DB_SID {{ db_sid | upper }}
+        set path = ($path $ORACLE_HOME/bin)
+    mode:                              0755
+
+
 
 # /*---------------------------------------------------------------------------8
 # | Start of Oracle software installation using SAP RUNINSTALLER wrapper.      |
@@ -267,42 +304,6 @@
         mode:                          '4750'
         owner:                         "{{ oracle_user_name }}"
         group:                         oinstall
-
-    - name:                            "4.1.0. Oracle Installation - environment variables to the Bash profile"
-      become:                          true
-      become_user:                     "oracle"
-      ansible.builtin.blockinfile:
-        path:                          /home/oracle/.bashrc
-        insertafter:                   'fi '
-        block: |
-            # User Specific environment
-            export ORACLE_HOME=/oracle/{{ db_sid | upper }}/{{ ora_release }}
-            export ORACLE_SID={{ db_sid | upper }}
-            export ORACLE_BASE=/oracle
-            export LD_LIBRARY_PATH=$ORACLE_HOME/lib
-            export TNS_ADMIN=$ORACLE_HOME/network/admin
-            export DB_SID={{ db_sid | upper }}
-            PATH="$PATH:$ORACLE_HOME/bin"
-            export PATH
-
-    - name:                            "4.1.0. Oracle Installation - create .cshrc"
-      become:                          true
-      become_user:                     "oracle"
-      ansible.builtin.blockinfile:
-        create:                        true
-        path:                          /home/oracle/.cshrc
-        marker_begin:                  "-- BEGIN"
-        marker_end:                    "-- END"
-        block: |
-            # User Specific environment
-            setenv  ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_release }}
-            setenv  ORACLE_SID  {{ db_sid | upper }}
-            setenv  ORACLE_BASE /oracle
-            setenv  LD_LIBRARY_PATH $ORACLE_HOME/lib
-            setenv  TNS_ADMIN $ORACLE_HOME/network/admin
-            setenv  DB_SID {{ db_sid | upper }}
-            set path = ($path $ORACLE_HOME/bin)
-        mode:                              0755
 
     - name:                            "4.1.0. Oracle Installation - check if ARM Deployment done"
       ansible.builtin.stat:

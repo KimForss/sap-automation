@@ -134,6 +134,80 @@
     path:                              "{{ target_media_location }}/SAP/SAP/RUNINSTALLER"
   register:                            oracle_media_installed
 
+- name:                                "4.1.2. Oracle ASM Database Installation - environment variables to the Bash profile"
+  become:                              true
+  become_user:                         "{{ oracle_user_name }}"
+  ansible.builtin.blockinfile:
+    path:                              /home/oracle/.bashrc
+    insertafter:                       'fi '
+    block: |
+        # User Specific environment
+        export ORACLE_HOME=/oracle/{{ db_sid | upper }}/{{ ora_release }}
+        export ORACLE_SID={{ this_sid }}
+        export ORACLE_BASE=/oracle/{{ db_sid | upper }}
+        export LD_LIBRARY_PATH=$ORACLE_HOME/lib
+        export TNS_ADMIN=$ORACLE_HOME/network/admin
+        export DB_SID={{ db_sid | upper }}
+        PATH="$PATH:$ORACLE_HOME/bin"
+        export PATH
+
+- name:                                "4.1.2. Oracle ASM Database Installation - create .cshrc"
+  become:                              true
+  become_user:                         "{{ oracle_user_name }}"
+  ansible.builtin.blockinfile:
+    create:                            true
+    path:                              /home/oracle/.cshrc
+    marker_begin:                      "-- BEGIN"
+    marker_end:                        "-- END"
+    block: |
+        # User Specific environment
+        setenv  ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_release }}
+        setenv  ORACLE_SID  {{ this_sid }}
+        setenv  ORACLE_BASE /oracle/{{ db_sid | upper }}
+        setenv  LD_LIBRARY_PATH $ORACLE_HOME/lib
+        setenv  TNS_ADMIN $ORACLE_HOME/network/admin
+        setenv  DB_SID {{ db_sid | upper }}
+        set path = ($path $ORACLE_HOME/bin)
+    mode:                              '0755'
+
+- name:                                "4.1.2. Oracle ASM Database Installation - environment variables to the Bash profile for grid"
+  when:                                grid_user_name != oracle_user_name
+  become:                              true
+  become_user:                         "{{ grid_user_name }}"
+  ansible.builtin.blockinfile:
+    path:                              /home/grid/.bashrc
+    insertafter:                       'fi '
+    block: |
+        # User Specific environment
+        export ORACLE_HOME=/oracle/GRID/{{ ora_release }}
+        export ORACLE_SID=+ASM
+        export ORACLE_BASE=/oracle/GRID
+        export LD_LIBRARY_PATH=$ORACLE_HOME/lib
+        export TNS_ADMIN=$ORACLE_HOME/network/admin
+        export DB_SID=+ASM
+        PATH="$PATH:$ORACLE_HOME/bin"
+        export PATH
+
+- name:                                "4.1.2. Oracle ASM Database Installation - create .cshrc"
+  when:                                grid_user_name != oracle_user_name
+  become:                              true
+  become_user:                         "{{ grid_user_name }}"
+  ansible.builtin.blockinfile:
+    create:                            true
+    path:                              /home/grid/.cshrc
+    marker_begin:                      "-- BEGIN"
+    marker_end:                        "-- END"
+    block: |
+        # User Specific environment
+        setenv  ORACLE_HOME /oracle/GRID/{{ ora_release }}
+        setenv  ORACLE_SID  +ASM
+        setenv  ORACLE_BASE /oracle/GRID
+        setenv  LD_LIBRARY_PATH $ORACLE_HOME/lib
+        setenv  TNS_ADMIN $ORACLE_HOME/network/admin
+        setenv  DB_SID +ASM
+        set path = ($path $ORACLE_HOME/bin)
+    mode:                              '0755'
+
 - name:                                "4.1.2. Oracle ASM Database Installation - check oradism exists"
   ansible.builtin.assert:
     that:
@@ -264,81 +338,6 @@
     this_sid:                          "{{ db_sid | upper }}_STDBY"
   when:
     ansible_hostname == ora_secondary
-
-
-- name:                                "4.1.2. Oracle ASM Database Installation - environment variables to the Bash profile"
-  become:                              true
-  become_user:                         "{{ oracle_user_name }}"
-  ansible.builtin.blockinfile:
-    path:                              /home/oracle/.bashrc
-    insertafter:                       'fi '
-    block: |
-        # User Specific environment
-        export ORACLE_HOME=/oracle/{{ db_sid | upper }}/{{ ora_release }}
-        export ORACLE_SID={{ this_sid }}
-        export ORACLE_BASE=/oracle/{{ db_sid | upper }}
-        export LD_LIBRARY_PATH=$ORACLE_HOME/lib
-        export TNS_ADMIN=$ORACLE_HOME/network/admin
-        export DB_SID={{ db_sid | upper }}
-        PATH="$PATH:$ORACLE_HOME/bin"
-        export PATH
-
-- name:                                "4.1.2. Oracle ASM Database Installation - create .cshrc"
-  become:                              true
-  become_user:                         "{{ oracle_user_name }}"
-  ansible.builtin.blockinfile:
-    create:                            true
-    path:                              /home/oracle/.cshrc
-    marker_begin:                      "-- BEGIN"
-    marker_end:                        "-- END"
-    block: |
-        # User Specific environment
-        setenv  ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_release }}
-        setenv  ORACLE_SID  {{ this_sid }}
-        setenv  ORACLE_BASE /oracle/{{ db_sid | upper }}
-        setenv  LD_LIBRARY_PATH $ORACLE_HOME/lib
-        setenv  TNS_ADMIN $ORACLE_HOME/network/admin
-        setenv  DB_SID {{ db_sid | upper }}
-        set path = ($path $ORACLE_HOME/bin)
-    mode:                              '0755'
-
-- name:                                "4.1.2. Oracle ASM Database Installation - environment variables to the Bash profile for grid"
-  when:                                grid_user_name != oracle_user_name
-  become:                              true
-  become_user:                         "{{ grid_user_name }}"
-  ansible.builtin.blockinfile:
-    path:                              /home/grid/.bashrc
-    insertafter:                       'fi '
-    block: |
-        # User Specific environment
-        export ORACLE_HOME=/oracle/GRID/{{ ora_release }}
-        export ORACLE_SID=+ASM
-        export ORACLE_BASE=/oracle/GRID
-        export LD_LIBRARY_PATH=$ORACLE_HOME/lib
-        export TNS_ADMIN=$ORACLE_HOME/network/admin
-        export DB_SID=+ASM
-        PATH="$PATH:$ORACLE_HOME/bin"
-        export PATH
-
-- name:                                "4.1.2. Oracle ASM Database Installation - create .cshrc"
-  when:                                grid_user_name != oracle_user_name
-  become:                              true
-  become_user:                         "{{ grid_user_name }}"
-  ansible.builtin.blockinfile:
-    create:                            true
-    path:                              /home/grid/.cshrc
-    marker_begin:                      "-- BEGIN"
-    marker_end:                        "-- END"
-    block: |
-        # User Specific environment
-        setenv  ORACLE_HOME /oracle/GRID/{{ ora_release }}
-        setenv  ORACLE_SID  +ASM
-        setenv  ORACLE_BASE /oracle/GRID
-        setenv  LD_LIBRARY_PATH $ORACLE_HOME/lib
-        setenv  TNS_ADMIN $ORACLE_HOME/network/admin
-        setenv  DB_SID +ASM
-        set path = ($path $ORACLE_HOME/bin)
-    mode:                              '0755'
 
 
 - name:                                "4.1.2. Oracle ASM Database Installation - Install status"
