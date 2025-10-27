@@ -146,30 +146,30 @@
 # # Wait for creation of HugePages
 # # Reboot the VM to avoid the error "ORA-27102: out of memory"
 
-# - name:                                "5.1. Database Load - ORACLE - DB VM reboot"
-#   block:
+- name:                                "5.1. Database Load - ORACLE - DB VM reboot"
+  block:
 
-#     - name:                            "5.1. Database Load - ORACLE - Reboot after the Enabling HugePages"
-#       ansible.builtin.debug:
-#         msg:                           "Reboot after the Enabling HugePages"
+    - name:                            "5.1. Database Load - ORACLE - Reboot after the Enabling HugePages"
+      ansible.builtin.debug:
+        msg:                           "Reboot after the Enabling HugePages"
 
-#     - name:                            "5.1. Database Load - ORACLE - Reboot after the Enabling HugePages"
-#       become:                          true
-#       become_user:                     root
-#       ansible.builtin.reboot:
-#         reboot_timeout:                300
-#       failed_when:                     false
+    - name:                            "5.1. Database Load - ORACLE - Reboot after the Enabling HugePages"
+      become:                          true
+      become_user:                     root
+      ansible.builtin.reboot:
+        reboot_timeout:                12
+      failed_when:                     false
 
-#     - name:                            "5.1. Database Load - ORACLE - Clear the failed state of hosts"
-#       ansible.builtin.meta:            clear_host_errors
+    - name:                            "5.1. Database Load - ORACLE - Clear the failed state of hosts"
+      ansible.builtin.meta:            clear_host_errors
 
-#   # Wait for Connection after reboot
-#     - name:                            "5.1. Database Load - ORACLE - Wait for Connection after reboot"
-#       ansible.builtin.wait_for_connection:
-#         delay:                         10
-#         timeout:                       300
-#   when:
-#     - not sga_update_status.stat.exists
+  # Wait for Connection after reboot
+    - name:                            "5.1. Database Load - ORACLE - Wait for Connection after reboot"
+      ansible.builtin.wait_for_connection:
+        delay:                         10
+        timeout:                       120
+  when:
+    - not sga_update_status.stat.exists
 
 - name:                                "5.1. Database Load - ORACLE - Start Oracle after SGA Change"
   become:                              true
@@ -177,7 +177,7 @@
   ansible.builtin.shell: |
                                        setenv ORACLE_SID {{ db_sid | upper }}
                                        $ORACLE_HOME/bin/sqlplus -S / as sysdba <<EOF
-                                       STARTUP;
+                                       STARTUP MOUNT;
                                        EXIT;
                                        EOF
   register:                            dbstarted_results
