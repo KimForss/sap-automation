@@ -24,6 +24,7 @@
                                        setenv ORACLE_SID {{ db_sid | upper }}
                                        $ORACLE_HOME/bin/sqlplus -S / as sysdba <<EOF
                                        STARTUP MOUNT;
+                                       ALTER DATABASE OPEN;
                                        EXIT;
                                        EOF
   register:                            dbstarted_results
