@@ -94,24 +94,11 @@
       ansible.builtin.shell: |
                                        dgmgrl / as sysdba << EOF
                                        CREATE CONFIGURATION {{ db_sid | upper }}_dg_config AS PRIMARY DATABASE IS {{ db_sid | upper }} CONNECT IDENTIFIER IS {{ db_sid | upper }};
+                                       ADD DATABASE {{ db_sid | upper }}_STDBY AS CONNECT IDENTIFIER IS {{ db_sid | upper }}_STDBY MAINTAINED AS PHYSICAL;
                                        exit;
                                        EOF
       register:                        dgconfig_results
       failed_when:                     dgconfig_results.rc > 0
-      args:
-        executable:                    /bin/csh
-
-    - name:                            "4.1.3 Oracle Data Guard - Primary - Post Processing: Update Data Guard Configuration on Primary Add Secondary "
-      become:                          true
-      become_user:                     "{{ oracle_user_name }}"
-      ansible.builtin.shell: |
-                                       dgmgrl / as sysdba << EOF
-                                       ADD DATABASE {{ db_sid | upper }}_STDBY AS CONNECT IDENTIFIER IS {{ db_sid | upper }}_STDBY MAINTAINED AS PHYSICAL;
-                                       ENABLE CONFIGURATION;
-                                       exit;
-                                       EOF
-      register:                        dgconfig_secondary_results
-      failed_when:                     dgconfig_secondary_results.rc > 0
       args:
         executable:                    /bin/csh
 
