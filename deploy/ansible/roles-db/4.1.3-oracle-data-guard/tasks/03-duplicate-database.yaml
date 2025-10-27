@@ -86,7 +86,6 @@
         chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
         executable:                    /bin/csh
 
-
     - name:                            "4.1.3 Oracle Data Guard - Execute RMAN DUPLICATE"
       become_user:                     "{{ oracle_user_name }}"
       become:                          true
@@ -124,11 +123,24 @@
         mode:                          '0777'
       when:                            rman_duplicate.stdout is defined
 
-
     - name:                            "4.1.3 Oracle Data Guard - Verify DUPLICATE completion"
       ansible.builtin.assert:
         that:                          "'Finished Duplicate Db' in rman_duplicate.stdout"
         fail_msg:                      "RMAN DUPLICATE did not complete successfully"
+
+    - name:                            "4.1.3 Oracle Data Guard - Prepare Secondary - Startup standby just in case"
+      become_user:                     "{{ oracle_user_name }}"
+      become:                          true
+      ansible.builtin.shell: |
+                                       setenv ORACLE_SID {{ db_sid | upper }}_STDBY
+                                       /oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/sqlplus -S / as sysdba <<EOF
+                                       STARTUP NOMOUNT;
+                                       EXIT;
+                                       EOF
+      register:                        startup_result
+      args:
+        chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
+        executable:                    /bin/csh
 
     - name:                            "4.1.3 Oracle Data Guard - Check standby database mounted"
       become_user:                     "{{ oracle_user_name }}"
@@ -181,7 +193,7 @@
                                        EOF
       environment:
         ORACLE_SID:                    "{{ db_sid | upper }}"
-        ORACLE_HOME:                   "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
+        ORACLE_HOME:                   "/oracle/{{ db_sid | upper }}/{{ release }}"
       args:
         executable:                    /bin/csh
       register:                        flashback_secondary
@@ -200,11 +212,10 @@
                                        EOF
       environment:
         ORACLE_SID:                    "{{ db_sid | upper }}"
-        ORACLE_HOME:                   "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
+        ORACLE_HOME:                   "/oracle/{{ db_sid | upper }}/{{ release }}"
       args:
         executable:                    /bin/csh
       failed_when:                     flashback_secondary.rc != 0
       changed_when:                    flashback_secondary.rc == 0
-
 
 
