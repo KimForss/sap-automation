@@ -213,131 +213,131 @@
         - oracle_installer_results is defined
         - oracle_installer_results.rc < 3
 
-    - name:                            "4.1.0. Oracle Installation - Find MOPatch"
-      ansible.builtin.find:
-        paths:                          "{{ target_media_location }}/SBP/SGR19P"
-        patterns:                       ["MOPatch"]
-        file_type:                      directory
-        recurse:                        true
-      register:                         mopatch_directory
+- name:                                "4.1.0. Oracle Installation - Find MOPatch"
+  ansible.builtin.find:
+    paths:                             "{{ target_media_location }}/SBP/SGR19P"
+    patterns:                          ["MOPatch"]
+    file_type:                         directory
+    recurse:                           true
+  register:                            mopatch_directory
 
-    - name:                            "4.1.0. Oracle Installation - Too many MOPatches found"
-      ansible.builtin.fail:
-        msg:                           "Too many MOPatches found"
-      when:                            mopatch_directory.matched > 1
+- name:                                "4.1.0. Oracle Installation - Too many MOPatches found"
+  ansible.builtin.fail:
+    msg:                               "Too many MOPatches found"
+  when:                                mopatch_directory.matched > 1
 
-    - name:                            "4.1.0. Oracle Installation - No MOPatch found"
-      ansible.builtin.fail:
-        msg:                           "No MOPatches found"
-      when:                            mopatch_directory.matched == 0
+- name:                                "4.1.0. Oracle Installation - No MOPatch found"
+  ansible.builtin.fail:
+    msg:                               "No MOPatches found"
+  when:                                mopatch_directory.matched == 0
 
-    - name:                            "4.1.0. Oracle Installation - MOPatch path"
+- name:                                "4.1.0. Oracle Installation - MOPatch path"
+  ansible.builtin.set_fact:
+    mopatch_path:                      "{{ mopatch_directory.files[0].path }}"
+  when:                                mopatch_directory.matched == 1
+
+- name:                                "4.1.0. Oracle Installation - Copy MOPatch"
+  ansible.builtin.copy:
+    src:                               "{{ mopatch_path }}"
+    dest:                              "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
+    remote_src:                        true
+    mode:                              '0755'
+    owner:                             "{{ oracle_user_name }}"
+    group:                             oinstall
+
+# Step 4
+
+- name:                                "4.1.1. ORACLE Installation - Check if oradism exists"
+  ansible.builtin.stat:
+    path:                              "/oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/oradism"
+  register:                            oradism_stat
+
+- name:                                "4.1.0. Oracle Installation - pre processing reset permissions"
+  when:                                oradism_stat.stat.exists
+  ansible.builtin.file:
+    path:                              "/oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/oradism"
+    state:                             file
+    mode:                              'u+rw'
+    owner:                             "{{ oracle_user_name }}"
+    group:                             oinstall
+
+# Step 5
+- name:                                "4.1.0. Oracle Installation - DB SBP Patching - progress"
+  ansible.builtin.debug:
+    msg:                               "Running SBP Patching, env ORACLE_HOME=$IHRDBMS  $IHRDBMS /MOPatch/mopatch.sh -v -s {{ target_media_location }}/SBP/{{ oracle_sbp_patch }}, please wait"
+
+- name:                                "4.1.0. Oracle Installation - Post Processing - SBP Patching"
+  become:                              true
+  become_user:                         "{{ oracle_user_name }}"
+  ansible.builtin.shell:               "env ORACLE_HOME=$IHRDBMS $IHRDBMS/MOPatch/mopatch.sh -v -s {{ target_media_location }}/SBP/{{ bom.patch_information.oracle_sbp_patch }} -F mopatch_patchgen"
+  environment:
+    CV_ASSUME_DISTID:                  "{{ CV_ASSUME_DISTID }}"
+    IHRDBMS :                           "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
+  register:                            sbpscriptdb_results
+  failed_when:                         sbpscriptdb_results.rc >= 2
+  args:
+    chdir:                             "{{ target_media_location }}/SBP"
+    executable:                        /bin/csh
+
+- name:                                "4.1.0. Oracle Installation - Post processing installer output"
+  ansible.builtin.debug:
+    var:                               sbpscriptdb_results.stdout_lines
+    verbosity:                         2
+
+- name:                                "4.1.0. Oracle Installation - Post processing installer output"
+  ansible.builtin.copy:
+    dest:                              "/etc/sap_deployment_automation/{{ db_sid | upper }}/mopatch_db.log"
+    content:                           "{{ sbpscriptdb_results.stdout }}"
+    mode:                              '0655'
+    owner:                             "{{ oracle_user_name }}"
+    group:                             oinstall
+  when:                                sbpscriptdb_results.stdout is defined
+
+# Step 6
+- name:                                "4.1.0. Oracle Installation - pre processing reset permissions"
+  when:                                oradism_stat.stat.exists
+  ansible.builtin.file:
+    path:                              "/oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/oradism"
+    state:                             file
+    mode:                              '4750'
+    owner:                             "{{ oracle_user_name }}"
+    group:                             oinstall
+
+- name:                                "4.1.0. Oracle Installation - check if ARM Deployment done"
+  ansible.builtin.stat:
+    path:                              "/etc/sap_deployment_automation/{{ db_sid | upper }}/sap_deployment_db_arm.txt"
+  register:                            db_arm_deployment_done
+
+- name:                                "4.1.0. Oracle Installation - Successful installation"
+  block:
+    - name:                            "Retrieve Subscription ID and Resource Group Name"
+      ansible.builtin.uri:
+        url:                           http://169.254.169.254/metadata/instance?api-version=2021-02-01
+        use_proxy:                     false
+        headers:
+          Metadata:                    true
+      register: azure_metadata
+
+    - name:                            "4.1.0. Oracle Installation - Extract details"
       ansible.builtin.set_fact:
-        mopatch_path:                  "{{ mopatch_directory.files[0].path }}"
-      when:                            mopatch_directory.matched == 1
+        subscription_id:               "{{ azure_metadata.json.compute.subscriptionId }}"
+        resource_group_name:           "{{ azure_metadata.json.compute.resourceGroupName }}"
 
-    - name:                            "4.1.0. Oracle Installation - Copy MOPatch"
-      ansible.builtin.copy:
-        src:                           "{{ mopatch_path }}"
-        dest:                          "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
-        remote_src:                    true
-        mode:                          '0755'
-        owner:                         "{{ oracle_user_name }}"
-        group:                         oinstall
-
-    # Step 4
-
-    - name:                            "4.1.1. ORACLE Installation - Check if oradism exists"
-      ansible.builtin.stat:
-        path:                          "/oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/oradism"
-      register:                         oradism_stat
-
-    - name:                            "4.1.0. Oracle Installation - pre processing reset permissions"
-      when:                            oradism_stat.stat.exists
-      ansible.builtin.file:
-        path:                          "/oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/oradism"
-        state:                         file
-        mode:                          'u+rw'
-        owner:                         "{{ oracle_user_name }}"
-        group:                         oinstall
-
-    # Step 5
-    - name:                            "4.1.0. Oracle Installation - DB SBP Patching - progress"
+    - name:                            "4.1.0. Oracle Installation - Show the subscription and resource group"
       ansible.builtin.debug:
-        msg:                           "Running SBP Patching, env ORACLE_HOME=$IHRDBMS  $IHRDBMS /MOPatch/mopatch.sh -v -s {{ target_media_location }}/SBP/{{ oracle_sbp_patch }}, please wait"
+        msg:
+          - "Subscription ID: {{ subscription_id }}"
+          - "Resource Group Name: {{ resource_group_name }}"
 
-    - name:                            "4.1.0. Oracle Installation - Post Processing - SBP Patching"
-      become:                          true
-      become_user:                     "{{ oracle_user_name }}"
-      ansible.builtin.shell:           "env ORACLE_HOME=$IHRDBMS $IHRDBMS/MOPatch/mopatch.sh -v -s {{ target_media_location }}/SBP/{{ bom.patch_information.oracle_sbp_patch }} -F mopatch_patchgen"
-      environment:
-        CV_ASSUME_DISTID:              "{{ CV_ASSUME_DISTID }}"
-        IHRDBMS :                      "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
-      register:                        sbpscriptdb_results
-      failed_when:                     sbpscriptdb_results.rc >= 2
-      args:
-        chdir:                         "{{ target_media_location }}/SBP"
-        executable:                    /bin/csh
+    - name:                            "Include deploy/ansible/roles-misc/0.6-ARM-Deployment"
+      ansible.builtin.include_role:
+        name:                          roles-misc/0.6-ARM-Deployment
+      vars:
+        subscriptionId:                "{{ subscription_id }}"
+        resourceGroupName:             "{{ resource_group_name }}"
 
-    - name:                            "4.1.0. Oracle Installation - Post processing installer output"
-      ansible.builtin.debug:
-        var:                           sbpscriptdb_results.stdout_lines
-        verbosity:                     2
-
-    - name:                            "4.1.0. Oracle Installation - Post processing installer output"
-      ansible.builtin.copy:
-        dest:                          "/etc/sap_deployment_automation/{{ db_sid | upper }}/mopatch_db.log"
-        content:                       "{{ sbpscriptdb_results.stdout }}"
-        mode:                          '0655'
-        owner:                         "{{ oracle_user_name }}"
-        group:                         oinstall
-      when:                            sbpscriptdb_results.stdout is defined
-
-    # Step 6
-    - name:                            "4.1.0. Oracle Installation - pre processing reset permissions"
-      when:                            oradism_stat.stat.exists
-      ansible.builtin.file:
-        path:                          "/oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/oradism"
-        state:                         file
-        mode:                          '4750'
-        owner:                         "{{ oracle_user_name }}"
-        group:                         oinstall
-
-    - name:                            "4.1.0. Oracle Installation - check if ARM Deployment done"
-      ansible.builtin.stat:
-        path:                          "/etc/sap_deployment_automation/{{ db_sid | upper }}/sap_deployment_db_arm.txt"
-      register:                        db_arm_deployment_done
-
-    - name:                            "4.1.0. Oracle Installation - Successful installation"
-      block:
-        - name:                        "Retrieve Subscription ID and Resource Group Name"
-          ansible.builtin.uri:
-            url:                       http://169.254.169.254/metadata/instance?api-version=2021-02-01
-            use_proxy:                 false
-            headers:
-              Metadata:                true
-          register: azure_metadata
-
-        - name:                        "4.1.0. Oracle Installation - Extract details"
-          ansible.builtin.set_fact:
-            subscription_id:           "{{ azure_metadata.json.compute.subscriptionId }}"
-            resource_group_name:       "{{ azure_metadata.json.compute.resourceGroupName }}"
-
-        - name:                        "4.1.0. Oracle Installation - Show the subscription and resource group"
-          ansible.builtin.debug:
-            msg:
-              - "Subscription ID: {{ subscription_id }}"
-              - "Resource Group Name: {{ resource_group_name }}"
-
-        - name:                        "Include deploy/ansible/roles-misc/0.6-ARM-Deployment"
-          ansible.builtin.include_role:
-            name:                      roles-misc/0.6-ARM-Deployment
-          vars:
-            subscriptionId:            "{{ subscription_id }}"
-            resourceGroupName:         "{{ resource_group_name }}"
-
-      when:
-        - not db_arm_deployment_done.stat.exists
+  when:
+    - not db_arm_deployment_done.stat.exists
 
 - name:                                "4.1.0. Oracle Installation - Install status"
   block:
