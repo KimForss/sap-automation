@@ -107,9 +107,12 @@
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell: |
                                        dgmgrl / as sysdba << EOF
+                                       ENABLE FAST_START FAILOVER
+
                                        EDIT DATABASE {{ db_sid | upper }} SET PROPERTY 'LogXptMode'='SYNC';
                                        EDIT DATABASE {{ db_sid | upper }}_STDBY SET PROPERTY 'LogXptMode'='SYNC';
                                        EDIT CONFIGURATION SET PROTECTION MODE AS MAXAVAILABILITY;
+
                                        exit;
                                        EOF
       register:                        dgconfig_fast_start_results
