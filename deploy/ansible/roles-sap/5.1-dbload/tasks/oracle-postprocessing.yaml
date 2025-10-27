@@ -106,11 +106,11 @@
   ansible.builtin.shell: |
                                        setenv ORACLE_SID {{ db_sid | upper }}
                                        $ORACLE_HOME/bin/sqlplus -S / as sysdba <<EOF
-                                        ALTER SYSTEM SET sga_max_size={{ ora_sga }}M SCOPE=spfile;
-                                        ALTER SYSTEM SET pga_aggregate_target={{ ora_pga }}M SCOPE=spfile;
-                                        ALTER SYSTEM SET use_large_pages=only SCOPE=spfile;
-                                        alter system set LOCAL_LISTENER="(ADDRESS=(PROTOCOL=TCP)(HOST={{ ansible_hostname }})(PORT=1521))" scope=both;
-                                        SHUTDOWN IMMEDIATE;
+                                       ALTER SYSTEM SET sga_max_size={{ ora_sga }}M SCOPE=spfile;
+                                       ALTER SYSTEM SET pga_aggregate_target={{ ora_pga }}M SCOPE=spfile;
+                                       ALTER SYSTEM SET use_large_pages=only SCOPE=spfile;
+                                       alter system set LOCAL_LISTENER="(ADDRESS=(PROTOCOL=TCP)(HOST={{ ansible_hostname }})(PORT=1521))" scope=both;
+                                       SHUTDOWN IMMEDIATE;
                                        EXIT;
                                        EOF
   register:                            updatesga_results
@@ -131,67 +131,31 @@
     path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/ora_sga_updated.txt"
     state:                             touch
     mode:                              '0755'
-  when:                                updatesga_results.rc == 0
+  when:
+    - updatesga_results.stdout is defined
+    - updatesga_results.rc == 0
 
-- name:                                "5.1. Database Load - ORACLE - Start lsnrctl on Primary"
+- name:                                "5.1. Database Load - ORACLE - Start Oracle after SGA Change"
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
-  ansible.builtin.shell:               $ORACLE_HOME/bin/lsnrctl reload
-  register:                            lsnrctl_reload_primary_results
-  failed_when:                         lsnrctl_reload_primary_results.rc > 1
-  args:
-    executable:                        /bin/csh
-
-
-# # Wait for creation of HugePages
-# # Reboot the VM to avoid the error "ORA-27102: out of memory"
-
-- name:                                "5.1. Database Load - ORACLE - DB VM reboot"
-  block:
-
-    - name:                            "5.1. Database Load - ORACLE - Reboot after the Enabling HugePages"
-      ansible.builtin.debug:
-        msg:                           "Reboot after the Enabling HugePages"
-
-    - name:                            "5.1. Database Load - ORACLE - Reboot after the Enabling HugePages"
-      become:                          true
-      become_user:                     root
-      ansible.builtin.reboot:
-        reboot_timeout:                12
-      failed_when:                     false
-
-    - name:                            "5.1. Database Load - ORACLE - Clear the failed state of hosts"
-      ansible.builtin.meta:            clear_host_errors
-
-  # Wait for Connection after reboot
-    - name:                            "5.1. Database Load - ORACLE - Wait for Connection after reboot"
-      ansible.builtin.wait_for_connection:
-        delay:                         10
-        timeout:                       120
-
-    - name:                            "5.1. Database Load - ORACLE - Start Oracle after SGA Change"
-      become:                          true
-      become_user:                     "{{ oracle_user_name }}"
-      ansible.builtin.shell: |
+  ansible.builtin.shell: |
                                        setenv ORACLE_SID {{ db_sid | upper }}
                                        $ORACLE_HOME/bin/sqlplus -S / as sysdba <<EOF
                                        STARTUP MOUNT;
                                        EXIT;
                                        EOF
-      register:                        dbstarted_results
-      failed_when:                     dbstarted_results.rc != 0
-      args:
-        executable:                        /bin/csh
-
-
+  register:                            dbstarted_results
+  failed_when:                         dbstarted_results.rc != 0
+  args:
+    executable:                        /bin/csh
   when:
-    - not sga_update_status.stat.exists
-
+    - updatesga_results.stdout is defined
+    - updatesga_results.rc == 0
 
 - name:                                "5.1. Database Load - ORACLE - Start lsnrctl on Primary"
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
-  ansible.builtin.shell:               $ORACLE_HOME/bin/lsnrctl start
+  ansible.builtin.shell:               $ORACLE_HOME/bin/lsnrctl reload
   register:                            lsnrctl_start_primary_results
   failed_when:                         lsnrctl_start_primary_results.rc > 1
   args:
