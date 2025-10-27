@@ -122,7 +122,7 @@ control_plane_subscription=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}"
 
 echo "SID:                                 ${SID}"
 echo "Folder:                              $HOME/SYSTEM/${SAP_SYSTEM_CONFIGURATION_NAME}"
-echo "Workload Key Vault:                  ${workload_key_vault}"
+echo "Workload Key Vault:                  ${key_vault}"
 
 echo "Control Plane Subscription:          ${control_plane_subscription}"
 echo "Workload Prefix:                     ${workload_prefix}"
@@ -141,7 +141,7 @@ echo "##vso[task.setvariable variable=USERNAME_KEY_NAME;isOutput=true]${workload
 echo "##vso[task.setvariable variable=NEW_PARAMETERS;isOutput=true]${new_parameters}"
 echo "##vso[task.setvariable variable=CP_SUBSCRIPTION;isOutput=true]${control_plane_subscription}"
 
-az keyvault secret show --name "${workload_prefix}-sid-sshkey" --vault-name "$workload_key_vault" --subscription "$control_plane_subscription" --query value -o tsv >"artifacts/${SAP_SYSTEM_CONFIGURATION_NAME}_sshkey"
+az keyvault secret show --name "${workload_prefix}-sid-sshkey" --vault-name "${key_vault}" --subscription "$control_plane_subscription" --query value -o tsv >"artifacts/${SAP_SYSTEM_CONFIGURATION_NAME}_sshkey"
 cp sap-parameters.yaml artifacts/.
 cp "${SID}_hosts.yaml" artifacts/.
 
