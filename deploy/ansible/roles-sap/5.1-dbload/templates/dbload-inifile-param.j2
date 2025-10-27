@@ -80,12 +80,12 @@ NW_ABAP_Import_Dialog.migmonLoadArgs                                  = -stop_on
 {% if platform | upper == 'ORACLE-ASM' %}
 SAPINST.CD.PACKAGE.ORACLI                                             = {{ target_media_location }}/oraclient
 
-storageBasedCopy.ora.serverVersion                                    = {{ ora_release}}
-storageBasedCopy.ora.clientVersion                                    = {{ ora_release}}
+storageBasedCopy.ora.serverVersion                                    = {{ ora_version }}
+storageBasedCopy.ora.clientVersion                                    = {{ ora_version }}
 ora.SysPassword                                                       = {{ main_password }}
 ora.SystemPassword                                                    = {{ main_password }}
 ora.createStatisticsCodeABAP                                          = CREATE
-ora.dbhome                                                            = /oracle/{{ db_sid|upper }}/{{ ora_release }}
+ora.dbhome                                                            = /oracle/{{ db_sid|upper }}/{{ ora_version }}
 ora.grid.ORACLE_HOME                                                  = /oracle/GRID/{{ ora_version }}
 ora.grid.ORACLE_SID                                                   = +ASM
 ora.multitenant.installMT                                             = FALSE
@@ -109,14 +109,14 @@ SAPINST.CD.PACKAGE.CD3                                                = {{ targe
 {% if platform | upper == 'ORACLE' %}
 SAPINST.CD.PACKAGE.ORACLI                                             = {{ target_media_location }}/oraclient
 
-storageBasedCopy.ora.serverVersion                                    = {{ ora_release}}
-storageBasedCopy.ora.clientVersion                                    = {{ ora_release}}
+storageBasedCopy.ora.serverVersion                                    = {{ ora_version }}
+storageBasedCopy.ora.clientVersion                                    = {{ ora_version }}
 ora.SysPassword                                                       = {{ main_password }}
 ora.SystemPassword                                                    = {{ main_password }}
 ora.createStatisticsCodeABAP                                          = CREATE
-ora.dbhome                                                            = /oracle/{{ db_sid|upper }}/{{ ora_release }}
+ora.dbhome                                                            = /oracle/{{ db_sid|upper }}/{{ ora_version }}
 ora.multitenant.installMT                                             = FALSE
-ora.multitenant.pdbsid                                                = {{ db_sid|upper }}
+ora.multitenant.pdbsid                                                = {{ db_sid | upper }}
 ora.rbDatabase                                                        = CREATEDB
 ora.whatIsASM                                                         = isNonASM
 ora.whatIsInstance                                                    = isSingle
