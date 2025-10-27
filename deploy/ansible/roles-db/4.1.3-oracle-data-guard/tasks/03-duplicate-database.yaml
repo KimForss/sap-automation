@@ -193,7 +193,7 @@
                                        EOF
       environment:
         ORACLE_SID:                    "{{ db_sid | upper }}"
-        ORACLE_HOME:                   "/oracle/{{ db_sid | upper }}/{{ release }}"
+        ORACLE_HOME:                   "/oracle/{{ db_sid | upper }}/{{ ora_release }}"
       args:
         executable:                    /bin/csh
       register:                        flashback_secondary
@@ -212,7 +212,7 @@
                                        EOF
       environment:
         ORACLE_SID:                    "{{ db_sid | upper }}"
-        ORACLE_HOME:                   "/oracle/{{ db_sid | upper }}/{{ release }}"
+        ORACLE_HOME:                   "/oracle/{{ db_sid | upper }}/{{ ora_release }}"
       args:
         executable:                    /bin/csh
       failed_when:                     flashback_secondary.rc != 0
