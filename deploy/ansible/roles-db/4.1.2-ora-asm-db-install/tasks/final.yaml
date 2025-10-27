@@ -56,7 +56,7 @@
         CV_ASSUME_DISTID:              "{{ CV_ASSUME_DISTID }}"
         OHRDBMS:                       "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
         IHRDBMS:                       "/oracle/{{ db_sid | upper }}/{{ ora_release }}"
-        ORACLE_SID:                    "{{ sap_sid | upper }}"
+        ORACLE_SID:                    "{{ db_sid | upper }}"
       args:
         executable:                    /bin/csh
         creates:                       "/etc/sap_deployment_automation/oracle/update_catsbp.txt"
