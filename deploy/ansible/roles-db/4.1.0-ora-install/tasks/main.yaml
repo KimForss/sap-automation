@@ -122,7 +122,7 @@
     insertafter:                       'fi '
     block: |
         # User Specific environment
-        export ORACLE_HOME=/oracle/{{ db_sid | upper }}/{{ ora_release }}
+        export ORACLE_HOME=/oracle/{{ db_sid | upper }}/{{ ora_version }}
         export ORACLE_SID={{ db_sid | upper }}
         export ORACLE_BASE=/oracle
         export LD_LIBRARY_PATH=$ORACLE_HOME/lib
@@ -141,7 +141,7 @@
     marker_end:                        "-- END"
     block: |
         # User Specific environment
-        setenv  ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_release }}
+        setenv  ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
         setenv  ORACLE_SID  {{ db_sid | upper }}
         setenv  ORACLE_BASE /oracle
         setenv  LD_LIBRARY_PATH $ORACLE_HOME/lib
