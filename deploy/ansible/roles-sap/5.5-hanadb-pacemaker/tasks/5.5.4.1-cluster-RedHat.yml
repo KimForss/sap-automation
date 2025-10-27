@@ -51,7 +51,8 @@
           ansible.builtin.shell: >
                                        pcs resource create SAPHanaTopology_{{ db_sid | upper }}_{{ db_instance_number }} SAPHanaTopologyScaleOut \
                                          SID={{ db_sid | upper }} InstanceNumber={{ db_instance_number }} \
-                                         op start timeout=600 op stop timeout=300 op monitor interval=10 timeout=600
+                                         op start timeout=600 op stop timeout=300 op monitor interval=10 timeout=600 \
+                                         clone clone-max=2 clone-node-max=1 interleave=true
           register:                    sap_hana_topology
           failed_when:                 sap_hana_topology.rc > 1
 
@@ -86,9 +87,9 @@
         - name:                        "5.5.4.1 HANA Cluster configuration - Ensure the HANA topology resource is created on RHEL 8 & 9"
           ansible.builtin.shell: >
                                        pcs resource create SAPHanaTopology_{{ db_sid | upper }}_{{ db_instance_number }} SAPHanaTopology \
-                                         SID={{ db_sid | upper }} InstanceNumber={{ db_instance_number }}  meta clone-node-max=1 interleave=true \
-                                         op methods interval=0s timeout=5 \
-                                         op start timeout=600 op stop timeout=300 op monitor interval=10 timeout=600
+                                         SID={{ db_sid | upper }} InstanceNumber={{ db_instance_number }} \
+                                         op start timeout=600 op stop timeout=300 op monitor interval=10 timeout=600 \
+                                         clone clone-max=2 clone-node-max=1 interleave=true
           register:                    sap_hana_topology
           failed_when:                 sap_hana_topology.rc > 1
 
@@ -101,15 +102,14 @@
 
         - name:                        "5.5.4.1 HANA Cluster configuration - Ensure the SAP HANA resource is created on RHEL 8 & 9"
           ansible.builtin.shell: >
-                                       pcs resource create SAPHana_{{ db_sid | upper }}_{{ db_instance_number }} SAPHanaController \
+                                       pcs resource create SAPHana_{{ db_sid | upper }}_{{ db_instance_number }} SAPHana \
                                          SID={{ db_sid | upper }} InstanceNumber={{ db_instance_number }} \
                                          PREFER_SITE_TAKEOVER=true DUPLICATE_PRIMARY_TIMEOUT=7200 AUTOMATED_REGISTER=false \
-                                         op demote interval=0s timeout=320 op methods interval=0s timeout=5 \
-                                         op start interval=0 timeout={{ cluster_sap_hana_timeouts.start }} \
-                                         op stop interval=0 timeout={{ cluster_sap_hana_timeouts.stop }} \
-                                         op promote interval=0 timeout={{ cluster_sap_hana_timeouts.promote }} \
-                                         op monitor interval=60 role="Master" timeout={{ cluster_sap_hana_timeouts.monitor_master }} \
-                                         op monitor interval=61 role="Slave" timeout={{ cluster_sap_hana_timeouts.monitor_slave }}
+                                         op start timeout=3600 op stop timeout=3600 \
+                                         op monitor interval=61 role="Unpromoted" timeout=700 \
+                                         op monitor interval=59 role="Promoted" timeout=700 \
+                                         op promote timeout=3600 op demote timeout=3600 \
+                                         promotable notify=true clone-max=2 clone-node-max=1 interleave=true
           register:                    sap_hana
           failed_when:                 sap_hana.rc > 1
 
