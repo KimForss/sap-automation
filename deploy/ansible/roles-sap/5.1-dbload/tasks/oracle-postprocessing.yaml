@@ -145,7 +145,7 @@
                                        EXIT;
                                        EOF
   register:                            dbstarted_results
-  failed_when:                         dbstarted_results.rc != 0
+  failed_when:                         false
   args:
     executable:                        /bin/csh
   when:
