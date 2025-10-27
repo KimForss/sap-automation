@@ -21,27 +21,35 @@
 - name:                                "5.1. Database Load - ORACLE: Show Status message"
   ansible.builtin.debug:
     msg:                               "5.1. Database Load - ORACLE: Run the post-installation script catsbp"
+- name:                                "5.1. Database Load - ORACLE: Check if catsbp exists"
+  ansible.builtin.stat:
+    path:                               "/oracle/{{ db_sid | upper }}/{{ ora_release }}/sapbundle/catsbp"
+  register:                            catsbp_stat
 
 - name:                                "5.1. Database Load - ORACLE: Run run the post-installation script catsbp"
-  become:                              true
-  become_user:                         "{{ oracle_user_name }}"
-  ansible.builtin.shell: |
+  when:                                catsbp_stat.stat.exists
+  block:
+
+    - name:                            "5.1. Database Load - ORACLE: Run run the post-installation script catsbp"
+      become:                          true
+      become_user:                     "{{ oracle_user_name }}"
+      ansible.builtin.shell: |
                                        env ORACLE_HOME=$OHRDBMS ORACLE_SID=$ORACLE_SID $OHRDBMS/sapbundle/catsbp
 
-  register:                            catsbp_results
-  environment:
-    CV_ASSUME_DISTID:                  "{{ CV_ASSUME_DISTID }}"
-    OHRDBMS:                           "/oracle/{{ db_sid | upper }}/{{ ora_release }}"
-    ORACLE_SID:                        "{{ sap_sid | upper }}"
-  args:
-    executable:                        /bin/csh
+      register:                        catsbp_results
+      environment:
+        CV_ASSUME_DISTID:              "{{ CV_ASSUME_DISTID }}"
+        OHRDBMS:                       "/oracle/{{ db_sid | upper }}/{{ ora_release }}"
+        ORACLE_SID:                    "{{ sap_sid | upper }}"
+      args:
+        executable:                    /bin/csh
 
-- name:                                "5.1. Database Load - ORACLE: Debug: GRID prepatch output"
-  ansible.builtin.copy:
-    dest:                              "/etc/sap_deployment_automation/oracle/catsbp.log"
-    content:                           "{{ catsbp_results.stdout }}"
-    mode:                              0777
-  when:                                catsbp_results.stdout is defined
+    - name:                                "5.1. Database Load - ORACLE: Debug: GRID prepatch output"
+      ansible.builtin.copy:
+        dest:                              "/etc/sap_deployment_automation/oracle/catsbp.log"
+        content:                           "{{ catsbp_results.stdout }}"
+        mode:                              0777
+      when:                                catsbp_results.stdout is defined
 
 - name:                                "5.1. Database Load - ORACLE: Set Variables"
   ansible.builtin.set_fact:
