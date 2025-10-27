@@ -50,3 +50,5 @@
         path:                          "{{ _workspace_directory }}/.progress/sap-functional-tests-done"
         state:                         touch
         mode:                          0755
+
+...
