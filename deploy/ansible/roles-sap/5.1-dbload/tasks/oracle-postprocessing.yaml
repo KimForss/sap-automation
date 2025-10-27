@@ -17,6 +17,21 @@
     is_UEK6:                           "{{ ansible_kernel is version('5.5', '<') }}"
     CV_ASSUME_DISTID:                  "{% if ansible_kernel is version('5.5', '<') %} OEL7 {% else %} OL8 {% endif %}"
 
+- name:                                "5.1. Database Load - ORACLE - Ensure Oracle is running"
+  become:                              true
+  become_user:                         "{{ oracle_user_name }}"
+  ansible.builtin.shell: |
+                                       setenv ORACLE_SID {{ db_sid | upper }}
+                                       $ORACLE_HOME/bin/sqlplus -S / as sysdba <<EOF
+                                       STARTUP MOUNT;
+                                       EXIT;
+                                       EOF
+  register:                            dbstarted_results
+  failed_when:                         false
+  args:
+    executable:                        /bin/csh
+
+
 # Step 17
 - name:                                "5.1. Database Load - ORACLE: Show Status message"
   ansible.builtin.debug:
