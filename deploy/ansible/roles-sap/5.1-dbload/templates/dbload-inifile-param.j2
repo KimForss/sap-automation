@@ -80,8 +80,8 @@ NW_ABAP_Import_Dialog.migmonLoadArgs                                  = -stop_on
 {% if platform | upper == 'ORACLE-ASM' %}
 SAPINST.CD.PACKAGE.ORACLI                                             = {{ target_media_location }}/oraclient
 
-storageBasedCopy.ora.serverVersion                                    = {{ ora_version }}
-storageBasedCopy.ora.clientVersion                                    = {{ ora_version }}
+storageBasedCopy.ora.serverVersion                                    = {{ ora_release }}
+storageBasedCopy.ora.clientVersion                                    = {{ ora_release }}
 ora.SysPassword                                                       = {{ main_password }}
 ora.SystemPassword                                                    = {{ main_password }}
 ora.createStatisticsCodeABAP                                          = CREATE
@@ -109,8 +109,8 @@ SAPINST.CD.PACKAGE.CD3                                                = {{ targe
 {% if platform | upper == 'ORACLE' %}
 SAPINST.CD.PACKAGE.ORACLI                                             = {{ target_media_location }}/oraclient
 
-storageBasedCopy.ora.serverVersion                                    = {{ ora_version }}
-storageBasedCopy.ora.clientVersion                                    = {{ ora_version }}
+storageBasedCopy.ora.serverVersion                                    = {{ ora_release }}
+storageBasedCopy.ora.clientVersion                                    = {{ ora_release }}
 ora.SysPassword                                                       = {{ main_password }}
 ora.SystemPassword                                                    = {{ main_password }}
 ora.createStatisticsCodeABAP                                          = CREATE
