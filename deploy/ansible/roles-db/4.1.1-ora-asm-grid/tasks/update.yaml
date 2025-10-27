@@ -28,8 +28,7 @@
 - name:                                "4.1.1. ORACLE Grid Update - Show BoM"
   ansible.builtin.debug:
     var:                               bom
-  verbosity:                           2
-
+    verbosity:                         2
 
 - name:                                "4.1.1. ORACLE Grid Update - Validate ORACLE parameters"
   ansible.builtin.assert:
