@@ -272,7 +272,7 @@
       ansible.builtin.shell:           "env ORACLE_HOME=$IHRDBMS $IHRDBMS/MOPatch/mopatch.sh -v -s {{ target_media_location }}/SBP/{{ bom.patch_information.oracle_sbp_patch }} -F mopatch_patchgen"
       environment:
         CV_ASSUME_DISTID:              "{{ CV_ASSUME_DISTID }}"
-        IHRDBMS :                      "/oracle/{{ db_sid | upper }}/{{ ora_release }}"
+        IHRDBMS :                      "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
       register:                        sbpscriptdb_results
       failed_when:                     sbpscriptdb_results.rc >= 2
       args:
