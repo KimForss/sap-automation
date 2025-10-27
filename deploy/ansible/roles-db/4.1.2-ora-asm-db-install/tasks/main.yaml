@@ -124,16 +124,6 @@
       - "ApplyRU:      {{ ApplyRU }}"
       - "OPatchPath:   {{ OPatchPath }}"
 
-- name:                                "4.1.2. Oracle ASM Database Installation - check if installed"
-  ansible.builtin.stat:
-    path:                              "/etc/sap_deployment_automation/oracle/oracle_installed.txt"
-  register:                            oracle_installed
-
-- name:                                "4.1.2. Oracle ASM Database Installation - check updated installation media exists"
-  ansible.builtin.stat:
-    path:                              "{{ target_media_location }}/SAP/SAP/RUNINSTALLER"
-  register:                            oracle_media_installed
-
 - name:                                "4.1.2. Oracle ASM Database Installation - environment variables to the Bash profile"
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
@@ -208,7 +198,19 @@
         set path = ($path $ORACLE_HOME/bin)
     mode:                              '0755'
 
-- name:                                "4.1.2. Oracle ASM Database Installation - check oradism exists"
+
+- name:                                "4.1.2. Oracle ASM Database Installation - check if installed"
+  ansible.builtin.stat:
+    path:                              "/etc/sap_deployment_automation/oracle/oracle_installed.txt"
+  register:                            oracle_installed
+
+- name:                                "4.1.2. Oracle ASM Database Installation - check updated installation media exists"
+  ansible.builtin.stat:
+    path:                              "{{ target_media_location }}/SAP/SAP/RUNINSTALLER"
+  register:                            oracle_media_installed
+
+
+- name:                                "4.1.2. Oracle ASM Database Installation - check RUNINSTALLER exists"
   ansible.builtin.assert:
     that:
       - oracle_media_installed.stat.exists
@@ -241,10 +243,10 @@
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell: |
-                                       {{ target_media_location }}/SAP/RUNINSTALLER \
-                                       -oracle_image {{ OracleImage }}                           \
-                                       -applyRU {{ ApplyRU }}                                     \
-                                       -opatchLocation {{ OPatchPath }}                          \
+                                       {{ target_media_location }}/SAP/SAP/RUNINSTALLER \
+                                       -oracle_image {{ OracleImage }}                  \
+                                       -applyRU {{ ApplyRU }}                           \
+                                       -opatchLocation {{ OPatchPath }}                 \
                                        -silent -ignorePrereqWarnings
       register:                        orainstaller_results
       failed_when:                     orainstaller_results.rc >= 2              # installer returns rc=1 (exited with warning) by default when run is silent mode as the oratab file is created only after running the root.sh
