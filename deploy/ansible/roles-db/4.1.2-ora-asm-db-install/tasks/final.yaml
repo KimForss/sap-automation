@@ -49,7 +49,9 @@
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell: |
-                                       env ORACLE_HOME=$OHRDBMS ORACLE_SID=$ORACLE_SID $OHRDBMS/sapbundle/catsbp
+                                       setenv ORACLE_SID {{ db_sid | upper }}
+                                       setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_release }}
+                                       $ORACLE_HOME/sapbundle/catsbp
 
       register:                        catsbp_results
       environment:
