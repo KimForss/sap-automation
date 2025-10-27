@@ -168,22 +168,25 @@
       ansible.builtin.wait_for_connection:
         delay:                         10
         timeout:                       120
-  when:
-    - not sga_update_status.stat.exists
 
-- name:                                "5.1. Database Load - ORACLE - Start Oracle after SGA Change"
-  become:                              true
-  become_user:                         "{{ oracle_user_name }}"
-  ansible.builtin.shell: |
+    - name:                            "5.1. Database Load - ORACLE - Start Oracle after SGA Change"
+      become:                          true
+      become_user:                     "{{ oracle_user_name }}"
+      ansible.builtin.shell: |
                                        setenv ORACLE_SID {{ db_sid | upper }}
                                        $ORACLE_HOME/bin/sqlplus -S / as sysdba <<EOF
                                        STARTUP MOUNT;
                                        EXIT;
                                        EOF
-  register:                            dbstarted_results
-  failed_when:                         dbstarted_results.rc != 0
-  args:
-    executable:                        /bin/csh
+      register:                        dbstarted_results
+      failed_when:                     dbstarted_results.rc != 0
+      args:
+        executable:                        /bin/csh
+
+
+  when:
+    - not sga_update_status.stat.exists
+
 
 - name:                                "5.1. Database Load - ORACLE - Start lsnrctl on Primary"
   become:                              true
