@@ -21,6 +21,7 @@
 - name:                                "5.1. Database Load - ORACLE: Show Status message"
   ansible.builtin.debug:
     msg:                               "5.1. Database Load - ORACLE: Run the post-installation script catsbp"
+
 - name:                                "5.1. Database Load - ORACLE: Check if catsbp exists"
   ansible.builtin.stat:
     path:                               "/oracle/{{ db_sid | upper }}/{{ ora_release }}/sapbundle/catsbp"
@@ -40,16 +41,16 @@
       environment:
         CV_ASSUME_DISTID:              "{{ CV_ASSUME_DISTID }}"
         OHRDBMS:                       "/oracle/{{ db_sid | upper }}/{{ ora_release }}"
-        ORACLE_SID:                    "{{ sap_sid | upper }}"
+        ORACLE_SID:                    "{{ db_sid | upper }}"
       args:
         executable:                    /bin/csh
 
-    - name:                                "5.1. Database Load - ORACLE: Debug: GRID prepatch output"
+    - name:                            "5.1. Database Load - ORACLE: Debug: GRID prepatch output"
       ansible.builtin.copy:
-        dest:                              "/etc/sap_deployment_automation/oracle/catsbp.log"
-        content:                           "{{ catsbp_results.stdout }}"
-        mode:                              0777
-      when:                                catsbp_results.stdout is defined
+        dest:                          "/etc/sap_deployment_automation/oracle/catsbp.log"
+        content:                       "{{ catsbp_results.stdout }}"
+        mode:                          0777
+      when:                            catsbp_results.stdout is defined
 
 - name:                                "5.1. Database Load - ORACLE: Set Variables"
   ansible.builtin.set_fact:
