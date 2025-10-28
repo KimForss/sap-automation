@@ -80,6 +80,7 @@ key_vault_subscription=$(echo "$key_vault_id" | cut -d '/' -f 3)
 
 if [ -n "$key_vault_subscription" ]; then
 	echo "##[section]Using Key Vault subscription: $key_vault_subscription"
+	echo "##vso[task.logissue type=info]running as: $(whoami)."
 	az account set --subscription "$key_vault_subscription" --output none
 else
 	echo "##[error]Key Vault subscription not found for vault: $VAULT_NAME"
