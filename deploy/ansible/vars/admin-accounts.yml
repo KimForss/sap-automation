@@ -352,7 +352,7 @@ admin_users:
     enabled:      true
 
   - name:         "{{ oracle_user_name }}"
-    comment:      "Oracle Database software Administrator"
+    comment:      "Oracle Database Software Administrator"
     uid:          "{{ oracle_uid }}"
     group:        oinstall
     groups:       ["oper", "sapsys", "sapinst", "asmdba", "dba", "asmadmin", "asmoper"]
@@ -365,7 +365,7 @@ admin_users:
     enabled:      true
 
   - name:         "{{ oracle_user_name }}"
-    comment:      "Oracle Database software Administrator"
+    comment:      "Oracle Database Software Administrator"
     uid:          "{{ oracle_uid }}"
     group:        oinstall
     groups:       ["oper","sapsys","sapinst","asmdba","dba","asmadmin","asmoper"]
