@@ -38,7 +38,7 @@ SID_LIST_LISTENER =
   (SID_LIST =
     (SID_DESC =
       (GLOBAL_DBNAME = {{ db_sid | upper }}_STDBY.WORLD)
-      (ORACLE_HOME = /oracle/{{ db_sid | upper }}/{{ ora_release }})
+      (ORACLE_HOME = /oracle/{{ db_sid | upper }}/{{ ora_version }})
       (SID_NAME = {{ db_sid | upper }}_STDBY)
     )
   )
