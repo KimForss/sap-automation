@@ -213,4 +213,3 @@
       failed_when:                     flashback_secondary.rc != 0
       changed_when:                    flashback_secondary.rc == 0
 
-
