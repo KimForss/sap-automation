@@ -207,6 +207,8 @@
   become:                              true
   become_user:                          "{% if node_tier == 'oracle-asm' %}{{ grid_user_name }}{% else %}{{ oracle_user_name }}{% endif %}"
   ansible.builtin.shell: |
+                                       setenv ORACLE_HOME /oracle/{{ db_path }}/{{ ora_version }}
+                                       setenv ORACLE_SID {{ db_sid | upper }}
                                        /oracle/{{ db_path }}/{{ ora_version }}/bin/lsnrctl reload
   register:                            listener_reload
   changed_when:                        false
@@ -227,6 +229,7 @@
   become_user:                          "{% if node_tier == 'oracle-asm' %}{{ grid_user_name }}{% else %}{{ oracle_user_name }}{% endif %}"
   ansible.builtin.shell: |
                                        setenv ORACLE_HOME /oracle/{{ db_path }}/{{ ora_version }}
+                                       setenv ORACLE_SID {{ db_sid | upper }}
                                        /oracle/{{ db_path }}/{{ ora_version }}/bin/lsnrctl services
   register:                            listener_check
   changed_when:                        false
