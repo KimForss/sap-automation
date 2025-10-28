@@ -313,6 +313,7 @@
       become:                          true
       when:
         - database_high_availability
+        - 1 == 2
         - platform in ['ORACLE', 'ORACLE-ASM']
       block:
         - name:                          "Database High Availability Configuration Playbook - ORACLE Observer : Setting the DB facts"
