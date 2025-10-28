@@ -111,7 +111,6 @@
                                         SPFILE
                                           SET db_name='{{ db_sid | upper }}'
                                           SET db_unique_name='{{ db_sid | upper }}_STDBY'
-                                          SET log_archive_dest_1='LOCATION=+ARCH VALID_FOR=(ALL_LOGFILES,ALL_ROLES) DB_UNIQUE_NAME={{ db_sid | upper }}_STDBY'
                                           SET fal_server='{{ db_sid | upper }}'
                                           SET standby_file_management='AUTO'
                                         DORECOVER
