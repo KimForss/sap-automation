@@ -280,7 +280,7 @@
   become_user:                         "{{ oracle_user_name }}"
   become:                              true
   ansible.builtin.shell: |
-                                       setenv ORACLE_SID {{ db_sid | upper }}
+                                       setenv ORACLE_SID {{ db_sid | upper }}_STDBY
                                        /oracle/{{ db_path }}/{{ ora_version }}/bin/lsnrctl reload
   environment:
     ORACLE_HOME:                       "/oracle/{{ db_path }}/{{ ora_version }}"
@@ -288,12 +288,15 @@
   args:
     chdir:                             "/oracle/{{ db_path }}/{{ ora_version }}/bin"
     executable:                        /bin/csh
+  register:                            listener_reload_results
+  failed_when:
+                                      - listener_reload_results.rc not in [0, 1]
 
 - name:                                "4.1.3 Oracle Data Guard - Prepare Secondary - Reload listener"
   become_user:                         "{{ oracle_user_name }}"
   become:                              true
   ansible.builtin.shell: |
-                                       setenv ORACLE_SID {{ db_sid | upper }}
+                                       setenv ORACLE_SID {{ db_sid | upper }}_STDBY
                                        /oracle/{{ db_path }}/{{ ora_version }}/bin/lsnrctl start
   environment:
     ORACLE_HOME:                       "/oracle/{{ db_path }}/{{ ora_version }}"
