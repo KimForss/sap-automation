@@ -204,6 +204,7 @@
   when:                                add_srl.stdout is defined
 
 - name:                                "4.1.3 Oracle Data Guard - Setup Primary: - Reload listener on primary"
+  when:                                listener_config.changed
   become:                              true
   become_user:                          "{% if node_tier == 'oracle-asm' %}{{ grid_user_name }}{% else %}{{ oracle_user_name }}{% endif %}"
   ansible.builtin.shell: |
@@ -219,6 +220,25 @@
   args:
     chdir:                             "/oracle/{{ db_path }}/{{ ora_version }}/bin"
     executable:                        /bin/csh
+
+- name:                                "4.1.3 Oracle Data Guard - Setup Primary: - Reload listener on primary"
+  when:                                listener_config.changed
+  become:                              true
+  become_user:                          "{% if node_tier == 'oracle-asm' %}{{ grid_user_name }}{% else %}{{ oracle_user_name }}{% endif %}"
+  ansible.builtin.shell: |
+                                       setenv ORACLE_HOME /oracle/{{ db_path }}/{{ ora_version }}
+                                       setenv ORACLE_SID {{ db_sid | upper }}
+                                       /oracle/{{ db_path }}/{{ ora_version }}/bin/lsnrctl start
+  register:                            listener_start_results
+  changed_when:                        false
+  failed_when:                         listener_start_results.rc != 0
+  environment:
+    ORACLE_HOME:                       "/oracle/{{ db_path }}/{{ ora_version }}"
+    ORACLE_SID:                        "{{ db_sid | upper }}"
+  args:
+    chdir:                             "/oracle/{{ db_path }}/{{ ora_version }}/bin"
+    executable:                        /bin/csh
+
 
 - name:                                "4.1.3 Oracle Data Guard - Setup Primary: - Set Search Term"
   ansible.builtin.set_fact:
@@ -259,7 +279,6 @@
   args:
     chdir:                             "/oracle/{{ db_path }}/{{ ora_version }}/bin"
     executable:                        /bin/csh
-
   register:                            primary_register_listener
 
 - name:                                "4.1.3 Oracle Data Guard - Setup Primary: - Show Register primary with listener on primary"
