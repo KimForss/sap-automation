@@ -113,6 +113,8 @@
                                           SET db_unique_name='{{ db_sid | upper }}_STDBY'
                                           SET fal_server='{{ db_sid | upper }}'
                                           SET standby_file_management='AUTO'
+                                          SET db_recovery_file_dest='/oracle/{{ db_sid | upper }}/oraarch/'
+                                          SET control_files='/oracle/{{ db_sid | upper }}/{{ ora_version }}/dbs/cntrl{{ db_sid | upper }}_STDBY.dbf'
                                         DORECOVER
                                         NOFILENAMECHECK;
                                         }
