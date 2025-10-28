@@ -80,7 +80,6 @@ key_vault_subscription=$(echo "$key_vault_id" | cut -d '/' -f 3)
 
 if [ -n "$key_vault_subscription" ]; then
 	echo "##[section]Using Key Vault subscription: $key_vault_subscription"
-	echo "##vso[task.logissue type=info]running as: $(whoami)."
 	az account set --subscription "$key_vault_subscription" --output none
 else
 	echo "##[error]Key Vault subscription not found for vault: $VAULT_NAME"
@@ -121,7 +120,7 @@ if [ -f "$PARAMETERS_FOLDER/extra-params.yaml" ]; then
 
 	EXTRA_PARAM_FILE="-e @$PARAMETERS_FOLDER/extra-params.yaml"
 fi
-
+echo "##[group]- what is this subscription set to? ${ARM_SUBSCRIPTION_ID}"
 az account set --subscription "$ARM_SUBSCRIPTION_ID" --output none
 
 ############################################################################################
