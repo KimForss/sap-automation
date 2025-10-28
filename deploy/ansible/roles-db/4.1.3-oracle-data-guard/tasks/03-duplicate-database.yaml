@@ -107,11 +107,6 @@
                                        rman TARGET sys/'{{ main_password }}'@{{ db_sid | upper }} AUXILIARY sys/'{{ main_password }}'@{{ db_sid | upper }}_STDBY <<EOF
                                         RUN {
                                           DUPLICATE TARGET DATABASE FOR STANDBY FROM ACTIVE DATABASE
-                                          SPFILE
-                                            SET db_unique_name='{{ db_sid | upper }}_STDBY'
-                                            SET fal_server='{{ db_sid | upper }}'
-                                            SET standby_file_management='AUTO'
-                                            SET control_files='/oracle/{{ db_sid | upper }}/origlogA/cntrl/cntrlORA.dbf','/oracle/{{ db_sid | upper }}/origlogB/cntrl/cntrlORA.dbf','/oracle/{{ db_sid | upper }}/sapdata1/cntrl/cntrlORA.dbf'
                                           NOFILENAMECHECK
                                           DORECOVER;
                                         }
