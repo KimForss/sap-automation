@@ -96,6 +96,7 @@
       args:
         chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
         executable:                    /bin/csh
+        creates:                       /etc/sap_deployment_automation/dataguard_scripts/rman_duplicated.txt
       register:                        rman_duplicate
       failed_when:                     rman_duplicate.rc != 0
 
@@ -148,6 +149,9 @@
       ansible.builtin.file:
         path:                          /etc/sap_deployment_automation/dataguard_scripts/rman_duplicated.txt
         state:                         touch
+        mode:                          '0644'
+        owner:                         "{{ oracle_user_name }}"
+        group:                         oinstall
       when:
         - rman_duplicate.rc is defined
         - rman_duplicate.rc == 0
