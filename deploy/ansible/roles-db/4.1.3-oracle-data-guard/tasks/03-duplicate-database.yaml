@@ -133,21 +133,23 @@
       become_user:                     "{{ oracle_user_name }}"
       become:                          true
       ansible.builtin.shell: |
-                                       rman TARGET sys/'{{ main_password }}'@{{ db_sid | upper }} AUXILIARY sys/'{{ main_password }}'@{{ db_sid | upper }}_STDBY <<EOF
-                                       DUPLICATE TARGET DATABASE FOR STANDBY FROM ACTIVE DATABASE
-                                       SPFILE
-                                        SET db_unique_name='{{ db_sid | upper }}_STDBY'
-                                        SET control_files='+DATA/{{ db_sid | upper }}_STDBY/CONTROLFILE/current.ctl','+RECO/{{ db_sid | upper }}_STDBY/CONTROLFILE/current.ctl'
-                                        SET db_file_name_convert='+DATA/{{ db_sid | upper }},+DATA/{{ db_sid | upper }}_STDBY'
-                                        SET log_file_name_convert='+DATA/{{ db_sid | upper }},+DATA/{{ db_sid | upper }}_STDBY','+RECO/{{ db_sid | upper }},+RECO/{{ db_sid | upper }}_STDBY','+ARCH/{{ db_sid | upper }},+ARCH/{{ db_sid | upper }}_STDBY'
-                                        SET db_recovery_file_dest='+RECO'
-                                        SET log_archive_dest_1='LOCATION=+ARCH VALID_FOR=(ALL_LOGFILES,ALL_ROLES) DB_UNIQUE_NAME={{ db_sid | upper }}_STDBY'
-                                        SET fal_server='{{ db_sid | upper }}'
-                                        SET standby_file_management='AUTO'
-                                       DORECOVER
-                                       NOFILENAMECHECK
-                                       EXIT;
-                                       EOF
+                                      rman TARGET sys/'{{ main_password }}'@{{ db_sid | upper }} AUXILIARY sys/'{{ main_password }}'@{{ db_sid | upper }}_STDBY <<EOF
+                                        RUN {
+                                        DUPLICATE TARGET DATABASE FOR STANDBY FROM ACTIVE DATABASE
+                                        SPFILE
+                                          SET db_unique_name='{{ db_sid | upper }}_STDBY'
+                                          SET control_files='+DATA/{{ db_sid | upper }}_STDBY/CONTROLFILE/current.ctl','+RECO/{{ db_sid | upper }}_STDBY/CONTROLFILE/current.ctl'
+                                          SET db_file_name_convert='+DATA/{{ db_sid | upper }}','+DATA/{{ db_sid | upper }}_STDBY'
+                                          SET log_file_name_convert='+DATA/{{ db_sid | upper }}','+DATA/{{ db_sid | upper }}_STDBY','+RECO/{{ db_sid | upper }}','+RECO/{{ db_sid | upper }}_STDBY','+ARCH/{{ db_sid | upper }}','+ARCH/{{ db_sid | upper }}_STDBY'
+                                          SET db_recovery_file_dest='+RECO'
+                                          SET log_archive_dest_1='LOCATION=+ARCH VALID_FOR=(ALL_LOGFILES,ALL_ROLES) DB_UNIQUE_NAME={{ db_sid | upper }}_STDBY'
+                                          SET fal_server='{{ db_sid | upper }}'
+                                          SET standby_file_management='AUTO'
+                                        NOFILENAMECHECK
+                                        DORECOVER;
+                                        }
+                                        EXIT;
+                                        EOF
       args:
         chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
         executable:                    /bin/csh
