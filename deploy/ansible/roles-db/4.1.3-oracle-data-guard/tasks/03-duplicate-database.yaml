@@ -179,6 +179,7 @@
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell: |
+                                       setenv ORACLE_SID {{ db_sid | upper }}_STDBY
                                        sqlplus -s / as sysdba << EOF
                                        WHENEVER SQLERROR EXIT SQL.SQLCODE
                                        ALTER DATABASE FLASHBACK ON;
@@ -197,6 +198,7 @@
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell: |
+                                       setenv ORACLE_SID {{ db_sid | upper }}_STDBY
                                        sqlplus -s / as sysdba << EOF
                                        WHENEVER SQLERROR EXIT SQL.SQLCODE
                                        ALTER SYSTEM SET STANDBY_FILE_MANAGEMENT=AUTO;
