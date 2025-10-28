@@ -12,7 +12,7 @@
                                        EXIT;
                                        EOF
   register:                            open_database
-  failed_when:                         open_database.rc != 0 and 'ORA-01531' not in open_database.stderr
+  failed_when:                         open_database.rc != 0 and 'ORA-01531' not in open_database.stdout
   args:
     chdir:                             "/etc/sap_deployment_automation/dataguard_scripts/"
     executable:                        /bin/csh
