@@ -88,8 +88,8 @@
                                           SET log_archive_dest_1='LOCATION=+ARCH VALID_FOR=(ALL_LOGFILES,ALL_ROLES) DB_UNIQUE_NAME={{ db_sid | upper }}_STDBY'
                                           SET fal_server='{{ db_sid | upper }}'
                                           SET standby_file_management='AUTO'
-                                        NOFILENAMECHECK
-                                        DORECOVER;
+                                        DORECOVER
+                                        NOFILENAMECHECK;
                                         }
                                         EXIT;
                                         EOF
@@ -106,9 +106,16 @@
       ansible.builtin.shell: |
                                        rman TARGET sys/'{{ main_password }}'@{{ db_sid | upper }} AUXILIARY sys/'{{ main_password }}'@{{ db_sid | upper }}_STDBY <<EOF
                                         RUN {
-                                          DUPLICATE TARGET DATABASE FOR STANDBY FROM ACTIVE DATABASE
-                                          DORECOVER
-                                          NOFILENAMECHECK;
+
+                                        DUPLICATE TARGET DATABASE FOR STANDBY FROM ACTIVE DATABASE
+                                        SPFILE
+                                          SET db_name='{{ db_sid | upper }}'
+                                          SET db_unique_name='{{ db_sid | upper }}_STDBY'
+                                          SET log_archive_dest_1='LOCATION=+ARCH VALID_FOR=(ALL_LOGFILES,ALL_ROLES) DB_UNIQUE_NAME={{ db_sid | upper }}_STDBY'
+                                          SET fal_server='{{ db_sid | upper }}'
+                                          SET standby_file_management='AUTO'
+                                        DORECOVER
+                                        NOFILENAMECHECK;
                                         }
                                        EXIT;
                                        EOF
@@ -201,7 +208,6 @@
                                        setenv ORACLE_SID {{ db_sid | upper }}_STDBY
                                        sqlplus -s / as sysdba << EOF
                                        WHENEVER SQLERROR EXIT SQL.SQLCODE
-                                       ALTER SYSTEM SET STANDBY_FILE_MANAGEMENT=AUTO;
                                        ALTER SYSTEM SET DG_BROKER_START = true;
                                        exit
                                        EOF
