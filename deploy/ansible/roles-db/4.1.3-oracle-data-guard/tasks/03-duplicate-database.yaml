@@ -27,7 +27,7 @@
 
   become:                              true
   ansible.builtin.shell: |
-                                       setenv ORACLE_SID {{ db_sid | upper }}
+                                       setenv ORACLE_SID {{ db_sid | upper }}_STDBY
                                        /oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/sqlplus -S / as sysdba <<EOF
                                        SET PAGESIZE 0 FEEDBACK OFF
                                        SELECT COUNT(*) FROM v\$datafile;
@@ -53,9 +53,9 @@
       become_user:                     "{{ oracle_user_name }}"
       become:                          true
       ansible.builtin.shell: |
-                                       setenv ORACLE_SID {{ db_sid | upper }}
+                                       setenv ORACLE_SID {{ db_sid | upper }}_STDBY
                                        /oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/sqlplus -s / as sysdba <<EOF
-                                       STARTUP NOMOUNT PFILE='/oracle/{{ db_sid | upper }}/{{ ora_version }}/dbs/init{{ db_sid | upper }}.ora';
+                                       STARTUP NOMOUNT PFILE='/oracle/{{ db_sid | upper }}/{{ ora_version }}/dbs/init{{ db_sid | upper }}_STDBY.ora';
                                        EXIT;
                                        EOF
       register:                        startup_result
@@ -107,8 +107,8 @@
                                        rman TARGET sys/'{{ main_password }}'@{{ db_sid | upper }} AUXILIARY sys/'{{ main_password }}'@{{ db_sid | upper }}_STDBY <<EOF
                                         RUN {
                                           DUPLICATE TARGET DATABASE FOR STANDBY FROM ACTIVE DATABASE
-                                          NOFILENAMECHECK
-                                          DORECOVER;
+                                          DORECOVER
+                                          NOFILENAMECHECK;
                                         }
                                        EXIT;
                                        EOF
@@ -139,7 +139,7 @@
       become_user:                     "{{ oracle_user_name }}"
       become:                          true
       ansible.builtin.shell: |
-                                       setenv ORACLE_SID {{ db_sid | upper }}
+                                       setenv ORACLE_SID {{ db_sid | upper }}_STDBY
                                        $ORACLE_HOME/bin/sqlplus -s / as sysdba <<EOF
                                        SET PAGESIZE 0 FEEDBACK OFF
                                        SELECT database_role || ':' || open_mode FROM v\$database;
@@ -178,55 +178,16 @@
     - name:                            "4.1.3 Oracle Data Guard - Secondary - Enable Flashback on Oracle Secondary DB"
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
-      when:                            node_tier == "oracle"
       ansible.builtin.shell: |
-                                       setenv ORACLE_SID {{ db_sid | upper }}
-                                       sqlplus -s / as sysdba << EOF
-                                       alter database rename file 'broken0' to '/oracle/{{ db_sid | upper }}/mirrlogA/log_g11m2.dbf';
-                                       alter database rename file 'broken1' to '/oracle/{{ db_sid | upper }}/origlogA/log_g11m1.dbf';
-                                       alter database rename file 'broken2' to '/oracle/{{ db_sid | upper }}/mirrlogB/log_g12m2.dbf';
-                                       alter database rename file 'broken3' to '/oracle/{{ db_sid | upper }}/origlogB/log_g12m1.dbf';
-                                       alter database rename file 'broken4' to '/oracle/{{ db_sid | upper }}/mirrlogA/log_g13m2.dbf';
-                                       alter database rename file 'broken5' to '/oracle/{{ db_sid | upper }}/origlogA/log_g13m1.dbf';
-                                       alter database rename file 'broken6' to '/oracle/{{ db_sid | upper }}/mirrlogB/log_g14m2.dbf';
-                                       alter database rename file 'broken7' to '/oracle/{{ db_sid | upper }}/origlogB/log_g14m1.dbf';
-                                       alter database rename file 'broken8' to '/oracle/{{ db_sid | upper }}/oraarch/standbylog/srl1.dbf';
-                                       alter database rename file 'broken9' to '/oracle/{{ db_sid | upper }}/oraarch/standbylog/srl2.dbf';
-                                       alter database rename file 'broken10' to '/oracle/{{ db_sid | upper }}/oraarch/standbylog/srl3.dbf';
-                                       alter database rename file 'broken11' to '/oracle/{{ db_sid | upper }}/oraarch/standbylog/srl4.dbf';
-                                       alter database clear logfile group 1;
-                                       alter database clear logfile group 2;
-                                       alter database clear logfile group 3;
-                                       alter database clear logfile group 4;
-                                       alter database clear logfile group 5;
-                                       alter database clear logfile group 6;
-                                       alter database clear logfile group 7;
-                                       alter database clear logfile group 8;
-                                       exit;
-                                       EOF
-      environment:
-        ORACLE_SID:                    "{{ db_sid | upper }}"
-        ORACLE_HOME:                   "/oracle/{{ db_sid | upper }}/{{ ora_release }}"
-      args:
-        executable:                    /bin/csh
-      register:                        flashback_secondary
-      failed_when:                     flashback_secondary.rc != 0
-      changed_when:                    flashback_secondary.rc == 0
-
-
-    - name:                            "4.1.3 Oracle Data Guard - Secondary - Enable Flashback on Oracle Secondary DB"
-      become:                          true
-      become_user:                     "{{ oracle_user_name }}"
-      ansible.builtin.shell: |
-                                       setenv ORACLE_SID {{ db_sid | upper }}
+                                       setenv ORACLE_SID {{ db_sid | upper }}_STDBY
                                        sqlplus -s / as sysdba << EOF
                                        WHENEVER SQLERROR EXIT SQL.SQLCODE
                                        ALTER DATABASE FLASHBACK ON;
                                        exit
                                        EOF
       environment:
-        ORACLE_SID:                    "{{ db_sid | upper }}"
-        ORACLE_HOME:                   "/oracle/{{ db_sid | upper }}/{{ ora_release }}"
+        ORACLE_SID:                    "{{ db_sid | upper }}_STDBY"
+        ORACLE_HOME:                   "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
       args:
         executable:                    /bin/csh
       register:                        flashback_secondary
@@ -237,7 +198,7 @@
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell: |
-                                       setenv ORACLE_SID {{ db_sid | upper }}
+                                       setenv ORACLE_SID {{ db_sid | upper }}_STDBY
                                        sqlplus -s / as sysdba << EOF
                                        WHENEVER SQLERROR EXIT SQL.SQLCODE
                                        ALTER SYSTEM SET STANDBY_FILE_MANAGEMENT=AUTO;
@@ -245,7 +206,7 @@
                                        exit
                                        EOF
       environment:
-        ORACLE_SID:                    "{{ db_sid | upper }}"
+        ORACLE_SID:                    "{{ db_sid | upper }}_STDBY"
         ORACLE_HOME:                   "/oracle/{{ db_sid | upper }}/{{ ora_release }}"
       args:
         executable:                    /bin/csh

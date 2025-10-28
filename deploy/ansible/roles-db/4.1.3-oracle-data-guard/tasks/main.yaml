@@ -45,9 +45,9 @@
                                        - tier != "observer"
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
-  ansible.builtin.shell:               "orapwd file=/oracle/{{ db_sid | upper }}/{{ ora_version }}/dbs/orapw{{ db_sid | upper }} password='{{ main_password }}' entries=5 format=12 force=y"
+  ansible.builtin.shell:               "orapwd file=/oracle/{{ db_sid | upper }}/{{ ora_version }}/dbs/orapw{{ this_sid }} password='{{ main_password }}' entries=5 format=12 force=y"
   environment:
-    ORACLE_SID:                        "{{ db_sid | upper }}"
+    ORACLE_SID:                        "{{ this_sid }}"
     ORACLE_HOME:                       "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
   args:
     creates:                           /oracle/{{ db_sid | upper }}/{{ ora_version }}/dbs/orapw{{ db_sid | upper }}

@@ -18,6 +18,14 @@
 
 {% endif %}
 
+{% if platform | upper == 'ORACLE' %}
+
+# Recovery settings
+*.db_recovery_file_dest='/oracle/{{ db_sid | upper }}/oraarch/'
+*.db_recovery_file_dest_size='{{ db_recovery_file_dest_size }}'
+
+{% endif %}
+
 
 # Grid listener registration
 *.local_listener='(ADDRESS=(PROTOCOL=TCP)(HOST={{ ora_secondary }})(PORT={{ listener_port }}))'
