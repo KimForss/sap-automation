@@ -2,10 +2,9 @@
 
 # In dg_duplicate/tasks/main.yml
 
-- name:                                "4.1.3 Oracle Data Guard - ASM - Check if standby already restored"
+- name:                                "4.1.3 Oracle Data Guard - Duplicate - Check if standby already restored"
   when:                                node_tier == "oracle-asm"
   become_user:                         "{{ oracle_user_name }}"
-
   become:                              true
   ansible.builtin.shell: |
                                        setenv ORACLE_SID {{ db_sid | upper }}_STDBY
@@ -21,7 +20,7 @@
   changed_when:                        false
   failed_when:                         false
 
-- name:                                "4.1.3 Oracle Data Guard - Check if standby already restored"
+- name:                                "4.1.3 Oracle Data Guard - Duplicate - Check if standby already restored"
   when:                                node_tier == "oracle"
   become_user:                         "{{ oracle_user_name }}"
 
@@ -40,16 +39,16 @@
   changed_when:                        false
   failed_when:                         false
 
-- name:                                "4.1.3 Oracle Data Guard - Check if rman already ran"
+- name:                                "4.1.3 Oracle Data Guard - Duplicate - Determine if RMAN duplicate is required"
   ansible.builtin.set_fact:
     rman_duplicate_required:           "{%if not datafile_count.stdout is defined %}True{% else %} ((datafile_count.stdout | trim | int == 0) or (datafile_count.stdout is search('ORA-01507')) | bool) {% endif %}"
 
-- name:                                "4.1.3 Oracle Data Guard - Prepare Secondary - Startup standby if not 'Running'"
+- name:                                "4.1.3 Oracle Data Guard - Duplicate - Startup standby if not 'Running'"
   when:
     - datafile_count.stdout is defined
     - datafile_count.stdout is search('ORA-01034')
   block:
-    - name:                            "4.1.3 Oracle Data Guard - Prepare Secondary - Start standby instance in NOMOUNT using PFile"
+    - name:                            "4.1.3 Oracle Data Guard - Duplicate - Start standby instance in NOMOUNT using PFile"
       become_user:                     "{{ oracle_user_name }}"
       become:                          true
       ansible.builtin.shell: |
@@ -65,15 +64,10 @@
         chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
         executable:                    /bin/csh
 
-- name:                                "4.1.3 Oracle Data Guard - Show if rman run is required"
+- name:                                "4.1.3 Oracle Data Guard - Duplicate - Show if rman run is required"
   ansible.builtin.debug:
     msg:
      - "Database duplication required: {{ rman_duplicate_required }}"
-
-- name:                                "4.1.3 Oracle Data Guard - Check if rman run is required"
-  ansible.builtin.stat:
-    path:                              /etc/sap_deployment_automation/dataguard_scripts/rman_duplicated.txt
-  register:                            rman_duplicate_flag
 
 
 - name:                                "4.1.3 Oracle Data Guard - Configure Data Guard"
@@ -81,24 +75,7 @@
     - rman_duplicate_required
   block:
 
-    - name:                            "4.1.3 Oracle Data Guard - Execute rman DUPLICATE when using Oracle ASM"
-      when:                            node_tier == "oracle-asm"
-      become_user:                     "{{ oracle_user_name }}"
-      become:                          true
-      ansible.builtin.shell: |
-                                       rman TARGET sys/'{{ main_password }}'@{{ db_sid | upper }} AUXILIARY sys/'{{ main_password }}'@{{ db_sid | upper }}_STDBY <<EOF
-                                       DUPLICATE TARGET DATABASE FOR STANDBY FROM ACTIVE DATABASE DORECOVER NOFILENAMECHECK;
-                                       EXIT
-                                       EOF
-      args:
-        chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
-        executable:                    /bin/csh
-        creates:                       /etc/sap_deployment_automation/dataguard_scripts/rman_duplicated.txt
-      register:                        rman_duplicate_asm
-      failed_when:                     rman_duplicate_asm.rc != 0
-
-    - name:                            "4.1.3 Oracle Data Guard - Execute rman DUPLICATE when using Oracle"
-      when:                            node_tier == "oracle"
+    - name:                            "4.1.3 Oracle Data Guard - Duplicate - Duplicate database using RMAN"
       become_user:                     "{{ oracle_user_name }}"
       become:                          true
       ansible.builtin.shell: |
@@ -109,55 +86,30 @@
       args:
         chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
         executable:                    /bin/csh
-        creates:                       /etc/sap_deployment_automation/dataguard_scripts/rman_duplicated.txt
       register:                        rman_duplicate
       failed_when:                     rman_duplicate.rc != 0
 
-    - name:                            "4.1.3 Oracle Data Guard - Show Execute rman DUPLICATE ASM output"
-      ansible.builtin.debug:
-        msg:                           "rman DUPLICATE results: {{ rman_duplicate_asm.stdout }}"
-      when:
-        - rman_duplicate_asm.stdout is defined
-        - node_tier == "oracle-asm"
-
-    - name:                            "4.1.3 Oracle Data Guard - Show Execute rman DUPLICATE output"
+    - name:                            "4.1.3 Oracle Data Guard - Duplicate - Show output from rman DUPLICATE"
       ansible.builtin.debug:
         msg:                           "rman DUPLICATE results: {{ rman_duplicate.stdout }}"
       when:
         - rman_duplicate.stdout is defined
-        - node_tier == "oracle"
 
-    - name:                            "4.1.3 Oracle Data Guard - Save RMAN log"
+    - name:                            "4.1.3 Oracle Data Guard - Duplicate - Save RMAN log"
       ansible.builtin.copy:
         dest:                          /etc/sap_deployment_automation/dataguard_scripts/rman_duplicate_{{ ansible_date_time.epoch }}.log
         content:                       "{{ rman_duplicate.stdout }}"
         mode:                          '0777'
       when:                            rman_duplicate.stdout is defined
 
-    - name:                            "4.1.3 Oracle Data Guard - Save RMAN log"
-      ansible.builtin.copy:
-        dest:                          /etc/sap_deployment_automation/dataguard_scripts/rman_duplicate_{{ ansible_date_time.epoch }}.log
-        content:                       "{{ rman_duplicate_asm.stdout }}"
-        mode:                          '0777'
-      when:                            rman_duplicate_asm.stdout is defined
-
-    - name:                            "4.1.3 Oracle Data Guard - Verify DUPLICATE completion"
-      ansible.builtin.assert:
-        that:                          rman_duplicate_asm.stdout is search("Finished Duplicate Db")
-        fail_msg:                      "rman DUPLICATE did not complete successfully"
-      when:
-        - rman_duplicate_asm.stdout is defined
-        - node_tier == "oracle-asm"
-
-    - name:                            "4.1.3 Oracle Data Guard - Verify DUPLICATE completion"
+    - name:                            "4.1.3 Oracle Data Guard - Duplicate - Verify DUPLICATE completion"
       ansible.builtin.assert:
         that:                          rman_duplicate.stdout is search("Finished Duplicate Db")
         fail_msg:                      "rman DUPLICATE did not complete successfully"
       when:
         - rman_duplicate.stdout is defined
-        - node_tier == "oracle"
 
-    - name:                            "4.1.3 Oracle Data Guard - Restart standby database after rman DUPLICATE"
+    - name:                            "4.1.3 Oracle Data Guard  - Duplicate - Restart standby database"
       become_user:                     "{{ oracle_user_name }}"
       become:                          true
       ansible.builtin.shell: |
@@ -177,11 +129,11 @@
         chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
         executable:                    /bin/csh
 
-    - name:                            "4.1.3 Oracle Data Guard - Sleep after restart standby database"
+    - name:                            "4.1.3 Oracle Data Guard - Duplicate - Sleep after restart standby database"
       ansible.builtin.pause:
         seconds:                       30
 
-    - name:                            "4.1.3 Oracle Data Guard - Check standby database mounted"
+    - name:                            "4.1.3 Oracle Data Guard - Duplicate - Check standby database mounted"
       become_user:                     "{{ oracle_user_name }}"
       become:                          true
       ansible.builtin.shell: |
@@ -201,29 +153,29 @@
         chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
         executable:                    /bin/csh
 
-    - name:                            "4.1.3 Oracle Data Guard - Secondary: - Show Check standby database mounted output"
+    - name:                            "4.1.3 Oracle Data Guard - Duplicate - Show Check standby database mounted output"
       ansible.builtin.debug:
         msg:                           "Database mount information: {{ db_status.stdout }}"
         verbosity:                     2
 
-    - name:                            "4.1.3 Oracle Data Guard - Secondary: - Save Check standby database mounted"
+    - name:                            "4.1.3 Oracle Data Guard - Duplicate - Save Check standby database mounted"
       ansible.builtin.copy:
         dest:                          /etc/sap_deployment_automation/dataguard_scripts/check_standby_database_mounted_{{ ansible_date_time.epoch }}.log
         content:                       "{{ db_status.stdout }}"
         mode:                          '0777'
       when:                            db_status.stdout is defined
 
-    - name:                            "4.1.3 Oracle Data Guard - Set Data Guard configuration status"
+    - name:                            "4.1.3 Oracle Data Guard - Duplicate - Set Data Guard configuration status"
       ansible.builtin.set_fact:
         secondary_dg_configured:       "{{ 'PHYSICAL STANDBY:MOUNTED' in db_status.stdout }}"
 
-    - name:                            "4.1.3 Oracle Data Guard - Display Data Guard status"
+    - name:                            "4.1.3 Oracle Data Guard - Duplicate - Display Data Guard status"
       ansible.builtin.debug:
         msg:
           - "Database instance:        {{ ansible_hostname }}"
           - "Data guard configured:    {{ secondary_dg_configured }}"
 
-    - name:                            "4.1.3 Oracle Data Guard - Secondary - Set Archive LOG on Oracle Secondary DB"
+    - name:                            "4.1.3 Oracle Data Guard - Duplicate - Set Archive LOG on Oracle Secondary DB"
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell: |
