@@ -1,7 +1,5 @@
 ---
 
-
-
 - name:                                "4.1.3 Oracle Data Guard - Verify Data Guard configuration"
   when:                                ansible_hostname == ora_secondary
   block:
@@ -115,6 +113,44 @@
 - name:                                "4.1.3 Oracle Data Guard - Verify Data Guard configuration"
   when:                                ansible_hostname == ora_primary
   block:
+
+    - name:                            "4.1.3 Oracle Data Guard - Finalize - Add secondary Database to Data Guard Configuration on Primary"
+      become:                          true
+      become_user:                     "{{ oracle_user_name }}"
+      ansible.builtin.shell: |
+                                       dgmgrl / as sysdba << EOF
+                                       ADD DATABASE {{ db_sid | upper }}_STDBY AS CONNECT IDENTIFIER IS {{ db_sid | upper }}_STDBY MAINTAINED AS PHYSICAL;
+                                       ENABLE CONFIGURATION;
+                                       exit;
+                                       EOF
+      register:                        dgconfig_add_results
+      failed_when:                     dgconfig_add_results.rc > 0
+      args:
+        executable:                    /bin/csh
+
+    - name:                            "4.1.3 Oracle Data Guard - Finalize - Enable Fast-Start Failover"
+      become:                          true
+      become_user:                     "{{ oracle_user_name }}"
+      ansible.builtin.shell: |
+                                       dgmgrl / as sysdba << EOF
+
+                                       EDIT DATABASE {{ db_sid | upper }}_STDBY set state ='LOG-APPLY-OFF';
+
+                                       EDIT DATABASE {{ db_sid | upper }} SET PROPERTY 'LogXptMode'='SYNC';
+                                       EDIT DATABASE {{ db_sid | upper }}_STDBY SET PROPERTY 'LogXptMode'='SYNC';
+                                       EDIT CONFIGURATION SET PROTECTION MODE AS MAXAVAILABILITY;
+
+                                       ENABLE FAST_START FAILOVER
+
+
+                                       exit;
+                                       EOF
+      register:                        dgconfig_fast_start_results
+      failed_when:                     dgconfig_fast_start_results.rc > 0
+      args:
+        executable:                    /bin/csh
+
+
     # Disable the automatic restart for database on Primary.
     - name:                            "4.1.3 Oracle Data Guard - Primary - Post Processing: Check if database registered with restart on Primary"
       become:                          true

@@ -193,20 +193,5 @@
       when:                            "'MOUNTED' not in secondary_open_mode.stdout"
       register:                        mount_secondary
 
-    - name:                            "4.1.3 Oracle Data Guard - Post deployment on Secondary - Secondary - Post Processing: Set Log apply on on Standby"
-      become:                          true
-      become_user:                     "{{ oracle_user_name }}"
-      ansible.builtin.shell: |
-                                       dgmgrl sys/'{{ main_password }}'@{{ db_sid | upper }}_STDBY << EOF
-                                       EDIT DATABASE {{ db_sid | upper }}_STDBY set state ='ONLINE';
-                                       enable database ora_stdby
-                                       exit
-                                       EOF
-      environment:
-        ORACLE_SID:                    "{{ db_sid | upper }}"
-        ORACLE_HOME:                   "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
-      args:
-        executable:                    /bin/csh
-      register:                        logapply_secondary
 
 ...
