@@ -47,7 +47,11 @@ function configureNonDeployer() {
 	# echo -e "$green--- Install dos2unix ---$reset"
 	# sudo apt-get -qq install dos2unix
 
-	sudo apt-get -qq install zip
+	isZipInstalled=$(which zip || true)
+	if [ -z "$isZipInstalled" ]; then
+		echo -e "$green--- Install zip ---$reset"
+		sudo apt-get -qq install zip
+	fi
 
 	if ! which terraform; then
 		if [ -n "$tf_version" ]; then
