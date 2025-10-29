@@ -90,17 +90,19 @@
                                       rman TARGET sys/'{{ main_password }}'@{{ db_sid | upper }} AUXILIARY sys/'{{ main_password }}'@{{ db_sid | upper }}_STDBY <<EOF
                                         RUN {
                                         DUPLICATE TARGET DATABASE FOR STANDBY FROM ACTIVE DATABASE
-                                        SPFILE
-                                          SET db_unique_name='{{ db_sid | upper }}_STDBY'
-                                          SET control_files='+DATA','+RECO','+ARCH'
-                                          SET db_recovery_file_dest='+RECO'
-                                          SET log_archive_dest_1='LOCATION=+ARCH VALID_FOR=(ALL_LOGFILES,ALL_ROLES) DB_UNIQUE_NAME={{ db_sid | upper }}_STDBY'
-                                          SET fal_server='{{ db_sid | upper }}'
-                                          SET standby_file_management='AUTO'
                                         DORECOVER
-                                        NOFILENAMECHECK;
-                                        }
-                                        EXIT;
+                                        NOFILENAMECHECK
+                                        SPFILE
+                                          SET DB_UNIQUE_NAME='{{ db_sid | upper }}_STDBY'
+                                          SET FAL_SERVER='{{ db_sid | upper }}'
+                                          SET FAL_CLIENT='{{ db_sid | upper }}_STDBY'
+                                          SET STANDBY_FILE_MANAGEMENT='AUTO'
+                                          SET LOG_ARCHIVE_CONFIG='DG_CONFIG=({{ db_sid | upper }},{{ db_sid | upper }}_STDBY)'
+                                          SET LOG_ARCHIVE_DEST_1='LOCATION=USE_DB_RECOVERY_FILE_DEST VALID_FOR=(ALL_LOGFILES,ALL_ROLES) DB_UNIQUE_NAME={{ db_sid | upper }}_STDBY'
+                                          SET LOG_ARCHIVE_DEST_2='SERVICE={{ db_sid | upper }} ASYNC VALID_FOR=(ONLINE_LOGFILES,PRIMARY_ROLE) DB_UNIQUE_NAME={{ db_sid | upper }}'
+                                          SET CONTROL_FILES='+DATA/{{ db_sid | upper }}_STDBY/CONTROLFILE/control01.ctl','+FRA/{{ db_sid | upper }}_STDBY/CONTROLFILE/control02.ctl'
+                                          SET DB_FILE_NAME_CONVERT='+DATA/{{ db_sid | upper }}/','+DATA/{{ db_sid | upper }}_STDBY/'
+                                          SET LOG_FILE_NAME_CONVERT='+DATA/{{ db_sid | upper }}/','+DATA/{{ db_sid | upper }}_STDBY/','+RECO/{{ db_sid | upper }}/','+ARCH/{{ db_sid | upper }}_STDBY/';                                        EXIT;
                                         EOF
       args:
         chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"

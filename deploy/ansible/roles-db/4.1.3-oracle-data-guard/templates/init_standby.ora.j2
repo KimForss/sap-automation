@@ -13,8 +13,6 @@
 {% if platform | upper == 'ORACLE-ASM' %}
 
 # Recovery settings
-*.db_recovery_file_dest='{{ db_recovery_file_dest }}'
-*.db_recovery_file_dest_size='{{ db_recovery_file_dest_size }}'
 
 {% endif %}
 

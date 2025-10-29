@@ -33,7 +33,7 @@
   ansible.builtin.template:
     src:                               listener_secondary.ora.j2
     dest:                              "/oracle/{{ db_path }}/{{ ora_version }}/network/admin/listener.ora"
-    owner:                             "{{ oracle_user_name }}"
+    owner:                             "{{ grid_user_name }}"
     group:                             "{{ oracle_group }}"
     mode:                              '0644'
   register:                            listener_config
@@ -53,6 +53,7 @@
   become:                              true
   ansible.builtin.shell: |
                                        setenv ORACLE_SID {{ db_sid | upper }}
+                                       setenv ORACLE_HOME /oracle/{{ db_path }}/{{ ora_version }}
                                        /oracle/{{ db_path }}/{{ ora_version }}/bin/lsnrctl reload
   environment:
     ORACLE_HOME:                       "/oracle/{{ db_path }}/{{ ora_version }}"
@@ -111,6 +112,7 @@
     - { path: 'DATA/{{ db_sid | upper }}_STDBY' }
     - { path: 'DATA/{{ db_sid | upper }}_STDBY/PARAMETERFILE' }
     - { path: 'RECO/{{ db_sid | upper }}_STDBY' }
+    - { path: 'ARCH/{{ db_sid | upper }}_STDBY' }
     - { path: 'DATA/{{ db_sid | upper }}_STDBY/DG_CONFIG' }
 
   args:
@@ -125,7 +127,7 @@
 - name:                                "4.1.3 Oracle Data Guard - Prepare Secondary - Check for zombie standby processes"
   ansible.builtin.shell: |
                                        set -o pipefail
-                                       ps -ef | grep ora_pmon_{{ db_sid }}_STDBY | grep -v 'grep' || true
+                                       ps -ef | grep ora_pmon_{{ db_sid }}_STDBY
   register:                            standby_pmon
   changed_when:                        false
 
@@ -155,6 +157,7 @@
       become:                          true
       ansible.builtin.shell: |
                                        setenv ORACLE_SID {{ db_sid | upper }}_STDBY
+                                       setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
                                        /oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/sqlplus -s / as sysdba <<EOF
                                        STARTUP NOMOUNT PFILE='/oracle/{{ db_sid | upper }}/{{ ora_version }}/dbs/init{{ db_sid | upper }}_STDBY.ora';
                                        EXIT;
@@ -171,6 +174,7 @@
       become:                          true
       ansible.builtin.shell: |
                                        setenv ORACLE_SID {{ db_sid | upper }}_STDBY
+                                       setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
                                        /oracle/{{ db_path }}/{{ ora_version }}/bin/sqlplus -S / as sysdba <<EOF
                                        SHUTDOWN IMMEDIATE;
                                        EXIT;
@@ -190,6 +194,7 @@
       become:                          true
       ansible.builtin.shell: |
                                        setenv ORACLE_SID {{ db_sid | upper }}_STDBY
+                                       setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
                                        /oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/sqlplus -s / as sysdba <<EOF
                                        STARTUP NOMOUNT PFILE='/oracle/{{ db_sid | upper }}/{{ ora_version }}/dbs/init{{ db_sid | upper }}_STDBY.ora';
                                        EXIT;
@@ -291,11 +296,13 @@
   failed_when:
                                       - listener_reload_results.rc not in [0, 1]
 
-- name:                                "4.1.3 Oracle Data Guard - Prepare Secondary - Reload listener"
-  become_user:                         "{{ oracle_user_name }}"
+- name:                                "4.1.3 Oracle Data Guard - Prepare Secondary - Ensure listener is started"
+  become_user:                         "{{ grid_user_name }}"
   become:                              true
   ansible.builtin.shell: |
                                        setenv ORACLE_SID {{ db_sid | upper }}_STDBY
+                                       setenv ORACLE_HOME /oracle/{{ db_name | upper }}/{{ ora_version }}
+
                                        /oracle/{{ db_path }}/{{ ora_version }}/bin/lsnrctl start
   environment:
     ORACLE_HOME:                       "/oracle/{{ db_path }}/{{ ora_version }}"
