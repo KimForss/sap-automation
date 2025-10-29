@@ -185,9 +185,9 @@ fi
 
 echo "Deployer subscription:               $ARM_SUBSCRIPTION_ID"
 
-echo -e "$green--- Convert config files to UX format ---$reset"
-dos2unix -q "${deployer_configuration_file}"
-dos2unix -q "${library_configuration_file}"
+# echo -e "$green--- Convert config files to UX format ---$reset"
+# dos2unix -q "${deployer_configuration_file}"
+# dos2unix -q "${library_configuration_file}"
 
 echo -e "$green--- Read Variables from Variable group ---$reset"
 key_vault=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "${deployer_environment_file_name}" "keyvault")
@@ -530,7 +530,7 @@ if [ -n "${file_REMOTE_STATE_SA}" ]; then
 			echo "Variable TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION was not added to the $VARIABLE_GROUP variable group."
 		fi
 	fi
-	
+
 	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME" "${file_REMOTE_STATE_SA}"; then
 		echo "Variable TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME was added to the $VARIABLE_GROUP variable group."
 	else
