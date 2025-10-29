@@ -199,6 +199,7 @@
       ansible.builtin.shell: |
                                        dgmgrl sys/'{{ main_password }}'@{{ db_sid | upper }}_STDBY << EOF
                                        EDIT DATABASE {{ db_sid | upper }}_STDBY set state ='ONLINE';
+                                       enable database ora_stdby
                                        exit
                                        EOF
       environment:
