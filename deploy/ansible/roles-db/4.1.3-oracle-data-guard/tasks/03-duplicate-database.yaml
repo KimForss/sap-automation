@@ -9,7 +9,7 @@
   become:                              true
   ansible.builtin.shell: |
                                        setenv ORACLE_SID {{ db_sid | upper }}_STDBY
-                                       /oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/sqlplus -S / as sysdba <<EOF
+                                       /oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/sqlplus -S sys/'{{ main_password }}'@{{ db_sid | upper }}_STDBY as sysdba <<EOF
                                        SET PAGESIZE 0 FEEDBACK OFF
                                        SELECT COUNT(*) FROM v\$datafile WHERE name LIKE '+DATA/{{ db_sid | upper }}_STDBY%';
                                        EXIT;
@@ -28,7 +28,7 @@
   become:                              true
   ansible.builtin.shell: |
                                        setenv ORACLE_SID {{ db_sid | upper }}_STDBY
-                                       /oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/sqlplus -S / as sysdba <<EOF
+                                       /oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/sqlplus -S sys/'{{ main_password }}'@{{ db_sid | upper }}_STDBY as sysdba <<EOF
                                        SET PAGESIZE 0 FEEDBACK OFF
                                        SELECT COUNT(*) FROM v\$datafile;
                                        EXIT;
@@ -55,7 +55,7 @@
       ansible.builtin.shell: |
                                        setenv ORACLE_SID {{ db_sid | upper }}_STDBY
                                        setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
-                                       /oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/sqlplus -s / as sysdba <<EOF
+                                       /oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/sqlplus -s sys/'{{ main_password }}'@{{ db_sid | upper }}_STDBY as sysdba <<EOF
                                        STARTUP NOMOUNT PFILE='/oracle/{{ db_sid | upper }}/{{ ora_version }}/dbs/init{{ db_sid | upper }}_STDBY.ora';
                                        EXIT;
                                        EOF
@@ -187,7 +187,8 @@
       ansible.builtin.shell: |
                                        setenv ORACLE_SID {{ db_sid | upper }}_STDBY
                                        setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
-                                       $ORACLE_HOME/bin/sqlplus -s / as sysdba <<EOF
+
+                                       $ORACLE_HOME/bin/sqlplus -s sys/'{{ main_password }}'@{{ db_sid | upper }}_STDBY as sysdba <<EOF
                                        SET PAGESIZE 0 FEEDBACK OFF
                                        SELECT database_role || ':' || open_mode FROM v\$database;
                                        EXIT;
@@ -228,7 +229,7 @@
       ansible.builtin.shell: |
                                        setenv ORACLE_SID {{ db_sid | upper }}_STDBY
                                        setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
-                                       sqlplus -s / as sysdba << EOF
+                                       sqlplus -s sys/'{{ main_password }}'@{{ db_sid | upper }}_STDBY as sysdba << EOF
                                        WHENEVER SQLERROR EXIT SQL.SQLCODE
                                        ALTER DATABASE FLASHBACK ON;
                                        exit
@@ -248,7 +249,7 @@
       ansible.builtin.shell: |
                                        setenv ORACLE_SID {{ db_sid | upper }}_STDBY
                                        setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
-                                       sqlplus -s / as sysdba << EOF
+                                       sqlplus -s sys/'{{ main_password }}'@{{ db_sid | upper }}_STDBY as sysdba << EOF
                                        WHENEVER SQLERROR EXIT SQL.SQLCODE
                                        ALTER SYSTEM SET DG_BROKER_START = true;
                                        exit
