@@ -54,6 +54,7 @@
       become:                          true
       ansible.builtin.shell: |
                                        setenv ORACLE_SID {{ db_sid | upper }}_STDBY
+                                       setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
                                        /oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/sqlplus -s / as sysdba <<EOF
                                        STARTUP NOMOUNT PFILE='/oracle/{{ db_sid | upper }}/{{ ora_version }}/dbs/init{{ db_sid | upper }}_STDBY.ora';
                                        EXIT;
@@ -87,10 +88,10 @@
       become_user:                     "{{ oracle_user_name }}"
       become:                          true
       ansible.builtin.shell: |
-                                      rman TARGET sys/'{{ main_password }}'@{{ db_sid | upper }} AUXILIARY sys/'{{ main_password }}'@{{ db_sid | upper }}_STDBY <<EOF
-                                      DUPLICATE TARGET DATABASE FOR STANDBY FROM ACTIVE DATABASE DORECOVER NOFILENAMECHECK;
-                                      EXIT
-                                      EOF
+                                       rman TARGET sys/'{{ main_password }}'@{{ db_sid | upper }} AUXILIARY sys/'{{ main_password }}'@{{ db_sid | upper }}_STDBY <<EOF
+                                       DUPLICATE TARGET DATABASE FOR STANDBY FROM ACTIVE DATABASE DORECOVER NOFILENAMECHECK;
+                                       EXIT
+                                       EOF
       args:
         chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
         executable:                    /bin/csh
@@ -104,12 +105,7 @@
       become:                          true
       ansible.builtin.shell: |
                                        rman TARGET sys/'{{ main_password }}'@{{ db_sid | upper }} AUXILIARY sys/'{{ main_password }}'@{{ db_sid | upper }}_STDBY <<EOF
-                                        RUN {
-
-                                        DUPLICATE TARGET DATABASE FOR STANDBY FROM ACTIVE DATABASE
-                                        DORECOVER
-                                        NOFILENAMECHECK;
-                                        }
+                                       DUPLICATE TARGET DATABASE FOR STANDBY FROM ACTIVE DATABASE DORECOVER NOFILENAMECHECK;
                                        EXIT;
                                        EOF
       args:
@@ -152,6 +148,7 @@
       become:                          true
       ansible.builtin.shell: |
                                        setenv ORACLE_SID {{ db_sid | upper }}_STDBY
+                                        setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
                                        $ORACLE_HOME/bin/sqlplus -s / as sysdba <<EOF
                                        SET PAGESIZE 0 FEEDBACK OFF
                                        SELECT database_role || ':' || open_mode FROM v\$database;
@@ -192,6 +189,7 @@
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell: |
                                        setenv ORACLE_SID {{ db_sid | upper }}_STDBY
+                                       setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
                                        sqlplus -s / as sysdba << EOF
                                        WHENEVER SQLERROR EXIT SQL.SQLCODE
                                        ALTER DATABASE FLASHBACK ON;
@@ -211,6 +209,7 @@
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell: |
                                        setenv ORACLE_SID {{ db_sid | upper }}_STDBY
+                                       setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
                                        sqlplus -s / as sysdba << EOF
                                        WHENEVER SQLERROR EXIT SQL.SQLCODE
                                        ALTER SYSTEM SET DG_BROKER_START = true;
