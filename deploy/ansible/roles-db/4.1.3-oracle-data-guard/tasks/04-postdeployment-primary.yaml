@@ -1,7 +1,7 @@
 ---
 
 
-- name:                                "4.1.3 Oracle Data Guard - Post deployment tasks on Primary - Ensure database is open on Primary"
+- name:                                "4.1.3 Oracle Data Guard - Post deployment on Primary - Ensure database is open on Primary"
   become_user:                         "{{ oracle_user_name }}"
   become:                              true
   ansible.builtin.shell: |
@@ -17,7 +17,7 @@
     chdir:                             "/etc/sap_deployment_automation/dataguard_scripts/"
     executable:                        /bin/csh
 
-- name:                                "4.1.3 Oracle Data Guard - Post deployment tasks on Primary - Enable log shipping on primary"
+- name:                                "4.1.3 Oracle Data Guard - Post deployment on Primary - Enable log shipping on primary"
   become_user:                         "{{ oracle_user_name }}"
   become:                              true
   ansible.builtin.shell: |
@@ -35,23 +35,23 @@
     chdir:                             "/etc/sap_deployment_automation/dataguard_scripts/"
     executable:                        /bin/csh
 
-- name:                                "4.1.3 Oracle Data Guard - Post deployment tasks on Primary - Show enable log shipping on primary"
+- name:                                "4.1.3 Oracle Data Guard - Post deployment on Primary - Show enable log shipping on primary"
   ansible.builtin.debug:
     var:                               enable_shipping.stdout_lines
     verbosity:                         2
 
-- name:                                "4.1.3 Oracle Data Guard - Post deployment tasks on Primary - Save enable log shipping on primary results"
+- name:                                "4.1.3 Oracle Data Guard - Post deployment on Primary - Save enable log shipping on primary results"
   ansible.builtin.copy:
     dest:                              /etc/sap_deployment_automation/dataguard_scripts/enable_shipping_{{ ansible_date_time.epoch }}.log
     content:                           "{{ enable_shipping.stdout }}"
     mode:                              '0777'
   when:                                enable_shipping.stdout is defined
 
-- name:                                "4.1.3 Oracle Data Guard - Post deployment tasks on Primary - Verify Data Guard configuration"
+- name:                                "4.1.3 Oracle Data Guard - Post deployment on Primary - Verify Data Guard configuration"
   when:                                ansible_hostname == ora_primary
   block:
 
-    - name:                            "4.1.3 Oracle Data Guard - Primary - Post Processing: Check if database is open on Primary"
+    - name:                            "4.1.3 Oracle Data Guard - Post deployment on Primary - Check if database is open on Primary"
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell: |
@@ -70,7 +70,7 @@
       failed_when:                     "'READ WRITE' not in primary_open_mode.stdout"
       changed_when:                    false
 
-    - name:                            "4.1.3 Oracle Data Guard - Primary - Post Processing: Ensure database is open on Primary"
+    - name:                            "4.1.3 Oracle Data Guard - Post deployment on Primary - Ensure database is open on Primary"
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell: |
@@ -87,7 +87,7 @@
       register:                        open_primary
       failed_when:                     open_primary.rc != 0 and 'ORA-01531' not in open_primary.stderr
 
-    - name:                            "4.1.3 Oracle Data Guard - Primary - Post Processing: Check if Data Guard Broker configuration exists on Primary"
+    - name:                            "4.1.3 Oracle Data Guard - Post deployment on Primary - Check if Data Guard Broker configuration exists on Primary"
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell: |
@@ -100,7 +100,7 @@
       args:
         executable:                    /bin/csh
 
-    - name:                            "4.1.3 Oracle Data Guard - Primary - Post Processing: Create Data Guard Configuration on Primary"
+    - name:                            "4.1.3 Oracle Data Guard - Post deployment on Primary - Create Data Guard Configuration on Primary"
       when:                            "'ORA-16532' in dgconfig_check.stdout or 'ORA-16596' in dgconfig_check.stdout"
       # ORA-16532: Oracle Data Guard broker configuration does not exist
       # ORA-16596: member not part of the Oracle Data Guard broker configuration
@@ -109,7 +109,6 @@
       ansible.builtin.shell: |
                                        dgmgrl / as sysdba << EOF
                                        CREATE CONFIGURATION {{ db_sid | upper }}_dg_config AS PRIMARY DATABASE IS {{ db_sid | upper }} CONNECT IDENTIFIER IS {{ db_sid | upper }};
-                                       ADD DATABASE {{ db_sid | upper }}_STDBY AS CONNECT IDENTIFIER IS {{ db_sid | upper }}_STDBY MAINTAINED AS PHYSICAL;
                                        ENABLE CONFIGURATION;
 
                                        exit;
@@ -119,7 +118,11 @@
       args:
         executable:                    /bin/csh
 
-    - name:                            "4.1.3 Oracle Data Guard - Primary - Post Processing: Add secondary Database to Data Guard Configuration on Primary"
+    - name:                            "4.1.3 Oracle Data Guard - Post deployment on Primary - Sleep after enabling configuration"
+      ansible.builtin.pause:
+        seconds:                       30
+
+    - name:                            "4.1.3 Oracle Data Guard - Post deployment on Primary - Add secondary Database to Data Guard Configuration on Primary"
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell: |
@@ -133,7 +136,7 @@
       args:
         executable:                    /bin/csh
 
-    - name:                            "4.1.3 Oracle Data Guard - Primary - Post Processing: Enable Fast-Start Failover"
+    - name:                            "4.1.3 Oracle Data Guard - Post deployment on Primary - Enable Fast-Start Failover"
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell: |
@@ -155,7 +158,7 @@
       args:
         executable:                    /bin/csh
 
-    - name:                            "4.1.3 Oracle Data Guard - Primary - Post Processing: Enable Data Guard Broker on Primary"
+    - name:                            "4.1.3 Oracle Data Guard - Post deployment on Primary - Enable Data Guard Broker on Primary"
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell: |
@@ -168,7 +171,7 @@
       args:
         executable:                    /bin/csh
 
-    - name:                            "4.1.3 Oracle Data Guard - Primary - Post Processing: Create HA Service on Primary"
+    - name:                            "4.1.3 Oracle Data Guard - Post deployment on Primary - Create HA Service on Primary"
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell: |
@@ -183,7 +186,7 @@
       args:
         executable:                    /bin/csh
 
-    - name:                            "4.1.3 Oracle Data Guard - Primary - Post Processing: Create Database Trigger"
+    - name:                            "4.1.3 Oracle Data Guard - Post deployment on Primary - Create Database Trigger"
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell: |
@@ -208,7 +211,7 @@
         executable:                    /bin/csh
 
 # Disable the automatic restart for database on Primary.
-- name:                                "4.1.3 Oracle Data Guard - Primary - Post Processing: Check if database registered with restart on Primary"
+- name:                                "4.1.3 Oracle Data Guard - Post deployment on Primary - Check if database registered with restart on Primary"
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell: |
@@ -223,7 +226,7 @@
   failed_when:                         false
   changed_when:                        false
 
-- name:                                "4.1.3 Oracle Data Guard - Primary - Post Processing: Disable automatic restart for database on Primary"
+- name:                                "4.1.3 Oracle Data Guard - Post deployment on Primary - Disable automatic restart for database on Primary"
   when :
                                        - srvctl_check.rc == 0
                                        - "'PRCC-1120' not in srvctl_check.stdout"
