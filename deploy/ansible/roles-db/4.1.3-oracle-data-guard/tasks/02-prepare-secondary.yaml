@@ -52,7 +52,7 @@
   become_user:                         "{{ oracle_user_name }}"
   become:                              true
   ansible.builtin.shell: |
-                                       setenv ORACLE_SID {{ db_sid | upper }}
+                                       setenv ORACLE_SID {{ db_sid | upper }}_STDBY
                                        setenv ORACLE_HOME /oracle/{{ db_path }}/{{ ora_version }}
                                        /oracle/{{ db_path }}/{{ ora_version }}/bin/lsnrctl reload
   environment:
