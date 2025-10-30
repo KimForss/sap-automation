@@ -464,8 +464,7 @@
       become_user:                     "{{ grid_user_name }}"
       ansible.builtin.shell: |
                                        ./asmca -silent -createDiskGroup -diskGroupName ARCH -redundancy EXTERNAL -diskList '{{ asm_archive_disk_list }}' \
-                                         -compatible.asm {{ ora_version }} -compatible.rdbms  {{ ora_version }} -compatible.advm {{ ora_version }} \
-                                         -sector_size.logical {{ oracle_asm_sector_size }}
+                                         -compatible.asm {{ ora_version }} -compatible.rdbms  {{ ora_version }} -compatible.advm {{ ora_version }}
 
       register:                        arch_diskgroup_creation_results
       environment:
@@ -482,8 +481,7 @@
       ansible.builtin.shell: |
                                        set -o errexit
                                        ./asmca -silent -createDiskGroup -diskGroupName RECO -redundancy EXTERNAL -diskList '{{ asm_recovery_disk_list }}' \
-                                         -compatible.asm {{ ora_version }} -compatible.rdbms  {{ ora_version }} -compatible.advm {{ ora_version }} \
-                                         -sector_size.logical {{ oracle_asm_sector_size }}
+                                         -compatible.asm {{ ora_version }} -compatible.rdbms  {{ ora_version }} -compatible.advm {{ ora_version }}
       register:                        reco_diskgroup_creation_results
       environment:
         DB_SID:                        "{{ db_sid | upper }}"
