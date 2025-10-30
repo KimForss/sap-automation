@@ -110,6 +110,10 @@
       when:
         - rman_duplicate.stdout is defined
 
+    - name:                            "4.1.3 Oracle Data Guard - Duplicate - Sleep after restart standby database"
+      ansible.builtin.pause:
+        seconds:                       30
+
     - name:                            "4.1.3 Oracle Data Guard  - Duplicate - Restart standby database"
       become_user:                     "{{ oracle_user_name }}"
       become:                          true
@@ -119,8 +123,7 @@
 
                                        $ORACLE_HOME/bin/sqlplus -s sys/'{{ main_password }}'@{{ db_sid | upper }}_STDBY as sysdba <<EOF
                                        SET PAGESIZE 0 FEEDBACK OFF
-                                       SHUTDOWN IMMEDIATE;
-                                       STARTUP MOUNT;
+                                       ALTER DATABASE OPEN;
                                        EXIT;
                                        EOF
 
@@ -129,6 +132,7 @@
       args:
         chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
         executable:                    /bin/csh
+
   rescue:
 
     - name:                            "4.1.3 Oracle Data Guard  - Duplicate - Rescue - Stop standby database"
@@ -195,7 +199,7 @@
         chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
         executable:                    /bin/csh
 
-    - name:                            "4.1.3 Oracle Data Guard - Duplicate - Duplicate database using RMAN"
+    - name:                            "4.1.3 Oracle Data Guard - Duplicate - Rescue - Duplicate database using RMAN"
       become_user:                     "{{ oracle_user_name }}"
       become:                          true
       ansible.builtin.shell: |
@@ -209,33 +213,32 @@
       register:                        rman_duplicate_rescue
       failed_when:                     rman_duplicate_rescue.rc != 0
 
-    - name:                            "4.1.3 Oracle Data Guard - Duplicate - Show output from rman DUPLICATE"
+    - name:                            "4.1.3 Oracle Data Guard - Duplicate - Rescue - Show output from rman DUPLICATE"
       ansible.builtin.debug:
         msg:                           "rman DUPLICATE results: {{ rman_duplicate_rescue.stdout }}"
         verbosity:                     2
       when:
         - rman_duplicate_rescue.stdout is defined
 
-    - name:                            "4.1.3 Oracle Data Guard - Duplicate - Save RMAN log"
+    - name:                            "4.1.3 Oracle Data Guard - Duplicate Rescue - Save RMAN log"
       ansible.builtin.copy:
         dest:                          /etc/sap_deployment_automation/dataguard_scripts/rman_duplicate_{{ ansible_date_time.epoch }}.log
         content:                       "{{ rman_duplicate_rescue.stdout }}"
         mode:                          '0777'
       when:                            rman_duplicate_rescue.stdout is defined
 
-    - name:                            "4.1.3 Oracle Data Guard - Duplicate - Verify DUPLICATE completion"
+    - name:                            "4.1.3 Oracle Data Guard - Duplicate - Rescue - Verify DUPLICATE completion"
       ansible.builtin.assert:
         that:                          rman_duplicate_rescue.stdout is search("Finished Duplicate Db")
         fail_msg:                      "rman DUPLICATE did not complete successfully"
       when:
         - rman_duplicate_rescue.stdout is defined
 
-
-    - name:                            "4.1.3 Oracle Data Guard - Duplicate - Sleep after restart standby database"
+    - name:                            "4.1.3 Oracle Data Guard - Duplicate - Rescue - Sleep after restore standby database"
       ansible.builtin.pause:
         seconds:                       30
 
-    - name:                            "4.1.3 Oracle Data Guard - Duplicate - Check standby database mounted"
+    - name:                            "4.1.3 Oracle Data Guard  - Duplicate - Rescue - Ensure database is open"
       become_user:                     "{{ oracle_user_name }}"
       become:                          true
       ansible.builtin.shell: |
@@ -244,57 +247,75 @@
 
                                        $ORACLE_HOME/bin/sqlplus -s sys/'{{ main_password }}'@{{ db_sid | upper }}_STDBY as sysdba <<EOF
                                        SET PAGESIZE 0 FEEDBACK OFF
-                                       SELECT database_role || ':' || open_mode FROM v\$database;
+                                       ALTER DATABASE OPEN;
                                        EXIT;
                                        EOF
 
-      register:                        db_status
+      register:                        db_open
       changed_when:                    false
-      failed_when:                     "'PHYSICAL STANDBY:MOUNTED' not in db_status.stdout"
       args:
         chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
         executable:                    /bin/csh
 
-    - name:                            "4.1.3 Oracle Data Guard - Duplicate - Show Check standby database mounted output"
-      ansible.builtin.debug:
-        msg:                           "Database mount information: {{ db_status.stdout }}"
-        verbosity:                     2
 
-    - name:                            "4.1.3 Oracle Data Guard - Duplicate - Save Check standby database mounted"
-      ansible.builtin.copy:
-        dest:                          /etc/sap_deployment_automation/dataguard_scripts/check_standby_database_mounted_{{ ansible_date_time.epoch }}.log
-        content:                       "{{ db_status.stdout }}"
-        mode:                          '0777'
-      when:                            db_status.stdout is defined
+- name:                            "4.1.3 Oracle Data Guard - Duplicate - Check standby database mounted"
+  become_user:                     "{{ oracle_user_name }}"
+  become:                          true
+  ansible.builtin.shell: |
+                                    setenv ORACLE_SID {{ db_sid | upper }}_STDBY
+                                    setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
 
-    - name:                            "4.1.3 Oracle Data Guard - Duplicate - Set Data Guard configuration status"
-      ansible.builtin.set_fact:
-        secondary_dg_configured:       "{{ 'PHYSICAL STANDBY:MOUNTED' in db_status.stdout }}"
+                                    $ORACLE_HOME/bin/sqlplus -s sys/'{{ main_password }}'@{{ db_sid | upper }}_STDBY as sysdba <<EOF
+                                    SET PAGESIZE 0 FEEDBACK OFF
+                                    SELECT database_role || ':' || open_mode FROM v\$database;
+                                    EXIT;
+                                    EOF
 
-    - name:                            "4.1.3 Oracle Data Guard - Duplicate - Display Data Guard status"
-      ansible.builtin.debug:
-        msg:
-          - "Database instance:        {{ ansible_hostname }}"
-          - "Data guard configured:    {{ secondary_dg_configured }}"
+  register:                        db_status
+  changed_when:                    false
+  failed_when:                     "'PHYSICAL STANDBY:MOUNTED' not in db_status.stdout"
+  args:
+    chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
+    executable:                    /bin/csh
 
-    - name:                            "4.1.3 Oracle Data Guard - Duplicate - Set Archive LOG on Oracle Secondary DB"
-      become:                          true
-      become_user:                     "{{ oracle_user_name }}"
-      ansible.builtin.shell: |
-                                       setenv ORACLE_SID {{ db_sid | upper }}_STDBY
-                                       setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
-                                       sqlplus -s sys/'{{ main_password }}'@{{ db_sid | upper }}_STDBY as sysdba << EOF
-                                       WHENEVER SQLERROR EXIT SQL.SQLCODE
-                                       ALTER DATABASE ARCHIVELOG;
-                                       ALTER DATABASE OPEN;
-                                       exit
-                                       EOF
-      environment:
-        ORACLE_SID:                    "{{ db_sid | upper }}_STDBY"
-        ORACLE_HOME:                   "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
-      args:
-        executable:                    /bin/csh
-      register:                        archive_log_secondary
-      failed_when:                     archive_log_secondary.rc != 0
-      changed_when:                    archive_log_secondary.rc == 0
+- name:                            "4.1.3 Oracle Data Guard - Duplicate - Show Check standby database mounted output"
+  ansible.builtin.debug:
+    msg:                           "Database mount information: {{ db_status.stdout }}"
+    verbosity:                     2
 
+- name:                            "4.1.3 Oracle Data Guard - Duplicate - Save Check standby database mounted"
+  ansible.builtin.copy:
+    dest:                          /etc/sap_deployment_automation/dataguard_scripts/check_standby_database_mounted_{{ ansible_date_time.epoch }}.log
+    content:                       "{{ db_status.stdout }}"
+    mode:                          '0777'
+  when:                            db_status.stdout is defined
+
+- name:                            "4.1.3 Oracle Data Guard - Duplicate - Set Data Guard configuration status"
+  ansible.builtin.set_fact:
+    secondary_dg_configured:       "{{ 'PHYSICAL STANDBY:MOUNTED' in db_status.stdout }}"
+
+- name:                            "4.1.3 Oracle Data Guard - Duplicate - Display Data Guard status"
+  ansible.builtin.debug:
+    msg:
+      - "Database instance:        {{ ansible_hostname }}"
+      - "Data guard configured:    {{ secondary_dg_configured }}"
+
+- name:                            "4.1.3 Oracle Data Guard - Duplicate - Set Archive LOG on Oracle Secondary DB"
+  become:                          true
+  become_user:                     "{{ oracle_user_name }}"
+  ansible.builtin.shell: |
+                                    setenv ORACLE_SID {{ db_sid | upper }}_STDBY
+                                    setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
+                                    sqlplus -s sys/'{{ main_password }}'@{{ db_sid | upper }}_STDBY as sysdba << EOF
+                                    WHENEVER SQLERROR EXIT SQL.SQLCODE
+                                    ALTER DATABASE ARCHIVELOG;
+                                    exit
+                                    EOF
+  environment:
+    ORACLE_SID:                    "{{ db_sid | upper }}_STDBY"
+    ORACLE_HOME:                   "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
+  args:
+    executable:                    /bin/csh
+  register:                        archive_log_secondary
+  failed_when:                     archive_log_secondary.rc != 0
+  changed_when:                    archive_log_secondary.rc == 0
