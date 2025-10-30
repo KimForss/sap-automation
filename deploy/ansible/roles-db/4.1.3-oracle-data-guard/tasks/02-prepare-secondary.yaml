@@ -111,17 +111,14 @@
   ansible.builtin.shell: |
                                        setenv ORACLE_HOME /oracle/{{ db_path }}/{{ ora_version }};
                                        setenv ORACLE_SID +ASM;
-                                       asmcmd --privilege sysdba mkdir {{ item.path }};
-  loop:
-    - { path: 'DATA/{{ db_sid | upper }}_STDBY' }
-    - { path: 'DATA/{{ db_sid | upper }}_STDBY/PARAMETERFILE' }
-    - { path: 'RECO/{{ db_sid | upper }}_STDBY' }
-    - { path: 'ARCH/{{ db_sid | upper }}_STDBY' }
-    - { path: 'DATA/{{ db_sid | upper }}_STDBY/DG_CONFIG' }
-
-  args:
+                                       asmcmd --privilege sysdba mkdir 'DATA/{{ db_sid | upper }}_STDBY';
+                                       asmcmd --privilege sysdba mkdir 'DATA/{{ db_sid | upper }}_STDBY/PARAMETERFILE';
+                                       asmcmd --privilege sysdba mkdir 'DATA/{{ db_sid | upper }}_STDBY/DG_CONFIG'
+                                       asmcmd --privilege sysdba mkdir 'RECO/{{ db_sid | upper }}_STDBY';
+                                       asmcmd --privilege sysdba mkdir 'ARCH/{{ db_sid | upper }}_STDBY';
+    args:
     executable:                        /bin/csh
-    chdir:                              "/oracle/{{ db_path }}/{{ ora_version }}/bin"
+    chdir:                             "/oracle/{{ db_path }}/{{ ora_version }}/bin"
   register:                            asm_oraarch_folders_created_results
   failed_when:
                                        - asm_oraarch_folders_created_results.rc != 0
