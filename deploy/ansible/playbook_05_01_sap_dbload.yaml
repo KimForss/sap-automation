@@ -191,6 +191,9 @@
 #
 # -------------------------------------+---------------------------------------8
     - name:                            "Database Load Playbook: - Perform DB Load on ORACLE"
+      when:
+        - platform in ['ORACLE', 'ORACLE-ASM']
+        - ansible_os_family != "Windows"
       become:                          true
       become_user:                     root
       block:
@@ -234,6 +237,8 @@
 
             - name:                    "Oracle : Updating Oracle database after DB Load"
               ansible.builtin.import_tasks: roles-db/4.1.2-ora-asm-db-install/tasks/final.yaml
+              when:
+                - platform == 'ORACLE'
 
             - name:                    "Database Load Playbook: - Create db-load-done flag"
               delegate_to:             localhost
@@ -269,9 +274,6 @@
                 - dbload_results.rc > 0
           tags:
             - 5.1-dbload
-      when:
-        - platform in ['ORACLE', 'ORACLE-ASM']
-        - ansible_os_family != "Windows"
 
 
 # /*----------------------------------------------------------------------------8
