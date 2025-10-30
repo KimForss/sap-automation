@@ -12,6 +12,12 @@
   when:                                not fsfo_observer_service.stat.exists
   ansible.builtin.include_tasks:       "configure.yaml"
 
+- name:                                "4.1.4 Oracle Data Guard - Observer - systemctl enable and start sdaf-oracle-fsfo-observer.service"
+  when:                                fsfo_observer_service.stat.exists
+  become:                              true
+  ansible.builtin.systemd:
+    name:                              sdaf-oracle-fsfo-observer.service
+    state:                             started
 
 ...
 # /*---------------------------------------------------------------------------8
