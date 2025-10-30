@@ -101,7 +101,8 @@ locals {
   sizes                                = jsondecode(file(local.file_name))
 
   db_sizing                            = local.enable_sid_deployment ? (
-                                           lookup(local.sizes.db, var.database.db_sizing_key).storage) : (
+                                           try(lookup(local.sizes.db, var.database.db_sizing_key, {}).storage, [])
+                                         ) : (
                                            []
                                          )
 
