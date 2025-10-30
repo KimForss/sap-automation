@@ -144,25 +144,6 @@
       ansible.builtin.pause:
         seconds:                       30
 
-- name:                                "4.1.3 Oracle Data Guard  - Duplicate - Ensure database is open"
-  become_user:                         "{{ oracle_user_name }}"
-  become:                              true
-  ansible.builtin.shell: |
-                                       setenv ORACLE_SID {{ db_sid | upper }}_STDBY
-                                       setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
-
-                                       $ORACLE_HOME/bin/sqlplus -s sys/'{{ main_password }}'@{{ db_sid | upper }}_STDBY as sysdba <<EOF
-                                       SET PAGESIZE 0 FEEDBACK OFF
-                                       ALTER DATABASE OPEN;
-                                       EXIT;
-                                       EOF
-
-  register:                            db_open
-  changed_when:                        false
-  args:
-    chdir:                             "/etc/sap_deployment_automation/dataguard_scripts/"
-    executable:                        /bin/csh
-
 
 - name:                                "4.1.3 Oracle Data Guard - Duplicate - Check standby database mounted"
   become_user:                         "{{ oracle_user_name }}"
