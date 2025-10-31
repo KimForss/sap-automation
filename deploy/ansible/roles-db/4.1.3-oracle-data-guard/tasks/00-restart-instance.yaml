@@ -102,7 +102,7 @@
   ansible.builtin.shell: |
                                        setenv ORACLE_SID {{ db_sid | upper }}_STDBY
                                        /oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/sqlplus -S / as sysdba <<EOF
-                                       CREATE SPFILE='+DATA/{{ db_sid | upper }}_STDBY/PARAMETERFILE/spfile{{ db_sid | upper }}.ora' from pfile='/oracle/{{ db_sid | upper }}/{{ ora_release }}/dbs/init{{ db_sid | upper }}_STDBY.ora';
+                                       CREATE SPFILE = '+DATA/{{ db_sid | upper }}_STDBY/PARAMETERFILE/spfile{{ db_sid | upper }}.ora' from pfile='/oracle/{{ db_sid | upper }}/{{ ora_release }}/dbs/init{{ current_sid }}.ora';
                                        EXIT;
                                        EOF
   register:                            create_pfile_result
@@ -118,7 +118,7 @@
   ansible.builtin.shell: |
                                        setenv ORACLE_SID {{ current_sid }}
                                        /oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/sqlplus -S / as sysdba <<EOF
-                                       CREATE SPFILE from pfile='/oracle/{{ db_sid | upper }}/{{ ora_release }}/dbs/init{{ current_sid }}.ora';
+                                       CREATE SPFILE = 'init{{ current_sid }}.ora' from pfile='/oracle/{{ db_sid | upper }}/{{ ora_release }}/dbs/init{{ current_sid }}.ora';
                                        EXIT;
                                        EOF
   register:                            create_pfile_result
