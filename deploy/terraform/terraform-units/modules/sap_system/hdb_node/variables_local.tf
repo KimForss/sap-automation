@@ -110,8 +110,8 @@ locals {
 
   db_sizing_key                        = try(var.database.db_sizing_key, "Default")
 
-  db_sizing                            = local.enable_deployment ? lookup(local.sizes.db, local.db_sizing_key).storage : []
-  db_size                              = local.enable_deployment ? lookup(local.sizes.db, local.db_sizing_key).compute : {}
+  db_sizing                            = local.enable_deployment ? try(lookup(local.sizes.db, local.db_sizing_key, {}).storage, []) : []
+  db_size                              = local.enable_deployment ? try(lookup(local.sizes.db, local.db_sizing_key, {}).compute, {}) : {}
 
   hdb_vm_sku                           = length(var.database.database_vm_sku) > 0 ? var.database.database_vm_sku : try(local.db_size.vm_size, "Standard_E16_v3")
 
