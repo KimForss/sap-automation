@@ -118,7 +118,7 @@
   ansible.builtin.shell: |
                                        setenv ORACLE_SID {{ current_sid }}
                                        /oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/sqlplus -S / as sysdba <<EOF
-                                       CREATE SPFILE= from pfile='/oracle/{{ db_sid | upper }}/{{ ora_release }}/dbs/init{{ current_sid }}.ora';
+                                       CREATE SPFILE from pfile='/oracle/{{ db_sid | upper }}/{{ ora_release }}/dbs/init{{ current_sid }}.ora';
                                        EXIT;
                                        EOF
   register:                            create_pfile_result
