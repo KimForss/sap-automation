@@ -249,6 +249,73 @@
     chdir:                             "/oracle/{{ db_path }}/{{ ora_version }}/bin"
     executable:                        /bin/csh
 
+- name:                                "4.1.3 Oracle Data Guard - Setup Primary - Create ASM Directories for Secondary System"
+  when:                                node_tier == "oracle-asm"
+  become:                              true
+  become_user:                         "{{ grid_user_name }}"
+  ansible.builtin.shell: |
+                                       setenv ORACLE_HOME /oracle/{{ db_path }}/{{ ora_version }};
+                                       setenv ORACLE_SID +ASM;
+                                       asmcmd --privilege sysdba mkdir 'DATA/{{ db_sid | upper }}_STDBY';
+                                       asmcmd --privilege sysdba mkdir 'RECO/{{ db_sid | upper }}_STDBY';
+  args:
+    executable:                        /bin/csh
+    chdir:                             "/oracle/{{ db_path }}/{{ ora_version }}/bin"
+  register:                            asm_oraarch_folders_created_results
+  failed_when:
+                                       - asm_oraarch_folders_created_results.rc != 0
+                                       - not asm_oraarch_folders_created_results.stderr is search('ORA-15032|ORA-15005')
+  changed_when:                        asm_oraarch_folders_created_results.rc == 0
+
+- name:                                "4.1.3 Oracle Data Guard - Setup Primary: - Create Standby control files"
+  become:                              true
+  become_user:                         "{{ oracle_user_name }}"
+  ansible.builtin.shell: |
+                                       setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
+                                       setenv ORACLE_SID {{ db_sid | upper }}
+                                       sqlplus -s / as sysdba <<EOF
+                                       ALTER DATABASE CREATE STANDBY CONTROLFILE AS '+DATA/{{ db_sid | upper }}_STBY/control01.ctl';
+                                       ALTER DATABASE CREATE STANDBY CONTROLFILE AS '+RECO/{{ db_sid | upper }}_STBY/control02.ctl';
+                                       EXIT;
+                                       EOF
+  args:
+    executable:                        /bin/csh
+  register:                            primary_register_listener
+
+- name:                                "4.1.3 Oracle Data Guard - Setup Primary - Create ASM Directories for Secondary System"
+  when:                                node_tier == "oracle-asm"
+  become:                              true
+  become_user:                         "{{ grid_user_name }}"
+  ansible.builtin.shell: |
+                                       setenv ORACLE_HOME /oracle/{{ db_path }}/{{ ora_version }};
+                                       setenv ORACLE_SID +ASM;
+                                       asmcmd --privilege sysdba cp +DATA/{{ db_sid | upper }}_STBY/control01.ctl /usr/sap/install/downloads/{{ sap_sid | upper }}/control01.ctl;
+                                       asmcmd --privilege sysdba cp +RECO/{{ db_sid | upper }}_STDBY/control02.ctl /usr/sap/install/downloads/{{ sap_sid | upper }}/control02.ctl;
+  args:
+    executable:                        /bin/csh
+    chdir:                             "/oracle/{{ db_path }}/{{ ora_version }}/bin"
+  register:                            asm_oraarch_folders_created_results
+  failed_when:
+                                       - asm_oraarch_folders_created_results.rc != 0
+                                       - not asm_oraarch_folders_created_results.stderr is search('ORA-15032|ORA-15005')
+  changed_when:                        asm_oraarch_folders_created_results.rc == 0
+
+
+- name:                                "4.1.3 Oracle Data Guard - Setup Primary: - Register primary with listener if needed"
+  when:                                listener_check.rc != 0
+  become:                              true
+  become_user:                         "{{ oracle_user_name }}"
+  ansible.builtin.shell: |
+                                       setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
+                                       setenv ORACLE_SID {{ db_sid | upper }}
+                                       sqlplus -s / as sysdba <<EOF
+                                       ALTER SYSTEM REGISTER;
+                                       EXIT;
+                                       EOF
+  args:
+    executable:                        /bin/csh
+  register:                            primary_register_listener
+
 - name:                                "4.1.3 Oracle Data Guard - Setup Primary: - Start listener on primary"
   when:
                                        - listener_config.changed
@@ -297,21 +364,6 @@
   ansible.builtin.debug:
     msg:                               "Listener status on primary: {{ listener_check.stdout }}"
     verbosity:                         2
-
-- name:                                "4.1.3 Oracle Data Guard - Setup Primary: - Register primary with listener if needed"
-  when:                                listener_check.rc != 0
-  become:                              true
-  become_user:                         "{{ oracle_user_name }}"
-  ansible.builtin.shell: |
-                                       setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
-                                       setenv ORACLE_SID {{ db_sid | upper }}
-                                       sqlplus -s / as sysdba <<EOF
-                                       ALTER SYSTEM REGISTER;
-                                       EXIT;
-                                       EOF
-  args:
-    executable:                        /bin/csh
-  register:                            primary_register_listener
 
 - name:                                "4.1.3 Oracle Data Guard - Setup Primary: - Show Register primary with listener on primary"
   when:                                listener_check.rc != 0
