@@ -16,7 +16,7 @@
 # Recovery settings
 *.db_recovery_file_dest='+RECO'
 *.db_recovery_file_dest_size='{{ db_recovery_file_dest_size }}'
-*.control_files='+DATA/{{ db_sid | upper }}/control01.ctl','+RECO/{{ db_sid | upper }}/control02.ctl'
+*.control_files='+DATA/{{ db_sid | upper }}/CONTROLFILE/control01.ctl','+RECO/{{ db_sid | upper }}/CONTROLFILE/control02.ctl'
 
 {% endif %}
 

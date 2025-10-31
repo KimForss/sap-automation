@@ -113,8 +113,10 @@
                                        setenv ORACLE_SID +ASM;
                                        asmcmd --privilege sysdba mkdir 'DATA/{{ db_sid | upper }}';
                                        asmcmd --privilege sysdba mkdir 'DATA/{{ db_sid | upper }}/PARAMETERFILE';
+                                       asmcmd --privilege sysdba mkdir 'DATA/{{ db_sid | upper }}/CONTROLFILE';
                                        asmcmd --privilege sysdba mkdir 'DATA/{{ db_sid | upper }}/DG_CONFIG'
                                        asmcmd --privilege sysdba mkdir 'RECO/{{ db_sid | upper }}';
+                                       asmcmd --privilege sysdba mkdir 'RECO/{{ db_sid | upper }}/CONTROLFILE';
                                        asmcmd --privilege sysdba mkdir 'ARCH/{{ db_sid | upper }}';
   args:
     executable:                        /bin/csh
@@ -132,8 +134,8 @@
   ansible.builtin.shell: |
                                        setenv ORACLE_HOME /oracle/{{ db_path }}/{{ ora_version }};
                                        setenv ORACLE_SID +ASM;
-                                       asmcmd --privilege sysdba cp /usr/sap/install/downloads/{{ sap_sid | upper }}/control01.ctl +DATA/{{ db_sid | upper }}/control01.ctl ;
-                                       asmcmd --privilege sysdba cp /usr/sap/install/downloads/{{ sap_sid | upper }}/control02.ctl +RECO/{{ db_sid | upper }}/control02.ctl ;
+                                       asmcmd --privilege sysdba cp /usr/sap/install/downloads/{{ sap_sid | upper }}/control01.ctl +DATA/{{ db_sid | upper }}/CONTROLFILE/control01.ctl ;
+                                       asmcmd --privilege sysdba cp /usr/sap/install/downloads/{{ sap_sid | upper }}/control02.ctl +RECO/{{ db_sid | upper }}/CONTROLFILE/control02.ctl ;
   args:
     executable:                        /bin/csh
     chdir:                             "/oracle/{{ db_path }}/{{ ora_version }}/bin"
