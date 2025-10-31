@@ -535,4 +535,5 @@ locals {
                                           azurerm_network_interface.nics_dbnodes_db[*].ip_configuration[0].name
                                         )
 
+
 }
