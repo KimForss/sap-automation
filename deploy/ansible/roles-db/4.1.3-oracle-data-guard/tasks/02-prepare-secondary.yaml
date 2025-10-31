@@ -176,7 +176,6 @@
     owner:                             "{{ oracle_user_name }}"
     group:                             oinstall
     backup:                            false
-    overwrite:                         true
   register:                            file_copy_created_results
   failed_when:
                                        - file_copy_created_results.rc != 0
