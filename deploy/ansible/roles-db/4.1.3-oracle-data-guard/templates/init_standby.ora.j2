@@ -25,6 +25,8 @@
 # Recovery settings
 *.db_recovery_file_dest='/oracle/{{ db_sid | upper }}/oraarch/'
 *.db_recovery_file_dest_size='{{ db_recovery_file_dest_size }}'
+*.control_files='/oracle/{{ db_sid | upper }}/origlogA/cntrl/cntrl{{ db_sid | upper }}.dbf', '/oracle/{{ db_sid | upper }}/origlogB/cntrl/cntrl{{ db_sid | upper }}.dbf', '/oracle/{{ db_sid | upper }}/sapdata1/cntrl/cntrl{{ db_sid | upper }}.dbf'
+
 
 {% endif %}
 
