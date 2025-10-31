@@ -77,7 +77,7 @@
   register:                            dg_config_flashback
   failed_when:
     - dg_config_flashback.rc != 0
-    - not dg_config_flashback.stderr | default('') is search('ORA-38713')
+    - not dg_config_flashback.stdout | default('') is search('ORA-38713')
   args:
     chdir:                             "/etc/sap_deployment_automation/dataguard_scripts/"
     executable:                        /bin/csh
