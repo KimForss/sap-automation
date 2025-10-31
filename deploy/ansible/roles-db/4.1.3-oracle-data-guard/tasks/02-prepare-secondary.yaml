@@ -169,8 +169,9 @@
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.copy:
-    remote_src:                        "/usr/sap/install/downloads/{{ sap_sid | upper }}/{{ item.name }}"
+    src:                               "/usr/sap/install/downloads/{{ sap_sid | upper }}/{{ item.name }}"
     dest:                              "{{ item.path }}/{{ item.targetname }}"
+    remote_src:                        true
     mode:                              "{{ item.mode | default('0644') }}"
     owner:                             "{{ oracle_user_name }}"
     group:                             oinstall
