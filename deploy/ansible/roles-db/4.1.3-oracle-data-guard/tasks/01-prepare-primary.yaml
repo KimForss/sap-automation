@@ -274,8 +274,8 @@
                                        setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
                                        setenv ORACLE_SID {{ db_sid | upper }}
                                        sqlplus -s / as sysdba <<EOF
-                                       ALTER DATABASE CREATE STANDBY CONTROLFILE AS '+DATA/{{ db_sid | upper }}_STBY/control01.ctl';
-                                       ALTER DATABASE CREATE STANDBY CONTROLFILE AS '+RECO/{{ db_sid | upper }}_STBY/control02.ctl';
+                                       ALTER DATABASE CREATE STANDBY CONTROLFILE AS '+DATA/{{ db_sid | upper }}_STDBY/control01.ctl';
+                                       ALTER DATABASE CREATE STANDBY CONTROLFILE AS '+RECO/{{ db_sid | upper }}_STDBY/control02.ctl';
                                        EXIT;
                                        EOF
   args:
@@ -289,7 +289,7 @@
   ansible.builtin.shell: |
                                        setenv ORACLE_HOME /oracle/{{ db_path }}/{{ ora_version }};
                                        setenv ORACLE_SID +ASM;
-                                       asmcmd --privilege sysdba cp +DATA/{{ db_sid | upper }}_STBY/control01.ctl /usr/sap/install/downloads/{{ sap_sid | upper }}/control01.ctl;
+                                       asmcmd --privilege sysdba cp +DATA/{{ db_sid | upper }}_STDBY/control01.ctl /usr/sap/install/downloads/{{ sap_sid | upper }}/control01.ctl;
                                        asmcmd --privilege sysdba cp +RECO/{{ db_sid | upper }}_STDBY/control02.ctl /usr/sap/install/downloads/{{ sap_sid | upper }}/control02.ctl;
   args:
     executable:                        /bin/csh
