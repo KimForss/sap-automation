@@ -275,8 +275,8 @@
                                        setenv ORACLE_SID {{ db_sid | upper }}
                                        sqlplus -s / as sysdba <<EOF
 
-                                       ALTER DATABASE CREATE STANDBY CONTROLFILE AS '+DATA/{{ db_sid | upper }}_STDBY/control01.ctl' reuse;
-                                       ALTER DATABASE CREATE STANDBY CONTROLFILE AS '+RECO/{{ db_sid | upper }}_STDBY/control02.ctl' reuse;
+                                       ALTER DATABASE CREATE STANDBY CONTROLFILE AS '+DATA/{{ db_sid | upper }}_STDBY/control01.ctl';
+                                       ALTER DATABASE CREATE STANDBY CONTROLFILE AS '+RECO/{{ db_sid | upper }}_STDBY/control02.ctl';
                                        EXIT;
                                        EOF
   args:
