@@ -177,8 +177,6 @@
     group:                             oinstall
     backup:                            false
   register:                            file_copy_created_results
-  failed_when:
-                                       - file_copy_created_results.rc != 0
   loop:
     - { name: 'control01.ctl', mode: '0775', path: '/oracle/{{ db_sid | upper }}/origlogA/cntrl', targetname: 'cntrl{{ db_sid | upper }}.dbf' }
     - { name: 'control01.ctl', mode: '0775', path: '/oracle/{{ db_sid | upper }}/origlogB/cntrl', targetname: 'cntrl{{ db_sid | upper }}.dbf' }
