@@ -153,8 +153,8 @@
   ansible.builtin.shell: |
                                        setenv ORACLE_HOME /oracle/{{ db_path }}/{{ ora_version }};
                                        setenv ORACLE_SID +ASM;
-                                       asmcmd --privilege sysdba cp /usr/sap/install/downloads/{{ sap_sid | upper }}/control01.ctl +DATA/{{ db_sid | upper }}/CONTROLFILE/cntrl{{ db_sid | upper }}01.ctl ;
-                                       asmcmd --privilege sysdba cp /usr/sap/install/downloads/{{ sap_sid | upper }}/control02.ctl +RECO/{{ db_sid | upper }}/CONTROLFILE/cntrl{{ db_sid | upper }}02.ctl ;
+                                       asmcmd --privilege sysdba cp /usr/sap/install/downloads/{{ sap_sid | upper }}/control01.ctl +DATA/{{ db_sid | upper }}/CONTROLFILE/cntrl{{ db_sid | lower }}.ctl ;
+                                       asmcmd --privilege sysdba cp /usr/sap/install/downloads/{{ sap_sid | upper }}/control02.ctl +RECO/{{ db_sid | upper }}/CONTROLFILE/cntrl{{ db_sid | lower }}.ctl ;
   args:
     executable:                        /bin/csh
     chdir:                             "/oracle/{{ db_path }}/{{ ora_version }}/bin"
