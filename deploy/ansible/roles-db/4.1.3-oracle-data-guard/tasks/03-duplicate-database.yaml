@@ -102,9 +102,6 @@
                                        SPFILE
                                        SET DB_UNIQUE_NAME='{{ db_sid | upper }}_STDBY'
                                        SET CONTROL_FILES='/oracle/{{ db_sid | upper }}/origlogA/cntrl/cntrl{{ db_sid | upper }}.dbf','/oracle/{{ db_sid | lower }}/origlogB/cntrl/cntrl{{ db_sid | upper }}.dbf','/oracle/{{ db_sid | lower }}/sapdata1/cntrl/cntrl{{ db_sid | upper }}.dbf'
-                                       SET DB_FILE_NAME_CONVERT='NONE'
-                                       SET LOG_FILE_NAME_CONVERT='NONE'
-
                                        SET FAL_SERVER='{{ db_sid | upper }}'
                                        SET FAL_CLIENT='{{ db_sid | upper }}_STDBY'
                                        SET STANDBY_FILE_MANAGEMENT='AUTO'
@@ -113,7 +110,6 @@
                                        SET LOG_ARCHIVE_DEST_2='SERVICE={{ db_sid | upper }} LGWR ASYNC VALID_FOR=(ONLINE_LOGFILES,PRIMARY_ROLE) DB_UNIQUE_NAME={{ db_sid | upper }}'
                                        SET LOCAL_LISTENER='(ADDRESS=(PROTOCOL=TCP)(HOST={{ ora_secondary }})(PORT={{ listener_port }}))'
                                        SET DB_RECOVERY_FILE_DEST_SIZE='{{ db_recovery_file_dest_size }}'
-
                                        SET REMOTE_LOGIN_PASSWORDFILE='EXCLUSIVE'
                                        NOFILENAMECHECK;
                                        EXIT;
