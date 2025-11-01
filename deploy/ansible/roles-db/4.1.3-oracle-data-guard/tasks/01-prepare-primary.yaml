@@ -74,6 +74,9 @@
                                        $ORACLE_HOME/bin/sqlplus -S / as sysdba <<EOF
                                        SET PAGESIZE 0 FEEDBACK OFF HEADING OFF
                                        WHENEVER SQLERROR EXIT SQL.SQLCODE
+                                       ALTER DATABASE CREATE STANDBY CONTROLFILE AS /usr/sap/install/downloads/{{ sap_sid | upper }}/cntrl{{ db_sid | upper }}01.ctl
+                                       ALTER DATABASE CREATE STANDBY CONTROLFILE AS /usr/sap/install/downloads/{{ sap_sid | upper }}/cntrl{{ db_sid | upper }}02.ctl;
+
                                        ALTER DATABASE FLASHBACK ON;
 
                                        EXIT;
@@ -275,15 +278,16 @@
   ansible.builtin.shell: |
                                        setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
                                        setenv ORACLE_SID {{ db_sid | upper }}
-                                       sqlplus -s / as sysdba <<EOF
+                                       sqlplus -S / as sysdba <<EOF
                                        SET PAGESIZE 0 FEEDBACK OFF HEADING OFF
                                        WHENEVER SQLERROR EXIT SQL.SQLCODE
-                                       ALTER DATABASE CREATE STANDBY CONTROLFILE AS /usr/sap/install/downloads/{{ sap_sid | upper }}/'cntrl{{ db_sid | upper }}01.ctl'
-                                       ALTER DATABASE CREATE STANDBY CONTROLFILE AS /usr/sap/install/downloads/{{ sap_sid | upper }}/'cntrl{{ db_sid | upper }}02.ctl';
+                                       ALTER DATABASE CREATE STANDBY CONTROLFILE AS /usr/sap/install/downloads/{{ sap_sid | upper }}/cntrl{{ db_sid | upper }}01.ctl
+                                       ALTER DATABASE CREATE STANDBY CONTROLFILE AS /usr/sap/install/downloads/{{ sap_sid | upper }}/cntrl{{ db_sid | upper }}02.ctl;
                                        EXIT;
                                        EOF
   args:
     executable:                        /bin/csh
+    chdir:                             "/etc/sap_deployment_automation/dataguard_scripts/"
   register:                            primary_create_control_file_asm
   failed_when:
                                        - primary_create_control_file_asm.rc != 0
