@@ -53,6 +53,8 @@
                                        WHENEVER SQLERROR EXIT SQL.SQLCODE
                                        ALTER SYSTEM SET DB_RECOVERY_FILE_DEST_SIZE='{{ db_recovery_file_dest_size }}';
 
+                                       ALTER DATABASE FORCE LOGGING;
+
                                        ALTER SYSTEM SET DG_BROKER_START = true;
                                        EXIT;
                                        EOF
