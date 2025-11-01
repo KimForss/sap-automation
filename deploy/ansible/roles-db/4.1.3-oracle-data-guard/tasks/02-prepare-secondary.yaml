@@ -41,10 +41,10 @@
     group:                             "{{ oracle_group }}"
     mode:                              '0644'
 
-- name:                                "4.1.3 Oracle Data Guard - Prepare Secondary - Deploy standby tnsnames.ora"
+- name:                                "4.1.3 Oracle Data Guard - Prepare Secondary - Deploy standby tnsnames.ora for app servers"
   ansible.builtin.template:
     src:                               tnsnames_secondary.ora.j2
-    dest:                              "{{ target_media_location }}/downloads/{{ sap_sid | upper }}/tnsnames.ora"
+    dest:                              "{{ target_media_location }}/downloads/{{ sap_sid | upper }}/saptnsnames.ora"
     owner:                             "{{ oracle_user_name }}"
     group:                             "{{ oracle_group }}"
     mode:                              '0644'
@@ -196,16 +196,16 @@
     - { name: 'control01.ctl', mode: '0775', path: '/oracle/{{ db_sid | upper }}/origlogB/cntrl', targetname: 'cntrl{{ db_sid | upper }}.dbf' }
     - { name: 'control01.ctl', mode: '0775', path: '/oracle/{{ db_sid | upper }}/sapdata1/cntrl', targetname: 'cntrl{{ db_sid | upper }}.dbf' }
 
-- name:                                "4.1.3 Oracle Data Guard - Preparation: Remove temporary files for Secondary System"
-  become:                              true
-  become_user:                         "{{ oracle_user_name }}"
-  ansible.builtin.file:
-    path:                              "/usr/sap/install/downloads/{{ sap_sid | upper }}/{{ item.name }}"
-    state:                             absent
-  loop:
-    - { name: 'control01.ctl' }
-    - { name: 'cntrl{{ db_sid | upper }}01.ctl' }
-    - { name: 'cntrl{{ db_sid | upper }}02.ctl' }
+# - name:                                "4.1.3 Oracle Data Guard - Preparation: Remove temporary files for Secondary System"
+#   become:                              true
+#   become_user:                         "{{ oracle_user_name }}"
+#   ansible.builtin.file:
+#     path:                              "/usr/sap/install/downloads/{{ sap_sid | upper }}/{{ item.name }}"
+#     state:                             absent
+#   loop:
+#     - { name: 'control01.ctl' }
+#     - { name: 'cntrl{{ db_sid | upper }}01.ctl' }
+#     - { name: 'cntrl{{ db_sid | upper }}02.ctl' }
 
 - name:                                "4.1.3 Oracle Data Guard: - Restart Secondary"
   ansible.builtin.include_tasks:       "00-restart-instance.yaml"

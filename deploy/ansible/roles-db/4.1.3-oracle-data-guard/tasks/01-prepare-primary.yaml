@@ -268,16 +268,16 @@
     chdir:                             "/oracle/{{ db_path }}/{{ ora_version }}/bin"
     executable:                        /bin/csh
 
-- name:                                "4.1.3 Oracle Data Guard - Setup Primary - Remove local control files"
-  when:                                node_tier == "oracle-asm"
-  become:                              true
-  become_user:                         "{{ oracle_user_name }}"
-  ansible.builtin.file:
-    path:                              /usr/sap/install/downloads/{{ sap_sid | upper }}/{{ item.name }}
-    state:                             absent
-  loop:
-    - { name: 'cntrl{{ db_sid | upper }}01.ctl', source: 'DATA'}
-    - { name: 'cntrl{{ db_sid | upper }}02.ctl', source: 'RECO'}
+# - name:                                "4.1.3 Oracle Data Guard - Setup Primary - Remove local control files"
+#   when:                                node_tier == "oracle-asm"
+#   become:                              true
+#   become_user:                         "{{ oracle_user_name }}"
+#   ansible.builtin.file:
+#     path:                              /usr/sap/install/downloads/{{ sap_sid | upper }}/{{ item.name }}
+#     state:                             absent
+#   loop:
+#     - { name: 'cntrl{{ db_sid | upper }}01.ctl', source: 'DATA'}
+#     - { name: 'cntrl{{ db_sid | upper }}02.ctl', source: 'RECO'}
 
 
 # - name:                                "4.1.3 Oracle Data Guard - Setup Primary - ASM - Create Standby control files"
