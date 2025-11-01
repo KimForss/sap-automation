@@ -27,7 +27,7 @@
     src:                               /oracle/{{ db_sid | upper }}/{{ ora_release }}/dbs
     dest:                              "{{ target_media_location }}/downloads/{{ db_sid | upper }}/dbs"
     remote_src:                        true
-    owner:                             {{ oracle_user_name }}
+    owner:                             "{{ oracle_user_name }}"
     group:                             oinstall
     force:                             true
     mode:                              "{{ '0766' | int - (custom_umask | default('022') | int) }}"
