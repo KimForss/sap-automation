@@ -302,6 +302,7 @@
       when:
         - db_high_availability is defined
         - database_high_availability is not defined
+        - 1 == 2
 
     - name:                            "Database High Availability Configuration Playbook - ORACLE Observer : Get Instance names"
       ansible.builtin.set_fact:
