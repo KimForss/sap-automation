@@ -231,6 +231,9 @@
   register:                            listener_start_results
   changed_when:                        false
   failed_when:
+  args:
+    chdir:                             "/oracle/{{ db_path }}/{{ ora_version }}/bin"
+    executable:                        /bin/csh
                                       - listener_start_results.rc not in [0, 1]
                                       - "'TNS-01106' not in listener_start_results.stdout"
 
