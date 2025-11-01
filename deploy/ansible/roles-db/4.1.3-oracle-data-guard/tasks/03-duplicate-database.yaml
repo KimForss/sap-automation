@@ -72,18 +72,17 @@
                                        rman TARGET sys/'{{ main_password }}'@{{ db_sid | upper }} AUXILIARY sys/'{{ main_password }}'@{{ db_sid | upper }}_STDBY <<EOF
                                        DUPLICATE TARGET DATABASE FOR STANDBY FROM ACTIVE DATABASE DORECOVER
                                        SPFILE
-                                       SET DB_UNIQUE_NAME='{{ db_sid | upper }}_STDBY'
-                                       SET CONTROL_FILES='+DATA','+RECO','+ARCH'
-                                       SET FAL_SERVER='{{ db_sid | upper }}'
-                                       SET FAL_CLIENT='{{ db_sid | upper }}_STDBY'
-                                       SET STANDBY_FILE_MANAGEMENT='AUTO'
-                                       SET LOG_ARCHIVE_CONFIG='DG_CONFIG=({{ db_sid | upper }},{{ db_sid | upper }}_STDBY)'
-                                       SET LOG_ARCHIVE_DEST_1='LOCATION=USE_DB_RECOVERY_FILE_DEST VALID_FOR=(ALL_LOGFILES,ALL_ROLES) DB_UNIQUE_NAME={{ db_sid | upper }}_STDBY'
-                                       SET LOG_ARCHIVE_DEST_2='SERVICE={{ db_sid | upper }} LGWR ASYNC VALID_FOR=(ONLINE_LOGFILES,PRIMARY_ROLE) DB_UNIQUE_NAME={{ db_sid | upper }}'
-                                       SET LOCAL_LISTENER='(ADDRESS=(PROTOCOL=TCP)(HOST={{ ora_secondary }})(PORT={{ listener_port }}))';
-                                       SET DB_RECOVERY_FILE_DEST_SIZE='{{ db_recovery_file_dest_size }}';
-
-                                       SET REMOTE_LOGIN_PASSWORDFILE='EXCLUSIVE'
+                                        SET DB_UNIQUE_NAME='{{ db_sid | upper }}_STDBY'
+                                        SET CONTROL_FILES='+DATA','+RECO','+ARCH'
+                                        SET FAL_SERVER='{{ db_sid | upper }}'
+                                        SET FAL_CLIENT='{{ db_sid | upper }}_STDBY'
+                                        SET STANDBY_FILE_MANAGEMENT='AUTO'
+                                        SET LOG_ARCHIVE_CONFIG='DG_CONFIG=({{ db_sid | upper }},{{ db_sid | upper }}_STDBY)'
+                                        SET LOG_ARCHIVE_DEST_1='LOCATION=USE_DB_RECOVERY_FILE_DEST VALID_FOR=(ALL_LOGFILES,ALL_ROLES) DB_UNIQUE_NAME={{ db_sid | upper }}_STDBY'
+                                        SET LOG_ARCHIVE_DEST_2='SERVICE={{ db_sid | upper }} LGWR ASYNC VALID_FOR=(ONLINE_LOGFILES,PRIMARY_ROLE) DB_UNIQUE_NAME={{ db_sid | upper }}'
+                                        SET LOCAL_LISTENER='(ADDRESS=(PROTOCOL=TCP)(HOST={{ ora_secondary }})(PORT={{ listener_port }}))'
+                                        SET DB_RECOVERY_FILE_DEST_SIZE='{{ db_recovery_file_dest_size }}'
+                                        SET REMOTE_LOGIN_PASSWORDFILE='EXCLUSIVE'
                                        NOFILENAMECHECK;
                                        EXIT;
                                        EOF
@@ -112,8 +111,8 @@
                                        SET LOG_ARCHIVE_CONFIG='DG_CONFIG=({{ db_sid | upper }},{{ db_sid | upper }}_STDBY)'
                                        SET LOG_ARCHIVE_DEST_1='LOCATION=USE_DB_RECOVERY_FILE_DEST VALID_FOR=(ALL_LOGFILES,ALL_ROLES) DB_UNIQUE_NAME={{ db_sid | upper }}_STDBY'
                                        SET LOG_ARCHIVE_DEST_2='SERVICE={{ db_sid | upper }} LGWR ASYNC VALID_FOR=(ONLINE_LOGFILES,PRIMARY_ROLE) DB_UNIQUE_NAME={{ db_sid | upper }}'
-                                       SET LOCAL_LISTENER='(ADDRESS=(PROTOCOL=TCP)(HOST={{ ora_secondary }})(PORT={{ listener_port }}))';
-                                       SET DB_RECOVERY_FILE_DEST_SIZE='{{ db_recovery_file_dest_size }}';
+                                       SET LOCAL_LISTENER='(ADDRESS=(PROTOCOL=TCP)(HOST={{ ora_secondary }})(PORT={{ listener_port }}))'
+                                       SET DB_RECOVERY_FILE_DEST_SIZE='{{ db_recovery_file_dest_size }}'
 
                                        SET REMOTE_LOGIN_PASSWORDFILE='EXCLUSIVE'
                                        NOFILENAMECHECK;
