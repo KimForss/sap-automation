@@ -21,6 +21,16 @@
       chdir:                           "/etc/sap_deployment_automation/dataguard_scripts/"
       executable:                      /bin/csh
 
+- name:                                "4.1.3 Oracle Data Guard - Post deployment on Secondary - Create standby initialization file"
+  when:                                node_tier == "oracle-asm"
+  ansible.builtin.template:
+    src:                               init_standby.ora_asm.j2
+    dest:                              "/oracle/{{ db_sid | upper }}/{{ ora_version }}/dbs/init{{ db_sid | upper }}.ora"
+    owner:                             "{{ oracle_user_name }}"
+    group:                             "{{ oracle_group }}"
+    mode:                              '0644'
+
+
 - name:                                "4.1.3 Oracle Data Guard - Post deployment on Secondary - Configure Data Guard parameters on secondary for Oracle"
   when:                                node_tier == "oracle"
   become_user:                         "{{ oracle_user_name }}"
@@ -46,31 +56,6 @@
   block:
 
 
-    - name:                            "4.1.3 Oracle Data Guard - Post deployment on Secondary - Post deployment on Secondary - Configure standby Data Guard database parameters"
-      become_user:                     "{{ oracle_user_name }}"
-      become:                          true
-      ansible.builtin.shell: |
-                                       setenv ORACLE_SID {{ db_sid | upper }}_STDBY
-                                       $ORACLE_HOME/bin/sqlplus -s / as sysdba <<EOF
-                                       WHENEVER SQLERROR EXIT SQL.SQLCODE
-                                       ALTER SYSTEM SET LOG_ARCHIVE_CONFIG='DG_CONFIG=({{ db_sid | upper }},{{ db_sid | upper }}_STDBY)';
-                                       ALTER SYSTEM SET FAL_SERVER='{{ ora_primary }}';
-                                       ALTER SYSTEM SET FAL_CLIENT='{{ ora_secondary }}';
-                                       ALTER SYSTEM SET STANDBY_FILE_MANAGEMENT='AUTO';
-                                       ALTER SYSTEM SET LOG_ARCHIVE_DEST_1='LOCATION=USE_DB_RECOVERY_FILE_DEST VALID_FOR=(ALL_LOGFILES,ALL_ROLES) DB_UNIQUE_NAME={{ db_sid | upper }}_STDBY';
-                                       ALTER SYSTEM SET LOG_ARCHIVE_DEST_STATE_1='ENABLE';
-                                       ALTER SYSTEM SET LOG_ARCHIVE_DEST_2='';
-                                       ALTER SYSTEM SET LOG_ARCHIVE_DEST_STATE_2='DEFER';
-                                       ALTER SYSTEM SET LOCAL_LISTENER='(ADDRESS=(PROTOCOL=TCP)(HOST={{ ora_secondary }})(PORT={{ listener_port }}))';
-                                       ALTER SYSTEM SET DB_RECOVERY_FILE_DEST_SIZE='{{ db_recovery_file_dest_size }}';
-                                       EXIT;
-                                       EOF
-      register:                        standby_config
-      failed_when:                     standby_config.rc != 0
-      args:
-        chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
-        executable:                    /bin/csh
-
     - name:                            "4.1.3 Oracle Data Guard - Post deployment on Secondary - Post deployment on Secondary - Show Configure standby Data Guard parameters"
       ansible.builtin.debug:
         var:                           standby_config.stdout_lines
@@ -92,6 +77,7 @@
                                        sqlplus -s sys/'{{ main_password }}'@{{ db_sid | upper }}_STDBY as sysdba << EOF
                                        WHENEVER SQLERROR EXIT SQL.SQLCODE
                                        ALTER DATABASE FLASHBACK ON;
+                                       ALTER DATABASE RECOVER MANAGED STANDBY DATABASE DISCONNECT FROM SESSION;
                                        exit
                                        EOF
       environment:
@@ -106,34 +92,34 @@
 
       changed_when:                    flashback_secondary.rc == 0
 
-    - name:                            "4.1.3 Oracle Data Guard - Post deployment on Secondary - Post deployment on Secondary - Configure restart standby"
-      become_user:                     "{{ oracle_user_name }}"
-      become:                          true
-      ansible.builtin.shell: |
-                                       setenv ORACLE_SID {{ db_sid | upper }}_STDBY
-                                       $ORACLE_HOME/bin/sqlplus -s / as sysdba <<EOF
-                                       SHUTDOWN IMMEDIATE;
-                                       STARTUP MOUNT;
-                                       ALTER SYSTEM REGISTER;
-                                       EXIT;
-                                       EOF
-      register:                        standby_restart
-      failed_when:                     standby_restart.rc != 0
-      args:
-        chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
-        executable:                    /bin/csh
+    # - name:                            "4.1.3 Oracle Data Guard - Post deployment on Secondary - Post deployment on Secondary - Configure restart standby"
+    #   become_user:                     "{{ oracle_user_name }}"
+    #   become:                          true
+    #   ansible.builtin.shell: |
+    #                                    setenv ORACLE_SID {{ db_sid | upper }}_STDBY
+    #                                    $ORACLE_HOME/bin/sqlplus -s / as sysdba <<EOF
+    #                                    SHUTDOWN IMMEDIATE;
+    #                                    STARTUP MOUNT;
+    #                                    ALTER SYSTEM REGISTER;
+    #                                    EXIT;
+    #                                    EOF
+    #   register:                        standby_restart
+    #   failed_when:                     standby_restart.rc != 0
+    #   args:
+    #     chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
+    #     executable:                    /bin/csh
 
-    - name:                            "4.1.3 Oracle Data Guard - Post deployment on Secondary - Post deployment on Secondary - Show Configure restart standby dg_status results"
-      ansible.builtin.debug:
-        var:                           standby_restart.stdout_lines
-        verbosity:                     2
+    # - name:                            "4.1.3 Oracle Data Guard - Post deployment on Secondary - Post deployment on Secondary - Show Configure restart standby dg_status results"
+    #   ansible.builtin.debug:
+    #     var:                           standby_restart.stdout_lines
+    #     verbosity:                     2
 
-    - name:                            "4.1.3 Oracle Data Guard - Post deployment on Secondary - Post deployment on Secondary - Save configure restart standby results"
-      ansible.builtin.copy:
-        dest:                          /etc/sap_deployment_automation/dataguard_scripts/restart_standby_{{ ansible_date_time.epoch }}.log
-        content:                       "{{ standby_restart.stdout }}"
-        mode:                          '0777'
-      when:                            standby_restart.stdout is defined
+    # - name:                            "4.1.3 Oracle Data Guard - Post deployment on Secondary - Post deployment on Secondary - Save configure restart standby results"
+    #   ansible.builtin.copy:
+    #     dest:                          /etc/sap_deployment_automation/dataguard_scripts/restart_standby_{{ ansible_date_time.epoch }}.log
+    #     content:                       "{{ standby_restart.stdout }}"
+    #     mode:                          '0777'
+    #   when:                            standby_restart.stdout is defined
 
     - name:                            "4.1.3 Oracle Data Guard - Post deployment on Secondary - Post deployment on Secondary - Configure check standby redo logs"
       become_user:                     "{{ oracle_user_name }}"
@@ -163,36 +149,36 @@
         mode:                          '0777'
       when:                            srl_count.stdout is defined
 
-- name:                                "4.1.3 Oracle Data Guard - Post deployment on Secondary -  Start managed recovery on standby"
-  when:                                ansible_hostname == ora_secondary
-  block:
+# - name:                                "4.1.3 Oracle Data Guard - Post deployment on Secondary -  Start managed recovery on standby"
+#   when:                                ansible_hostname == ora_secondary
+#   block:
 
-    - name:                            "4.1.3 Oracle Data Guard - Post deployment on Secondary - Start managed recovery on standby"
-      become_user:                     "{{ oracle_user_name }}"
-      become:                          true
-      ansible.builtin.shell: |
-                                       $ORACLE_HOME/bin/sqlplus -s / as sysdba <<EOF
-                                       WHENEVER SQLERROR EXIT SQL.SQLCODE
-                                       ALTER DATABASE RECOVER MANAGED STANDBY DATABASE USING CURRENT LOGFILE DISCONNECT FROM SESSION;
-                                       EXIT;
-                                       EOF
-      register:                        start_recovery
-      failed_when:                     start_recovery.rc != 0
-      args:
-        chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
-        executable:                    /bin/csh
+#     - name:                            "4.1.3 Oracle Data Guard - Post deployment on Secondary - Start managed recovery on standby"
+#       become_user:                     "{{ oracle_user_name }}"
+#       become:                          true
+#       ansible.builtin.shell: |
+#                                        $ORACLE_HOME/bin/sqlplus -s / as sysdba <<EOF
+#                                        WHENEVER SQLERROR EXIT SQL.SQLCODE
+#                                        ALTER DATABASE RECOVER MANAGED STANDBY DATABASE USING CURRENT LOGFILE DISCONNECT FROM SESSION;
+#                                        EXIT;
+#                                        EOF
+#       register:                        start_recovery
+#       failed_when:                     start_recovery.rc != 0
+#       args:
+#         chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
+#         executable:                    /bin/csh
 
-    - name:                            "4.1.3 Oracle Data Guard - Post deployment on Secondary - Setup Primary: - Show managed recovery on standby results"
-      ansible.builtin.debug:
-        var:                           start_recovery.stdout_lines
-        verbosity:                     2
+#     - name:                            "4.1.3 Oracle Data Guard - Post deployment on Secondary - Setup Primary: - Show managed recovery on standby results"
+#       ansible.builtin.debug:
+#         var:                           start_recovery.stdout_lines
+#         verbosity:                     2
 
-    - name:                            "4.1.3 Oracle Data Guard - Post deployment on Secondary - Save start managed recovery on standby results"
-      ansible.builtin.copy:
-        dest:                          /etc/sap_deployment_automation/dataguard_scripts/start_managed_recovery_on_standby{{ ansible_date_time.epoch }}.log
-        content:                       "{{ start_recovery.stdout }}"
-        mode:                          '0777'
-      when:                            start_recovery.stdout is defined
+#     - name:                            "4.1.3 Oracle Data Guard - Post deployment on Secondary - Save start managed recovery on standby results"
+#       ansible.builtin.copy:
+#         dest:                          /etc/sap_deployment_automation/dataguard_scripts/start_managed_recovery_on_standby{{ ansible_date_time.epoch }}.log
+#         content:                       "{{ start_recovery.stdout }}"
+#         mode:                          '0777'
+#       when:                            start_recovery.stdout is defined
 
 - name:                                "4.1.3 Oracle Data Guard - Post deployment on Secondary - Verify Data Guard configuration"
   when:                                ansible_hostname == ora_secondary
