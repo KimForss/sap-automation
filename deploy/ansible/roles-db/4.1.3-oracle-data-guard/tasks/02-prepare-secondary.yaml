@@ -26,7 +26,7 @@
   become_user:                         "root"
   ansible.builtin.copy:
     src:                               "{{ target_media_location }}/downloads/{{ db_sid | upper }}/dbs/"
-    dest:                              /oracle/{{ db_sid | upper }}/{{ ora_release }}/dbs/
+    dest:                              /oracle/{{ db_sid | upper }}/{{ ora_release }}/dbs
     remote_src:                        true
     owner:                             "{{ oracle_user_name }}"
     group:                             oinstall
