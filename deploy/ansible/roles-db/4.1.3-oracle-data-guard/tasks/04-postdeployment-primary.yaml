@@ -50,9 +50,12 @@
                                        $ORACLE_HOME/bin/sqlplus -s / as sysdba <<EOF
                                        WHENEVER SQLERROR EXIT SQL.SQLCODE
                                        ALTER SYSTEM SET DB_RECOVERY_FILE_DEST_SIZE='{{ db_recovery_file_dest_size }}';
-                                       ALTER DATABASE FORCE LOGGING;
                                        ALTER SYSTEM SET LOG_ARCHIVE_DEST_STATE_2='ENABLE' SCOPE=BOTH;
                                        ALTER SYSTEM SWITCH LOGFILE;
+
+                                       ALTER SYSTEM SET DG_BROKER_CONFIG_FILE1 = '+DATA/{{ db_sid | upper }}/DG_CONFIG/dg_broker1.dat' SCOPE=BOTH;
+                                       ALTER SYSTEM SET DG_BROKER_CONFIG_FILE2 = '+DATA/{{ db_sid | upper }}/DG_CONFIG/dg_broker2.dat' SCOPE=BOTH;
+                                       ALTER DATABASE FORCE LOGGING;
                                        EXIT;
                                        EOF
   register:                            enable_shipping
@@ -70,10 +73,6 @@
                                        setenv ORACLE_SID {{ db_sid | upper }}
                                        setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
                                        $ORACLE_HOME/bin/sqlplus -s / as sysdba <<EOF
-                                       WHENEVER SQLERROR EXIT SQL.SQLCODE
-
-                                       ALTER SYSTEM SET DG_BROKER_CONFIG_FILE1 = '+DATA/{{ db_sid | upper }}/DG_CONFIG/dg_broker1.dat' SCOPE=BOTH;
-                                       ALTER SYSTEM SET DG_BROKER_CONFIG_FILE2 = '+DATA/{{ db_sid | upper }}/DG_CONFIG/dg_broker2.dat' SCOPE=BOTH;
                                        ALTER SYSTEM SET DG_BROKER_START = true
                                        EXIT;
                                        EOF
@@ -82,8 +81,6 @@
   args:
       chdir:                           "/etc/sap_deployment_automation/dataguard_scripts/"
       executable:                      /bin/csh
-
-
 
 - name:                                "4.1.3 Oracle Data Guard - Post deployment on Primary - Show enable log shipping on primary"
   ansible.builtin.debug:
@@ -124,20 +121,6 @@
                                        EOF
   register:                            dgconfig_results
   failed_when:                         dgconfig_results.rc > 0
-  args:
-    executable:                        /bin/csh
-
-- name:                                "4.1.3 Oracle Data Guard - Post deployment on Primary - Enable Data Guard Broker on Primary"
-  become:                              true
-  become_user:                        "{{ oracle_user_name }}"
-  ansible.builtin.shell: |
-                                       setenv ORACLE_SID {{ db_sid | upper }}
-                                       sqlplus -s / as sysdba << EOF
-                                       ALTER SYSTEM SET dg_broker_start=true;
-                                       EXIT;
-                                       EOF
-  register:                            dg_broker_primary_results
-  failed_when:                         dg_broker_primary_results.rc > 0
   args:
     executable:                        /bin/csh
 
