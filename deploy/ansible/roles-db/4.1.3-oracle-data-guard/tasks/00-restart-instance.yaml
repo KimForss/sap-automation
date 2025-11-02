@@ -177,6 +177,7 @@
   become:                              true
   ansible.builtin.shell: |
                                        setenv ORACLE_SID {{ current_sid }}
+                                       setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
                                        /oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/sqlplus -S / as sysdba <<EOF
                                        ALTER SYSTEM REGISTER;
                                        EXIT;
@@ -206,6 +207,7 @@
   become:                              true
   ansible.builtin.shell: |
                                        setenv ORACLE_SID {{ current_sid }}
+                                       setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
                                        /oracle/{{ db_path }}/{{ ora_version }}/bin/lsnrctl reload
   environment:
     ORACLE_HOME:                       "/oracle/{{ db_path }}/{{ ora_version }}"
@@ -245,6 +247,7 @@
   become:                              true
   ansible.builtin.shell: |
                                        setenv ORACLE_SID {{ current_sid }}
+                                       setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
                                        /oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/sqlplus -S / as sysdba <<EOF
                                        SHOW PARAMETER spfile;
                                        EXIT;
