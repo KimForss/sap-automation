@@ -48,14 +48,22 @@
   ansible.builtin.shell: |
                                        setenv ORACLE_SID {{ db_sid | upper }}
                                        $ORACLE_HOME/bin/sqlplus -s / as sysdba <<EOF
-                                       WHENEVER SQLERROR EXIT SQL.SQLCODE
                                        ALTER SYSTEM SET DB_RECOVERY_FILE_DEST_SIZE='{{ db_recovery_file_dest_size }}';
                                        ALTER SYSTEM SET LOG_ARCHIVE_DEST_STATE_2='ENABLE' SCOPE=BOTH;
                                        ALTER SYSTEM SWITCH LOGFILE;
 
                                        ALTER SYSTEM SET DG_BROKER_CONFIG_FILE1 = '+DATA/{{ db_sid | upper }}/DG_CONFIG/dg_broker1.dat' SCOPE=BOTH;
                                        ALTER SYSTEM SET DG_BROKER_CONFIG_FILE2 = '+DATA/{{ db_sid | upper }}/DG_CONFIG/dg_broker2.dat' SCOPE=BOTH;
-                                       ALTER DATABASE FORCE LOGGING;
+
+                                       DECLARE
+                                         v_force_logging VARCHAR2(3);
+                                       BEGIN
+                                         SELECT force_logging INTO v_force_logging FROM v$database;
+                                         IF v_force_logging = 'NO' THEN
+                                           EXECUTE IMMEDIATE 'ALTER DATABASE FORCE LOGGING';
+                                         END IF;
+                                       END;
+                                       /
                                        EXIT;
                                        EOF
   register:                            enable_shipping
