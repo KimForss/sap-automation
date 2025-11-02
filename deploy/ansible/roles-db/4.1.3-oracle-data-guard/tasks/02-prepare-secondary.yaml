@@ -148,6 +148,7 @@
   loop:
     - { path: 'DATA/{{ db_sid | upper }}_STDBY' }
     - { path: 'DATA/{{ db_sid | upper }}_STDBY/DG_CONFIG' }
+    - { path: 'DATA/{{ db_sid | upper }}_STDBY/PARAMETERFILE' }
   args:
     executable:                        /bin/csh
     chdir:                             "/oracle/{{ db_path }}/{{ ora_version }}/bin"
