@@ -199,6 +199,8 @@
                                        $ORACLE_HOME/bin/sqlplus -s sys/'{{ main_password }}'@{{ db_sid | upper }}_STDBY as sysdba <<EOF
                                        CREATE PFILE='/var/tmp/initORA_STDBY.ora' FROM SPFILE='/oracle/{{ db_sid | upper }}/{{ ora_version }}/dbs/spfile{{ db_sid | upper }}_STDBY.ora';
                                        CREATE SPFILE='+DATA/{{ db_sid | upper }}_STDBY/PARAMETERFILE/spfile{{ db_sid | lower }}.ora'   FROM PFILE='/var/tmp/initORA_STDBY.ora';
+                                       SHUTDOWN IMMEDIATE;
+                                       STARTUP;
                                        EXIT;
                                        EOF
   args:
