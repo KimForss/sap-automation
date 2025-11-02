@@ -244,9 +244,9 @@
       ansible.builtin.shell: |
                                        dgmgrl / as sysdba << EOF
                                        SHOW CONFIGURATION VERBOSE;
-                                       SHOW DATABASE {{ db_sid | upper }} VERBOSE;
+                                       SHOW DATABASE {{ db_sid | upper }};
 
-                                       SHOW DATABASE {{ db_sid | upper }}_STDBY VERBOSE;
+                                       SHOW DATABASE {{ db_sid | upper }}_STDBY;
                                        exit;
                                        EOF
       register:                        dgconfig_show_results
