@@ -27,6 +27,18 @@
   ansible.builtin.shell: |
                                        sqlplus -s / as sysdba << EOF
                                        setenv ORACLE_SID {{ db_sid | upper }}
+                                       DECLARE
+                                         v_status VARCHAR2(20);
+                                       BEGIN
+                                         SELECT status INTO v_status FROM v$instance;
+                                         IF v_status = 'OPEN' THEN
+                                           DBMS_OUTPUT.PUT_LINE('Database already open');
+                                         ELSE
+                                           EXECUTE IMMEDIATE 'ALTER DATABASE OPEN';
+                                           DBMS_OUTPUT.PUT_LINE('Database opened');
+                                         END IF;
+                                       END;
+                                       /
                                        ALTER DATABASE OPEN;
                                        EXIT;
                                        EOF
