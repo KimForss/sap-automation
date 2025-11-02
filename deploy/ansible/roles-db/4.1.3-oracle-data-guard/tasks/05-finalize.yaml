@@ -69,6 +69,7 @@
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell: |
+                                       setenv ORACLE_SID {{ db_sid | upper }}_STDBY
                                        sqlplus -s / as sysdba << EOF
                                        SET HEADING OFF
                                        SET FEEDBACK OFF
@@ -76,7 +77,7 @@
                                        EXIT;
                                        EOF
       environment:
-        ORACLE_SID:                    "{{ db_sid | upper }}"
+        ORACLE_SID:                    "{{ db_sid | upper }}_STDBY"
         ORACLE_HOME:                   "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
       args:
         executable:                    /bin/csh
@@ -88,13 +89,14 @@
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell: |
+                                       setenv ORACLE_SID {{ db_sid | upper }}_STDBY
                                        sqlplus -s / as sysdba << EOF
                                        SHUTDOWN IMMEDIATE;
                                        STARTUP MOUNT;
                                        EXIT;
                                        EOF
       environment:
-        ORACLE_SID:                    "{{ db_sid | upper }}"
+        ORACLE_SID:                    "{{ db_sid | upper }}_STDBY"
         ORACLE_HOME:                   "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
       args:
         executable:                    /bin/csh
