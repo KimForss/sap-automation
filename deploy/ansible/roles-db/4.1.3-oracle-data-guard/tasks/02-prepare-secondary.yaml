@@ -137,7 +137,7 @@
     sga_max_size:                      "{{ ora_sga }}M"
     pga_aggregate_target:              "{{ ora_pga }}M"
 
-- name:                                "4.1.3 Oracle Data Guard ASM - Preparation: Create ASM Directories for Secondary System"
+- name:                                "4.1.3 Oracle Data Guard ASM - Preparation - Create ASM Directories for Secondary System"
   when:                                node_tier == "oracle-asm"
   become:                              true
   become_user:                         "{{ grid_user_name }}"
@@ -146,6 +146,7 @@
                                        setenv ORACLE_SID +ASM;
                                        asmcmd --privilege sysdba mkdir {{ item.path }};
   loop:
+    - { path: 'DATA/{{ db_sid | upper }}_STDBY' }
     - { path: 'DATA/{{ db_sid | upper }}_STDBY/DG_CONFIG' }
   args:
     executable:                        /bin/csh
