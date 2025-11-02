@@ -204,8 +204,7 @@
     executable:                        /bin/csh
     chdir:                             "/oracle/{{ db_path }}/{{ ora_version }}/bin"
   register:                            asm_createspfile_results
-  failed_when:
-                                       - asm_createspfile_results.rc != 0
+  failed_when:                         asm_createspfile_results.rc != 0
   changed_when:                        asm_createspfile_results.rc == 0
 
 
