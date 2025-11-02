@@ -25,21 +25,11 @@
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell: |
-                                       sqlplus -s / as sysdba << EOF
                                        setenv ORACLE_SID {{ db_sid | upper }}
-                                       DECLARE
-                                         v_status VARCHAR2(20);
-                                       BEGIN
-                                         SELECT status INTO v_status FROM v$instance;
-                                         IF v_status = 'OPEN' THEN
-                                           DBMS_OUTPUT.PUT_LINE('Database already open');
-                                         ELSE
-                                           EXECUTE IMMEDIATE 'ALTER DATABASE OPEN';
-                                           DBMS_OUTPUT.PUT_LINE('Database opened');
-                                         END IF;
-                                       END;
-                                       /
+                                       sqlplus -s / as sysdba << EOF
+                                       WHENEVER SQLERROR CONTINUE
                                        ALTER DATABASE OPEN;
+                                       WHENEVER SQLERROR EXIT SQL.SQLCODE
                                        EXIT;
                                        EOF
   environment:
@@ -67,15 +57,9 @@
                                        ALTER SYSTEM SET DG_BROKER_CONFIG_FILE1 = '+DATA/{{ db_sid | upper }}/DG_CONFIG/dg_broker1.dat' SCOPE=BOTH;
                                        ALTER SYSTEM SET DG_BROKER_CONFIG_FILE2 = '+DATA/{{ db_sid | upper }}/DG_CONFIG/dg_broker2.dat' SCOPE=BOTH;
 
-                                       DECLARE
-                                         v_force_logging VARCHAR2(3);
-                                       BEGIN
-                                         SELECT force_logging INTO v_force_logging FROM v$database;
-                                         IF v_force_logging = 'NO' THEN
-                                           EXECUTE IMMEDIATE 'ALTER DATABASE FORCE LOGGING';
-                                         END IF;
-                                       END;
-                                       /
+                                       WHENEVER SQLERROR CONTINUE
+                                       ALTER DATABASE FORCE LOGGING;
+                                       WHENEVER SQLERROR EXIT SQL.SQLCODE
                                        EXIT;
                                        EOF
   register:                            enable_shipping

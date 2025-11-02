@@ -38,8 +38,9 @@
                                        setenv ORACLE_SID {{ db_sid | upper }}_STDBY
                                        setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
                                        sqlplus -s sys/'{{ main_password }}'@{{ db_sid | upper }}_STDBY as sysdba << EOF
-                                       WHENEVER SQLERROR EXIT SQL.SQLCODE
+                                       WHENEVER SQLERROR CONTINUE
                                        ALTER DATABASE FLASHBACK ON;
+                                       WHENEVER SQLERROR EXIT SQL.SQLCODE
                                        ALTER DATABASE RECOVER MANAGED STANDBY DATABASE USING CURRENT LOGFILE DISCONNECT FROM SESSION;
                                        exit
                                        EOF
@@ -53,7 +54,7 @@
     - flashback_secondary.rc != 0
     - not flashback_secondary.stderr is search('38713')
 
-  changed_when:                    flashback_secondary.rc == 0
+  changed_when:                        flashback_secondary.rc == 0
 
 
 - name:                                "4.1.3 Oracle Data Guard - Post deployment on Secondary - Start Data Guard Broker on secondary"
@@ -69,6 +70,7 @@
                                        ALTER SYSTEM SET DG_BROKER_CONFIG_FILE1 = '+DATA/{{ db_sid | upper }}_STDBY/DG_CONFIG/dg_broker1.dat' SCOPE=BOTH;
                                        ALTER SYSTEM SET DG_BROKER_CONFIG_FILE2 = '+DATA/{{ db_sid | upper }}_STDBY/DG_CONFIG/dg_broker2.dat' SCOPE=BOTH;
 
+                                       WHENEVER SQLERROR CONTINUE
                                        ALTER SYSTEM SET DG_BROKER_START = true;
                                        EXIT;
                                        EOF
@@ -112,26 +114,24 @@
     group:                             "{{ oracle_group }}"
     mode:                              '0644'
 
-- name:                                "4.1.3 Oracle Data Guard - Post deployment on Secondary - Restart Instance"
-  become_user:                         "{{ oracle_user_name }}"
-  become:                              true
-  ansible.builtin.shell: |
-                                       setenv ORACLE_SID {{ db_sid | upper }}_STDBY
-                                       setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
-                                       $ORACLE_HOME/bin/sqlplus -s / as sysdba <<EOF
+# - name:                                "4.1.3 Oracle Data Guard - Post deployment on Secondary - Restart Instance"
+#   become_user:                         "{{ oracle_user_name }}"
+#   become:                              true
+#   ansible.builtin.shell: |
+#                                        setenv ORACLE_SID {{ db_sid | upper }}_STDBY
+#                                        setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
+#                                        $ORACLE_HOME/bin/sqlplus -s / as sysdba <<EOF
 
-                                       SHUTDOWN IMMEDIATE;
-                                       STARTUP MOUNT;
+#                                        SHUTDOWN IMMEDIATE;
+#                                        STARTUP MOUNT;
 
-                                       EXIT;
-                                       EOF
-  register:                            start_recovery
-  failed_when:                         start_recovery.rc != 0
-  args:
-      chdir:                           "/etc/sap_deployment_automation/dataguard_scripts/"
-      executable:                      /bin/csh
-
-
+#                                        EXIT;
+#                                        EOF
+#   register:                            start_recovery
+#   failed_when:                         start_recovery.rc != 0
+#   args:
+#       chdir:                           "/etc/sap_deployment_automation/dataguard_scripts/"
+#       executable:                      /bin/csh
 
     # - name:                            "4.1.3 Oracle Data Guard - Post deployment on Secondary - Post deployment on Secondary - Configure restart standby"
     #   become_user:                     "{{ oracle_user_name }}"
