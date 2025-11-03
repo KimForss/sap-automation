@@ -301,8 +301,8 @@
                                        EXEC DBMS_SERVICE.START_SERVICE('{{ db_sid | upper }}_HA');
                                        EXIT;
                                        EOF
-      register:                        DBMS_SERVICE.CREATE_SERVICE_results
-      failed_when:                     DBMS_SERVICE.CREATE_SERVICE_results.rc > 0
+      register:                        create_service_results
+      failed_when:                     create_service_results.rc > 0
       args:
         executable:                    /bin/csh
 
