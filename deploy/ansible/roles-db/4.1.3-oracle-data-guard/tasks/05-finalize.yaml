@@ -1,11 +1,11 @@
 ---
 
-- name:                                "4.1.3 Oracle Data Guard - Verify Data Guard configuration"
+- name:                                "4.1.3 Oracle Data Guard Finalize -  Verify Data Guard configuration"
   when:                                ansible_hostname == ora_secondary
   block:
 
 
-    - name:                            "4.1.3 Oracle Data Guard - Verify Data Guard configuration"
+    - name:                            "4.1.3 Oracle Data Guard Finalize -  Verify Data Guard configuration"
       become_user:                     "{{ oracle_user_name }}"
       become:                          true
       ansible.builtin.shell: |
@@ -24,7 +24,7 @@
         executable:                    /bin/csh
 
     # Disable the automatic restart for database on Secondary.
-    - name:                            "4.1.3 Oracle Data Guard - Secondary - Post Processing: Check if database registered with restart on Secondary"
+    - name:                            "4.1.3 Oracle Data Guard - Finalize - Check if database registered with restart on Secondary"
       when :
                                       - node_tier == 'oracle-asm'
       become:                          true
@@ -41,7 +41,7 @@
       failed_when:                     false
       changed_when:                    false
 
-    - name:                            "4.1.3 Oracle Data Guard - Secondary - Post Processing: Disable automatic restart for database on Secondary"
+    - name:                            "4.1.3 Oracle Data Guard - Finalize - Disable automatic restart for database on Secondary"
       when :
                                       - node_tier == 'oracle-asm'
                                       - srvctl_check.rc == 0
@@ -65,7 +65,7 @@
                                        - "'PRCR-1001' not in disable_restart_secondary.stdout"
       changed_when:                    disable_restart_secondary.rc == 0
 
-    - name:                            "4.1.3 Oracle Data Guard - Secondary - Post Processing: Verify database is mounted on Secondary"
+    - name:                            "4.1.3 Oracle Data Guard - Finalize - Post Processing: Verify database is mounted on Secondary"
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell: |
@@ -85,7 +85,7 @@
       failed_when:                     false
       changed_when:                    false
 
-    - name:                            "4.1.3 Oracle Data Guard - Secondary - Post Processing: Ensure database is mounted (not open) on Secondary"
+    - name:                            "4.1.3 Oracle Data Guard - Finalize - Ensure database is mounted on Secondary"
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell: |
@@ -104,7 +104,7 @@
       register:                        mount_secondary
 
     # Update the tnsnames.ora for SAP application servers
-    - name:                            "4.1.3 Oracle Data Guard - Secondary - Post Processing: Update tnsnames.ora for SAP application servers"
+    - name:                            "4.1.3 Oracle Data Guard - Finalize - Update tnsnames.ora for SAP application servers"
       become:                          true
       become_user:                     "root"
       ansible.builtin.copy:
@@ -119,7 +119,7 @@
   when:                                ansible_hostname == ora_primary
   block:
 
-    - name:                            "4.1.3 Oracle Data Guard - Post deployment on Primary - Check if Data Guard Broker configuration exists on Primary"
+    - name:                            "4.1.3 Oracle Data Guard - Finalize - Check if Data Guard Broker configuration exists on Primary"
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell: |
@@ -132,7 +132,7 @@
       args:
         executable:                    /bin/csh
 
-    - name:                            "4.1.3 Oracle Data Guard - Post deployment on Primary - Create Data Guard Configuration on Primary"
+    - name:                            "4.1.3 Oracle Data Guard - Finalize - Create Data Guard Configuration on Primary"
       when:                            "'ORA-16532' in dgconfig_check.stdout or 'ORA-16596' in dgconfig_check.stdout or 'ORA-16525' in dgconfig_check.stdout"
       # ORA-16532: Oracle Data Guard broker configuration does not exist
       # ORA-16596: member not part of the Oracle Data Guard broker configuration
@@ -291,7 +291,7 @@
         msg:                           "Data Guard Configuration: {{ dgconfig_show_results.stdout }}"
 
 
-    - name:                            "4.1.3 Oracle Data Guard - Post deployment on Primary - Create HA Service on Primary"
+    - name:                            "4.1.3 Oracle Data Guard - Finalize - Create HA Service on Primary"
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell: |
@@ -306,7 +306,7 @@
       args:
         executable:                    /bin/csh
 
-    - name:                            "4.1.3 Oracle Data Guard - Post deployment on Primary - Create Database Trigger"
+    - name:                            "4.1.3 Oracle Data Guard - Finalize - Create Database Trigger"
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell: |
