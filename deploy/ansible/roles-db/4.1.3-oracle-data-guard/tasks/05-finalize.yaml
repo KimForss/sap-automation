@@ -119,6 +119,38 @@
   when:                                ansible_hostname == ora_primary
   block:
 
+    - name:                            "4.1.3 Oracle Data Guard - Post deployment on Primary - Check if Data Guard Broker configuration exists on Primary"
+      become:                          true
+      become_user:                     "{{ oracle_user_name }}"
+      ansible.builtin.shell: |
+                                       dgmgrl / as sysdba << EOF
+                                       SHOW CONFIGURATION
+                                       EOF
+      failed_when:                     false
+      changed_when:                    false
+      register:                        dgconfig_check
+      args:
+        executable:                    /bin/csh
+
+    - name:                            "4.1.3 Oracle Data Guard - Post deployment on Primary - Create Data Guard Configuration on Primary"
+      when:                            "'ORA-16532' in dgconfig_check.stdout or 'ORA-16596' in dgconfig_check.stdout or 'ORA-16525' in dgconfig_check.stdout"
+      # ORA-16532: Oracle Data Guard broker configuration does not exist
+      # ORA-16596: member not part of the Oracle Data Guard broker configuration
+      # ORA-16525: The Oracle Data Guard broker is not yet available.
+
+      become:                          true
+      become_user:                     "{{ oracle_user_name }}"
+      ansible.builtin.shell: |
+                                       dgmgrl / as sysdba << EOF
+                                       CREATE CONFIGURATION {{ db_sid | upper }}_dg_config AS PRIMARY DATABASE IS {{ db_sid | upper }} CONNECT IDENTIFIER IS {{ db_sid | upper }};
+                                       ENABLE CONFIGURATION;
+                                       exit;
+                                       EOF
+      register:                        dgconfig_results
+      failed_when:                     dgconfig_results.rc > 0
+      args:
+        executable:                    /bin/csh
+
     - name:                            "4.1.3 Oracle Data Guard - Finalize - Add secondary Database to Data Guard Configuration on Primary"
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
