@@ -144,11 +144,12 @@
 
     - name:                            "4.1.4 Oracle Data Guard - Observer - Debug: installer output"
       ansible.builtin.debug:
-        var:                           orainstaller_results.stdout_lines
+        var:                           orainstaller_results.stdout
+        verbosity:                     2
 
     - name:                            "4.1.4 Oracle Data Guard - Observer - Debug installer output log"
       ansible.builtin.copy:
-        dest:                          "/etc/sap_deployment_automation/observer/oracle_install.log"
+        dest:                          "/etc/sap_deployment_automation/observer/orainstaller.log"
         content   :                    "{{ orainstaller_results.stdout }}"
         owner:                         "{{ oracle_user_name }}"
         group:                         oinstall
@@ -188,7 +189,7 @@
 
     - name:                            "4.1.4 Oracle Data Guard - Observer - Debug: orainstRoot output"
       ansible.builtin.debug:
-        var:                           orainstRoot_results.stdout_lines
+        var:                           orainstRoot_results.stdout
         verbosity:                     2
 
     - name:                            "4.1.4 Oracle Data Guard - Observer - Debug installer output log"
@@ -219,7 +220,7 @@
 
     - name:                            "4.1.4 Oracle Data Guard - Observer - Debug: rootscript output"
       ansible.builtin.debug:
-        var:                           rootscript_results.stdout_lines
+        var:                           rootscript_results.stdout
         verbosity:                     2
 
     - name:                            "4.1.4 Oracle Data Guard - Observer - Debug rootscript output log"
