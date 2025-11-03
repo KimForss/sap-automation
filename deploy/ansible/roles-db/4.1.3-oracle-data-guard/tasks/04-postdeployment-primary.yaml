@@ -53,6 +53,9 @@
                                        ALTER SYSTEM SET DB_RECOVERY_FILE_DEST_SIZE='{{ db_recovery_file_dest_size }}';
                                        ALTER SYSTEM SET LOG_ARCHIVE_DEST_STATE_2='ENABLE' SCOPE=BOTH;
                                        ALTER SYSTEM SWITCH LOGFILE;
+                                       WHENEVER SQLERROR CONTINUE
+                                       ALTER SYSTEM SET DG_BROKER_START = false
+                                       WHENEVER SQLERROR EXIT SQL.SQLCODE
 
                                        ALTER SYSTEM SET DG_BROKER_CONFIG_FILE1 = '+DATA/{{ db_sid | upper }}/DG_CONFIG/dg_broker1.dat' SCOPE=BOTH;
                                        ALTER SYSTEM SET DG_BROKER_CONFIG_FILE2 = '+DATA/{{ db_sid | upper }}/DG_CONFIG/dg_broker2.dat' SCOPE=BOTH;
