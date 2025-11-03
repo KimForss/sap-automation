@@ -314,7 +314,6 @@
       when:
         - database_high_availability
         - platform in ['ORACLE', 'ORACLE-ASM']
-        - 1 == 2
       block:
         - name:                          "Database High Availability Configuration Playbook - ORACLE Observer : Setting the DB facts"
           ansible.builtin.set_fact:
