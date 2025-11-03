@@ -110,7 +110,6 @@
     dest:                              "/oracle/media/{{ ansible_hostname }}_{{ db_sid }}_install.rsp"
     mode:                              '0644'
     force:                             true
-  vars:
 
 - name:                                "4.1.4 Oracle Data Guard - Observer - Post Processing - Check if Oracle already installed"
   ansible.builtin.stat:
