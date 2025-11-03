@@ -1,8 +1,10 @@
 #Generate initsid.ora for ASM spfile
 {% if platform | upper == 'ORACLE-ASM' %}
-spfile = (+DATA/{{ db_sid | upper }}_STDBY/PARAMETERFILE/spfile{{ db_sid | lower }}.ora)
+SPFILE=/oracle/{{ db_sid | upper }}/{{ ora_version }}/dbs/spfile{{ db_sid | upper }}_STDBY.ora
 {% endif %}
 
 {% if platform | upper == 'ORACLE' %}
-SPFILE=/oracle/{{ db_sid | upper }}/19.0.0/dbs/spfile{{ db_sid | upper }}.ora"
+SPFILE=/oracle/{{ db_sid | upper }}/{{ ora_version }}/dbs/spfile{{ db_sid | upper }}.ora"
+
+
 {% endif %}
