@@ -197,7 +197,7 @@
                                        setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }};
                                        setenv ORACLE_SID {{ db_sid | upper }}_STDBY;
                                        $ORACLE_HOME/bin/sqlplus -s sys/'{{ main_password }}'@{{ db_sid | upper }}_STDBY as sysdba <<EOF
-                                       CREATE SPFILE='+DATA/{{ db_sid | upper }}_STDBY/PARAMETERFILE/spfile{{ db_sid | lower }}.ora' FROM FROM SPFILE;
+                                       CREATE SPFILE='+DATA/{{ db_sid | upper }}_STDBY/PARAMETERFILE/spfile{{ db_sid | lower }}.ora' FROM SPFILE;
                                        SHUTDOWN IMMEDIATE;
                                        EXIT;
                                        EOF
