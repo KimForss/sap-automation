@@ -353,7 +353,7 @@
   become:                              true
   become_user:                         "root"
   ansible.builtin.copy:
-    src:                               "{{ target_media_location }}/downloads/{{ sap_sid | upper }}/tnsnames.ora"
+    src:                               "{{ target_media_location }}/downloads/{{ sap_sid | upper }}/saptnsnames.ora"
     dest:                              /oracle/{{ db_sid | upper }}/{{ ora_version }}/network/admin/tnsnames.ora
     remote_src:                        true
     owner:                             oracle
