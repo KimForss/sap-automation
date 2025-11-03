@@ -1,10 +1,2 @@
-#Generate initsid.ora for ASM spfile
-{% if platform | upper == 'ORACLE-ASM' %}
+#Generate initsid.ora
 SPFILE=/oracle/{{ db_sid | upper }}/{{ ora_version }}/dbs/spfile{{ db_sid | upper }}_STDBY.ora
-{% endif %}
-
-{% if platform | upper == 'ORACLE' %}
-SPFILE=/oracle/{{ db_sid | upper }}/{{ ora_version }}/dbs/spfile{{ db_sid | upper }}.ora"
-
-
-{% endif %}
