@@ -194,12 +194,6 @@
           failed_when:                 constraint.rc > 1
 
 
-    - name:                            "5.5.4.1 HANA Cluster configuration - HANA resources are only allowed to run on a node, if the node's NFS file systems are mounted. The constraint also avoids the majority maker node RHEL 7"
-      ansible.builtin.shell:           pcs constraint location SAPHanaTopology_{{ db_sid | upper }}_{{ db_instance_number }}-clone rule resource-discovery=never score=-INFINITY hana_nfs_s1_active ne true and hana_nfs_s2_active ne true
-      register:                        constraint
-      failed_when:                     constraint.rc > 1
-      when:                            ansible_distribution_major_version in ["8", "9"]
-
     - name:                            "5.5.4.1 HANA Cluster configuration - Add resource defaults resource-stickiness=1000"
       ansible.builtin.shell:           pcs resource defaults resource-stickiness=1000
       register:                        resource_defaults
