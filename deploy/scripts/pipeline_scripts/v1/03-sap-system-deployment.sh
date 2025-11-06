@@ -46,7 +46,7 @@ configure_devops
 
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-	configureNonDeployer "${tf_version:-1.12.2}"
+	configureNonDeployer "${tf_version:-1.13.3}"
 fi
 configure_devops
 
@@ -57,9 +57,6 @@ if [ $USE_MSI == "true" ]; then
 	export ARM_USE_MSI
 fi
 
-if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-	configureNonDeployer "${tf_version:-1.12.2}"
-fi
 
 if az account show --query name; then
 	echo -e "$green--- Already logged in to Azure ---$reset"
@@ -75,17 +72,12 @@ else
 	fi
 fi
 
-variableGroupName="$VARIABLE_GROUP_WORKLOAD"
+variableGroupName="$VARIABLE_GROUP"
 
 if ! get_variable_group_id "$variableGroupName" "VARIABLE_GROUP_ID"; then
-	echo -e "$cyan--- Variable group $variableGroupName not found ---$reset"
-	variableGroupName="$VARIABLE_GROUP"
-
-	if ! get_variable_group_id "$variableGroupName" "VARIABLE_GROUP_ID"; then
-		echo -e "$bold_red--- Variable group $variableGroupName not found ---$reset"
-		echo "##vso[task.logissue type=error]Variable group $variableGroupName not found."
-		exit 2
-	fi
+	echo -e "$bold_red--- Variable group $variableGroupName not found ---$reset"
+	echo "##vso[task.logissue type=error]Variable group $variableGroupName not found."
+	exit 2
 
 fi
 export VARIABLE_GROUP_ID

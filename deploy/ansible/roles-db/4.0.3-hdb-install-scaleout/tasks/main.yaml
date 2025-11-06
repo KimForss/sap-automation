@@ -71,7 +71,7 @@
       Metadata:                        true
   register:                            azure_metadata
 
-- name:                                "4.0.3 - SAP HANA SCALE OUT: Show IMDS results"
+- name:                                "4.0.3 - SAP HANA SCALE OUT: Show Azure Instance Metadata results"
   ansible.builtin.debug:
     var:                               azure_metadata.json
     verbosity:                         2

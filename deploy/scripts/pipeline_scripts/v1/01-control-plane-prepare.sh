@@ -46,7 +46,7 @@ configure_devops
 
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-	configureNonDeployer "${tf_version:-1.12.2}"
+	configureNonDeployer "${tf_version:-1.13.3}"
 else
 	path=$(grep -m 1 "export PATH=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
 	export PATH=$PATH:$path
@@ -204,11 +204,14 @@ fi
 if printenv ARM_SUBSCRIPTION_ID; then
 	az account set --subscription "$ARM_SUBSCRIPTION_ID"
 	echo "Deployer subscription:               $ARM_SUBSCRIPTION_ID"
+	TF_subscription_id="$ARM_SUBSCRIPTION_ID"
+	export TF_subscription_id
+
 fi
 
-echo -e "$green--- Convert config files to UX format ---$reset"
-dos2unix -q "$deployer_tfvars_file_name"
-dos2unix -q "$library_tfvars_file_name"
+# echo -e "$green--- Convert config files to UX format ---$reset"
+# dos2unix -q "$deployer_tfvars_file_name"
+# dos2unix -q "$library_tfvars_file_name"
 
 DEPLOYER_KEYVAULT=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "${deployer_environment_file_name}" "DEPLOYER_KEYVAULT")
 if [ -n "$DEPLOYER_KEYVAULT" ]; then

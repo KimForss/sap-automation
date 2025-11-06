@@ -83,7 +83,7 @@ fi
 
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-	configureNonDeployer "${tf_version:-1.12.2}"
+	configureNonDeployer "${tf_version:-1.13.3}"
 	echo -e "$green--- az login ---$reset"
 	LogonToAzure $USE_MSI
 	return_code=$?
@@ -211,7 +211,7 @@ if [ "$NETWORK" != "$NETWORK_IN_FILENAME" ]; then
 	exit 2
 fi
 
-dos2unix -q "${workload_environment_file_name}"
+# dos2unix -q "${workload_environment_file_name}"
 
 TF_VAR_spn_keyvault_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$DEPLOYER_KEYVAULT' | project id, name, subscription" --query data[0].id --output tsv)
 
@@ -323,6 +323,7 @@ else
 		remove_variable "$VARIABLE_GROUP_ID" "DEPLOYER_STATE_FILENAME"
 		remove_variable "$VARIABLE_GROUP_ID" "Deployer_Key_Vault"
 		remove_variable "$VARIABLE_GROUP_ID" "TERRAFORM_STATE_STORAGE_ACCOUNT"
+		remove_variable "$VARIABLE_GROUP_ID" "TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME"
 		remove_variable "$VARIABLE_GROUP_ID" "KEYVAULT"
 	fi
 fi

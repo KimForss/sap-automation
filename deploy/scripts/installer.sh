@@ -271,7 +271,7 @@ fi
 if [ -n "$deployer_tfstate_key" ]; then
 	environment=$(echo "$deployer_tfstate_key" | awk -F'-' '{print $1}' | xargs)
 	region_code=$(echo "$deployer_tfstate_key" | awk -F'-' '{print $2}' | xargs)
-	network_logical_name=$(echo "$deployer_tfstate_	key" | awk -F'-' '{print $3}' | xargs)
+	network_logical_name=$(echo "$deployer_tfstate_key" | awk -F'-' '{print $3}' | xargs)
 fi
 
 if [ -z "$environment" ]; then
@@ -285,8 +285,6 @@ if [ -v SYSTEM_CONFIGURATION_FILE ]; then
 else
 	system_environment_file_name=$(get_configuration_file "$automation_config_directory" "$environment" "$region_code" "$network_logical_name")
 fi
-
-
 
 echo "Configuration file:                  $system_environment_file_name"
 echo "Deployment region:                   $region"
@@ -324,6 +322,17 @@ export TF_DATA_DIR="${param_dirname}/.terraform"
 
 init "${automation_config_directory}" "${generic_environment_file_name}" "${system_environment_file_name}"
 
+if [[ -z $REMOTE_STATE_SA ]]; then
+	load_config_vars "${system_environment_file_name}" "REMOTE_STATE_SA"
+	load_config_vars "${system_environment_file_name}" "REMOTE_STATE_RG"
+	load_config_vars "${system_environment_file_name}" "tfstate_resource_id"
+	load_config_vars "${system_environment_file_name}" "STATE_SUBSCRIPTION"
+	load_config_vars "${system_environment_file_name}" "ARM_SUBSCRIPTION_ID"
+else
+	save_config_vars "${system_environment_file_name}" REMOTE_STATE_SA
+fi
+
+
 tfstate_resource_id=$(az resource list --name "$REMOTE_STATE_SA" --subscription "$STATE_SUBSCRIPTION" --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
 TF_VAR_tfstate_resource_id=$tfstate_resource_id
 export TF_VAR_tfstate_resource_id
@@ -354,15 +363,6 @@ if [[ -n $STATE_SUBSCRIPTION ]]; then
 	account_set=1
 fi
 
-if [[ -z $REMOTE_STATE_SA ]]; then
-	load_config_vars "${system_environment_file_name}" "REMOTE_STATE_SA"
-	load_config_vars "${system_environment_file_name}" "REMOTE_STATE_RG"
-	load_config_vars "${system_environment_file_name}" "tfstate_resource_id"
-	load_config_vars "${system_environment_file_name}" "STATE_SUBSCRIPTION"
-	load_config_vars "${system_environment_file_name}" "ARM_SUBSCRIPTION_ID"
-else
-	save_config_vars "${system_environment_file_name}" REMOTE_STATE_SA
-fi
 
 deployer_tfstate_key_parameter=""
 
@@ -437,6 +437,36 @@ if [ "${deployment_system}" == sap_system ]; then
 		fi
 	fi
 fi
+
+if [[ -n $landscape_tfstate_key ]]; then
+	workloadZone_State_file_Size_String=$(az storage blob list --container-name tfstate --account-name "${REMOTE_STATE_SA}" --auth-mode login --query "[?name=='$landscape_tfstate_key'].properties.contentLength" --output tsv)
+
+	workloadZone_State_file_Size=$(expr "$workloadZone_State_file_Size_String")
+
+	if [ "$workloadZone_State_file_Size" -lt 50000 ]; then
+			print_banner "Installer" "Workload zone terraform state file ('$landscape_tfstate_key') is empty" "error"
+			unset TF_DATA_DIR
+
+			az storage blob list --container-name tfstate --account-name "${REMOTE_STATE_SA}" --auth-mode login --query "[].{name:name,size:properties.contentLength,lease:lease.status}" --output table
+			exit 2
+	fi
+fi
+
+if [[ -n $deployer_tfstate_key ]]; then
+
+  deployer_Statefile_Size_String=$(az storage blob list --container-name tfstate --account-name "${REMOTE_STATE_SA}" --auth-mode login --query "[?name=='$deployer_tfstate_key'].properties.contentLength" --output tsv)
+
+	deployer_Statefile_Size=$(expr "$deployer_Statefile_Size_String")
+
+	if [ "$deployer_Statefile_Size" -lt 50000 ]; then
+			print_banner "Installer" "Deployer terraform state file ('$deployer_tfstate_key') is empty" "error"
+			unset TF_DATA_DIR
+
+			az storage blob list --container-name tfstate --account-name "${REMOTE_STATE_SA}" --auth-mode login --query "[].{name:name,size:properties.contentLength,lease:lease.status}" --output table
+			exit 2
+	fi
+fi
+
 
 if [[ -z $STATE_SUBSCRIPTION ]]; then
 	load_config_vars "${system_environment_file_name}" "STATE_SUBSCRIPTION"
@@ -1106,7 +1136,7 @@ if [ "${deployment_system}" == sap_landscape ]; then
 			save_config_var "workload_zone_random_id" "${system_environment_file_name}"
 			custom_random_id="${workload_zone_random_id:0:3}"
 			sed -i -e /"custom_random_id"/d "${parameterfile}"
-			printf "# The parameter 'custom_random_id' can be used to control the random 3 digits at the end of the storage accounts and key vaults\ncustom_random_id=\"%s\"\n" "${custom_random_id}" >>"${var_file}"
+			printf "\n# The parameter 'custom_random_id' can be used to control the random 3 digits at the end of the storage accounts and key vaults\ncustom_random_id = \"%s\"\n" "${custom_random_id}" >>"${var_file}"
 
 		fi
 	fi
@@ -1122,7 +1152,7 @@ if [ "${deployment_system}" == sap_library ]; then
 		save_config_var "library_random_id" "${system_environment_file_name}"
 		custom_random_id="${library_random_id:0:3}"
 		sed -i -e /"custom_random_id"/d "${parameterfile}"
-		printf "# The parameter 'custom_random_id' can be used to control the random 3 digits at the end of the storage accounts and key vaults\ncustom_random_id=\"%s\"\n" "${custom_random_id}" >>"${var_file}"
+		printf "\n# The parameter 'custom_random_id' can be used to control the random 3 digits at the end of the storage accounts and key vaults\ncustom_random_id = \"%s\"\n" "${custom_random_id}" >>"${var_file}"
 
 	fi
 

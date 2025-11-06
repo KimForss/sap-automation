@@ -21,7 +21,7 @@ output "hdb_sid"                       {
 output "dns_info_vms"                  {
                                          description = "Database server DNS information"
                                          value       = local.enable_deployment ? (
-                                                         var.database_dual_nics ? (
+                                                         var.database_dual_network_interfaces ? (
                                                            zipmap(
                                                              compact(
                                                                concat(
@@ -124,7 +124,7 @@ output "database_loadbalancer_id"      {
 
 output "db_admin_ips"                  {
                                          description = "Database Admin IP information"
-                                         value       = local.enable_deployment && var.database_dual_nics ? (
+                                         value       = local.enable_deployment && var.database_dual_network_interfaces ? (
                                                          azurerm_network_interface.nics_dbnodes_admin[*].private_ip_address) : (
                                                          []
                                                        )
@@ -247,7 +247,7 @@ output "database_shared_disks"         {
                                          description = "List of Azure shared disks"
                                          value       = distinct(
                                                          flatten(
-                                                           [for vm in var.naming.virtualmachine_names.HANA_COMPUTERNAME :
+                                                           [for vm in azurerm_linux_virtual_machine.vm_dbnode[*].computer_name :
                                                              [for idx, disk in azurerm_virtual_machine_data_disk_attachment.cluster :
                                                                format("{ host: '%s', LUN: %d, type: 'ASD' }", vm, disk.lun)
                                                              ]
@@ -260,7 +260,7 @@ output "database_kdump_disks"          {
                                          description = "List of Azure disks for kdump"
                                          value       = distinct(
                                                          flatten(
-                                                           [for vm in var.naming.virtualmachine_names.HANA_COMPUTERNAME :
+                                                           [for vm in azurerm_linux_virtual_machine.vm_dbnode[*].computer_name :
                                                              [for idx, disk in azurerm_virtual_machine_data_disk_attachment.kdump :
                                                                format("{ host: '%s', LUN: %d, type: 'kdump' }", vm, disk.lun)
                                                              ]
@@ -293,6 +293,19 @@ output "observer_vms"                  {
                                          value       = local.enable_deployment && var.use_observer ? (
                                                          azurerm_linux_virtual_machine.observer[*].id) : (
                                                          [""]
+                                                       )
+                                       }
+
+output "observer_shared_disks"         {
+                                         description = "List of Azure shared disks on the majority maker"
+                                         value       = distinct(
+                                                         flatten(
+                                                           [for vm in azurerm_linux_virtual_machine.observer[*].computer_name :
+                                                             [for idx, disk in azurerm_virtual_machine_data_disk_attachment.cluster_observer :
+                                                               format("{ host: '%s', LUN: %d, type: 'ASD' }", vm, disk.lun)
+                                                             ]
+                                                           ]
+                                                         )
                                                        )
                                        }
 

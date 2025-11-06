@@ -116,11 +116,11 @@ if [ "$param_dirname" != '.' ]; then
 	exit 3
 fi
 
-if [ "$DEBUG" = true ]; then
+if [ "$DEBUG" == True ]; then
+	echo -e "${cyan}Enabling debug mode$reset_formatting"
 	set -x
 	set -o errexit
 fi
-
 # Check that parameter files have environment and location defined
 validate_key_parameters "$parameterfile"
 return_code=$?
@@ -299,7 +299,7 @@ echo ""
 
 # shellcheck disable=SC2086
 
-if terraform -chdir="$terraform_module_directory" plan -detailed-exitcode -input=false -out="$deployer_plan_name" $allParameters | tee plan_output.log; then
+if terraform -chdir="$terraform_module_directory" plan -detailed-exitcode -input=false $allParameters | tee plan_output.log; then
 	install_deployer_return_value=${PIPESTATUS[0]}
 else
 	install_deployer_return_value=${PIPESTATUS[0]}
@@ -319,14 +319,7 @@ else
 	echo ""
 	echo -e "${bold_red}Terraform plan:                      failed$reset_formatting"
 	echo ""
-	if [ -f "$deployer_plan_name" ]; then
-		echo "Removing the plan file: $deployer_plan_name"
-		# cleanup the plan file as we do not want to use it
-		rm -f "$deployer_plan_name"
-	fi
 
-	# shellcheck disable=SC2086
-	exit $install_deployer_return_value
 fi
 
 if [ 1 == $install_deployer_return_value ]; then
@@ -372,8 +365,8 @@ install_deployer_return_value=0
 
 if [ -n "${approve}" ]; then
 	# shellcheck disable=SC2086
-	if terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" \
-		-no-color -compact-warnings -json -input=false -auto-approve "$deployer_plan_name" | tee apply_output.json; then
+	if terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" $allParameters \
+		-no-color -compact-warnings -json -input=false -auto-approve | tee apply_output.json; then
 		install_deployer_return_value=${PIPESTATUS[0]}
 	else
 		install_deployer_return_value=${PIPESTATUS[0]}
@@ -397,7 +390,7 @@ if [ -n "${approve}" ]; then
 	fi
 else
 	# shellcheck disable=SC2086
-	if terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}"; then
+	if terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" $allParameters; then
 		install_deployer_return_value=$?
 	else
 		install_deployer_return_value=$?
@@ -539,7 +532,7 @@ deployer_random_id=$(terraform -chdir="${terraform_module_directory}" output -no
 if [ -n "${deployer_random_id}" ]; then
 	custom_random_id="${deployer_random_id:0:3}"
 	sed -i -e /"custom_random_id"/d "${parameterfile}"
-	printf "# The parameter 'custom_random_id' can be used to control the random 3 digits at the end of the storage accounts and key vaults\ncustom_random_id=\"%s\"\n" "${custom_random_id}" >>"${var_file}"
+	printf "\n# The parameter 'custom_random_id' can be used to control the random 3 digits at the end of the storage accounts and key vaults\ncustom_random_id = \"%s\"\n" "${custom_random_id}" >>"${var_file}"
 fi
 
 ARM_CLIENT_ID=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_client_id | tr -d \")
