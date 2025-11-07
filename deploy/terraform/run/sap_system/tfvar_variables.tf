@@ -562,6 +562,10 @@ variable "database_high_availability"           {
 variable "database_cluster_type"                {
                                                   description   = "Cluster quorum type; AFA (Azure Fencing Agent), ASD (Azure Shared Disk), ISCSI"
                                                   default       = "AFA"
+                                                  validation    {
+                                                                  condition     = contains(["AFA","ASD","ISCSI"], var.database_cluster_type)
+                                                                  error_message = "The 'database_cluster_type' variable must be one of the following values when database_high_availability is true: AFA, ASD, ISCSI."
+                                                                }
                                                 }
 
 variable "database_vm_zones"                    {
@@ -810,6 +814,10 @@ variable "scs_high_availability"                {
 variable "scs_cluster_type"                     {
                                                   description   = "Cluster quorum type; AFA (Azure Fencing Agent), ASD (Azure Shared Disk), ISCSI"
                                                   default       = "AFA"
+                                                  validation    {
+                                                    condition     = contains(["AFA","ASD","ISCSI"], var.scs_cluster_type)
+                                                    error_message = "The 'scs_cluster_type' variable must be one of the following values when scs_high_availability is true: AFA, ASD, ISCSI."
+                                                  } 
                                                 }
 
 variable "scs_server_zones"                     {
