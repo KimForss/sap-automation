@@ -373,7 +373,7 @@
 # Step: 10-03
 # Description:
 #
-    - name:                             "0.1 BoM ValidatorRemove temporary directory"
+    - name:                             "0.1 BoM Validator - Remove temporary directory"
       ansible.builtin.file:
         path:                           "{{ download_directory }}/bom/{{ new_bom_name }}"
         state:                          absent
@@ -385,9 +385,11 @@
 # Step: 10-04
 # Description:
 #
-    - name:                                "0.1 BoM ValidatorShow Storage Account BOM folder path"
+    - name:                                "0.1 BoM Validator - Show Storage Account BOM folder path"
       ansible.builtin.debug:
-        msg:                               "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ new_bom_name }}"
+        msg:
+          - "Bill of Materials ({{ new_bom_name }}) created."
+          - "Software download location: {{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ new_bom_name }}"
 # Step: 10-04 - END
 # -------------------------------------+---------------------------------------8
 
@@ -398,9 +400,11 @@
 # Step: 11
 # Description:  When Storage Account access is disabled, show local path.
 #
-- name:                                "0.1 BoM ValidatorShow local BOM folder path"
+- name:                                "0.1 BoM Validator - Show local BOM folder path"
   ansible.builtin.debug:
-    msg:                               "{{ download_directory }}/bom/{{ new_bom_name }}"
+    msg:
+          - "Bill of Materials ({{ new_bom_name }}) created."
+          - "Software download location: {{ download_directory }}/bom/{{ new_bom_name }}"
   when:
     - not sa_enabled
 # Step: 11 - END

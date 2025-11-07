@@ -64,7 +64,7 @@
 # 20230117 MKD (DynBOM) - END   DELETE
 # -------------------------------------+
 
-    - name:                             "BOM Downloader: Run the bom-validator"
+    - name:                             "Software download playbook - Download the software from SAP"
       ansible.builtin.include_role:
         name:                           roles-sap/0.1-bom-validator
       vars:
