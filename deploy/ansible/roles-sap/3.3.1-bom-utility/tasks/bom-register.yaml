@@ -45,9 +45,17 @@
 # Step: 02 - END
 # -------------------------------------+---------------------------------------8
 
+- name:                                 "3.3.1 BoM Validator - Initialize names"
+  ansible.builtin.set_fact:
+    application_bom_name:               "{{ bom_base_name.split('-')[0] }}"
+    database_bom_name:                  "{{ bom_base_name.split('-')[1] | default('')}}"
+    new_bom_name:                       "{{ bom_base_name.split('-')[2] | default(bom_base_name.split('-')[0]) }}{{ bom_suffix }}"
+    bom_dependencies:                   "{{ bom.materials.dependencies | default([]) }}"
+
 - name:                                "3.3.1 BoM Processing - Set the new name"
   ansible.builtin.set_fact:
     new_bom_name:                      "{{ bom_base_name }}{{ bom_suffix }}"
+  when:                                new_bom_name is not defined
 
 - name:                                "3.3.1 BoM Processing - Show new name"
   ansible.builtin.debug:
@@ -58,7 +66,7 @@
 # Step: 03
 # Description:  Check Storage Account for BOM when SA is enabled
 #
-- name:                                 "Check Storage Account for BOM block"
+- name:                                 "3.3.1 BoM Processing - Check Storage Account for BOM block"
   block:
 
 # -------------------------------------+---------------------------------------8

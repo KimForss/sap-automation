@@ -32,23 +32,23 @@
 #
 # -------------------------------------+---------------------------------------8
 
-- name:                                "3.3.1 BoM Template Processing: - Set the new name"
+- name:                                 "3.3.1 BoM Validator - Initialize names"
   ansible.builtin.set_fact:
-    new_bom_name:                      "{{ bom_base_name }}{{ bom_suffix }}"
+    application_bom_name:               "{{ bom_base_name.split('-')[0] }}"
+    database_bom_name:                  "{{ bom_base_name.split('-')[1] | default('')}}"
+    new_bom_name:                       "{{ bom_base_name.split('-')[2] | default(bom_base_name.split('-')[0]) }}{{ bom_suffix }}"
+    bom_dependencies:                   "{{ bom.materials.dependencies | default([]) }}"
 
 #   0x) Create hidden directory for parameter files
 - name:                                "3.3.1 BoM Template processing: Create hidden directory"
   ansible.builtin.file:
-    path:                              "{{ param_directory }}"
+    path:                              "{{ item }}"
     state:                             directory
     mode:                              '0755'
-
-#   Ensure the download directory exists on the agent
-- name:                                "3.3.1 BoM Template processing: Ensure download directory exists"
-  ansible.builtin.file:
-    path:                              "{{ download_directory }}/bom"
-    state:                             directory
-    mode:                              '0755'
+    owner:                             "{{ orchestration_ansible_user if bom_processing_become else omit }}"
+  loop:
+    - "{{ param_directory }}"
+    - "{{ param_directory.bom }}"
 
 - name:                                "3.3.1 BoM Template processing: {{ bom_name }} Download: {{ sap_inifile_template }} from the storage account"
   ansible.builtin.get_url:
@@ -76,7 +76,6 @@
       ansible.builtin.template:
         src:                           "{{ download_directory }}/bom/{{ sap_inifile_template }}"
         dest:                          "{{ param_directory }}/{{ sap_inifile }}"
-        # remote_src:                    yes
         mode:                          0644
         force:                         true
 
