@@ -720,6 +720,11 @@ if [ 0 -eq "$return_code" ]; then
 			set_value_with_key "WEBAPP_ID" "${WEBAPP_ID}" "env"
 			WEBAPP_URL_BASE=$(echo "$WEBAPP_ID" | cut -d '/' -f 9)
 			set_value_with_key "WEBAPP_URL_BASE" "${WEBAPP_URL_BASE}" "env"
+			set_output_variable "HAS_WEBAPP" "true"
+			set_output_variable "APPSERVICE_NAME" "$WEBAPP_URL_BASE"
+			set_output_variable "WEBAPP_ID" "$WEBAPP_ID"
+		else
+			set_output_variable "HAS_WEBAPP" "false"
 		fi
 	fi
 fi
