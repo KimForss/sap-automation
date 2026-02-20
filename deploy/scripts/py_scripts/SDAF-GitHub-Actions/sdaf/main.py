@@ -268,7 +268,7 @@ def main():
 
     # Create App Registration for the Web Application
     app_reg_data = None
-    if user_data.get("enable_webapp") and user_data.get("app_registration_name"):
+    if user_data.get("use_webapp") and user_data.get("app_registration_name"):
         print("\nCreating App Registration for the SDAF Web Application...")
         app_reg_data = azure_ops.create_app_registration(user_data["app_registration_name"])
         if not app_reg_data:
@@ -396,7 +396,7 @@ def main():
 
     print(f"   - Subscription ID: {user_data['subscription_id']}")
 
-    if user_data.get("enable_webapp"):
+    if user_data.get("use_webapp"):
         print(f"\n- Web Application:")
         print(f"   - App Registration Name: {user_data.get('app_registration_name')}")
         if app_reg_data:

@@ -452,10 +452,10 @@ def get_user_input():
     print("\n--- Web Application Configuration ---")
     print("The SDAF Web Application provides a UI for configuration management.")
     print("Enabling this will create an Entra ID App Registration for authentication.")
-    enable_webapp = input("Do you want to enable the SDAF Web Application? (y/n): ").strip().lower() in ["y", "yes"]
+    use_webapp = input("Do you want to enable the SDAF Web Application? (y/n): ").strip().lower() in ["y", "yes"]
 
     app_registration_name = ""
-    if enable_webapp:
+    if use_webapp:
         default_app_name = f"{control_plane_name}-app"
         entered_name = input(
             f"Enter the App Registration display name (press Enter to use default '{default_app_name}'): "
@@ -498,6 +498,6 @@ def get_user_input():
         "resource_group": resource_group_name,
         "docker_image": docker_image,
         # Web Application parameters
-        "enable_webapp": enable_webapp,
+        "use_webapp": use_webapp,
         "app_registration_name": app_registration_name,
     }
