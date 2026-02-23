@@ -19,7 +19,7 @@
         'pas_inst_no': '{{ pas_instance_number }}',
         'app_inst_no': '{{ app_instance_number }}'
       }
-    nfs_fs_type:                       "{% if use_eit_for_afs %}'aznfs'{% else %}'nfs4'{% endif %}"
+    nfs_fs_type:                       "{% if use_eit_for_afs %}aznfs{% else %}nfs4{% endif %}"
 
 - name:                                "2.6.0 AFS Mounts - Create list of all_sap_mounts to support "
   ansible.builtin.set_fact:
