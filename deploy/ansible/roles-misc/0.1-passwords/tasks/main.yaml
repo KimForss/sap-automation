@@ -94,7 +94,7 @@
 
     - name:                            "0.1 Password - Construct password suffix"
       ansible.builtin.set_fact:
-        password_suffix:               "{{ lookup('ansible.builtin.password', '/dev/null', chars=['ascii_lowercase', 'digits', 'ascii_uppercase', '_#$.'], length=10) }}"
+        password_suffix:               "{{ lookup('ansible.builtin.password', '/dev/null', chars=['ascii_lowercase', 'digits', 'ascii_uppercase', '#.£€'], length=10) }}"
 
     - name:                            "0.1 Password - Construct password"
       ansible.builtin.set_fact:
