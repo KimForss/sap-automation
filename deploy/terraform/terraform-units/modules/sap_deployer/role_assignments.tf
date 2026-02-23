@@ -162,7 +162,7 @@ resource "azurerm_role_assignment" "resource_group_user_access_admin_spn" {
   #                                            )
   #                                            OR
   #                                            (
-  #                                             @Resource[Microsoft.Authori.14zation/roleAssignments:RoleDefinitionId] ForAnyOfAnyValues:GuidNotEquals {ba92f5b4-2d11-453d-a403-e96b0029c9fe}
+  #                                             @Resource[Microsoft.Authorization/roleAssignments:RoleDefinitionId] ForAnyOfAnyValues:GuidNotEquals {ba92f5b4-2d11-453d-a403-e96b0029c9fe}
   #                                            )
   #                                           )
   #                                           EOT
