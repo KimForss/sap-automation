@@ -121,7 +121,7 @@
     - name:                            "1.1 Swap - Run Azure NVMe temp disk configuration helper script"
       ansible.builtin.command:         /usr/local/bin/azure-nvme-swap-conf ext4 /mnt/resource
       register:                        nvme_swap_configured
-      changed_when:                    nvme_swap_configured.rc == 0 and "'No changes were necessary' not in nvme_swap_configured.stdout"
+      changed_when:                    nvme_swap_configured.rc == 0 and "'Skipping' not in nvme_swap_configured.stdout"
 
 - name:                                "1.1 Swap - Check for (waagent_conf)"
   ansible.builtin.stat:
