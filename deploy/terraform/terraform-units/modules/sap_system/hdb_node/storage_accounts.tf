@@ -27,13 +27,12 @@ resource "azurerm_storage_account" "hanashared" {
                                            ""
                                          ), 0, 24)
 
-
   resource_group_name                  = var.resource_group[0].name
   location                             = var.resource_group[0].location
   account_tier                         = "Premium"
   account_replication_type             = "ZRS"
   account_kind                         = "FileStorage"
-  https_traffic_only_enabled            = false
+  https_traffic_only_enabled           = var.AFS_enable_encryption_in_transit
   min_tls_version                      = "TLS1_2"
   allow_nested_items_to_be_public      = false
   cross_tenant_replication_enabled     = false
