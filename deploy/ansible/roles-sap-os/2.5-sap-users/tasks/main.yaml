@@ -41,11 +41,22 @@
 
 - name:                                "2.5 SAP Users: - Ensure passlib is installed"
   when:                                ansible_os_family | upper == "REDHAT"
-  ansible.builtin.pip:
-    name:                              python3-passlib
-    state:                             present
-  vars:
-    ansible_python_interpreter:        "{{ python_version }}"
+  block:
+    - name:                            "2.5 SAP Users: - Install passlib using OS package manager"
+      ansible.builtin.package:
+        name:                          python3-passlib
+        state:                         present
+  rescue:
+    - name:                            "2.5 SAP Users: - Ensure pip is installed"
+      ansible.builtin.package:
+        name:                          python3-pip
+        state:                         present
+
+    - name:                            "2.5 SAP Users: - Install passlib using pip"
+      ansible.builtin.pip:
+        name:                          passlib
+        state:                         present
+        executable:                    pip3
   tags:
     - always
 
