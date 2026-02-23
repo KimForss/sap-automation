@@ -938,6 +938,12 @@ variable "ANF_install_volume_zone"                 {
                                                      default     = [""]
                                                    }
 
+variable "ANF_export_policy_client_access_list"     {
+                                                     description = "If defined, specifies the allowed client list for ANF export policy"
+                                                     type        = list(string)
+                                                     default     = []
+                                                   }
+
 variable "use_AFS_for_shared_storage"              {
                                                      description = "If true, will use AFS for all shared storage."
                                                      type        = bool
