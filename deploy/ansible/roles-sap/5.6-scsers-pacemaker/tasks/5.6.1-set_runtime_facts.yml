@@ -126,7 +126,7 @@
                                        {%-      set _nfsopts = 'noresvport,vers=4,minorversion=1,sec=sys' -%}
                                        {%-    endif -%}
                                        {%- endif -%}
-                                       {%- if use_eit_for_afs | default(false) -%}
+                                       {%- if use_eit_for_afs | default(false) and NFS_version == "NFSv4.1" -%}
                                        {%-   set _nfsopts = _nfsopts ~ ',_netdev' -%}
                                        {%- endif -%}
                                        {{- _nfsopts -}}
