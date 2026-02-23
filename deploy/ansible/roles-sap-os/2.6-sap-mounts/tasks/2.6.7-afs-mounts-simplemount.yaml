@@ -24,9 +24,9 @@
   ansible.builtin.set_fact:
     all_sap_mounts:                    "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sap_mounts | default([]) + [this_sid] }}{% endif %}"
 
-- name:                            "2.6.0 AFS Mounts - Set the NFSmount options"
+- name:                                "2.6.0 AFS Mounts - Set the NFSmount options"
   ansible.builtin.set_fact:
-    afs_mnt_options:               "{% if use_eit_for_afs %}noresvport,vers=4,minorversion=1,sec=sys,proto=tcp,_netdev{% else %}noresvport,vers=4,minorversion=1,sec=sys{% endif %}"
+    afs_mnt_options:                   "{% if use_eit_for_afs %}noresvport,vers=4,minorversion=1,sec=sys,proto=tcp,_netdev{% else %}noresvport,vers=4,minorversion=1,sec=sys{% endif %}"
 
 - name:                                "AFS Mount: Get the Server name list"
   ansible.builtin.set_fact:
@@ -156,8 +156,8 @@
       'temppath':           'sapinstall',
       'folder':             '{{ bom_base_name }}',
       'mount':              '{{ usr_sap_install_mountpoint }}',
-      'opts':               'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp',
-      'fstype':             'nfs4',
+      'opts':               "rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp{{ ',_netdev' if use_eit_for_afs else '' }}",
+      'fstype':             "{{ nfs_fs_type }}",
       'owner':              '{{ sidadm_uid }}',
       'path':               '/usr/sap/install',
       'permissions':        '0777',
@@ -283,7 +283,7 @@
         state:                         mounted
       register:                        sys_mounted
       loop:
-        - { type: 'nfs4',  src: '{{ sap_mnt }}/usrsap{{ sap_sid | upper }}', path: '/usr/sap/{{ sap_sid | upper }}' }
+        - { type: "{{ nfs_fs_type }}",  src: '{{ sap_mnt }}/usrsap{{ sap_sid | upper }}', path: '/usr/sap/{{ sap_sid | upper }}' }
   rescue:
     - name:                            "AFS Mount: Pause for 15 seconds"
       ansible.builtin.pause:
@@ -306,7 +306,7 @@
         state:                         mounted
 
       loop:
-        - { type: 'nfs4',  src: '{{ sap_mnt }}/usrsap{{ sap_sid | upper }}', path: '/usr/sap/{{ sap_sid | upper }}' }
+        - { type: "{{ nfs_fs_type }}",  src: '{{ sap_mnt }}/usrsap{{ sap_sid | upper }}', path: '/usr/sap/{{ sap_sid | upper }}' }
   tags:
     - sap_app_ha_sys_mount
 
@@ -319,8 +319,8 @@
       'temppath':          'saptrans',
       'mount':             '{{ sap_trans }}',
       'owner':             'root',
-      'opts':              'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp',
-      'fstype':            'nfs4',
+      'opts':              "rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp{{ ',_netdev' if use_eit_for_afs else '' }}",
+      'fstype':            "{{ nfs_fs_type }}",
       'path':              '/usr/sap/trans',
       'permissions':       '0775',
       'set_chattr_on_dir': false,
@@ -343,8 +343,8 @@
       'type':              'shared',
       'temppath':          'shared',
       'mount':             "{% if ansible_hostname in query('inventory_hostnames', '{{ sap_sid | upper }}_DB')[0::2] %}{{ hana_shared_mountpoint[0] }}{% else %}{{ hana_shared_mountpoint[1] }}{% endif %}",
-      'opts':              'vers=4,minorversion=1,sec=sys',
-      'fstype':            'nfs4',
+      'opts':              "vers=4,minorversion=1,sec=sys{{ ',_netdev' if use_eit_for_afs else '' }}",
+      'fstype':            "{{ nfs_fs_type }}",
       'owner':             '{{ sidadm_uid }}',
       'path':              '/hana/shared',
       'permissions':       '0775',
