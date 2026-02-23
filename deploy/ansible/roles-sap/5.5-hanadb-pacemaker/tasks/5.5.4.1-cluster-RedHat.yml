@@ -305,15 +305,6 @@
               register:                update_priority_nc
               failed_when:             update_priority_nc.rc > 1
 
-        - name:                        "5.5.4.1 HANA Cluster configuration - REDHAT - move SAP HANA clone to run on Primary Node"
-          when:
-                                       - database_active_active | default(false)
-                                       - not (db_scale_out | default(false))
-                                       - ansible_hostname == primary_instance_name
-          ansible.builtin.shell:       pcs resource move SAPHana_{{ db_sid | upper }}_{{ db_instance_number }}-clone {{ primary_instance_name }}
-          register:                    move_saphana
-          failed_when:                 move_saphana.rc > 1
-
 
     - name:                            "5.5.4.1 HANA Cluster configuration - REDHAT - Disable Maintenance mode for the cluster"
       ansible.builtin.shell:           pcs property set maintenance-mode=false
@@ -361,6 +352,16 @@
       retries:                         12
       delay:                           10
       until:                           "(primary_instance_name + ' ' + secondary_instance_name) in hana_cluster_resource_check.stdout or (secondary_instance_name + ' ' + primary_instance_name) in hana_cluster_resource_check.stdout"
+
+    - name:                        "5.5.4.1 HANA Cluster configuration - REDHAT - move SAP HANA clone to run on Primary Node"
+      when:
+                                    - database_active_active | default(false)
+                                    - not (db_scale_out | default(false))
+                                    - ansible_hostname == primary_instance_name
+                                    - is_pcmk_ver_gt_204
+      ansible.builtin.shell:       pcs resource move SAPHana_{{ db_sid | upper }}_{{ db_instance_number }}-clone {{ primary_instance_name }}
+      register:                    move_saphana
+      failed_when:                 move_saphana.rc > 1
 
 # End of HANA clustering resources
 
