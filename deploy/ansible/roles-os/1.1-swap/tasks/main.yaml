@@ -74,6 +74,30 @@
 - name:                                "1.1 Swap - Configure NVMe VMs for Swap"
   when:                                use_nvme_disks and swap_size == 0
   block:
+    # Install required dependencies for the NVMe swap helper script
+    - name:                            "1.1 Swap - Install NVMe swap dependencies (RHEL)"
+      when:                            ansible_os_family | upper == "REDHAT"
+      ansible.builtin.dnf:
+        name:
+          - nvme-cli
+          - mdadm
+          - gdisk
+        state:                         present
+        disablerepo:                   "epel*"
+        skip_broken:                   true
+        nobest:                        true
+
+    - name:                            "1.1 Swap - Install NVMe swap dependencies (SUSE)"
+      when:                            ansible_os_family | upper == "SUSE"
+      ansible.builtin.package:
+        name:
+          - nvme-cli
+          - mdadm
+          - gdisk
+        state:                         present
+      environment:
+        ZYPP_LOCK_TIMEOUT:             "20"
+
     # copy nvme disk config script for temporary disks
     - name:                            "1.1 Swap - Create Azure NVMe temp disk configuration helper script"
       ansible.builtin.copy:
