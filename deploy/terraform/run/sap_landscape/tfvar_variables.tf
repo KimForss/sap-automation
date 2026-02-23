@@ -944,7 +944,7 @@ variable "use_AFS_for_shared_storage"              {
                                                      default     = false
                                                    }
 
-variable AFS_enable_encryption_in_transit          {
+variable "AFS_enable_encryption_in_transit"        {
                                                      description = "Enable encryption in transit for Azure Files"
                                                      type        = bool
                                                      default     = false

@@ -150,9 +150,13 @@
 #               account and container vars are never used if sa_enabled is False
 #
 
-- name:                                "0.1 BoM Validator - Initialize names"
+- name:                                "0.1 BoM Validator - Initialize bom_parts"
   ansible.builtin.set_fact:
     bom_parts:                          "{{ bom_base_name.split('-') }}"
+
+
+- name:                                "0.1 BoM Validator - Initialize names"
+  ansible.builtin.set_fact:
     root_bom_name:                     "{{ bom_parts[0] }}"
     database_bom_name:                 "{{ bom_parts[1] if bom_parts|length > 1 else '' }}"
     kernel_bom_name:                   "{{ bom_parts[2] if bom_parts|length > 2 else '' }}"
