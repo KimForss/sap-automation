@@ -125,7 +125,7 @@
 
         - name:                        "5.0.2. CS Install High availability installation - ERS - Show start installation message"
           ansible.builtin.debug:
-            msg:                       "Starting sapinst for {{ sid_to_be_deployed.sid | upper }}. Please wait"
+            msg:                       "Starting ERS Installation using sapinst for {{ sid_to_be_deployed.sid | upper }}. Please wait"
 
         - name:                        "5.0.2. CS Install High availability installation - ERS - Run 'sapinst'"
           ansible.builtin.shell: |
