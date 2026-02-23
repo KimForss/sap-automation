@@ -70,7 +70,12 @@ else {
     $ARM_SUBSCRIPTION_ID = Read-Host "Please enter the Subscription ID"
   }
   az logout
-  az login --service-principal -u $ARM_CLIENT_ID -p $ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID --output none
+# <BEGIN> MKD 20260217
+# AZ CLI 2.83 - syntax for --service-principal user --username NOT --client-id
+# Update for syntax consistancy across scripts - use the same syntax as in helper.sh and script_helpers.sh
+  # az login --service-principal -u $ARM_CLIENT_ID -p $ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID --output none
+	az login --service-principal --username "$ARM_CLIENT_ID" --password="$ARM_CLIENT_SECRET" --tenant "$ARM_TENANT_ID" --output none
+# <END>   MKD 20260217
 }
 
 $ARM_SUBSCRIPTION_ID = $Env:ARM_SUBSCRIPTION_ID

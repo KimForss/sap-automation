@@ -196,7 +196,11 @@ function LogonToAzure() {
 		echo "Deployment credentials:              Service Principal"
 		echo "Deployment credential ID (SPN):      $ARM_CLIENT_ID"
 		unset ARM_USE_MSI
-		az login --service-principal --client-id "$ARM_CLIENT_ID" --password="$ARM_CLIENT_SECRET" --tenant "$ARM_TENANT_ID" --output none
+# <BEGIN> MKD 20260217
+# AZ CLI 2.83 - syntax for --service-principal user --username NOT --client-id
+		# az login --service-principal --client-id "$ARM_CLIENT_ID" --password="$ARM_CLIENT_SECRET" --tenant "$ARM_TENANT_ID" --output none
+		az login --service-principal --username "$ARM_CLIENT_ID" --password="$ARM_CLIENT_SECRET" --tenant "$ARM_TENANT_ID" --output none
+# <END>   MKD 20260217
 		echo "Logged on as:"
 		az account show --query user --output yaml
 		TF_VAR_use_spn=true
