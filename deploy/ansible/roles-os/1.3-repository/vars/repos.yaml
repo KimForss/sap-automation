@@ -24,26 +24,26 @@ repos:
     - { tier:   'os', repo: 'epel', url: 'https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm', state: 'absent' }
   redhat8.1:
   redhat8.2:
-    - { tier:   'os', repo: 'microsoft', url: 'https://packages.microsoft.com/config/rhel/8/packages-microsoft-prod.rpm', state: 'present' }
+    - { tier:   'os', repo: 'Microsoft Production', url: 'https://packages.microsoft.com/rhel/8/prod/', state: 'present' }
   redhat8.4:
-    - { tier:   'os', repo: 'microsoft', url: 'https://packages.microsoft.com/config/rhel/8/packages-microsoft-prod.rpm', state: 'present' }
+    - { tier:   'os', repo: 'Microsoft Production', url: 'https://packages.microsoft.com/rhel/8/prod', state: 'present' }
   redhat8.6:
-    - { tier:   'os', repo: 'microsoft', url: 'https://packages.microsoft.com/config/rhel/8/packages-microsoft-prod.rpm', state: 'present' }
+    - { tier:   'os', repo: 'Microsoft Production', url: 'https://packages.microsoft.com/rhel/8/prod', state: 'present' }
   redhat8.8:
-    - { tier:   'os', repo: 'microsoft', url: 'https://packages.microsoft.com/config/rhel/8/packages-microsoft-prod.rpm', state: 'present' }
+    - { tier:   'os', repo: 'Microsoft Production', url: 'https://packages.microsoft.com/rhel/8/prod', state: 'present' }
   redhat8.9:
   redhat8.10:
-    - { tier:   'os', repo: 'microsoft', url: 'https://packages.microsoft.com/config/rhel/8/packages-microsoft-prod.rpm', state: 'present' }
+    - { tier:   'os', repo: 'Microsoft Production', url: 'https://packages.microsoft.com/rhel/8/prod', state: 'present' }
   redhat9.0:
-    - { tier:   'os', repo: 'microsoft', url: 'https://packages.microsoft.com/config/rhel/9/packages-microsoft-prod.rpm', state: 'present' }
+    - { tier:   'os', repo: 'Microsoft Production', url: 'https://packages.microsoft.com/rhel/9/prod', state: 'present' }
   redhat9.2:
-    - { tier:   'os', repo: 'microsoft', url: 'https://packages.microsoft.com/config/rhel/9/packages-microsoft-prod.rpm', state: 'present' }
+    - { tier:   'os', repo: 'Microsoft Production', url: 'https://packages.microsoft.com/rhel/9/prod', state: 'present' }
   redhat9.4:
-    - { tier:   'os', repo: 'microsoft', url: 'https://packages.microsoft.com/config/rhel/9/packages-microsoft-prod.rpm', state: 'present' }
+    - { tier:   'os', repo: 'Microsoft Production', url: 'https://packages.microsoft.com/rhel/9/prod', state: 'present' }
   redhat9.6:
-    - { tier:   'os', repo: 'microsoft', url: 'https://packages.microsoft.com/config/rhel/9/packages-microsoft-prod.rpm', state: 'present' }
+    - { tier:   'os', repo: 'Microsoft Production', url: 'https://packages.microsoft.com/rhel/9/prod', state: 'present' }
   redhat10.0:
-    - { tier:   'os', repo: 'microsoft', url: 'https://packages.microsoft.com/config/rhel/10/packages-microsoft-prod.rpm', state: 'present' }
+    - { tier:   'os', repo: 'Microsoft Production', url: 'https://packages.microsoft.com/rhel/10/prod', state: 'present' }
 
   # SLES
   sles12.3:
@@ -53,15 +53,15 @@ repos:
   sles_sap15.1:
   sles_sap15.2:
   sles_sap15.3:
-    - { tier:   'os', repo: 'microsoft', url: 'https://packages.microsoft.com/config/sles/15/packages-microsoft-prod.rpm', state: 'present' }
+    - { tier:   'os', repo: 'Microsoft Production', url: 'https://packages.microsoft.com/sles/15/prod/', state: 'present' }
   sles_sap15.4:
-    - { tier:   'os', repo: 'microsoft', url: 'https://packages.microsoft.com/config/sles/15/packages-microsoft-prod.rpm', state: 'present' }
+    - { tier:   'os', repo: 'Microsoft Production', url: 'https://packages.microsoft.com/sles/15/prod/', state: 'present' }
   sles_sap15.5:
-    - { tier:   'os', repo: 'microsoft', url: 'https://packages.microsoft.com/config/sles/15/packages-microsoft-prod.rpm', state: 'present' }
+    - { tier:   'os', repo: 'Microsoft Production', url: 'https://packages.microsoft.com/sles/15/prod/', state: 'present' }
   sles_sap15.6:
-    - { tier:   'os', repo: 'microsoft', url: 'https://packages.microsoft.com/config/sles/15/packages-microsoft-prod.rpm', state: 'present' }
+    - { tier:   'os', repo: 'Microsoft Production', url: 'https://packages.microsoft.com/sles/15/prod/', state: 'present' }
   sles_sap15.7:
-    - { tier:   'os', repo: 'microsoft', url: 'https://packages.microsoft.com/config/sles/15/packages-microsoft-prod.rpm', state: 'present' }
+    - { tier:   'os', repo: 'Microsoft Production', url: 'https://packages.microsoft.com/sles/15/prod/', state: 'present' }
   sles15.3:
   sles15.4:
   sles15.5:
@@ -73,24 +73,24 @@ repos:
   oraclelinux8.2:
   oraclelinux8.3:
   oraclelinux8.4:
-    - { tier:   'os', repo: 'microsoft', url: 'https://packages.microsoft.com/config/rhel/8/packages-microsoft-prod.rpm', state: 'present' }
+    - { tier:   'os', repo: 'Microsoft Production', url: 'https://packages.microsoft.com/rhel/8/prod', state: 'present' }
   oraclelinux8.5:
-    - { tier:   'os', repo: 'microsoft', url: 'https://packages.microsoft.com/config/rhel/8/packages-microsoft-prod.rpm', state: 'present' }
+    - { tier:   'os', repo: 'Microsoft Production', url: 'https://packages.microsoft.com/rhel/8/prod', state: 'present' }
   oraclelinux8.6:
-    - { tier:   'os', repo: 'microsoft', url: 'https://packages.microsoft.com/config/rhel/8/packages-microsoft-prod.rpm', state: 'present' }
+    - { tier:   'os', repo: 'Microsoft Production', url: 'https://packages.microsoft.com/rhel/8/prod', state: 'present' }
   oraclelinux8.7:
-    - { tier:   'os', repo: 'microsoft', url: 'https://packages.microsoft.com/config/rhel/8/packages-microsoft-prod.rpm', state: 'present' }
+    - { tier:   'os', repo: 'Microsoft Production', url: 'https://packages.microsoft.com/rhel/8/prod', state: 'present' }
   oraclelinux8.8:
-    - { tier:   'os', repo: 'microsoft', url: 'https://packages.microsoft.com/config/rhel/8/packages-microsoft-prod.rpm', state: 'present' }
+    - { tier:   'os', repo: 'Microsoft Production', url: 'https://packages.microsoft.com/rhel/8/prod', state: 'present' }
   oraclelinux8.9:
-    - { tier:   'os', repo: 'microsoft', url: 'https://packages.microsoft.com/config/rhel/8/packages-microsoft-prod.rpm', state: 'present' }
+    - { tier:   'os', repo: 'Microsoft Production', url: 'https://packages.microsoft.com/rhel/8/prod', state: 'present' }
   oraclelinux8.10:
-    - { tier:   'os', repo: 'microsoft', url: 'https://packages.microsoft.com/config/rhel/8/packages-microsoft-prod.rpm', state: 'present' }
+    - { tier:   'os', repo: 'Microsoft Production', url: 'https://packages.microsoft.com/rhel/8/prod', state: 'present' }
   oraclelinux9.0:
-      - { tier:   'os', repo: 'microsoft', url: 'https://packages.microsoft.com/config/rhel/9/packages-microsoft-prod.rpm', state: 'present' }
+      - { tier:   'os', repo: 'Microsoft Production', url: 'https://packages.microsoft.com/rhel/9/prod', state: 'present' }
   oraclelinux9.2:
-      - { tier:   'os', repo: 'microsoft', url: 'https://packages.microsoft.com/config/rhel/9/packages-microsoft-prod.rpm', state: 'present' }
+      - { tier:   'os', repo: 'Microsoft Production', url: 'https://packages.microsoft.com/rhel/9/prod', state: 'present' }
   oraclelinux9.4:
-      - { tier:   'os', repo: 'microsoft', url: 'https://packages.microsoft.com/config/rhel/9/packages-microsoft-prod.rpm', state: 'present' }
+      - { tier:   'os', repo: 'Microsoft Production', url: 'https://packages.microsoft.com/rhel/9/prod', state: 'present' }
   oraclelinux9.6:
-      - { tier:   'os', repo: 'microsoft', url: 'https://packages.microsoft.com/config/rhel/9/packages-microsoft-prod.rpm', state: 'present' }
+      - { tier:   'os', repo: 'Microsoft Production', url: 'https://packages.microsoft.com/rhel/9/prod', state: 'present' }

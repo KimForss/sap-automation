@@ -176,6 +176,7 @@ ${sid}_OBSERVER_DB:
       os_type             : ${db_os_type}
       resource_group_name : ${created_resource_group_name}
       subscription_id     : ${created_resource_group_subscription_id}
+      use_nvme_disks      : ${app_use_nvme_disks}
 %{~ if db_connection == "winrm" }
       ${winrm_cert_valid}
       ${winrm_timeout_sec}
