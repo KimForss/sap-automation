@@ -216,6 +216,31 @@
     }
   },
   {
+    "name": "Red Hat 10.0",
+    "data": {
+      "os_type": "LINUX",
+      "source_image_id": "",
+      "publisher": "RedHat",
+      "offer": "RHEL-SAP-APPS",
+      "sku": "100sapapps-gen2",
+      "version": "latest",
+      "type": "marketplace"
+    }
+  },
+  {
+    "name": "Red Hat 10.0 HA",
+    "data": {
+      "os_type": "LINUX",
+      "source_image_id": "",
+      "publisher": "RedHat",
+      "offer": "RHEL-SAP-HA",
+      "sku": "100sapha-gen2",
+      "version": "latest",
+      "type": "marketplace"
+    }
+  },
+
+  {
     "name": "SUSE 12 SP5",
     "data": {
       "os_type": "LINUX",
