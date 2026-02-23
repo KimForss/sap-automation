@@ -46,6 +46,8 @@
   ansible.builtin.command:             zypper refresh
   changed_when:                        false
   when:                                ms_repo_install is changed
+  environment:
+    ZYPP_LOCK_TIMEOUT:                 "60"
 
 - name:                                "1.3.4 EiT - SUSE - Install aznfs package"
   community.general.zypper:

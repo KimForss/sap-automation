@@ -19,6 +19,8 @@
   ansible.builtin.package:
     name:                              saptune>=3.0
     state:                             present
+  environment:
+    ZYPP_LOCK_TIMEOUT:                 "60"
 
 # version 3 of saptune does not use tuned anymore
 - name:                                "2.10.3 SAP Note - Perform saptune service takeover"
