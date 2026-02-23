@@ -54,7 +54,7 @@
         opts:                          defaults
         state:                         mounted
       loop:
-        - { type: 'nfs4',  src: '{{ nfs_server }}:/sapmnt/{{ sap_sid | upper }}',  path: '/sapmnt/{{ sap_sid | upper }}' }
+        - { type: "{{ nfs_fs_type }}",  src: '{{ nfs_server }}:/sapmnt/{{ sap_sid | upper }}',  path: '/sapmnt/{{ sap_sid | upper }}' }
       when:
         - node_tier == 'observer'
         - sap_mnt is undefined
@@ -70,7 +70,7 @@
         opts:                          defaults
         state:                         remounted
       loop:
-        - { type: 'nfs4',  src: '{{ nfs_server }}:/sapmnt/{{ sap_sid | upper }}',  path: '/sapmnt/{{ sap_sid | upper }}' }
+        - { type: "{{ nfs_fs_type }}",  src: '{{ nfs_server }}:/sapmnt/{{ sap_sid | upper }}',  path: '/sapmnt/{{ sap_sid | upper }}' }
       when:
         - node_tier == 'observer'
         - sap_mnt is undefined
@@ -83,7 +83,7 @@
     opts:                              defaults
     state:                             mounted
   loop:
-    - { type: 'nfs4', src: '{{ usr_sap_install_mount_point }}', path: '{{ target_media_location }}' }
+    - { type: "{{ nfs_fs_type }}", src: '{{ usr_sap_install_mount_point }}', path: '{{ target_media_location }}' }
   when:
     - node_tier == 'observer'
     - usr_sap_install_mountpoint is not defined
@@ -97,8 +97,8 @@
       'temppath':           'sapinstall',
       'folder':             '{{ bom_base_name }}',
       'mount':              '{{ usr_sap_install_mountpoint }}',
-      'opts':               'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp',
-      'fstype':             'nfs4',
+      'opts':               "rw,hard,rsize=65536,wsize=65536,noresvport,sec=sys,vers=4.1,proto=tcp{{ ',_netdev' if use_eit_for_afs else '' }}",
+      'fstype':             "{{ nfs_fs_type }}",
       'owner':              '{{ sidadm_uid }}',
       'path':               '/usr/sap/install',
       'permissions':        '0777',
