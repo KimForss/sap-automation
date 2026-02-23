@@ -337,7 +337,7 @@ locals {
                                           install_volume_size         = var.ANF_install_volume_size
                                           install_volume_throughput   = var.ANF_install_volume_throughput
                                           install_volume_zone         = var.ANF_install_volume_zone[0]
-
+                                          export_policy_client_access_list = var.ANF_export_policy_client_access_list
                                          }
 
 dns_settings                         = {
