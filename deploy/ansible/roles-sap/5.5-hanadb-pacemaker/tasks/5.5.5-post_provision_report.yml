@@ -10,11 +10,13 @@
 
 - name:                                "5.5.5 HANA Pacemaker configuration - Cleanup resources"
   ansible.builtin.shell:               "{{ cluster_cleanup_cmd[ansible_os_family] }}"
+  timeout:                             180
   when:
     - inventory_hostname == primary_instance_name
 
 - name:                                "5.5.5 HANA Pacemaker configuration - Cleanup stonith"
   ansible.builtin.shell:               stonith_admin --cleanup --history={{ primary_instance_name }}
+  timeout:                             180
   when:
     - inventory_hostname == primary_instance_name
 
