@@ -399,13 +399,13 @@ packages:
     # --------------------------- End - Packages required for HANA ------------------------------------------8
     - { tier: 'sapos',  package: 'autofs',                                       node_tier: 'all',            state: 'present' }
     - { tier: 'sapos',  package: 'compat-sap-c++-*',                             node_tier: 'all',            state: 'present' }
-    - { tier: 'sapos',  package: 'compat-openssl11',                             node_tier: 'all',            state: 'present' }
+ #   - { tier: 'sapos',  package: 'compat-openssl11',                             node_tier: 'all',            state: 'present' }
     - { tier: 'sapos',  package: 'csh',                                          node_tier: 'all',            state: 'present' }
     - { tier: 'sapos',  package: 'graphviz',                                     node_tier: 'all',            state: 'present' }
     - { tier: 'sapos',  package: 'iptraf-ng',                                    node_tier: 'all',            state: 'present' }
     - { tier: 'sapos',  package: 'krb5-workstation',                             node_tier: 'all',            state: 'present' }
     - { tier: 'sapos',  package: 'libatomic',                                    node_tier: 'all',            state: 'present' }
-    - { tier: 'sapos',  package: 'libcanberra-gtk2',                             node_tier: 'all',            state: 'present' }
+#    - { tier: 'sapos',  package: 'libcanberra-gtk2',                             node_tier: 'all',            state: 'present' }
     - { tier: 'sapos',  package: 'libtool-ltdl',                                 node_tier: 'all',            state: 'present' }
     - { tier: 'sapos',  package: 'nfs4-acl-tools',                               node_tier: 'all',            state: 'present' }
     - { tier: 'sapos',  package: 'numactl',                                      node_tier: 'all',            state: 'present' }
