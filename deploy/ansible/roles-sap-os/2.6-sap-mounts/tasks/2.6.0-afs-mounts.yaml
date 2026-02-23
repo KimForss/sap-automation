@@ -39,6 +39,7 @@
                                        'noresvport,vers=4,minorversion=1,sec=sys,nolock,proto=tcp,nofail,_netdev'
                                        {% else %}
                                        'noresvport,vers=4,minorversion=1,sec=sys'
+                                        {% endif %}
 
 - name:                                "2.6.0 AFS Mounts - Create list of all_sap_mounts to support"
   ansible.builtin.debug:
