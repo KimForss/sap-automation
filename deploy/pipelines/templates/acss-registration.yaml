@@ -41,7 +41,12 @@ steps:
       fi
     else
       echo "##[section]Running on an Azure DevOps agent..."
-      az login --service-principal -u $AZURE_CLIENT_ID -p=$AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID --output none
+    # <BEGIN> MKD 20260217
+    # AZ CLI 2.83 - syntax for --service-principal user --username NOT --client-id
+    # Update for syntax consistancy across scripts - use the same syntax as in helper.sh and script_helpers.sh
+      # az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID --output none
+      az login --service-principal --username "$AZURE_CLIENT_ID" --password="$AZURE_CLIENT_SECRET" --tenant "$AZURE_TENANT_ID" --output none
+    # <END>   MKD 20260217
       az account set --subscription $AZURE_SUBSCRIPTION_ID --output none
 
     fi
