@@ -2,6 +2,13 @@
 # Licensed under the MIT License.
 
 variable "admin_subnet"                                 { description = "Information about SAP admin subnet" }
+
+variable "AFS_enable_encryption_in_transit"             {
+                                                           description = "Enable encryption in transit for Azure Files"
+                                                           type        = bool
+                                                           default     = false
+                                                        }
+
 variable "anchor_vm"                                    {
                                                           description = "Deployed anchor VM"
                                                           default     = null
@@ -67,7 +74,8 @@ variable "use_loadbalancers_for_standalone_deployments" {
                                                           description = "Defines if load balancers are used even for standalone deployments"
                                                           default     = true
                                                         }
-variable "use_msi_for_clusters"                         { description = "If true, the Pacemaker cluser will use a managed identity" }
+variable "use_msi_for_clusters"                         { description = "If true, the Pacemaker cluster will use a managed identity" }
+
 variable "use_observer"                                 { description = "Use Observer VM" }
 variable "observer_vm_size"                             {}
 variable "observer_vm_zones"                            {}

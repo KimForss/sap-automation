@@ -301,7 +301,7 @@ resource "azurerm_storage_account" "transport" {
   account_tier                         = "Premium"
   account_replication_type             = "ZRS"
   account_kind                         = "FileStorage"
-  https_traffic_only_enabled           = local.use_AFS_encryption_in_transit
+  https_traffic_only_enabled           = var.AFS_enable_encryption_in_transit
   min_tls_version                      = "TLS1_2"
   allow_nested_items_to_be_public      = false
 
@@ -317,7 +317,7 @@ resource "azurerm_storage_account" "transport" {
                                                   (var.infrastructure.virtual_networks.sap.subnet_db.defined||var.infrastructure.virtual_networks.sap.subnet_db.exists) ? (
                                                     var.infrastructure.virtual_networks.sap.subnet_db.exists ? var.infrastructure.virtual_networks.sap.subnet_db.id : azurerm_subnet.db[0].id) : (
                                                     null
-                                                    ), 
+                                                    ),
                                                   (var.infrastructure.virtual_networks.sap.subnet_app.defined||var.infrastructure.virtual_networks.sap.subnet_app.exists) ? (
                                                     var.infrastructure.virtual_networks.sap.subnet_app.exists ? var.infrastructure.virtual_networks.sap.subnet_app.id : azurerm_subnet.app[0].id) : (
                                                     null
@@ -503,7 +503,7 @@ resource "azurerm_storage_account" "install" {
   account_replication_type             = var.storage_account_replication_type
   account_tier                         = "Premium"
   allow_nested_items_to_be_public      = false
-  https_traffic_only_enabled           = local.use_AFS_encryption_in_transit
+  https_traffic_only_enabled           = var.AFS_enable_encryption_in_transit
   min_tls_version                      = "TLS1_2"
   cross_tenant_replication_enabled     = false
   public_network_access_enabled        = var.public_network_access_enabled
