@@ -263,6 +263,60 @@
         "Display": 2
       },
       {
+        "Name": "suse_subscription_id",
+        "Required": false,
+        "Description": "Defines the SUSE subscription ID to use for registering the SUSE VMs with the SUSE subscription management service",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "AFS_enable_encryption_in_transit",
+        "Required": false,
+        "Description": "Defines if encryption in transit is enabled for AFS",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "disk_controller_type_database_tier",
+        "Required": false,
+        "Description": "Defines the disk controller type for the database tier VMs, supported values are 'SCSI' and 'NVMe'",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "SCSI",
+            "Value": "SCSI"
+          },
+          {
+            "Text": "NVMe",
+            "Value": "NVMe"
+          }
+        ],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "disk_controller_type_app_tier",
+        "Required": false,
+        "Description": "Defines the disk controller type for the application tier VMs, supported values are 'SCSI' and 'NVMe'",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "SCSI",
+            "Value": "SCSI"
+          },
+          {
+            "Text": "NVMe",
+            "Value": "NVMe"
+          }
+        ],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
         "Name": "use_secondary_ips",
         "Required": false,
         "Description": "Controls if the virtual machines should be deployed with two IP addresses. Required for SAP Virtual Hostname support",
