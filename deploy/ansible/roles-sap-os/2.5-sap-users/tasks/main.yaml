@@ -39,7 +39,7 @@
   become_user:                     root
   when:                            ansible_os_family | upper == "REDHAT"
   ansible.builtin.package:
-    name:                          python3-passlib
+    name:                          passlib
     state:                         present
 
 
