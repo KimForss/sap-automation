@@ -275,6 +275,7 @@ if [ -f "${filename}" ]; then
 	echo "##[endgroup]"
 
 fi
+echo "##[endgroup]"
 
 echo "##[group]- store logs and artifacts"
 
