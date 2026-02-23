@@ -41,7 +41,7 @@ resource "azurerm_storage_account" "sapmnt" {
   account_tier                         = "Premium"
   account_replication_type             = var.infrastructure.storage_account_replication_type
   account_kind                         = "FileStorage"
-  https_traffic_only_enabled           = false #var.AFS_enable_encryption_in_transit
+  https_traffic_only_enabled           = var.AFS_enable_encryption_in_transit
   min_tls_version                      = "TLS1_2"
   allow_nested_items_to_be_public      = false
   cross_tenant_replication_enabled     = false

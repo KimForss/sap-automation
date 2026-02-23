@@ -102,24 +102,24 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-- name:                                           "1.18.1 Generic Pacemaker - Check the required cluster password is set"
+- name:                                           "1.18.1 Generic Pacemaker - Scale Out - Check the required cluster password is set"
   ansible.builtin.assert:
     that:
                                                   - "password_ha_db_cluster is defined"
                                                   - "password_ha_db_cluster | trim | length > 0"
     fail_msg:                                     "A highly available SCS deployment requires that an cluster password is set"
 
-- name:                                           "1.18.1 Generic Pacemaker - Check if a cluster has already been prepared"
+- name:                                           "1.18.1 Generic Pacemaker - Scale Out - Check if a cluster has already been prepared"
   ansible.builtin.command:                        "{{ cluster_status_cmd[ansible_os_family] }}"
   register:                                       cluster_existence_check_result
   changed_when:                                   false
   failed_when:                                    false
 
-- name:                                           "1.18.1 Generic Pacemaker - Save settings"
+- name:                                           "1.18.1 Generic Pacemaker - Scale Out - Save settings"
   ansible.builtin.set_fact:
-    cluster_existence_check:                      "{{ cluster_existence_check_result.rc | int }}"
+    cluster_existence_check:                      "{{ cluster_existence_check_result.rc == 0 }}"
 
-- name:                                           "1.18.1 Generic Pacemaker - Show if a cluster has already been prepared"
+- name:                                           "1.18.1 Generic Pacemaker - Scale Out - Show if a cluster has already been prepared"
   ansible.builtin.debug:
     msg:
                                                   - "Is the cluster configured : {{ cluster_existence_check }}"

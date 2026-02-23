@@ -89,6 +89,7 @@
             msg:
             - "nfs_mount_sites_results: {{ nfs_mount_sites.results }}"
             - "chk_nfs_mount_sites:     {{ chk_nfs_mount_sites }}"
+            verbosity:                  2
 
         - name:                        "5.8 HANA Pacemaker Scale-out - Fail when NFS hana mounts errored on {{ primary_instance_name }}"
           ansible.builtin.fail:

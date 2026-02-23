@@ -15,7 +15,7 @@
     name:                              '*'
     state:                             latest
     update_cache:                      true
-    disable_gpg_check:                 true
+    disable_gpg_check:                 false
   environment:
     ZYPP_LOCK_TIMEOUT:                 "60"
   tags:

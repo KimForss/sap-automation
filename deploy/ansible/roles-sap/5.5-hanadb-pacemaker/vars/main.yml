@@ -47,4 +47,26 @@ target: "{{ iscsi_object }}.{{ cluster_name }}.local:{{ cluster_name }}"
 
 hana_stop_start_timeout_in_seconds:    600
 hana_stop_start_delay_in_seconds:      10
+
+# RHEL: Check maintenance mode command based on OS version
+pcs_check_maintenance_mode: >-
+                                       {% if ansible_distribution_major_version is version ('10','<') %}
+                                       pcs property show maintenance-mode
+                                       {% else %}
+                                       pcs property config maintenance-mode
+                                       {% endif %}
+
+pcs_sap_hana_role_prim: >-
+                                       {% if ansible_distribution_major_version is version ('10','<') %}
+                                       Master
+                                       {% else %}
+                                       Promoted
+                                       {% endif %}
+
+pcs_sap_hana_role_sec: >-
+                                       {% if ansible_distribution_major_version is version ('10','<') %}
+                                       Slave
+                                       {% else %}
+                                       Unpromoted
+                                       {% endif %}
 ...

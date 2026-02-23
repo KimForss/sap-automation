@@ -237,7 +237,7 @@ command="ansible-playbook -i '$INVENTORY'                                  \
 redacted_command="ansible-playbook -i '$INVENTORY' --private-key $SAP_PARAMS/artifacts/$SSH_KEY_NAME -e 'kv_name=$VAULT_NAME' -e 'download_directory=$AGENT_TEMPDIRECTORY' -e '_workspace_directory=$SAP_PARAMS' $EXTRA_PARAMS -e orchestration_ansible_user=${USER:-$user_name} -e ansible_user=$user_name -e ansible_python_interpreter=/usr/bin/python3 -e @$SAP_PARAMS $EXTRA_PARAM_FILE	${ANSIBLE_FILE_PATH}"
 
 echo "##[section]Executing [$redacted_command]..."
-echo "##[group]- configuration"
+echo "##[group]- Configuration"
 eval "${command}"
 return_code=$?
 echo "##[section]Ansible playbook execution completed with exit code [$return_code]"
@@ -254,7 +254,7 @@ echo "Check if file: ${filename} exists"
 
 if [ -f "${filename}" ]; then
 
-	echo "##[group]- postconfiguration"
+	echo "##[group]- Post configuration"
 	redacted_command="ansible-playbook -i '$INVENTORY' --private-key $SAP_PARAMS/artifacts/$SSH_KEY_NAME -e 'kv_name=$VAULT_NAME' -e 'download_directory=$AGENT_TEMPDIRECTORY' -e '_workspace_directory=$SAP_PARAMS' $EXTRA_PARAMS -e orchestration_ansible_user=${USER:-$user_name} -e ansible_user=$user_name -e ansible_python_interpreter=/usr/bin/python3 -e @$SAP_PARAMS $EXTRA_PARAM_FILE	${filename}"
 	echo "##[section]Executing [$redacted_command]..."
 
@@ -277,7 +277,10 @@ if [ -f "${filename}" ]; then
 fi
 echo "##[endgroup]"
 
-echo "##[group]- store logs and artifacts"
+echo "##[group]- Store logs and artifacts"
+echo "Platform  : $PLATFORM"
+pwd
+ls -lart
 
 echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
 if [ "$PLATFORM" == "devops" ]; then

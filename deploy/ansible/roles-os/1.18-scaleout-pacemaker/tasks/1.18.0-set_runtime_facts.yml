@@ -5,7 +5,7 @@
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
-# |      Set Runtime Paramters - e.g Sub ID , Resource group name              |
+# |      Set Runtime Parameters - e.g Sub ID , Resource group name              |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
@@ -13,12 +13,12 @@
 # BEGIN
 # ----------------------------------------
 
-- name:                                           "Cluster Type: SBD - parameters to be used..."
+- name:                                           "1.18.1 Generic Pacemaker - Scale Out - Show cluster Type"
   ansible.builtin.debug:
     msg:                                          # Best method for formatting output with Azure Devops Logs
-                                                  - "database_cluster_type:           {{ database_cluster_type }}"
+                                                  - "Database Cluster Type:           {{ database_cluster_type }}"
 
-- name:                                           "1.18.0 Generic Pacemaker - Retrieve Subscription ID and Resource Group Name"
+- name:                                           "1.18.1 Generic Pacemaker - Scale Out - Retrieve Subscription ID and Resource Group Name"
   ansible.builtin.uri:
     url:                                          http://169.254.169.254/metadata/instance?api-version=2021-02-01
     use_proxy:                                    false
@@ -26,7 +26,7 @@
       Metadata:                                   true
   register:                                       azure_metadata
 
-- name:                                           "1.18.0 Generic Pacemaker - Show Azure Instance Metadata results"
+- name:                                           "1.18.1 Generic Pacemaker - Scale Out - Show Azure Instance Metadata results"
   ansible.builtin.debug:
     var:                                          azure_metadata.json
     verbosity:                                    2
@@ -38,20 +38,20 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 - name:                                           "Cluster Type: Fencing"
+  when:
+                                                  - (database_cluster_type == "AFA")
   block:
 
-    - name:                                       "Cluster Type: Fencing specific..."
+    - name:                                       "1.18.1 Generic Pacemaker - Scale Out - Fencing specific..."
       ansible.builtin.debug:
         msg:                                      # Best method for formatting output with Azure Devops Logs
-                                                  - "Cluster Type: Fencing specific..."
+                                                  - "1.18.1 Generic Pacemaker - Scale Out - Fencing specific..."
 
-    - name:                                       "1.18.0 Generic Pacemaker - Extract details"
+    - name:                                       "1.18.1 Generic Pacemaker - Scale Out - Extract details"
       ansible.builtin.set_fact:
         fencing_spn_subscription_id:              "{{ azure_metadata.json.compute.subscriptionId }}"
         resource_group_name:                      "{{ azure_metadata.json.compute.resourceGroupName }}"
 
-  when:
-                                                  - (database_cluster_type == "AFA")
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
 # | Fencing Specific - END                                                     |
@@ -64,26 +64,6 @@
 # | SBD/ISCSI Specific                                                         |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
-- name:                                           "Cluster Type: SBD"
-  block:
-
-    - name:                                       "Cluster Type: SBD specific..."
-      ansible.builtin.debug:
-        msg:                                      # Best method for formatting output with Azure Devops Logs
-                                                  - "Cluster Type: SBD specific..."
-
-  when:
-                                                  - (database_cluster_type == "ASD")
-
-- name:                                           "Cluster Type: SBD"
-  block:
-
-    - name:                                       "Cluster Type: ISCI specific..."
-      ansible.builtin.debug:
-        msg:                                      # Best method for formatting output with Azure Devops Logs
-                                                  - "Cluster Type: ISCI specific..."
-  when:
-                                                    (database_cluster_type == "ISCSI")
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
@@ -91,33 +71,28 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-
-- name:                                           "1.18.0 Generic Pacemaker - Extract details"
+- name:                                           "1.18.0 Generic Pacemaker - Scale Out - Extract details"
   ansible.builtin.set_fact:
     primary_ip:                                   "{{ azure_metadata.json.network.interface[0].ipv4.ipAddress[0].privateIpAddress }}"
     subnet_prefix:                                "{{ azure_metadata.json.network.interface[0].ipv4.subnet[0].prefix }}"
+    vm_name:                                      "{{ azure_metadata.json.compute.name }}"
 
-- name:                                           "1.18.0 Generic Pacemaker - Set unique variable fact"
+- name:                                           "1.18.0 Generic Pacemaker - Scale Out - Set unique variable fact"
   ansible.builtin.set_fact:
     "host_var":                                   "{{ ansible_hostname | replace('-','_') }}"
 
-- name:                                           "1.18.0 Generic Pacemaker - Extract VM Name"
-  ansible.builtin.set_fact:
-    vm_name:                                      "{{ azure_metadata.json.compute.name }}"
-
-- name:                                           "Wait for primary_ip check on current node to finish"
+- name:                                           "1.18.0 Generic Pacemaker - Scale Out - Wait for primary_ip check on current node to finish"
   ansible.builtin.set_fact:
     "is_primIP_defined_on_host":                  "{{ hostvars[ansible_hostname].primary_ip is defined }}"
   retries:                                        30
   delay:                                          60
   until:                                          is_primIP_defined_on_host
 
-
-- name:                                           "1.18.0 Generic Pacemaker - Extract network interface IP addresses"
+- name:                                           "1.18.0 Generic Pacemaker - Scale Out - Extract network interface IP addresses"
   ansible.builtin.set_fact:
     # "{{ host_var }}_instance_ip":                 "{{ hostvars[ansible_hostname]['primary_ip'] | string }}"
     "instance_ip":                                "{{ hostvars[ansible_hostname]['primary_ip'] | string }}"
-- name:                                           "1.18.0 Generic Pacemaker - Show Details"
+- name:                                           "1.18.0 Generic Pacemaker - Scale Out - Show Details"
   ansible.builtin.debug:
     msg:
                                                   - "FENCING :"
@@ -129,38 +104,38 @@
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
-# | Configure SSH Keys for inter-node communication as root for SUSE           |
+# | Configure SSH Keys for inter-node communication as root for SUSE - Scale Out|
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-- name:                                           "1.18.0 Generic Pacemaker - Configure SSH Keys for inter-node communication as root for SUSE"
+- name:                                           "1.18.0 Generic Pacemaker - Scale Out - Configure SSH Keys for inter-node communication as root for SUSE"
   block:
-    - name:                                       "1.18.0 Generic Pacemaker - Ensure there are SSH keys for the root user to communicate between nodes"
+    - name:                                       "1.18.0 Generic Pacemaker - Scale Out - Ensure there are SSH keys for the root user to communicate between nodes"
       ansible.builtin.shell:                      ssh-keygen -b 4096 -t rsa -f /root/.ssh/id_rsa -q -N ""
       args:
         creates:                                  /root/.ssh/id_rsa
 
-    - name:                                       "1.18.0 Generic Pacemaker - Ensure there is a public key for the root user SSH key"
+    - name:                                       "1.18.0 Generic Pacemaker - Scale Out - Ensure there is a public key for the root user SSH key"
       ansible.builtin.shell:                      ssh-keygen -f /root/.ssh/id_rsa -y > /root/.ssh/id_rsa.pub
       args:
         creates:                                  /root/.ssh/id_rsa.pub
 
-    - name:                                       "1.18.0 Generic Pacemaker - Ensure the Public SSH keys are available for exchanging SSH key trust between nodes"
+    - name:                                       "1.18.0 Generic Pacemaker - Scale Out - Ensure the Public SSH keys are available for exchanging SSH key trust between nodes"
       ansible.builtin.command:                    cat /root/.ssh/id_rsa.pub
       register:                                   cluster_public_ssh_key
       changed_when:                               false
 
-    - name:                                       "1.18.0 Generic Pacemaker - Set SSH fact"
+    - name:                                       "1.18.0 Generic Pacemaker - Scale Out - Set SSH fact"
       ansible.builtin.set_fact:
         cluster_public_ssh_key:                   "{{ cluster_public_ssh_key.stdout }}"
   when:
     - ansible_os_family | upper == "SUSE"
 
-- name:                                           "1.18.0 Generic Pacemaker - Wait for ssh key facts to be present"
+- name:                                           "1.18.0 Generic Pacemaker - Scale Out - Wait for ssh key facts to be present"
   when:
                                                   - ansible_os_family | upper == "SUSE"
   block:
-    - name:                                       "Wait for cluster_public_ssh_key check on nodes to finish"
+    - name:                                       "1.18.0 Generic Pacemaker - Scale Out - Wait for cluster_public_ssh_key check on nodes to finish"
       ansible.builtin.set_fact:
         # "is_ssh_defined_on_{{ host_var }}":       "{{ hostvars[ansible_hostname].cluster_public_ssh_key is defined }}"
         "is_ssh_defined":                        "{{ hostvars[ansible_hostname].cluster_public_ssh_key is defined }}"
@@ -185,15 +160,15 @@
 # We need to add support for comparing minor releases.
 # The current version filter is not able to do that.
 
-- name:                                           "1.18.0 Generic Pacemaker - Get packages information"
+- name:                                           "1.18.0 Generic Pacemaker - Scale Out - Get packages information"
   ansible.builtin.package_facts:
 
-- name:                                           "1.18.0 Generic Pacemaker - Set packages information ({{ ansible_os_family | upper }})"
+- name:                                           "1.18.0 Generic Pacemaker - Scale Out - Set packages information ({{ ansible_os_family | upper }})"
   ansible.builtin.set_fact:
     pacemaker_version:                             "{{ ansible_facts.packages['pacemaker'] | map(attribute='version') | first | default('') }}"
     resource_agents_version:                       "{{ ansible_facts.packages['resource-agents'] | map(attribute='version') | first | default('') }}"
 
-- name:                                           "1.18.0 Generic Pacemaker - Show packages information ({{ ansible_os_family | upper }})"
+- name:                                           "1.18.0 Generic Pacemaker - Scale Out - Show packages information ({{ ansible_os_family | upper }})"
   when:                                           ansible_os_family | upper == "REDHAT"
   ansible.builtin.debug:
     msg:
@@ -201,14 +176,14 @@
       - "resource-agents:                         {{ ansible_facts.packages['resource-agents'][0].name }} {{ ansible_facts.packages['resource-agents'][0].version }}"
       - "fence-agents-azure-arm:                  {{ ansible_facts.packages['fence-agents-azure-arm'][0].name }} {{ ansible_facts.packages['fence-agents-azure-arm'][0].version }}"
 
-- name:                                           "1.18.0 Generic Pacemaker - Show packages information ({{ ansible_os_family | upper }})"
+- name:                                           "1.18.0 Generic Pacemaker - Scale Out - Show packages information ({{ ansible_os_family | upper }})"
   when:                                           ansible_os_family | upper == "SUSE"
   ansible.builtin.debug:
     msg:
       - "pacemaker:                               {{ ansible_facts.packages['pacemaker'][0].name }} {{ ansible_facts.packages['pacemaker'][0].version }}"
       - "resource-agents:                         {{ ansible_facts.packages['resource-agents'][0].name }} {{ ansible_facts.packages['resource-agents'][0].version  }}"
 
-- name:                                           "Verify that the packages are the right version"
+- name:                                           "1.18.0 Generic Pacemaker - Scale Out - Verify that the packages are the right version"
   ansible.builtin.assert:
     that:
       - 'ansible_facts.packages[ packages_list.name ][0].version is version( packages_list.version , ">=", version_type= packages_list.version_type )'
