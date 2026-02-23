@@ -162,6 +162,7 @@
     kernel_bom_name:                   "{{ bom_parts[2] if bom_parts|length > 2 else '' }}"
     new_bom_name:                      "{{ bom_parts[3] if bom_parts|length > 3 else bom_parts[0] }}{{ bom_suffix }}"
     new_bom_file_name:                 "{{ bom_parts[3] if bom_parts|length > 3 else bom_parts[0] }}{{ bom_suffix }}.yaml"
+
 - name:                                "0.1 BoM Validator - Process main BOM"
   ansible.builtin.include_tasks:       bom_validator.yaml
   vars:
