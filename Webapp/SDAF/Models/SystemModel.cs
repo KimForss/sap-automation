@@ -107,7 +107,7 @@ namespace SDAFWebApp.Models
 
         public string disk_controller_type_database_tier { get; set; } = "SCSI";
 
-        public string disk_controller_type_app_tier { get; set; } = "SCSI"; 
+        public string disk_controller_type_app_tier { get; set; } = "SCSI";
 
         /*---------------------------------------------------------------------------8
         |                                                                            |
