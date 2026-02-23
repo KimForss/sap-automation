@@ -70,6 +70,8 @@ namespace SDAFWebApp.Models
 
         public bool? deploy_defender_extension { get; set; } = false;
 
+        public bool? AFS_enable_encryption_in_transit { get; set; } = false;
+
         /*---------------------------------------------------------------------------8
         |                                                                            |
         |                       Networking information                               |
