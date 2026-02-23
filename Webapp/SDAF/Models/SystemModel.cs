@@ -71,6 +71,10 @@ namespace SDAFWebApp.Models
 
         public string subscription_id { get; set; }
 
+        public string? suse_subscription_id { get; set; }
+
+        public bool? AFS_enable_encryption_in_transit { get; set; } = false;
+
         public string custom_disk_sizes_filename { get; set; }
 
         public bool? save_naming_information { get; set; } = false;
@@ -100,6 +104,10 @@ namespace SDAFWebApp.Models
 
         [ScaleSetIdValidator(ErrorMessage = "Invalid Scaleset id")]
         public string scaleset_id { get; set; }
+
+        public string disk_controller_type_database_tier { get; set; } = "SCSI";
+
+        public string disk_controller_type_app_tier { get; set; } = "SCSI"; 
 
         /*---------------------------------------------------------------------------8
         |                                                                            |
