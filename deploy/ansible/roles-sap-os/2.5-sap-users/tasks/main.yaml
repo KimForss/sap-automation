@@ -39,8 +39,9 @@
   ansible.builtin.set_fact:
     python_version:                    "python2"
 
+# Newer Python versions removed the crypt module, so Ansible's
+# password_hash filter now requires passlib to be installed explicitly.
 - name:                                "2.5 SAP Users: - Ensure passlib is installed"
-  when:                                ansible_os_family | upper == "REDHAT"
   block:
     - name:                            "2.5 SAP Users: - Install passlib using OS package manager"
       ansible.builtin.package:
