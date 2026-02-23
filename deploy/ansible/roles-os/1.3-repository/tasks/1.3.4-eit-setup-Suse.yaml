@@ -23,22 +23,20 @@
                                        Current version: {{ ansible_distribution }} {{ ansible_distribution_version }}
                                        Minimum required: SLES 15.4
 
-- name:                                "1.3.4 EiT - SUSE - Download Microsoft packages repository RPM"
-  ansible.builtin.get_url:
-    url:                               "https://packages.microsoft.com/config/sles/{{ sles_major }}/packages-microsoft-prod.rpm"
-    dest:                              "/tmp/packages-microsoft-prod.rpm"
-    mode:                              '0644'
-  register:                            ms_repo_download
-  retries:                             4
-  delay:                               30
-  until:                               ms_repo_download is succeeded
-
+# - name:                                "1.3.4 EiT - SUSE - Download Microsoft packages repository RPM"
+#   ansible.builtin.get_url:
+#     url:                               "https://packages.microsoft.com/config/sles/{{ sles_major }}/packages-microsoft-prod.rpm"
+#     dest:                              "/tmp/packages-microsoft-prod.rpm"
+#     mode:                              '0644'
+#   register:                            ms_repo_download
+#   retries:                             4
+#   delay:                               30
+#   until:                               ms_repo_download is succeeded
 - name:                                "1.3.4 EiT - SUSE - Install Microsoft packages repository"
   community.general.zypper:
-    name:                              "/tmp/packages-microsoft-prod.rpm"
+    name:                              "https://packages.microsoft.com/config/sles/{{ sles_major }}/packages-microsoft-prod.rpm"
     disable_gpg_check:                 true
     state:                             present
-    auto_import_keys:                  true
   register:                            ms_repo_install
 
 - name:                                "1.3.4 EiT - SUSE - Refresh zypper repositories"
@@ -62,12 +60,12 @@
     update_cache:                      "{{ ms_repo_install is changed }}"
   register:                            aznfs_install
 
-- name:                                "1.3.4 EiT - SUSE - Cleanup temporary repository RPM"
-  become:                              true
-  become_user:                         root
-  ansible.builtin.file:
-    path:                              "/tmp/packages-microsoft-prod.rpm"
-    state:                             absent
+# - name:                                "1.3.4 EiT - SUSE - Cleanup temporary repository RPM"
+#   become:                              true
+#   become_user:                         root
+#   ansible.builtin.file:
+#     path:                              "/tmp/packages-microsoft-prod.rpm"
+#     state:                             absent
 
 - name:                                "1.3.4 EiT - SUSE - Display installation result"
   ansible.builtin.debug:
