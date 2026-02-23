@@ -94,7 +94,7 @@ cd "$curdir" || exit
 if [ ! -v SSH_KEY_NAME ]; then
 	SSH_KEY_NAME="${WORKLOAD_ZONE_NAME}-sid-sshkey"
 else
-  if [ -z "$SSH_KEY_NAME" ]; then
+	if [ -z "$SSH_KEY_NAME" ]; then
 		SSH_KEY_NAME="${WORKLOAD_ZONE_NAME}-sid-sshkey"
 	fi
 fi
@@ -102,7 +102,7 @@ fi
 if [ ! -v PASSWORD_KEY_NAME ]; then
 	PASSWORD_KEY_NAME="${WORKLOAD_ZONE_NAME}-sid-password"
 else
-  if [ -z "$PASSWORD_KEY_NAME" ]; then
+	if [ -z "$PASSWORD_KEY_NAME" ]; then
 		PASSWORD_KEY_NAME="${WORKLOAD_ZONE_NAME}-sid-password"
 	fi
 fi
@@ -110,15 +110,14 @@ fi
 if [ ! -v USERNAME_KEY_NAME ]; then
 	USERNAME_KEY_NAME="${WORKLOAD_ZONE_NAME}-sid-username"
 else
-  if [ -z "$USERNAME_KEY_NAME" ]; then
+	if [ -z "$USERNAME_KEY_NAME" ]; then
 		USERNAME_KEY_NAME="${WORKLOAD_ZONE_NAME}-sid-username"
 	fi
 fi
 
-
 if [ ! -f "$SSH_KEY_NAME" ]; then
 	echo "##[section]Retrieving sshkey..."
-	az keyvault secret show --name "$SSH_KEY_NAME" --vault-name "$key_vault_name" --subscription "$key_vault_subscription" --query value --output tsv > "$SSH_KEY_NAME"
+	az keyvault secret show --name "$SSH_KEY_NAME" --vault-name "$key_vault_name" --subscription "$key_vault_subscription" --query value --output tsv >"$SSH_KEY_NAME"
 	if [ -f "$SSH_KEY_NAME" ]; then
 		sudo chmod 600 "$SSH_KEY_NAME"
 	fi
@@ -162,7 +161,6 @@ if [ -f "$SAP_PARAMS/extra-params.yaml" ]; then
 	echo "Extra parameter file passed: $SAP_PARAMS/extra-params.yaml"
 	EXTRA_PARAM_FILE="-e @$SAP_PARAMS/extra-params.yaml"
 fi
-
 
 ############################################################################################
 #                                                                                          #
@@ -250,6 +248,43 @@ if [ -f "${filename}" ]; then
 	echo "##[endgroup]"
 
 fi
+
+echo "##[group]- store logs and artifacts"
+
+echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
+git pull -q origin "$BUILD_SOURCEBRANCHNAME"
+git checkout -q "$BUILD_SOURCEBRANCHNAME"
+
+added=0
+
+if [ -d artifacts/logs ]; then
+	git add artifacts/logs
+	added=1
+fi
+
+# Commit changes based on platform
+if [ 1 = $added ]; then
+	commit_message="Added logs from SAP System installation [skip ci]"
+	git config --global user.email "$BUILD_REQUESTEDFOREMAIL"
+	git config --global user.name "$BUILD_REQUESTEDFOR"
+
+	if [ "$DEBUG" = True ]; then
+		git status --verbose
+		if git commit --message --verbose "$commit_message"; then
+			if ! git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BUILD_SOURCEBRANCHNAME" --force-with-lease; then
+				echo "Failed to push changes to the repository."
+			fi
+		fi
+	else
+		if git commit -m "$commit_message"; then
+			if ! git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BUILD_SOURCEBRANCHNAME" --force-with-lease; then
+				echo "Failed to push changes to the repository."
+			fi
+		fi
+	fi
+fi
+
+echo "##[endgroup]"
 
 print_banner "$banner_title" "Exiting $SCRIPT_NAME" "info"
 
