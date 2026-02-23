@@ -14,6 +14,10 @@
 
 # +------------------------------------4--------------------------------------*/
 
+- name:                                "5.5.4.1 HANA Cluster configuration - REDHAT - Check if the pacemaker package version is greater than pacemaker-2.0.4"
+  when:                                ansible_distribution_major_version is version('8', '>=')
+  ansible.builtin.set_fact:
+    is_pcmk_ver_gt_204:                "{{ ansible_facts.packages['pacemaker'][0].version is version('2.0.4', '>') | default(false) }}"
 
 - name:                                "5.5.4.1 HANA Cluster configuration - REDHAT - Optimize the Pacemaker cluster for SAP HANA"
   when:                                ansible_hostname == primary_instance_name
@@ -26,6 +30,7 @@
       register:                        get_status_maintenance_mode
       changed_when:                    false
       ignore_errors:                   true
+      failed_when:                     false
 
     - name:                            "5.5.4.1 HANA Cluster configuration - REDHAT - Set the cluster maintenance mode if not already in maintenance mode"
       when: >-
@@ -33,11 +38,6 @@
                                        get_status_maintenance_mode.stdout is search('maintenance-mode: false') or
                                        get_status_maintenance_mode.stdout is search('maintenance-mode=false')
       ansible.builtin.shell:           pcs property set maintenance-mode=true
-
-    - name:                            "5.5.4.1 HANA Cluster configuration - REDHAT - Check if the pacemaker package version is greater than pacemaker-2.0.4"
-      when:                            ansible_distribution_major_version is version('8', '>=')
-      ansible.builtin.set_fact:
-        is_pcmk_ver_gt_204:            "{{ ansible_facts.packages['pacemaker'][0].version is version('2.0.4', '>') | default(false) }}"
 
     - name:                            "5.5.4.1 HANA Cluster configuration - REDHAT - Configure the SAP HANA Topology resource is created"
       ansible.builtin.shell: >
@@ -185,7 +185,7 @@
           register:                    update_priority
           failed_when:                 update_priority.rc > 1
 
-        - name:                        "5.5.4.1 HANA Cluster configuration - REDHAT -set SAPHana defaults 'priority' to 10"
+        - name:                        "5.5.4.1 HANA Cluster configuration - REDHAT - Set SAPHana defaults 'priority' to 10"
           ansible.builtin.shell:       pcs resource update SAPHana_{{ db_sid | upper }}_{{ db_instance_number }} meta priority=10
           register:                    update_priority_saphana
 
@@ -291,8 +291,6 @@
         # Set the priority to primary IPaddr2 and azure-lb resource if priority-fencing-delay is configured
         - name:                        "5.5.4.1 HANA Cluster configuration - REDHAT - Set priority for the Virtual IP and azure-lb resources"
           when:
-                                       - database_active_active | default(false)
-                                       - not (db_scale_out | default(false))
                                        - is_pcmk_ver_gt_204
           block:
             - name:                    "5.5.4.1 HANA Cluster configuration - REDHAT - Set priority for the Virtual IP resource"
@@ -353,15 +351,46 @@
       delay:                           10
       until:                           "(primary_instance_name + ' ' + secondary_instance_name) in hana_cluster_resource_check.stdout or (secondary_instance_name + ' ' + primary_instance_name) in hana_cluster_resource_check.stdout"
 
-    - name:                        "5.5.4.1 HANA Cluster configuration - REDHAT - move SAP HANA clone to run on Primary Node"
-      when:
-                                    - database_active_active | default(false)
-                                    - not (db_scale_out | default(false))
-                                    - ansible_hostname == primary_instance_name
-                                    - is_pcmk_ver_gt_204
-      ansible.builtin.shell:       pcs resource move SAPHana_{{ db_sid | upper }}_{{ db_instance_number }}-clone {{ primary_instance_name }}
-      register:                    move_saphana
-      failed_when:                 move_saphana.rc > 1
+
+- name:                                "5.5.4.1 HANA Cluster configuration - REDHAT - move SAP HANA clone to run on Primary Node"
+  when:
+                                       - database_active_active | default(false)
+                                       - not (db_scale_out | default(false))
+                                       - is_pcmk_ver_gt_204
+                                       - ansible_hostname == primary_instance_name
+  block:
+    - name:                            "5.5.4.1 HANA Cluster configuration - REDHAT - Move SAP HANA clone to run on Primary Node for active/active setup"
+      ansible.builtin.shell:           pcs resource move-with-constraint SAPHana_{{ db_sid | upper }}_{{ db_instance_number }}-clone {{ primary_instance_name }}
+      register:                        move_saphana
+      failed_when:                     move_saphana.rc != 0 and not move_saphana.stderr is search('Requested item already exists')
+
+    - name:                            "5.5.4.1 HANA Cluster configuration - REDHAT - Clear resource constraint on SAP HANA clone after moving the resource to primary node"
+      ansible.builtin.shell:           pcs resource clear SAPHana_{{ db_sid | upper }}_{{ db_instance_number }}-clone
+      register:                        clear_saphana
+      failed_when:                     clear_saphana.rc != 0
+  rescue:
+    - name:                            "5.5.4.1 HANA Cluster configuration - REDHAT - Failed to move SAP HANA clone wait for two minutes and retry"
+      ansible.builtin.wait_for:
+        timeout:                       "120"
+
+    - name:                            "5.5.4.1 HANA Cluster configuration - REDHAT - Move SAP HANA clone to run on Primary Node for active/active setup - Retry"
+      ansible.builtin.shell:           pcs resource move-with-constraint SAPHana_{{ db_sid | upper }}_{{ db_instance_number }}-clone {{ primary_instance_name }}
+      register:                        move_saphana_retry
+      failed_when:                     false
+
+    - name:                            "5.5.4.1 HANA Cluster configuration - REDHAT - display error on next steps"
+      when:                            move_saphana_retry.rc != 0
+      ansible.builtin.fail:
+        msg: >
+                                       "Failed to move SAP HANA clone to primary node after retry.
+                                        Manual intervention required to move the resource. Error: {{ move_saphana_retry.stderr }}
+                                        Please investigate the cluster status and move the SAPHana clone resource to the primary node manually using:
+                                        pcs resource move SAPHana_{{ db_sid | upper }}_{{ db_instance_number }}-clone {{ primary_instance_name }}"
+
+    - name:                            "5.5.4.1 HANA Cluster configuration - REDHAT - Clear resource constraint on SAP HANA clone after move - Retry"
+      ansible.builtin.shell:           pcs resource clear SAPHana_{{ db_sid | upper }}_{{ db_instance_number }}-clone
+      register:                        clear_saphana
+      failed_when:                     clear_saphana.rc != 0
 
 # End of HANA clustering resources
 

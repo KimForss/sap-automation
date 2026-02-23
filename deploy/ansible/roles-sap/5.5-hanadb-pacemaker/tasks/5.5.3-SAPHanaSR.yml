@@ -207,7 +207,7 @@
           ansible.builtin.pause:
             seconds:                   "{{ rescue_hsr_status_report_wait_in_s }}"
 
-        - name:                        "5.5.3 HANA Pacemaker - [Rescue] - Verify the hook Installation"
+        - name:                        "5.5.3 HANA Pacemaker - Verify the hook Installation"
           when:                        inventory_hostname == primary_instance_name
           become_user:                 "{{ db_sid | lower }}adm"
           become:                      true
@@ -221,7 +221,6 @@
           until:                       saphanasr_verification.stdout is search("SOK")
           retries:                     10
           delay:                       30
-
 
     - name:                            "5.5.3 HANA Pacemaker - Log that the hook script is working as expected"
       when:                            inventory_hostname == primary_instance_name
@@ -311,7 +310,7 @@
     # If path is a directory, it is copied recursively. In this case, if path ends with “/”, only inside
     # contents of that directory are copied to destination. Otherwise, if it does not end with “/”, the
     # directory itself with all contents is copied. This behavior is similar to the rsync command line tool.
-    - name:                            "5.5.3 HANA Pacemaker - copy SAPHanaSR.py (SUSE)"
+    - name:                            "5.5.3 HANA Pacemaker - Copy SAPHanaSR.py (SUSE)"
       when:
                                        - ansible_os_family | upper == "SUSE"
                                        - not my_hooks_stat.stat.exists

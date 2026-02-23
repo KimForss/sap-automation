@@ -174,8 +174,8 @@
                                        DUPLICATE_PRIMARY_TIMEOUT=7200 AUTOMATED_REGISTER=true \
                                        op demote interval=0s timeout=320 op methods interval=0s timeout=5 \
                                        op start interval=0 timeout=3600 op stop interval=0 timeout=3600 op promote interval=0 timeout=3600 \
-                                       op monitor interval=60 role="{{ pcs_sap_hana_role_prim }}" timeout=700 \
-                                       op monitor interval=61 role="{{ pcs_sap_hana_role_sec }}" timeout=700
+                                       op monitor interval=60 role="{{ pcs_sap_hana_role_prim | trim }}" timeout=700 \
+                                       op monitor interval=61 role="{{ pcs_sap_hana_role_sec | trim }}" timeout=700
           when:                        "'SAPHana_' + (db_sid | upper) + '_HDB' + db_instance_number + '-clone' not in existing_resources.stdout"
           register:                    sap_hana
           failed_when:                 sap_hana.rc > 0
@@ -223,7 +223,7 @@
         - name:                        "5.8 HANA Pacemaker Scale-out - Ensure the Virtual IP group colocation constraint is configured"
           ansible.builtin.shell: >
                                        pcs constraint colocation add g_ip_{{ db_sid | upper }}_{{ db_instance_number }} \
-                                       with {{ pcs_sap_hana_role_prim }} SAPHana_{{ db_sid | upper }}_HDB{{ db_instance_number }}-clone score=4000 --force
+                                       with {{ pcs_sap_hana_role_prim | trim }} SAPHana_{{ db_sid | upper }}_HDB{{ db_instance_number }}-clone score=4000 --force
           when:                        "'g_ip_' + (db_sid | upper) + '_' + db_instance_number not in existing_constraints.stdout or 'SAPHana_' + (db_sid | upper) + '_HDB' + db_instance_number + '-clone' not in existing_constraints.stdout"
           register:                    colocation
           failed_when:                 colocation.rc > 0
