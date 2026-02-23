@@ -192,28 +192,18 @@
       when:
         - platform == "HANA"
       block:
+
+        - name:                        "5.1 Database Load  - Set backup path for single-node configuration"
+          ansible.builtin.set_fact:
+            backup_path:               "{% if (backupdisks_count | int) == 0 %}/hana/data/backup{% else %}{{ hana_backup_path }}{% endif %}"
+
         - name:                        "5.1 Database Load  - Set backup path for HSR scale-out high availability configuration"
           when:
                                        - database_scale_out | default(false)
-                                       - database_high_availability | default(false)
                                        - hana_shared_mountpoint is defined
-                                       - hana_shared_mountpoint | length == 2
+                                       - backupdisks_count | int == 0
           ansible.builtin.set_fact:
-            backup_path:               "/hana/shared/{{ db_sid | upper }}/HDB{{ db_instance_number }}/backup/data/DB_{{ db_sid | upper }}{{ db_instance_number }}"
-
-        - name:                        "5.1 Database Load  - Set backup path for standard scale-out configuration"
-          when:
-                                       - database_scale_out | default(false)
-                                       - not (database_high_availability | default(false))
-                                       - hana_shared_mountpoint is defined
-          ansible.builtin.set_fact:
-            backup_path:               "/hana/shared/{{ db_sid | upper }}/HDB{{ db_instance_number }}/backup/data/DB_{{ db_sid | upper }}{{ db_instance_number }}"
-
-        - name:                        "5.1 Database Load  - Set backup path for single-node configuration"
-          when:
-                                       - not (database_scale_out | default(false))
-          ansible.builtin.set_fact:
-            backup_path:               "{% if (backupdisks_count | int) == 0 %}/hana/data/backup{% else %}{{ hana_backup_path }}{% endif %}"
+            backup_path:               "/hana/shared/"
 
     - name:                            "Hana backup directory"
       when:

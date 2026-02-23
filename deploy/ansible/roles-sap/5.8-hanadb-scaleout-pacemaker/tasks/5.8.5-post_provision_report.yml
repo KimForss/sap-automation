@@ -8,42 +8,39 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 - name:                                "5.8.5 HANA Pacemaker Scale-out - Cleanup resources"
+  when:                                inventory_hostname == primary_instance_name
   ansible.builtin.shell:               "{{ cluster_cleanup_cmd[ansible_os_family] }}"
-  when:
-    - inventory_hostname == primary_instance_name
 
 - name:                                "5.8.5 HANA Pacemaker Scale-out - Cleanup stonith"
+  when:                                inventory_hostname == primary_instance_name
   ansible.builtin.shell:               stonith_admin --cleanup --history={{ primary_instance_name }}
-  when:
-    - inventory_hostname == primary_instance_name
+
 
 - name:                                "5.8.5 HANA Pacemaker Scale-out - Pause to give cluster time to stabilize"
   ansible.builtin.wait_for:
     timeout:                           "{{ cluster_status_report_wait_in_s }}"
 
 - name:                                "5.8.5 HANA Pacemaker Scale-out - Check the post-provisioning cluster status"
+  when:                                inventory_hostname == primary_instance_name
   ansible.builtin.command:             "{{ cluster_status_cmd[ansible_os_family] }}"
   register:                            cluster_status_report
   changed_when:                        false
   failed_when:                         false
 
 - name:                                "5.8.5 HANA Pacemaker Scale-out - Output cluster status"
+  when:                                inventory_hostname == primary_instance_name
   ansible.builtin.debug:
-    msg:                               "{{ cluster_status_report.stdout }}"
-    verbosity:                         2
+    msg:                               "Cluster status: {{ cluster_status_report.stdout }}"
 
 - name:                                "5.8.5 HANA Pacemaker Scale-out - Check the SBD devices status"
-  when:                                ansible_os_family | upper == 'SUSE'
   ansible.builtin.shell:               set -o pipefail && crm_mon -1 | grep sbd
   register:                            sbd_status_report
   changed_when:                        false
   failed_when:                         false
 
-
 - name:                                "5.8.5 HANA Pacemaker Scale-out - Output SBD status"
-  when:                                ansible_os_family | upper == 'SUSE'
   ansible.builtin.debug:
-    msg:                               "{{ sbd_status_report.stdout }}"
+    msg:                               "SBD Status: {{ sbd_status_report.stdout }}"
 
 - name:                                "5.8 HANA Pacemaker Scale-out - Pause to give HANA replication time to stabilize"
   ansible.builtin.wait_for:
