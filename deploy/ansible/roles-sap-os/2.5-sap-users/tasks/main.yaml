@@ -34,14 +34,20 @@
 #   sapinst - typically only used during install, and removed after. Potentially
 #   can be depracated.
 #
-- name:                            "SAP Central Services Installation Playbook: - Ensure passlib is installed on the controller"
-  become:                          true
-  become_user:                     root
-  when:                            ansible_os_family | upper == "REDHAT"
-  ansible.builtin.package:
-    name:                          passlib
-    state:                         present
+- name:                                "2.5 SAP Users: - Set Python version {{ distribution_id }}"
+  when:                                (ansible_distribution | lower ~ ansible_distribution_major_version) in ['redhat7']
+  ansible.builtin.set_fact:
+    python_version:                    "python2"
 
+- name:                                "2.5 SAP Users: - Ensure passlib is installed"
+  when:                                ansible_os_family | upper == "REDHAT"
+  ansible.builtin.pip:
+    name:                              python3-passlib
+    state:                             present
+  vars:
+    ansible_python_interpreter:        "{{ python_version }}"
+  tags:
+    - always
 
 - name:                                "2.5 SAP Users: - Create SAP Groups"
   ansible.builtin.group:
