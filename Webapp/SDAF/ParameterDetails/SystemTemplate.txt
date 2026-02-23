@@ -89,6 +89,18 @@ $$database_use_premium_v2_storage$$
 # upgrade_packages defines if all packages should be upgraded after installation
 $$upgrade_packages$$
 
+# suse_subscription_id defines the SUSE subscription ID to use for registering the SUSE VMs with the SUSE subscription management service
+$$suse_subscription_id$$
+
+# AFS_enable_encryption_in_transit defines if encryption in transit is enabled for AFS
+$$AFS_enable_encryption_in_transit$$
+
+# disk_controller_type_database_tier defines the disk controller type for the database tier VMs, supported values are "SCSI" and "NVMe"
+$$disk_controller_type_database_tier$$
+
+# disk_controller_type_app_tier defines the disk controller type for the application tier VMs, supported values are "SCSI" and "NVMe"
+$$disk_controller_type_app_tier$$
+
 #########################################################################################
 #                                                                                       #
 #  Database tier                                                                        #                                                                                       #
