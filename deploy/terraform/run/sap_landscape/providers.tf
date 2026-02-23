@@ -18,7 +18,7 @@
 provider "azurerm"                     {
                                          features {}
                                          subscription_id            = coalesce(var.management_subscription_id,var.subscription_id, local.deployer_subscription_id)
-                                         use_msi                    = true
+                                         use_msi                    = var.use_spn ? false : true
                                          storage_use_azuread        = true
                                        }
 
@@ -87,10 +87,9 @@ provider "azurerm"                     {
 provider "azurerm"                     {
                                          features {}
                                          subscription_id            = coalesce(var.management_dns_subscription_id, local.SAPLibrary_subscription_id, length(local.deployer_subscription_id) > 0 ? local.deployer_subscription_id : "")
-                                         use_msi                    = true
+                                         use_msi                    = var.use_spn ? false : true
                                          alias                      = "peering"
                                          storage_use_azuread        = true
-
                                        }
 
 provider "azuread"                     {
