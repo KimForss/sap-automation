@@ -211,7 +211,6 @@ packages:
     - { tier: 'os',     package: 'NetworkManager-cloud-setup',                   node_tier: 'all',            state: 'present' }
     - { tier: 'ha',     package: 'NetworkManager-cloud-setup',                   node_tier: 'all',            state: 'absent'  }
   redhat8.8:
-    - { tier: 'os',     package: 'aznfs',                                        node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'NetworkManager-cloud-setup',                   node_tier: 'all',            state: 'present' }
     - { tier: 'iscsi',  package: 'targetcli',                                    node_tier: 'iscsi',          state: 'present' }
     - { tier: 'ha',     package: 'NetworkManager-cloud-setup',                   node_tier: 'all',            state: 'absent'  }
@@ -220,7 +219,6 @@ packages:
     - { tier: 'iscsi',  package: 'targetcli',                                    node_tier: 'iscsi',          state: 'present' }
     - { tier: 'ha',     package: 'NetworkManager-cloud-setup',                   node_tier: 'all',            state: 'absent'  }
   redhat8.10:
-    - { tier: 'os',     package: 'aznfs',                                        node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'NetworkManager-cloud-setup',                   node_tier: 'all',            state: 'present' }
     - { tier: 'iscsi',  package: 'targetcli',                                    node_tier: 'iscsi',          state: 'present' }
     - { tier: 'ha',     package: 'NetworkManager-cloud-setup',                   node_tier: 'all',            state: 'absent'  }
@@ -277,7 +275,6 @@ packages:
     - { tier: 'os',     package: 'sudo',                                         node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'sysstat',                                      node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'tcsh',                                         node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'aznfs',                                        node_tier: 'all',            state: 'present' }
     # - { tier: 'os',     package: 'unar',                                         node_tier: 'scs',            state: 'present' }
     - { tier: 'os',     package: 'xfsprogs',                                     node_tier: 'all',            state: 'present' }
     # --------------------------- Begin - Packages required for DB2 -----------------------------------------8
@@ -376,7 +373,6 @@ packages:
     - { tier: 'os',     package: 'sg3_utils',                                    node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'sudo',                                         node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'tcsh',                                         node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'aznfs',                                        node_tier: 'all',            state: 'present' }
     # - { tier: 'os',     package: 'unar',                                         node_tier: 'scs',            state: 'present' }
     - { tier: 'os',     package: 'xfsprogs',                                     node_tier: 'all',            state: 'present' }
     - { tier: 'iscsi',  package: 'targetcli',                                    node_tier: 'iscsi',          state: 'present' }
@@ -598,7 +594,6 @@ packages:
   sles_sap15.4:
     #  - { tier: 'os',     package: 'sle-module-public-cloud',                                  state: 'present' }
     - { tier: 'os',     package: 'python3-xml',                                  node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'aznfs',                                        node_tier: 'all',            state: 'present' }
     #  SLES15 SP4 has removed python 2, no python2-rpm package. Additionally, python-xml is now part of
     # python-base and referenced as python3-xml
     - { tier: 'db2',    package: 'system-user-bin',                              node_tier: 'db2',            state: 'present' }
@@ -613,7 +608,6 @@ packages:
     - { tier: 'os',     package: 'azure-vm-utils',                               node_tier: 'all',            state: 'present' }
     #  SLES15 SP4 has removed python 2, no python2-rpm package. Additionally, python-xml is now part of
     # python-base and referenced as python3-xml
-    - { tier: 'os',     package: 'aznfs',                                        node_tier: 'all',            state: 'present' }
     - { tier: 'db2',    package: 'system-user-bin',                              node_tier: 'db2',            state: 'present' }
     - { tier: 'ha',     package: 'sapstartsrv-resource-agents',                  node_tier: 'scs',            state: 'present' }
     - { tier: 'ha',     package: 'sapstartsrv-resource-agents',                  node_tier: 'ers',            state: 'present' }
@@ -627,7 +621,6 @@ packages:
     - { tier: 'os',     package: 'python3-xml',                                  node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'python3-rpm',                                  node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'azure-vm-utils',                               node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'aznfs',                                        node_tier: 'all',            state: 'present' }
     #  SLES15 SP4 has removed python 2, no python2-rpm package. Additionally, python-xml is now part of
     # python-base and referenced as python3-xml
     - { tier: 'db2',    package: 'system-user-bin',                              node_tier: 'db2',            state: 'present' }
@@ -642,7 +635,6 @@ packages:
     - { tier: 'os',     package: 'python3-xml',                                  node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'python3-rpm',                                  node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'azure-vm-utils',                               node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'aznfs',                                        node_tier: 'all',            state: 'present' }
     - { tier: 'db2',    package: 'system-user-bin',                              node_tier: 'db2',            state: 'present' }
     - { tier: 'ha',     package: 'sapstartsrv-resource-agents',                  node_tier: 'scs',            state: 'present' }
     - { tier: 'ha',     package: 'sapstartsrv-resource-agents',                  node_tier: 'ers',            state: 'present' }
