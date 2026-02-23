@@ -12,9 +12,12 @@ iscsi_port:                            3260
 sapcontrol_command:                    "sapcontrol -nr {{ scs_instance_number }}"
 
 cluster_status_cmd:
-  RedHat: "pcs status --full"
-  Suse: "crm status full"
+  RedHat:                              "pcs status --full"
+  Suse:                                "crm status full"
 
 cluster_cleanup_cmd:
-  RedHat: "pcs resource cleanup"
-  Suse: "crm resource cleanup"
+  RedHat:                              "pcs resource cleanup"
+  Suse:                                "crm resource cleanup"
+
+nfs_fs_type:                           "{% if use_eit_for_afs %}aznfs{% else %}nfs{% endif %}"
+afs_mnt_options:                       "{% if use_eit_for_afs %}noresvport,vers=4,minorversion=1,sec=sys,proto=tcp,_netdev{% else %}noresvport,vers=4,minorversion=1,sec=sys{% endif %}"

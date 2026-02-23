@@ -114,7 +114,7 @@
 - name:                                "5.6.1 SCS/ERS Pacemaker - HA install calculate NFS mount options"
   ansible.builtin.set_fact:
     clus_nfs_options:  >-
-                                       {%- set _nfsopts = 'noresvport,vers=4.1,sec=sys' -%}
+                                       {%- set _nfsopts = 'noresvport,vers=4,minorversion=1,sec=sys' -%}
                                        {%- if (NFS_provider == "ANF") -%}
                                        {%-    if NFS_version == "NFSv3" -%}
                                        {%-      set _nfsopts = '' -%}
@@ -123,8 +123,11 @@
                                        {%-    endif -%}
                                        {%- elif (NFS_provider == "AFS") -%}
                                        {%-    if NFS_version == "NFSv4.1" -%}
-                                       {%-      set _nfsopts = 'noresvport,sec=sys,vers=4.1' -%}
+                                       {%-      set _nfsopts = 'noresvport,vers=4,minorversion=1,sec=sys' -%}
                                        {%-    endif -%}
+                                       {%- endif -%}
+                                       {%- if use_eit_for_afs | default(false) -%}
+                                       {%-   set _nfsopts = _nfsopts ~ ',_netdev' -%}
                                        {%- endif -%}
                                        {{- _nfsopts -}}
   when:
