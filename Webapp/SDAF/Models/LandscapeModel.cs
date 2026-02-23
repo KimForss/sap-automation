@@ -353,7 +353,7 @@ namespace SDAFWebApp.Models
 
         public bool? use_AFS_for_shared_storage { get; set; } = true;
 
-        public bool? AFS_enable_encryption_in_transit { get; set; } = true;
+        public bool? AFS_enable_encryption_in_transit { get; set; } = false;
 
         public bool? create_transport_storage { get; set; } = true;
 

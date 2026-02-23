@@ -50,11 +50,11 @@
 - name:                                "2.10 SAP Note - Disable SELinux and Reboot"
   when:
                                        - node_tier in ['scs', 'ers', 'pas', 'app', 'web']
-                                       - distribution_id in ['redhat7', 'redhat8', 'redhat9', 'oraclelinux8', 'oraclelinux9']
+                                       - distribution_id in ['redhat7', 'redhat8', 'redhat9', 'redhat10', 'oraclelinux8', 'oraclelinux9']
   block:
     - name:                            "2.10 SAP Note - Disable SELinux"
       ansible.posix.selinux:
-        state:                         "{%if distribution_id in ['redhat7', 'redhat8', 'redhat9']%}disabled{%elif distribution_id in ['oraclelinux8', 'oraclelinux9']%}permissive{%endif%}"
+        state:                         "permissive"
         policy:                        targeted
       register:                        selinux_disabled
 

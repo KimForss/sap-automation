@@ -217,7 +217,7 @@ variable "enable_firewall_for_keyvaults_and_storage" {
                                                      }
 
 variable "use_AFS_for_shared_storage"            {
-                                                    description = "If true, will use AFS for installation media."
+                                                    description = "If true, use Azure Files Shares (AFS) for SAP shared storage (for example sapmnt), in addition to or instead of ANF as configured."
                                                     type        = bool
                                                     default     = false
                                                  }
