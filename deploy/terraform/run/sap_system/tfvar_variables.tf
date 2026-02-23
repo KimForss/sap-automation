@@ -1320,6 +1320,18 @@ variable "sapmnt_private_endpoint_id"           {
                                                   default     = ""
                                                 }
 
+variable "use_AFS_for_shared_storage"              {
+                                                     description = "If true, will use AFS for all shared storage."
+                                                     type        = bool
+                                                     default     = false
+                                                   }
+
+variable AFS_enable_encryption_in_transit       {
+                                                  description = "Enable encryption in transit for Azure Files"
+                                                  type        = bool
+                                                  default     = false
+                                                }
+
 #########################################################################################
 #                                                                                       #
 #  ANF settings                                                                         #
@@ -1595,6 +1607,11 @@ variable "upgrade_packages"                     {
                                                   default     = false
                                                 }
 
+variable "suse_subscription_id"                  {
+                                                  description = "If defined, the SUSE registration code for BYOS/BYOL images. Leave empty for PAYG marketplace images."
+                                                  default     = ""
+                                                }
+
 variable "tags"                                 {
                                                   description = "If provided, tags for all resources"
                                                   default     = {}
@@ -1664,27 +1681,6 @@ variable "hanashared_volume_size"               {
                                                   description = "The volume size in GB for hana shared"
                                                   default     = 128
                                                 }
-
-
-#########################################################################################
-#                                                                                       #
-#  SAP CAL Integration variables                                                        #
-#                                                                                       #
-#########################################################################################
-
-variable "enable_sap_cal"                       {
-                                                  description = "If true, will enable the SAP CAL integration"
-                                                  default = false
-                                                }
-variable "calapi_kv"                            {
-                                                  description = "The SAP CAL API Key Vault"
-                                                  default     = ""
-                                                }
-variable "sap_cal_product_name"                 {
-                                                  description = "If defined, will use SAP CAL for system installation"
-                                                  default     = ""
-                                                }
-
 
 ###############################################################################
 #                                                                             #

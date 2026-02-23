@@ -161,6 +161,9 @@ ${hana_log}
 ${hana_shared}
 ${usr_sap}
 
+# Indicate if Encryption in Transit is to be used for AFS shares
+use_eit_for_afs:               ${use_eit_for_afs}
+
 #############################################################################
 #                                                                           #
 #                           Miscellaneous                                   #
@@ -175,6 +178,9 @@ secret_prefix:                 ${secret_prefix}
 
 # Set to true to instruct Ansible to update all the packages on the virtual machines
 upgrade_packages:              ${upgrade_packages}
+
+# SUSE registration code for BYOS/BYOL images. Leave empty for PAYG marketplace images.
+suse_subscription_id:          ${suse_subscription_id}
 
 ${settings}
 
@@ -234,18 +240,4 @@ ams_resource_id:                      ${ams_resource_id}
 enable_os_monitoring:                 ${enable_os_monitoring}
 enable_ha_monitoring:                 ${enable_ha_monitoring}
 
-%{~ if enable_sap_cal }
-
-#############################################################################
-#                                                                           #
-#                        SAP CAL Integration                                #
-#                                                                           #
-#############################################################################
-
-# Defines if the installation is to be deployed using SAP CAL
-enable_sap_cal:                       ${enable_sap_cal}
-calapi_kv:                            ${calapi_kv}
-sap_cal_product_name:                 ${sap_cal_product_name}
-
-%{~ endif }
 ...

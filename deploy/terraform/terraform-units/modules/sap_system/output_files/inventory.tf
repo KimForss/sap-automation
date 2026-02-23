@@ -256,6 +256,7 @@ resource "local_file" "sap-parameters_yml" {
               subnet_cidr_db              = trimspace(coalesce(var.subnet_cidr_db," ")),
               subnet_cidr_storage         = trimspace(coalesce(var.subnet_cidr_storage," ")),
               upgrade_packages            = var.upgrade_packages ? "true" : "false"
+              suse_subscription_id        = var.suse_subscription_id
               use_msi_for_clusters        = var.use_msi_for_clusters
               usr_sap                     = length(var.usr_sap) > 1 ? (
                                               format("usr_sap_mountpoint:            %s", var.usr_sap)) : (
@@ -266,9 +267,7 @@ resource "local_file" "sap-parameters_yml" {
               ams_resource_id             = var.ams_resource_id
               enable_os_monitoring        = var.enable_os_monitoring
               enable_ha_monitoring        = var.enable_ha_monitoring
-              enable_sap_cal              = var.enable_sap_cal
-              calapi_kv                   = var.calapi_kv
-              sap_cal_product_name        = var.sap_cal_product_name
+              use_eit_for_afs             = var.use_AFS_encryption_in_transit
               single_server               = length(var.webdispatcher_server_ips) + length(var.application_server_ips) + length(var.scs_server_ips) + length(var.database_server_ips) == 1 ? (
                                             true) : (
                                             false

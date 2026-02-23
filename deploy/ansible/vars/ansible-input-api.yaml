@@ -17,6 +17,7 @@ SDAF_Version:                           "3.17.0.1"
 chrony_pool:                            ""
 chrony_servers:                         []
 timezone:                               "Etc/GMT"
+suse_subscription_id:                   ""                                      # SUSE registration code for BYOS/BYOL images. Leave empty for PAYG marketplace images.
 # -------------------- End - OS Config Settings variables --------------------8
 
 # --------------------- Begin - BOM Processing variables ---------------------8
@@ -244,6 +245,8 @@ sapbits_sas_token_secret:               "sapbits-sas-token"                     
 NFS_provider:                           "NONE"
 NFS_version:                            "NFSv4.1"
 use_simple_mount:                       false
+# Indicate if Encryption in Transit is to be used for AFS shares
+use_eit_for_afs:                        false
 
 # Cluster - Defaults
 # database_high_availability:            false
@@ -289,15 +292,12 @@ enable_os_monitoring:                   false
 enable_ha_monitoring:                   false
 # ------------------- End - Azure Monitor for SAP (AMS) variables --------------8
 
-# ------------------- Begin - SAP CAL Integration variables --------------------8
-enable_sap_cal:                         false
-calapi_kv:                              ""
-sap_cal_product_name:                   ""
+# ------------------- Begin - LVM Configuration variables ----------------------8
 vg_root:                                "rootvg"
 lv_root_size:                           10g
 lv_root_size_db:                        20g
 lv_tmp_size:                            10g
-# ------------------- End - SAP CAL Integration variables ----------------------8
+# ------------------- End - LVM Configuration variables ------------------------8
 
 python_version:                        "python3"
 
