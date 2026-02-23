@@ -43,7 +43,7 @@
   become:                              true
   become_user:                         root
   community.general.zypper_repository:
-    repo:                              'Microsoft Production'
+    repo:                              '*'
     runrefresh:                        true
     auto_import_keys:                  true
   changed_when:                        false
