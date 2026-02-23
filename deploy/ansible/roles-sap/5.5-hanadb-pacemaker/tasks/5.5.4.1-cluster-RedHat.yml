@@ -309,7 +309,7 @@
           when:
                                        - database_active_active | default(false)
                                        - not (db_scale_out | default(false))
-                                       - ansible_inventory_hostname == primary_instance_name
+                                       - ansible_hostname == primary_instance_name
           ansible.builtin.shell:       pcs resource move SAPHana_{{ db_sid | upper }}_{{ db_instance_number }}-clone {{ primary_instance_name }}
           register:                    move_saphana
           failed_when:                 move_saphana.rc > 1
