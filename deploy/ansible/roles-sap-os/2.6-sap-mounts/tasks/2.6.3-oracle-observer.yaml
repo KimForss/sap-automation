@@ -98,6 +98,7 @@
       'folder':             '{{ bom_base_name }}',
       'mount':              '{{ usr_sap_install_mountpoint }}',
       'opts':               'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp',
+      'fstype':             'nfs4',
       'owner':              '{{ sidadm_uid }}',
       'path':               '/usr/sap/install',
       'permissions':        '0777',
