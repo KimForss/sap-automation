@@ -276,6 +276,71 @@ if [ -f "${filename}" ]; then
 
 fi
 
+echo "##[group]- store logs and artifacts"
+
+echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
+if [ "$PLATFORM" == "devops" ]; then
+	git pull -q origin "$BUILD_SOURCEBRANCHNAME"
+	git checkout -q "$BUILD_SOURCEBRANCHNAME"
+elif [ "$PLATFORM" == "github" ]; then
+	git pull -q origin "$GITHUB_REF_NAME"
+fi
+
+added=0
+
+if [ -d artifacts/logs ]; then
+	git add artifacts/logs
+	added=1
+fi
+
+# Commit changes based on platform
+if [ 1 = $added ]; then
+	commit_message="Added logs from SAP System installation [skip ci]"
+	if [ "$PLATFORM" == "devops" ]; then
+		git config --global user.email "$BUILD_REQUESTEDFOREMAIL"
+		git config --global user.name "$BUILD_REQUESTEDFOR"
+
+	elif [ "$PLATFORM" == "github" ]; then
+		git config --global user.email "github-actions@github.com"
+		git config --global user.name "GitHub Actions"
+	else
+		git config --global user.email "local@example.com"
+		git config --global user.name "Local User"
+	fi
+
+	if [ "$DEBUG" = True ]; then
+		git status --verbose
+		if git commit --message --verbose "$commit_message"; then
+			if [ "$PLATFORM" == "devops" ]; then
+				if ! git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BUILD_SOURCEBRANCHNAME" --force-with-lease; then
+					echo "Failed to push changes to the repository."
+				fi
+			elif [ "$PLATFORM" == "github" ]; then
+				if ! git push --set-upstream origin "$GITHUB_REF_NAME" --force-with-lease; then
+					echo "Failed to push changes to the repository."
+				fi
+			fi
+		fi
+	else
+		if git commit -m "$commit_message"; then
+			if [ "$PLATFORM" == "devops" ]; then
+				if ! git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BUILD_SOURCEBRANCHNAME" --force-with-lease; then
+					echo "Failed to push changes to the repository."
+				fi
+			elif [ "$PLATFORM" == "github" ]; then
+				if ! git push --set-upstream origin "$GITHUB_REF_NAME" --force-with-lease; then
+					echo "Failed to push changes to the repository."
+				fi
+			fi
+		fi
+	fi
+fi
+
+
+echo "##[endgroup]"
+
+
+
 print_banner "$banner_title" "Exiting $SCRIPT_NAME" "info"
 
 exit $return_code
