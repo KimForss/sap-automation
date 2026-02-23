@@ -368,7 +368,7 @@
         src:                           "{{ item.src }}"
         path:                          "{{ item.path }}"
         fstype:                        "{{ item.type }}"
-        opts:                          'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp'
+        opts:                          "rw,hard,rsize=65536,wsize=65536,sec=sys,noresvport,vers=4.1,tcp{{ ',_netdev' if use_eit_for_afs and NFS_version == 'NFSv4.1' else '' }}"
         state:                         mounted
       register:                        sys_mounted
       loop:
