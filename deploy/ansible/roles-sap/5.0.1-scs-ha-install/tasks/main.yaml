@@ -166,7 +166,7 @@
 
         - name:                        "5.0.1. Central Services Installation - High Availability - Show start installation message"
           ansible.builtin.debug:
-            msg:                       "Starting sapinst for {{ sid_to_be_deployed.sid | upper }}. Please wait"
+            msg:                       "Starting Central Services Installation using sapinst for {{ sid_to_be_deployed.sid | upper }}. Please wait"
 
         - name:                        "5.0.1. Central Services Installation - High Availability - Run 'sapinst'"
           ansible.builtin.shell: |
