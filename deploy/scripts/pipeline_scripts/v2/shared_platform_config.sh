@@ -64,6 +64,12 @@ configure_platform_variables() {
 
 		# Setup output for GitHub Actions
 		export GITHUB_OUTPUT=${GITHUB_OUTPUT:-/dev/null}
+
+		if [ "${USE_MSI:-false}" != "true" ]; then
+			export TF_VAR_use_spn=true
+		else
+			export TF_VAR_use_spn=false
+		fi
 	elif [ "${PLATFORM}" == "devops" ]; then
 		# Map Azure DevOps variables to common names
 		[ ! -v SAP_AUTOMATION_REPO_PATH ] && export SAP_AUTOMATION_REPO_PATH="${SYSTEM_DEFAULTWORKINGDIRECTORY}/sap-automation"
