@@ -1475,7 +1475,7 @@ resources:
 
               $ConfigurationUrl = "https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps/ApplicationMenuBlade/~/ProtectAnAPI/appId/$AppRegistrationId/isMSAApp~/false"
 
-              Write-Host "The browser will now open, Please Add a new scope, by clicking the '+ Add a new scope link', accept the default name and click 'Save and Continue'" -ForegroundColor Blue
+              Write-Host "The browser will now open, Please Add a new scope, by clicking the '+ Add a scope' link, accept the default name and click 'Save and Continue'" -ForegroundColor Blue
               Write-Host "In the Add a scope page enter the scope name 'user_impersonation'. Choose 'Admins and Users' in the who can consent section, next provide the Admin consent display name 'Access the SDAF web application' and 'Use SDAF' as the Admin consent description, accept the changes by clicking the 'Add scope' button"  -ForegroundColor Blue
 
               Start-Process $ConfigurationUrl
