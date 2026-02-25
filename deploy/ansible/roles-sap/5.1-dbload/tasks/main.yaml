@@ -201,9 +201,8 @@
           when:
                                        - database_scale_out | default(false)
                                        - hana_shared_mountpoint is defined
-                                       - backupdisks_count | int == 0
           ansible.builtin.set_fact:
-            backup_path:               "/hana/shared/"
+            backup_path:               "/hana/shared"
 
     - name:                            "Hana backup directory"
       when:

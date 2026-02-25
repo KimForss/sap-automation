@@ -278,9 +278,7 @@ fi
 echo "##[endgroup]"
 
 echo "##[group]- Store logs and artifacts"
-echo "Platform  : $PLATFORM"
-pwd
-ls -lart
+echo "Platform: $PLATFORM"
 
 echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
 if [ "$PLATFORM" == "devops" ]; then
@@ -292,8 +290,8 @@ fi
 
 added=0
 
-if [ -d artifacts/logs ]; then
-	git add artifacts/logs
+if [ -d logs ]; then
+	git add logs
 	added=1
 fi
 

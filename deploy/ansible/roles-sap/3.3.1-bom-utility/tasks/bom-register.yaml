@@ -275,6 +275,7 @@
     - bom.materials.media is defined
 
 - name:                                 "{{ task_prefix }} Show BOM object"
+  when:                                  operation | default('Download') == "SoftwareAcquisition"
   ansible.builtin.debug:
     var:                                bom
     verbosity:                          2
