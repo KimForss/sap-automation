@@ -179,7 +179,7 @@
             chdir:                     /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/{{ hostvars[primary_instance_name].virtual_host }}/trace
           register:                    saphanasr
           until:                       saphanasr.stdout is search("SOK")
-          retries:                     10
+          retries:                     20
           delay:                       30
       rescue:
         - name:                        "[Rescue] 5.8 HANA Pacemaker Scale-out - Pause to give HANA replication time to stabilize"
@@ -204,6 +204,10 @@
       ansible.builtin.debug:
         var:                           saphanasr
         verbosity:                     2
+
+    - name:                            "5.8 HANA Pacemaker Scale-out - Clear the failed state of hosts"
+      ansible.builtin.meta:            clear_host_errors
+
 
 # Note: We do not configure Hook on Majority maker, only installation is needed. Unfortunately since this task runs on HANA VM's only, Majority maker is skipped.
 # Hook packages are deployed on Majority maker in task 1.18-scaleout-pacemaker
