@@ -32,7 +32,7 @@
   ansible.builtin.command: >-
     az keyvault secret list
       --vault-name {{ kv_name }}
-      --query [].name
+      --query "[?name=='{{ sap_password_id }}'].name"
       --output yaml
   changed_when:                        false
   register:                            keyvault_secret_sap_password_exists
