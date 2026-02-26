@@ -2,3 +2,13 @@
 # Licensed under the MIT License.
 
 _rsp_basepath_shared:        "no"
+
+
+sapcontrol_command:                    "sapcontrol -nr {{ db_instance_number }}"
+
+hana_stop_start_timeout_in_seconds:    "{% if database_scale_out %}{{ 1800 }}{% else %}600{% endif %}"
+hana_stop_start_delay_in_seconds:      "{% if database_scale_out %}{{ 30 }}{% else %}10{% endif %}"
+
+DB:                                    "{{ db_sid | upper }}/HDB{{ db_instance_number }}"
+db_sid_admin_user:                     "{{ db_sid | lower }}adm"
+

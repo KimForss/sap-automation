@@ -50,8 +50,8 @@ storage_object:                        sbd{{ cluster_name }}
 target:                                "{{ iscsi_object }}.{{ cluster_name }}.local:{{ cluster_name }}"
 
 
-hana_stop_start_timeout_in_seconds:    600
-hana_stop_start_delay_in_seconds:      10
+hana_stop_start_timeout_in_seconds:    "{% if database_scale_out %}1800{% else %}600{% endif %}"
+hana_stop_start_delay_in_seconds:      "{% if database_scale_out %}30{% else %}10{% endif %}"
 
 # RHEL: Check maintenance mode command based on OS version
 pcs_check_maintenance_mode: >-
@@ -62,16 +62,8 @@ pcs_check_maintenance_mode: >-
                                        {% endif %}
 
 pcs_sap_hana_role_prim: >-
-                                       {% if ansible_distribution_major_version is version ('10','<') %}
-                                       Master
-                                       {% else %}
-                                       Promoted
-                                       {% endif %}
+                                       {% if ansible_distribution_major_version is version ('10','<') %}Master{% else %}Promoted{% endif %}
 
 pcs_sap_hana_role_sec: >-
-                                       {% if ansible_distribution_major_version is version ('10','<') %}
-                                       Slave
-                                       {% else %}
-                                       Unpromoted
-                                       {% endif %}
+                                       {% if ansible_distribution_major_version is version ('10','<') %}Slave{% else %}Unpromoted{% endif %}
 ...

@@ -251,7 +251,7 @@
       become_user:                     root
       become:                          true
       ansible.builtin.find:
-        paths:                         "{{ tmp_directory }}/{{ db_sid }}"
+        paths:                         "{{ tmp_directory }}"
         file_type:                     file
         patterns:                      'hd*.log'
         recurse:                       true
