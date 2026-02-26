@@ -202,6 +202,7 @@ if [ -z "${operation}" ]; then
 	echo "#                                                                                       #"
 	echo "#     Valid options are:                                                                #"
 	echo "#       import                                                                          #"
+	echo "#       list                                                                          #"
 	echo "#       remove                                                                          #"
 	echo "#                                                                                       #"
 	echo "#########################################################################################"
@@ -273,7 +274,9 @@ if [ -n "${resourceID}" ]; then
 fi
 
 if [ -n "${storage_account_name}" ]; then
-	tfstate_resource_id=$(az resource list --name "${storage_account_name}" --resource-type Microsoft.Storage/storageAccounts  --query "[].id | [0]" -o tsv )
+	tfstate_resource_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$storage_account_name' | project id, name, subscription" --query data[0].id --output tsv)
+
+	subscription_id=$(echo "${tfstate_resource_id}" | cut -d/ -f3 | tr -d \" | xargs)
 else
 	if [ -f .terraform/terraform.tfstate ]; then
 		STATE_SUBSCRIPTION=$(grep -m1 "subscription_id" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
@@ -282,7 +285,7 @@ else
 		REMOTE_STATE_RG=$(grep -m1 "resource_group_name" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
 		subscription_id="${STATE_SUBSCRIPTION}"
 
-		tfstate_resource_id=$(jq --raw-output '.backend.config.tfstate_resource_id' .terraform/terraform.tfstate)
+		tfstate_resource_id=$(az resource list --name "${storage_account_name}" --subscription "${subscription_id}" --resource-type Microsoft.Storage/storageAccounts  --query "[].id | [0]" -o tsv )
 	else
 		load_config_vars "${system_environment_file_name}" "tfstate_resource_id"
 		storage_account_name=$(echo "$tfstate_resource_id" | cut -d / -f9)
@@ -318,10 +321,20 @@ fi
 
 if [ -z "${storage_account_name}" ]; then
 	read -r -p "Terraform state storage account:" storage_account_name
-	tfstate_resource_id=$(az resource list --name "${storage_account_name}" --resource-type Microsoft.Storage/storageAccounts  --query "[].id | [0]" -o tsv)
+	tfstate_resource_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$storage_account_name' | project id, name, subscription" --query data[0].id --output tsv)
+fi
+
+subscription_id=$(echo "${tfstate_resource_id}" | cut -d/ -f3 | tr -d \" | xargs)
+
+useSAS=$(az storage account show --name "${storage_account_name}" --query allowSharedKeyAccess --subscription "${subscription_id}" --out tsv)
+if [ "$useSAS" = "true" ]; then
+	export ARM_USE_AZUREAD=false
+else
+	export ARM_USE_AZUREAD=true
 fi
 
 resource_group_name=$(echo "${tfstate_resource_id}" | cut -d/ -f5 | tr -d \" | xargs)
+export TF_VAR_tfstate_resource_id="${tfstate_resource_id}"
 
 directory=$(pwd)/.terraform
 
@@ -329,16 +342,12 @@ module_dir=$DEPLOYMENT_REPO_PATH/deploy/terraform/run/${type}
 
 export TF_DATA_DIR="${directory}"
 
-if [ -f .terraform/terraform.tfstate ]; then
-	terraform init
-else
-	terraform -chdir="${module_dir}" init \
-		-backend-config "subscription_id=${subscription_id}" \
-		-backend-config "resource_group_name=${resource_group_name}" \
-		-backend-config "storage_account_name=${storage_account_name}" \
-		-backend-config "container_name=tfstate" \
-		-backend-config "key=${key}"
-fi
+terraform -chdir="${module_dir}" init -migrate-state -upgrade=true \
+	-backend-config "subscription_id=${subscription_id}" \
+	-backend-config "resource_group_name=${resource_group_name}" \
+	-backend-config "storage_account_name=${storage_account_name}" \
+	-backend-config "container_name=tfstate" \
+	-backend-config "key=${key}"
 return_value=$?
 
 if [ 0 != $return_value ]; then
@@ -361,10 +370,10 @@ fi
 
 if [ "${type}" == sap_system ] && [ "${operation}" == "import" ]; then
 	if [ -n "${workload_zone_name}" ]; then
-		workload_zone_name_parameter=" -var landscape_tfstate_key=${workload_zone_name}-INFRASTRUCTURE.terraform.tfstate"
+		export TF_VAR_landscape_tfstate_key="${workload_zone_name}-INFRASTRUCTURE.terraform.tfstate"
 	else
 		read -r -p "Workload zone name (ENV_REGIONCODE-VNET):" workload_zone_name
-		workload_zone_name_parameter=" -var landscape_tfstate_key=${workload_zone_name}-INFRASTRUCTURE.terraform.tfstate"
+		export TF_VAR_landscape_tfstate_key="${workload_zone_name}-INFRASTRUCTURE.terraform.tfstate"
 		save_config_var "workload_zone_name" "${system_environment_file_name}"
 	fi
 else
@@ -390,7 +399,7 @@ if [ "${operation}" == "list" ]; then
 fi
 
 shorter_name=$(echo "${moduleID}" | cut -d[ -f1)
-tf_resource=$(grep "${shorter_name}" resources.lst)
+tf_resource=$(grep "${shorter_name}" resources.lst || true)
 echo "Result after grep: " "${tf_resource}"
 if [ "${operation}" == "import" ] || [ "${operation}" == "remove" ]; then
 	if [ -n "${tf_resource}" ]; then
@@ -421,9 +430,7 @@ rm resources.lst
 
 if [ "${operation}" == "import" ]; then
 
-	tfstate_parameter=" -var tfstate_resource_id=${tfstate_resource_id}"
-
-	terraform -chdir="${module_dir}" import -var-file $(pwd)/"${parameter_file}" "${tfstate_parameter}" "${workload_zone_name_parameter}" "${moduleID}" "${resourceID}"
+	terraform -chdir="${module_dir}" import -var-file "${parameter_file}""${moduleID}" "${resourceID}"
 
 	return_value=$?
 	if [ 0 != $return_value ]; then
@@ -440,3 +447,11 @@ if [ "${operation}" == "import" ]; then
 fi
 
 unset TF_DATA_DIR
+
+
+terraform -chdir=/home/azureadm/Azure_SAP_Automated_Deployment/sap-automation/deploy/terraform/run/sap_system import -var-file /home/azur
+eadm/Azure_SAP_Automated_Deployment/WORKSPACES/SYSTEM/AFS-NOEU-SAP01-SH8//home/azureadm/Azure_SAP_Automated_Deployment/WORKSPACES/SYSTEM/AFS
+-NOEU-SAP01-SH8/AFS-NOEU-SAP01-SH8.tfvars ' -var tfstate_resource_id=/subscriptions/dcb2713e-5dc8-4139-a9af-9768287bbb8d/resourceGroups/CPLN
+-NOEU-SAP_LIBRARY/providers/Microsoft.Storage/storageAccounts/cplnnoeutfstate748' ' -var landscape_tfstate_key=AFS-NOEU-SAP01-INFRASTRUCTURE
+.terraform.tfstate' 'module.app_tier.azurerm_network_interface.web[0]' /subscriptions/8d8422a3-a9c1-4fe9-b880-adcf61557c71/resourceGroups/AF
+S-NOEU-SAP01-SH8/providers/Microsoft.Network/networkInterfaces/AFS-NOEU-SAP01-SH8_wh8web_z1_00l658-nic
