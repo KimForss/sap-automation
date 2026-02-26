@@ -430,7 +430,7 @@ rm resources.lst
 
 if [ "${operation}" == "import" ]; then
 
-	terraform -chdir="${module_dir}" import -var-file "${parameter_file}""${moduleID}" "${resourceID}"
+	terraform -chdir="${module_dir}" import -var-file "${parameter_file}" "${moduleID}" "${resourceID}"
 
 	return_value=$?
 	if [ 0 != $return_value ]; then
@@ -447,11 +447,3 @@ if [ "${operation}" == "import" ]; then
 fi
 
 unset TF_DATA_DIR
-
-
-terraform -chdir=/home/azureadm/Azure_SAP_Automated_Deployment/sap-automation/deploy/terraform/run/sap_system import -var-file /home/azur
-eadm/Azure_SAP_Automated_Deployment/WORKSPACES/SYSTEM/AFS-NOEU-SAP01-SH8//home/azureadm/Azure_SAP_Automated_Deployment/WORKSPACES/SYSTEM/AFS
--NOEU-SAP01-SH8/AFS-NOEU-SAP01-SH8.tfvars ' -var tfstate_resource_id=/subscriptions/dcb2713e-5dc8-4139-a9af-9768287bbb8d/resourceGroups/CPLN
--NOEU-SAP_LIBRARY/providers/Microsoft.Storage/storageAccounts/cplnnoeutfstate748' ' -var landscape_tfstate_key=AFS-NOEU-SAP01-INFRASTRUCTURE
-.terraform.tfstate' 'module.app_tier.azurerm_network_interface.web[0]' /subscriptions/8d8422a3-a9c1-4fe9-b880-adcf61557c71/resourceGroups/AF
-S-NOEU-SAP01-SH8/providers/Microsoft.Network/networkInterfaces/AFS-NOEU-SAP01-SH8_wh8web_z1_00l658-nic
