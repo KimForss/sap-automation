@@ -423,7 +423,8 @@
   when:
     - not dbload_installed.stat.exists
 
-# Import this task only if the tier is ora.
+# Import this task only on Oracle, to perform post-processing steps after the database load
+
 - name:                                "5.1 Database Load  - Oracle post processing"
   ansible.builtin.import_tasks:        "oracle-postprocessing.yaml"
   when:
