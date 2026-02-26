@@ -17,17 +17,36 @@
     is_UEK6:                           "{{ ansible_kernel is version('5.5', '<') }}"
     CV_ASSUME_DISTID:                  "{% if ansible_kernel is version('5.5', '<') %} OEL7 {% else %} OL8 {% endif %}"
 
-- name:                                "5.1 Database Load  - ORACLE - Ensure Oracle is running"
+- name:                                "5.1 Database Load - Check if database is open"
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell: |
                                        setenv ORACLE_SID {{ db_sid | upper }}
+                                       setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_release }}
+                                       sqlplus -s / as sysdba << EOF
+                                       SET HEADING OFF;
+                                       SET FEEDBACK OFF;
+                                       SELECT open_mode FROM v\$database;
+                                       EXIT;
+                                       EOF
+  args:
+    executable:                        /bin/csh
+  register:                            open_mode
+  failed_when:                         false
+  changed_when:                        false
+
+- name:                                "5.1 Database Load - ORACLE - Ensure Oracle is running"
+  when:                                "'ORA-01531' not in open_mode.stdout"
+  become:                              true
+  become_user:                         "{{ oracle_user_name }}"
+  ansible.builtin.shell: |
+                                       setenv ORACLE_SID {{ db_sid | upper }}
+                                       setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_release }}
                                        $ORACLE_HOME/bin/sqlplus -S / as sysdba <<EOF
                                        ALTER DATABASE OPEN;
                                        EXIT;
                                        EOF
   register:                            dbstarted_results
-  failed_when:                         false
   args:
     executable:                        /bin/csh
 
@@ -115,14 +134,55 @@
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell: |
                                        setenv ORACLE_SID {{ db_sid | upper }}
+                                       setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_release }}
                                        $ORACLE_HOME/bin/sqlplus -S / as sysdba <<EOF
                                        SHUTDOWN IMMEDIATE;
-                                       STARTUP MOUNT;
-                                       ALTER DATABASE OPEN;
                                        EXIT;
                                        EOF
       register:                        dbstarted_results
       failed_when:                     false
+      args:
+        executable:                    /bin/csh
+
+    - name:                            "5.1 Database Load  -  - Shutdown instance - Check for zombie standby processes"
+      become_user:                     "root"
+      become:                          true
+      ansible.builtin.shell: |
+                                       set -o pipefail
+                                       ps -ef | grep ora_pmon_{{ current_sid }} | grep -v grep || true
+      register:                        standby_pmon
+      changed_when:                    false
+
+    - name:                            "5.1 Database Load  -  - Shutdown instance - Kill zombie standby processes"
+      become:                          true
+      become_user:                     root
+      ansible.builtin.shell:           kill -9 {{ item.split()[1] }}
+      loop:                            "{{ standby_pmon.stdout_lines }}"
+      when:                            standby_pmon.stdout | length > 0
+      failed_when:                     false
+
+    - name:                            "5.1 Database Load  -  - Shutdown instance - Clean orphaned shared memory segments"
+      become:                          true
+      become_user:                     root
+      ansible.builtin.shell: |
+                                       set -o pipefail
+                                       for seg in $(ipcs -m | grep {{ oracle_user_name }} | awk '$6==0 {print $2}'); do
+                                          ipcrm -m $seg
+                                       done
+      failed_when:                     false
+      when:                            standby_pmon.stdout | length > 0
+
+    - name:                            "5.1 Database Load  - ORACLE - Ensure Oracle is running"
+      become:                          true
+      become_user:                     "{{ oracle_user_name }}"
+      ansible.builtin.shell: |
+                                       setenv ORACLE_SID {{ db_sid | upper }}
+                                       setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_release }}
+                                       $ORACLE_HOME/bin/sqlplus -S / as sysdba <<EOF
+                                       STARTUP;
+                                       EXIT;
+                                       EOF
+      register:                        dbstarted_results
       args:
         executable:                    /bin/csh
 
