@@ -183,6 +183,9 @@ if [ ! -f "${parameter_file}" ]; then
 	exit 2 #No such file or directory
 fi
 
+
+parameter_file_name=$(basename "${parameter_file}")
+
 if [ -z "${type}" ]; then
 	printf -v val %-40.40s "$type"
 	echo "#########################################################################################"
@@ -239,7 +242,13 @@ else
 fi
 
 automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
-system_environment_file_name="${automation_config_directory}""${environment}""${region_code}"
+if [ -z "$workload_zone_name" ]; then
+	workload_zone_name=$(echo "${parameter_file_name}" | cut -d'-' -f1-3)
+fi
+
+
+system_environment_file_name="${automation_config_directory}""${workload_zone_name}"
+save_config_vars "${system_environment_file_name}" workload_zone_name
 
 #Plugins
 
@@ -368,11 +377,6 @@ if [ 0 != $return_value ]; then
 	exit $return_value
 fi
 
-if [ -z "$workload_zone_name" ]; then
-	load_config_vars "${system_environment_file_name}" "workload_zone_name"
-else
-	save_config_vars "${system_environment_file_name}" workload_zone_name
-fi
 
 if [ "${type}" == sap_system ] && [ "${operation}" == "import" ]; then
 	if [ -n "${workload_zone_name}" ]; then
