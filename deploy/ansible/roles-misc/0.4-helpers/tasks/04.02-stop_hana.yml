@@ -24,38 +24,46 @@
   block:
 
     - name:                            "04.02 Stop HANA - Determine if HANA is stopped on {{ ansible_hostname }}"
-      ansible.builtin.shell:           "{{ sapcontrol_command }} -function GetProcessList"
+      ansible.builtin.shell:           "sapcontrol -nr {{ db_instance_number }} -function GetProcessList"
       failed_when:                     false
       changed_when:                    false
       register:                        hana_stopped
       vars:
-        allow_world_readable_tmpfiles:     true
+        allow_world_readable_tmpfiles: true
       environment:
-        PATH:                      /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
-        DIR_LIBRARY:               /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
-        LD_LIBRARY_PATH:           /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
-        SAPSYSTEMNAME:             "{{ db_sid | upper }}"
+        PATH:                          /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        DIR_LIBRARY:                   /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        LD_LIBRARY_PATH:               /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        SAPSYSTEMNAME:                 "{{ db_sid | upper }}"
 
     - name:                            "04.02 Stop HANA - Ensure HANA is stopped {{ ansible_hostname }}"
       when:                            hana_stopped.rc != 4
-      ansible.builtin.shell:           "{{ sapcontrol_command }} -function StopWait {{ hana_stop_start_timeout_in_seconds }} {{ hana_stop_start_delay_in_seconds }}"
+      ansible.builtin.shell:           "sapcontrol -nr {{ db_instance_number }} -function StopWait {{ hana_stop_start_timeout_in_seconds }} {{ hana_stop_start_delay_in_seconds }}"
       vars:
-        allow_world_readable_tmpfiles:     true
+        allow_world_readable_tmpfiles: true
       environment:
-        PATH:                      /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
-        DIR_LIBRARY:               /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
-        LD_LIBRARY_PATH:           /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
-        SAPSYSTEMNAME:             "{{ db_sid | upper }}"
+        PATH:                          /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        DIR_LIBRARY:                   /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        LD_LIBRARY_PATH:               /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        SAPSYSTEMNAME:                 "{{ db_sid | upper }}"
+
+    # - name:                            "04.02 Stop HANA - Check if indexserver is stopped {{ ansible_hostname }}"
+    #   when:                            hana_stopped.rc != 4
+    #   ansible.builtin.wait_for:
+    #     port:                          "3{{ db_instance_number }}15"
+    #     host:                          "{{ ansible_hostname }}"
+    #     timeout:                       "{{ hana_stop_start_timeout_in_seconds }}"
+    #     state:                         drained
 
     - name:                            "04.02 Stop HANA - Verify HANA is stopped on {{ ansible_hostname }}"
-      ansible.builtin.shell:           "{{ sapcontrol_command }} -function GetProcessList"
+      ansible.builtin.shell:           "sapcontrol -nr {{ db_instance_number }} -function GetProcessList"
       changed_when:                    false
       register:                        hana_stopped
       failed_when:                     hana_stopped.rc != (4 or 0)
       vars:
-        allow_world_readable_tmpfiles:     true
+        allow_world_readable_tmpfiles: true
       environment:
-        PATH:                      /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
-        DIR_LIBRARY:               /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
-        LD_LIBRARY_PATH:           /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
-        SAPSYSTEMNAME:             "{{ db_sid | upper }}"
+        PATH:                          /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        DIR_LIBRARY:                   /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        LD_LIBRARY_PATH:               /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        SAPSYSTEMNAME:                 "{{ db_sid | upper }}"

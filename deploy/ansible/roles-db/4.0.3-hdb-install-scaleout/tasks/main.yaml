@@ -374,49 +374,66 @@
             - { section: "persistence", option: "datavolume_striping",         value: "true"  }
             - { section: "persistence", option: "datavolume_striping_size_gb", value: "15000" }
 
-
-    - name:                            "4.0.3 - SAP HANA Scale-out: Restart HANA"
+    - name:                        "4.0.3 - SAP HANA Scale-out Installation - Restart HANA"
       block:
-        - name:                        "4.0.3 - SAP HANA Scale-out: Stop HANA Database"
-          become_user:                 "{{ db_sid | lower }}adm"
-          become:                      true
-          ansible.builtin.shell: |
-                                       sapcontrol -nr {{ db_instance_number }} -function StopSystem {{ db_sid | upper }}
-          changed_when:                false
-          failed_when:                 false
-          register:                    hana_stopped
-          environment:
-            PATH:                      /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
-            DIR_LIBRARY:               /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
-            LD_LIBRARY_PATH:           /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
-            SAPSYSTEMNAME:             "{{ db_sid | upper }}"
-          vars:
-            allow_world_readable_tmpfiles: true
+        - name:                    "4.0.3 - SAP HANA Scale-out - Stop HANA Database"
+          ansible.builtin.import_tasks:   ../../../roles-misc/0.4-helpers/tasks/04.02-stop_hana.yml
 
-        # ToDo: Check if we can interrogate the HANA DB to see if it is stopped.
-        - name:                        "4.0.3 - SAP HANA Scale-out: Wait 5 minutes for SAP system to stop"
-          ansible.builtin.wait_for:
-            timeout:                   300
+        - name:                    "4.0.3 - SAP HANA Scale-out - Start HANA Database"
+          ansible.builtin.import_tasks:   ../../../roles-misc/0.4-helpers/tasks/04.01-start_hana.yml
 
-        - name:                        "4.0.3 - SAP HANA Scale-out: Start HANA Database"
-          become_user:                 "{{ db_sid | lower }}adm"
-          become:                      true
-          ansible.builtin.shell: |
-                                       sapcontrol -nr {{ db_instance_number }} -function StartSystem {{ db_sid | upper }}
-          changed_when:                false
-          failed_when:                 false
-          register:                    hana_started
-          environment:
-            PATH:                      /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
-            DIR_LIBRARY:               /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
-            LD_LIBRARY_PATH:           /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
-            SAPSYSTEMNAME:             "{{ db_sid | upper }}"
-          vars:
-            allow_world_readable_tmpfiles: true
+      vars:
+        allow_world_readable_tmpfiles: true
+      environment:
+        PATH:                      /usr/bin:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        HOME:                      /usr/sap/{{ db_sid | upper }}/home
+        DIR_LIBRARY:               /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        LD_LIBRARY_PATH:           /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        SAPSYSTEMNAME:             "{{ db_sid | upper }}"
 
-        - name:                        "4.0.3 - SAP HANA Scale-out: Wait 5 minutes for SAP system to start"
-          ansible.builtin.wait_for:
-            timeout:                   300
+
+    # - name:                            "4.0.3 - SAP HANA Scale-out: Restart HANA"
+    #   block:
+    #     - name:                        "4.0.3 - SAP HANA Scale-out: Stop HANA Database"
+    #       become_user:                 "{{ db_sid | lower }}adm"
+    #       become:                      true
+    #       ansible.builtin.shell: |
+    #                                    sapcontrol -nr {{ db_instance_number }} -function StopSystem {{ db_sid | upper }}
+    #       changed_when:                false
+    #       failed_when:                 false
+    #       register:                    hana_stopped
+    #       environment:
+    #         PATH:                      /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+    #         DIR_LIBRARY:               /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+    #         LD_LIBRARY_PATH:           /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+    #         SAPSYSTEMNAME:             "{{ db_sid | upper }}"
+    #       vars:
+    #         allow_world_readable_tmpfiles: true
+
+    #     # ToDo: Check if we can interrogate the HANA DB to see if it is stopped.
+    #     - name:                        "4.0.3 - SAP HANA Scale-out: Wait 5 minutes for SAP system to stop"
+    #       ansible.builtin.wait_for:
+    #         timeout:                   300
+
+    #     - name:                        "4.0.3 - SAP HANA Scale-out: Start HANA Database"
+    #       become_user:                 "{{ db_sid | lower }}adm"
+    #       become:                      true
+    #       ansible.builtin.shell: |
+    #                                    sapcontrol -nr {{ db_instance_number }} -function StartSystem {{ db_sid | upper }}
+    #       changed_when:                false
+    #       failed_when:                 false
+    #       register:                    hana_started
+    #       environment:
+    #         PATH:                      /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+    #         DIR_LIBRARY:               /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+    #         LD_LIBRARY_PATH:           /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+    #         SAPSYSTEMNAME:             "{{ db_sid | upper }}"
+    #       vars:
+    #         allow_world_readable_tmpfiles: true
+
+    #     - name:                        "4.0.3 - SAP HANA Scale-out: Wait 5 minutes for SAP system to start"
+    #       ansible.builtin.wait_for:
+    #         timeout:                   300
 
 
 # Scale our HSR with multi site replication
@@ -668,50 +685,66 @@
               with_items:
                 - "{{ groups[(sap_sid | upper)~'_DB' ] }}"
 
-
         - name:                        "4.0.3 - SAP HANA Scale-out Installation - Restart HANA"
           block:
+            - name:                    "4.0.3 - SAP HANA Scale-out - Stop HANA Database"
+              ansible.builtin.import_tasks:   ../../../roles-misc/0.4-helpers/tasks/04.02-stop_hana.yml
 
-          - name:                      "4.0.3 - SAP HANA Scale-out Installation - Stop HANA Database"
-            become_user:               "{{ db_sid | lower }}adm"
-            become:                    true
-            ansible.builtin.shell: |
-                                       sapcontrol -nr {{ db_instance_number }} -function StopSystem {{ db_sid | upper }}
-            changed_when:              false
-            failed_when:               false
-            register:                  hana_stopped
-            environment:
-              PATH:                    /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
-              DIR_LIBRARY:             /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
-              LD_LIBRARY_PATH:         /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
-              SAPSYSTEMNAME:           "{{ db_sid | upper }}"
-            vars:
-              allow_world_readable_tmpfiles: true
+            - name:                    "4.0.3 - SAP HANA Scale-out - Start HANA Database"
+              ansible.builtin.import_tasks:   ../../../roles-misc/0.4-helpers/tasks/04.01-start_hana.yml
 
-          # ToDo: Check if we can interrogate the HANA DB to see if it is stopped.
-          - name:                      "4.0.3 - SAP HANA Scale-out Installation - Wait 2 minutes for SAP system to stop"
-            ansible.builtin.wait_for:
-              timeout:                 120
+          vars:
+            allow_world_readable_tmpfiles: true
+          environment:
+            PATH:                      /usr/bin:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+            HOME:                      /usr/sap/{{ db_sid | upper }}/home
+            DIR_LIBRARY:               /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+            LD_LIBRARY_PATH:           /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+            SAPSYSTEMNAME:             "{{ db_sid | upper }}"
 
-          - name:                      "4.0.3 - SAP HANA Scale-out Installation - Start HANA Database"
-            become_user:               "{{ db_sid | lower }}adm"
-            become:                    true
-            ansible.builtin.shell: |
-                                       sapcontrol -nr {{ db_instance_number }} -function StartSystem {{ db_sid | upper }}
-            changed_when:              false
-            failed_when:               false
-            register:                  hana_started
-            environment:
-              PATH:                    /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
-              DIR_LIBRARY:             /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
-              LD_LIBRARY_PATH:         /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
-              SAPSYSTEMNAME:           "{{ db_sid | upper }}"
-            vars:
-              allow_world_readable_tmpfiles: true
+        # - name:                        "4.0.3 - SAP HANA Scale-out Installation - Restart HANA"
+        #   block:
 
-          - name:                      "4.0.3 - SAP HANA Scale-out Installation - Wait 2 minutes for SAP system to start"
-            ansible.builtin.wait_for:
-              timeout:                 120
+        #   - name:                      "4.0.3 - SAP HANA Scale-out Installation - Stop HANA Database"
+        #     become_user:               "{{ db_sid | lower }}adm"
+        #     become:                    true
+        #     ansible.builtin.shell: |
+        #                                sapcontrol -nr {{ db_instance_number }} -function StopSystem {{ db_sid | upper }}
+        #     changed_when:              false
+        #     failed_when:               false
+        #     register:                  hana_stopped
+        #     environment:
+        #       PATH:                    /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        #       DIR_LIBRARY:             /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        #       LD_LIBRARY_PATH:         /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        #       SAPSYSTEMNAME:           "{{ db_sid | upper }}"
+        #     vars:
+        #       allow_world_readable_tmpfiles: true
+
+        #   # ToDo: Check if we can interrogate the HANA DB to see if it is stopped.
+        #   - name:                      "4.0.3 - SAP HANA Scale-out Installation - Wait 2 minutes for SAP system to stop"
+        #     ansible.builtin.wait_for:
+        #       timeout:                 120
+
+        #   - name:                      "4.0.3 - SAP HANA Scale-out Installation - Start HANA Database"
+        #     become_user:               "{{ db_sid | lower }}adm"
+        #     become:                    true
+        #     ansible.builtin.shell: |
+        #                                sapcontrol -nr {{ db_instance_number }} -function StartSystem {{ db_sid | upper }}
+        #     changed_when:              false
+        #     failed_when:               false
+        #     register:                  hana_started
+        #     environment:
+        #       PATH:                    /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        #       DIR_LIBRARY:             /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        #       LD_LIBRARY_PATH:         /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        #       SAPSYSTEMNAME:           "{{ db_sid | upper }}"
+        #     vars:
+        #       allow_world_readable_tmpfiles: true
+
+        #   - name:                      "4.0.3 - SAP HANA Scale-out Installation - Wait 2 minutes for SAP system to start"
+        #     ansible.builtin.wait_for:
+        #       timeout:                 120
 
 
     # /*---------------------------------------------------------------------------8
@@ -956,47 +989,61 @@
 
         - name:                        "4.0.3 - SAP HANA Scale-out Installation - Restart HANA"
           block:
+            - name:                    "4.0.3 - SAP HANA Scale-out - Stop HANA Database"
+              ansible.builtin.import_tasks:   ../../../roles-misc/0.4-helpers/tasks/04.02-stop_hana.yml
 
-          - name:                      "Stop HANA Database"
-            become_user:               "{{ db_sid | lower }}adm"
-            become:                    true
-            ansible.builtin.shell: |
-                                       sapcontrol -nr {{ db_instance_number }} -function StopSystem {{ db_sid | upper }}
-            changed_when:              false
-            failed_when:               false
-            register:                  hana_stopped
-            environment:
-              PATH:                    /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
-              DIR_LIBRARY:             /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
-              LD_LIBRARY_PATH:         /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
-              SAPSYSTEMNAME:           "{{ db_sid | upper }}"
-            vars:
-              allow_world_readable_tmpfiles: true
+            - name:                    "4.0.3 - SAP HANA Scale-out - Start HANA Database"
+              ansible.builtin.import_tasks:   ../../../roles-misc/0.4-helpers/tasks/04.01-start_hana.yml
 
-          # ToDo: Check if we can interrogate the HANA DB to see if it is stopped.
-          - name:                      "4.0.3 - SAP HANA Scale-out Installation - Wait 2 minutes for SAP system to stop"
-            ansible.builtin.wait_for:
-              timeout:                 120
+          vars:
+            allow_world_readable_tmpfiles: true
+          environment:
+            PATH:                      /usr/bin:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+            HOME:                      /usr/sap/{{ db_sid | upper }}/home
+            DIR_LIBRARY:               /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+            LD_LIBRARY_PATH:           /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+            SAPSYSTEMNAME:             "{{ db_sid | upper }}"
 
-          - name:                      "4.0.3 - SAP HANA Scale-out Installation - Start HANA Database on secondary node and wait 2 minutes"
-            become_user:               "{{ db_sid | lower }}adm"
-            become:                    true
-            ansible.builtin.shell: |
-                                       sapcontrol -nr {{ db_instance_number }} -function StartSystem {{ db_sid | upper }}
-            changed_when:              false
-            failed_when:               false
-            register:                  hana_started
-            environment:
-              PATH:                    /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
-              DIR_LIBRARY:             /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
-              LD_LIBRARY_PATH:         /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
-              SAPSYSTEMNAME:           "{{ db_sid | upper }}"
-            vars:
-              allow_world_readable_tmpfiles: true
+          # - name:                      "Stop HANA Database"
+          #   become_user:               "{{ db_sid | lower }}adm"
+          #   become:                    true
+          #   ansible.builtin.shell: |
+          #                              sapcontrol -nr {{ db_instance_number }} -function StopSystem {{ db_sid | upper }}
+          #   changed_when:              false
+          #   failed_when:               false
+          #   register:                  hana_stopped
+          #   environment:
+          #     PATH:                    /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+          #     DIR_LIBRARY:             /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+          #     LD_LIBRARY_PATH:         /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+          #     SAPSYSTEMNAME:           "{{ db_sid | upper }}"
+          #   vars:
+          #     allow_world_readable_tmpfiles: true
 
-          - name:                      "Wait 2 minutes for SAP system to start"
-            ansible.builtin.wait_for:
-              timeout:                 120
+          # # ToDo: Check if we can interrogate the HANA DB to see if it is stopped.
+          # - name:                      "4.0.3 - SAP HANA Scale-out Installation - Wait 2 minutes for SAP system to stop"
+          #   ansible.builtin.wait_for:
+          #     timeout:                 120
+
+          # - name:                      "4.0.3 - SAP HANA Scale-out Installation - Start HANA Database on secondary node and wait 2 minutes"
+          #   become_user:               "{{ db_sid | lower }}adm"
+          #   become:                    true
+          #   ansible.builtin.shell: |
+          #                              sapcontrol -nr {{ db_instance_number }} -function StartSystem {{ db_sid | upper }}
+          #   changed_when:              false
+          #   failed_when:               false
+          #   register:                  hana_started
+          #   environment:
+          #     PATH:                    /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+          #     DIR_LIBRARY:             /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+          #     LD_LIBRARY_PATH:         /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+          #     SAPSYSTEMNAME:           "{{ db_sid | upper }}"
+          #   vars:
+          #     allow_world_readable_tmpfiles: true
+
+          # - name:                      "Wait 2 minutes for SAP system to start"
+          #   ansible.builtin.wait_for:
+          #     timeout:                 120
 
 # /*----------------------------End of setup----------------------------------8
 
