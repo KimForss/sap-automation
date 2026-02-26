@@ -166,6 +166,12 @@ while :; do
 	esac
 done
 
+if [ "${DEBUG:-false}" == true ]; then
+	echo -e "${cyan}Enabling debug mode$reset_formatting"
+	set -x
+	set -o errexit
+fi
+
 if [ ! -f "${parameter_file}" ]; then
 	printf -v val %-35.35s "$parameter_file"
 	echo ""
@@ -285,7 +291,7 @@ else
 		REMOTE_STATE_RG=$(grep -m1 "resource_group_name" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
 		subscription_id="${STATE_SUBSCRIPTION}"
 
-		tfstate_resource_id=$(az resource list --name "${storage_account_name}" --subscription "${subscription_id}" --resource-type Microsoft.Storage/storageAccounts  --query "[].id | [0]" -o tsv )
+		tfstate_resource_id=$(az resource list --name "${storage_account_name}" --subscription "${subscription_id}" --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
 	else
 		load_config_vars "${system_environment_file_name}" "tfstate_resource_id"
 		storage_account_name=$(echo "$tfstate_resource_id" | cut -d / -f9)
@@ -306,7 +312,7 @@ if [ -z "${storage_account_name}" ]; then
 
 			if [[ -z $tfstate_resource_id ]]; then
 				az account set --sub "${STATE_SUBSCRIPTION}"
-				tfstate_resource_id=$(az resource list --name "${storage_account_name}" --resource-type Microsoft.Storage/storageAccounts  --query "[].id | [0]" -o tsv)
+				tfstate_resource_id=$(az resource list --name "${storage_account_name}" --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
 			fi
 			fail_if_null tfstate_resource_id
 		fi
