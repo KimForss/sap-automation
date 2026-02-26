@@ -8,6 +8,7 @@ parameters:
   ARM_TENANT_ID: ''
   BOM_BASE_NAME: ''
   SAP_SYSTEM_CONFIGURATION_NAME: ''
+  SYSTEM_ACCESSTOKEN: ''
   USE_MSI: ''
   ansibleConfigPath: ''
   ansibleFilePath: ''
@@ -58,6 +59,7 @@ steps:
     SSH_KEY_NAME:                    ${{ parameters.secretName }}
     TERRAFORM_STATE_STORAGE_ACCOUNT: ${{ parameters.terraformStateStorageAccount }}
     USERNAME_KEY_NAME:               ${{ parameters.userNameSecretName }}
+    SYSTEM_ACCESSTOKEN:              ${{ parameters.SYSTEM_ACCESSTOKEN }}
     USE_MSI:                         ${{ parameters.USE_MSI }}
     VAULT_NAME:                      ${{ parameters.vaultName }}
     WORKLOAD_ZONE_NAME:              ${{ parameters.workloadZoneName }}
