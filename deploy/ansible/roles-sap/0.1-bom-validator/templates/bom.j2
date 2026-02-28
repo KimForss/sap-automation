@@ -12,6 +12,35 @@ version:              {{ root_bom.version }}
 
 platform:             {% if root_bom.platform is defined %}{{ root_bom.platform }}{% endif %}
 
+{% set platform_code = '.HDB.' %}
+{% if platform is defined %}
+{%   if platform == 'ORACLE' %}
+{%     set platform_code = '.ORA.' %}
+{%   elif platform == 'ORACLE-ASM' %}
+{%     set platform_code = '.ORA.' %}
+{%   elif platform == 'DB2' %}
+{%     set platform_code = '.DB2.' %}
+{%   elif platform == 'SYBASE' %}
+{%     set platform_code = '.SYB.' %}
+{%   elif platform == 'SQLSERVER' %}
+{%     set platform_code = '.MSS.' %}
+{%   endif %}
+{% elif root_bom.platform is defined %}
+{%   if root_bom.platform == 'ORACLE' %}
+{%     set platform_code = '.ORA.' %}
+{%   elif root_bom.platform == 'ORACLE-ASM' %}
+{%     set platform_code = '.ORA.' %}
+{%   elif root_bom.platform == 'DB2' %}
+{%     set platform_code = '.DB2.' %}
+{%   elif root_bom.platform == 'SYBASE' %}
+{%     set platform_code = '.SYB.' %}
+{%   elif root_bom.platform == 'SQLSERVER' %}
+{%     set platform_code = '.MSS.' %}
+{%   endif %}
+{% endif %}
+
+platform_code:        {% if platform_code %}{{ platform_code }}{% endif %}
+
 InstanceType:         {% if root_bom.InstanceType is defined %}{{ root_bom.InstanceType }}{% else %}ABAP{% endif %}
 
 supportedPlatforms:   {% if root_bom.supportedPlatforms is defined %}{{ root_bom.supportedPlatforms }}{% endif %}
@@ -30,7 +59,7 @@ product_ids:
 
 {% if root_bom.product_ids is defined %}
 {%   for pKey,pValue in root_bom.product_ids.items() %}
-{{'  %-10s' | format(pKey | trim +':') }}{{' \"%s\"' | format(pValue | trim) }}
+{{'  %-10s' | format(pKey | trim +':') }}{{' \"%s\"' | format(pValue | trim | replace('.HDB.', platform_code)) }}
 {%   endfor %}
 {% endif %}
 
@@ -38,7 +67,7 @@ product_ids:
 
 patch_information:
 
-{%   for pKey,pValue in root_bom.patch_information.items() %}
+{%   for pKey,pValue in patch_information.items() %}
 {{'  %-20s' | format(pKey | trim +':') }}{{' \"%s\"' | format(pValue | trim) }}
 {%   endfor %}
 {% endif %}

@@ -140,7 +140,9 @@
     - item.download is undefined or item.download
     - item.archive is defined
     - item.archive | trim | length > 1
+    - item.platform is not defined or (( item.platform | upper ) == ( platform | upper ))
     - distribution_id in ['suse15', 'redhat8', 'redhat9', 'redhat10', 'sles_sap15' ]
+
   delay:                               5
   vars:
     ansible_python_interpreter:        "{{ python_version }}"
@@ -163,11 +165,7 @@
   loop:                                "{{ bom.materials.media | flatten(levels=1) }}"
   when:
     - item.download is undefined or item.download
-    - distribution_id != 'suse15'
-    - distribution_id != 'sles_sap15'
-    - distribution_id != 'redhat8'
-    - distribution_id != 'redhat9'
-    - distribution_id != 'redhat10'
+    - distribution_id in ['sles_sap12']
 
 
 - name:                               "3.3 BoM Processing - Download result"
@@ -186,6 +184,7 @@
                                         {% if item.creates is defined %}{{ item.creates }}{% else %}NOT_DEFINED{% endif %}"
   loop:                                "{{ bom.materials.media | flatten(levels=1) }}"
   when:
+    - item.platform is not defined or (( item.platform | upper ) == ( platform | upper ))
     - item.extract | default(false)
     - (item.archive is defined and (item.archive | regex_search('[^.]+(?=\\.*$)') | upper == "SAR")) or
       (item.filename is defined and (item.filename | regex_search('[^.]+(?=\\.*$)') | upper == "SAR"))
@@ -226,8 +225,8 @@
                                         {{ item.creates }}{% else %}NOT_DEFINED{% endif %}"
   loop:                                "{{ bom.materials.media | flatten(levels=1) }}"
   when:
-    - item.extract is not undefined
-    - item.extract
+    - item.extract | default(false)
+    - item.platform is not defined or (( item.platform | upper ) == ( platform | upper ))
     - ( item.filename is undefined and (item.archive |regex_search('[^.]+(?=\\.*$)')|upper=="ZIP") ) or
       ( item.filename is defined   and (item.filename|regex_search('[^.]+(?=\\.*$)')|upper=="ZIP") ) or
       ( item.filename is undefined and (item.archive |regex_search('[^.]+(?=\\.*$)')|upper=="TGZ") ) or
@@ -254,8 +253,8 @@
   ansible.builtin.include_tasks:       "process_exe_archives.yaml"
   loop:                                "{{ bom.materials.media | flatten(levels=1) }}"
   when:
-    - item.extract is defined
-    - item.extract
+    - item.extract | default(false)
+    - item.platform is not defined or (( item.platform | upper ) == ( platform | upper ))
     - ( item.filename is undefined and (item.archive |regex_search('[^.]+(?=\\.*$)')|upper=="EXE") ) or
       ( item.filename is defined   and (item.filename|regex_search('[^.]+(?=\\.*$)')|upper=="EXE") )
 
