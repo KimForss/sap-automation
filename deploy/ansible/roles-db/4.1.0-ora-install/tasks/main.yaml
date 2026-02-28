@@ -114,6 +114,10 @@
       - oracle_media_installed.stat.exists
     fail_msg:                          "Oracle Database installation requires the updated RUNINSTALLER media to be available at {{ target_media_location }}/SAP/SAP/RUNINSTALLER"
 
+- name:                                "4.1.0 Oracle Installation - OPatch ID"
+  ansible.builtin.set_fact:
+    this_sid:                          "{% if ansible_hostname == ora_secondary %}{{ db_sid | upper }}_STDBY{% else %}{{ db_sid | upper }}{% endif %}"
+
 - name:                                "4.1.0 Oracle Installation - environment variables to the Bash profile"
   become:                              true
   become_user:                         "oracle"
@@ -123,7 +127,7 @@
     block: |
         # User Specific environment
         export ORACLE_HOME=/oracle/{{ db_sid | upper }}/{{ ora_version }}
-        export ORACLE_SID={{ db_sid | upper }}
+        export ORACLE_SID={{ this_sid }}
         export ORACLE_BASE=/oracle
         export LD_LIBRARY_PATH=$ORACLE_HOME/lib
         export TNS_ADMIN=$ORACLE_HOME/network/admin
@@ -142,7 +146,7 @@
     block: |
         # User Specific environment
         setenv  ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
-        setenv  ORACLE_SID  {{ db_sid | upper }}
+        setenv  ORACLE_SID  {{ this_sid }}
         setenv  ORACLE_BASE /oracle
         setenv  LD_LIBRARY_PATH $ORACLE_HOME/lib
         setenv  TNS_ADMIN $ORACLE_HOME/network/admin
