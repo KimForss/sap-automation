@@ -49,7 +49,7 @@
                                        SELECT database_role || ',' || open_mode || ',' || db_unique_name FROM v\$database;
                                        EXIT;
                                        EOF
-  environment:                         "{{ oracle_env }}"
+  environment:                         "{{ oracle_standby_env }}"
   args:
     chdir:                             "/etc/sap_deployment_automation/dataguard_scripts/"
   register:                            rman_performed
