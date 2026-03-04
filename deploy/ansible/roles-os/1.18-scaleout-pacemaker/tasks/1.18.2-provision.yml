@@ -30,44 +30,70 @@
     - name:                            Generate list of deployed packages on current host
       ansible.builtin.package_facts:
 
-    # SAPHanaSR-ScaleOut conflicts with SAPHanaSR and dependencies
-    - name:                            "Ensure SAPHanaSR package is absent"
-      ansible.builtin.package:
-        name:                          SAPHanaSR
-        state:                         absent
+    - name:                            "Install SAPHanaSR-angi package for scale-out (SUSE)"
       when:
-        - ansible_facts.packages['SAPHanaSR'] is defined
+        - use_hanasr_angi | default(false)
+      block:
+        - name:                        "Ensure classic SAPHanaSR packages are absent before installing SAPHanaSR-angi"
+          ansible.builtin.package:
+            name:                      "{{ item }}"
+            state:                     absent
+          loop:
+                                       - SAPHanaSR-ScaleOut
+                                       - SAPHanaSR-ScaleOut-doc
+                                       - SAPHanaSR
+                                       - SAPHanaSR-doc
+                                       - yast2-sap-ha
+          when:
+            - ansible_facts.packages[item] is defined
 
-    - name:                            "Ensure SAPHanaSR-doc package is absent"
-      ansible.builtin.package:
-        name:                          SAPHanaSR-doc
-        state:                         absent
-      when:
-        - ansible_facts.packages['SAPHanaSR-doc'] is defined
+        - name:                        "Ensure SAPHanaSR-angi package is installed"
+          ansible.builtin.package:
+            name:                      SAPHanaSR-angi
+            state:                     present
+          when:
+            - ansible_facts.packages['SAPHanaSR-angi'] is not defined
 
-    - name:                            "Ensure yast2-sap-ha package is absent"
-      ansible.builtin.package:
-        name:                          yast2-sap-ha
-        state:                         absent
+    - name:                            "Install classic SAPHanaSR-ScaleOut package for scale-out (SUSE)"
       when:
-        - ansible_facts.packages['yast2-sap-ha'] is defined
+        - not (use_hanasr_angi | default(false))
+      block:
+        # SAPHanaSR-ScaleOut conflicts with SAPHanaSR and dependencies
+        - name:                        "Ensure SAPHanaSR package is absent"
+          ansible.builtin.package:
+            name:                      SAPHanaSR
+            state:                     absent
+          when:
+            - ansible_facts.packages['SAPHanaSR'] is defined
 
-    # Ensure SAPHANA SR Scaleout package is installed
-    - name:                            "Ensure SAPHanaSR-ScaleOut package is installed"
-      ansible.builtin.package:
-        name:                          SAPHanaSR-ScaleOut
-        state:                         present
-      when:
-        - ansible_os_family | upper == "SUSE"
-        - ansible_facts.packages['SAPHanaSR-ScaleOut'] is not defined
+        - name:                        "Ensure SAPHanaSR-doc package is absent"
+          ansible.builtin.package:
+            name:                      SAPHanaSR-doc
+            state:                     absent
+          when:
+            - ansible_facts.packages['SAPHanaSR-doc'] is defined
 
-    - name:                            "Ensure SAPHanaSR-ScaleOut-doc package is installed"
-      ansible.builtin.package:
-        name:                          SAPHanaSR-ScaleOut-doc
-        state:                         present
-      when:
-        - ansible_os_family | upper == "SUSE"
-        - ansible_facts.packages['SAPHanaSR-ScaleOut-doc'] is not defined
+        - name:                        "Ensure yast2-sap-ha package is absent"
+          ansible.builtin.package:
+            name:                      yast2-sap-ha
+            state:                     absent
+          when:
+            - ansible_facts.packages['yast2-sap-ha'] is defined
+
+        # Ensure SAPHANA SR Scaleout package is installed
+        - name:                        "Ensure SAPHanaSR-ScaleOut package is installed"
+          ansible.builtin.package:
+            name:                      SAPHanaSR-ScaleOut
+            state:                     present
+          when:
+            - ansible_facts.packages['SAPHanaSR-ScaleOut'] is not defined
+
+        - name:                        "Ensure SAPHanaSR-ScaleOut-doc package is installed"
+          ansible.builtin.package:
+            name:                      SAPHanaSR-ScaleOut-doc
+            state:                     present
+          when:
+            - ansible_facts.packages['SAPHanaSR-ScaleOut-doc'] is not defined
 
 
 - name:                                Implement the Scale out Resource Agent hook (REDHAT)
