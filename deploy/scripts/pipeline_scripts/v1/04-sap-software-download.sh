@@ -87,7 +87,7 @@ command="ansible-playbook -e download_directory=$AGENT_TEMP_DIRECTORY \
 -e s_user=$SUSERNAME -e BOM_directory=${sample_path} \
 -e bom_base_name=$BOM_NAME \
 -e deployer_kv_name=$DEPLOYER_KEYVAULT \
--e check_storage_account=$CHECK_STORAGE_ACCOUNT \
+-e check_storage_account=true \
 -e orchestration_ansible_user=$USER \
  $EXTRA_PARAMETERS $SAP_AUTOMATION_REPO_PATH/deploy/ansible/playbook_bom_downloader.yaml"
 
