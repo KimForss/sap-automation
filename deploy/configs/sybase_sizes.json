@@ -260,7 +260,7 @@
         {
           "name"                       : "sapdata_1",
           "fullname"                   : "",
-          "count"                      : 3,
+          "count"                      : 2,
           "disk_type"                  : "Premium_LRS",
           "size_gb"                    : 512,
           "caching"                    : "ReadOnly",
@@ -282,7 +282,7 @@
           "fullname"                   : "",
           "count"                      : 2,
           "disk_type"                  : "Premium_LRS",
-          "size_gb"                    : 256,
+          "size_gb"                    : 128,
           "caching"                    : "None",
           "write_accelerator"          : false,
           "lun_start"                  : 14
