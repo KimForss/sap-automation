@@ -10,7 +10,7 @@
           "fullname"                   : "",
           "count"                      : 1,
           "disk_type"                  : "Premium_LRS",
-          "size_gb"                    : 128,
+          "size_gb"                    : 256,
           "caching"                    : "ReadWrite"
         },
         {
@@ -106,7 +106,7 @@
           "fullname"                   : "",
           "count"                      : 1,
           "disk_type"                  : "Premium_LRS",
-          "size_gb"                    : 128,
+          "size_gb"                    : 256,
           "caching"                    : "ReadWrite",
           "write_accelerator"          : false
         },
@@ -310,7 +310,7 @@
           "fullname"                   : "",
           "count"                      : 1,
           "disk_type"                  : "Premium_LRS",
-          "size_gb"                    : 128,
+          "size_gb"                    : 256,
           "caching"                    : "ReadWrite",
           "write_accelerator"          : false
         },
