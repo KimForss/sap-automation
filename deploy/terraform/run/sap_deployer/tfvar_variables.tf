@@ -482,7 +482,7 @@ variable "deployer_assign_resource_permissions"   {
 
 variable "use_private_endpoint"                       {
                                                         description = "Boolean value indicating if private endpoint should be used for the deployment"
-                                                        default     = true
+                                                        default     = false
                                                         type        = bool
                                                       }
 
@@ -888,3 +888,19 @@ variable "network_security_perimeter_id"       {
                                                   }
                                                 }
 
+
+#######################################4#######################################8
+#                                                                              #
+#                             Repository parameters                            #
+#                                                                              #
+#######################################4#######################################8
+
+variable "organization"                          {
+                                                    description = "If defined, The GitHub organization name"
+                                                    default     = "Azure"
+                                                 }
+
+variable "branch"                                {
+                                                    description = "If defined, The branch name to use for configuration of the deployer"
+                                                    default     = "main"
+                                                 }

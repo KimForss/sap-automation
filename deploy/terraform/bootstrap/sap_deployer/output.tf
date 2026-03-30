@@ -103,8 +103,13 @@ output "deployer_uai"                            {
                                                  }
 
 output "deployer_sshkey"                         {
-                                                   description = "Name of the secreet containing the deployer ssh key"
+                                                   description = "Name of the secret containing the deployer ssh key"
                                                    value       = module.sap_deployer.ppk_secret_name
+                                                 }
+
+output "deployer_username"                      {
+                                                   description = "Name of deployer username"
+                                                   value       = var.deployer_authentication_username
                                                  }
 
 ###############################################################################
@@ -307,7 +312,7 @@ output "network_security_perimeter_deployment"  {
 
 output "network_security_perimeter_id"          {
                                                   description = "The Azure network security perimeter id"
-                                                  value       = length(trimspace(coalesce(module.sap_deployer.network_security_perimeter_id, ""))) > 0 ? module.sap_deployer.network_security_perimeter_id : var.network_security_perimeter_id
+                                                  value       = var.network_security_perimeter_deployment ? module.sap_deployer.network_security_perimeter_id : ""
                                                 }
 
 

@@ -521,7 +521,7 @@ variable "spn_id"                                     {
 
 variable "public_network_access_enabled"              {
                                                         description = "Boolean value indicating if public access should be enabled for key vaults and storage"
-                                                        default     = true
+                                                        default     = false
                                                         type        = bool
                                                       }
 
@@ -792,6 +792,8 @@ variable "add_system_assigned_identity"              {
 
 variable "use_spn"                                   {
                                                        description = "Log in using a service principal when performing the deployment"
+                                                       default     = false
+                                                       type        = bool
 
                                                      }
 
@@ -837,7 +839,7 @@ variable "application_configuration_name"          {
 
 #######################################4#######################################8
 #                                                                              #
-#                          Network Security Perimeter definitions             #
+#                          Network Security Perimeter definitions              #
 #                                                                              #
 #######################################4#######################################8
 
@@ -866,3 +868,19 @@ variable "network_security_perimeter_id"       {
                                                   }
                                                 }
 
+
+#######################################4#######################################8
+#                                                                              #
+#                             Repository parameters                            #
+#                                                                              #
+#######################################4#######################################8
+
+variable "organization"                          {
+                                                    description = "If defined, The GitHub organization name"
+                                                    default     = "Azure"
+                                                 }
+
+variable "branch"                                {
+                                                    description = "If defined, The branch name to use for configuration of the deployer"
+                                                    default     = "main"
+                                                 }

@@ -254,6 +254,7 @@ class FilterModule:
         # Get host tier information
         supported_tiers = host_vars.get("supported_tiers", [])
         is_target_host_db_vm = self._is_scale_out_db_host(supported_tiers)
+        default_virtual_host = host_vars.get("virtual_host")
 
         # Determine if we need to apply network isolation filtering
         apply_filtering = (
@@ -316,6 +317,15 @@ class FilterModule:
                     )
                     entries.extend(scale_out_entries)
 
+            # Default virtual host entry: map to primary IP / VIP only, if defined
+            if default_virtual_host:
+                entries.append(
+                    self._format_hosts_entry(
+                        primary_ip,
+                        f"{default_virtual_host}.{config['sap_fqdn']}",
+                        default_virtual_host,
+                    )
+                )
         return entries
 
     def _generate_custom_virtual_hostname_entries(
