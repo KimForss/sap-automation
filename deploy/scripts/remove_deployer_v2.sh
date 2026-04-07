@@ -200,7 +200,7 @@ function sdaf_remove_deployer() {
 
 	# Parse command line arguments
 	parse_arguments "$@"
-	key=$(echo "${parameterfile_name}" | cut -d. -f1)
+	key=$(echo "${parameterFilename}" | cut -d. -f1)
 
 	CONTROL_PLANE_NAME=$(echo "$key" | cut -d'-' -f1-3)
 	export "CONTROL_PLANE_NAME"
@@ -344,6 +344,7 @@ function sdaf_remove_deployer() {
 		export step
 		save_config_var "step" "${deployer_environment_file_name}"
 		rm "${deployer_environment_file_name}"
+		save_config_var "step" "${deployer_environment_file_name}"
 	fi
 
 	unset TF_DATA_DIR

@@ -8,6 +8,7 @@ source "${SCRIPT_DIR}/shared_platform_config.sh"
 source "${SCRIPT_DIR}/shared_functions.sh"
 source "${SCRIPT_DIR}/set-colors.sh"
 
+banner_title="Control Plane Removal"
 # Set platform-specific output
 if [ "$PLATFORM" == "devops" ]; then
 	echo "##vso[build.updatebuildnumber]Deploying the control plane defined in $DEPLOYER_FOLDERNAME "
@@ -284,17 +285,28 @@ fi
 end_group
 
 start_group "Finalize the control plane removal"
+
 cd "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME" || exit
 # Remove the control plane
+source "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/remove_deployer_v2.sh"
 
-if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/remove_deployer_v2.sh" --auto-approve \
-	--parameter_file "$DEPLOYER_TFVARS_FILENAME"; then
+allParameters=(--parameter_file "$DEPLOYER_TFVARS_FILENAME")
+allParameters+=(--auto-approve)
+
+echo "Calling sdaf_remove_deployer with: ${allParameters[*]}"
+
+if sdaf_remove_deployer "${allParameters[@]}"; then
 	return_code=$?
-	echo "Control Plane $DEPLOYER_FOLDERNAME removal step 2 completed."
-	echo "##vso[task.logissue type=warning]Control Plane $DEPLOYER_FOLDERNAME removal step 2 completed."
+	print_banner "$banner_title" "Control Plane ${CONTROL_PLANE_NAME} removal step 2 completed" "success"
+	if [ "$PLATFORM" == "devops" ]; then
+		echo "##vso[task.logissue type=warning]Control Plane ${CONTROL_PLANE_NAME} removal step 2 completed."
+	fi
 else
 	return_code=$?
-	echo "Control Plane $DEPLOYER_FOLDERNAME removal step 2 failed."
+	print_banner "$banner_title" "Control Plane ${CONTROL_PLANE_NAME} removal step 2 failed" "error"
+	if [ "$PLATFORM" == "devops" ]; then
+		echo "##vso[task.logissue type=error]Control Plane ${CONTROL_PLANE_NAME} removal step 2 failed."
+	fi
 fi
 
 echo "Return code from remove_deployer: $return_code."
@@ -321,88 +333,40 @@ region_code=$(echo "$CONTROL_PLANE_NAME" | cut -d"-" -f2)
 
 if [ -f ".sap_deployment_automation/${environment}${region_code}" ]; then
 	rm ".sap_deployment_automation/${environment}${region_code}"
-	git rm -q --ignore-unmatch ".sap_deployment_automation/${environment}${region_code}"
-	changed=1
-fi
-
-if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/$deployerTFvarsFile" ]; then
-	sed -i /"custom_random_id"/d "DEPLOYER/$DEPLOYER_FOLDERNAME/$deployerTFvarsFile"
-	git add -f "DEPLOYER/$DEPLOYER_FOLDERNAME/$deployerTFvarsFile"
-	changed=1
-fi
-
-if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate" ]; then
-	git rm -q -f --ignore-unmatch "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate"
-	changed=1
-fi
-
-if [ -d "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform" ]; then
-	git rm -q -r --ignore-unmatch "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform"
 	changed=1
 fi
 
 if [ 0 == $return_code ]; then
+	changed=1
+	git rm -q --ignore-unmatch "$deployer_environment_file_name"
+	git rm -q --ignore-unmatch ".sap_deployment_automation/${CONTROL_PLANE_NAME}.md"
+	git rm -q --ignore-unmatch ".sap_deployment_automation/${environment}${region_code}"
+
+	git rm -q -f --ignore-unmatch "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate"
+	git rm -q -r --ignore-unmatch "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform"
+	git rm --ignore-unmatch -q "DEPLOYER/$DEPLOYER_FOLDERNAME/readme.md"
 	if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" ]; then
 		git rm -q -f --ignore-unmatch "DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip"
-		changed=1
 	fi
-
-	if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/readme.md" ]; then
-		git rm --ignore-unmatch -q "DEPLOYER/$DEPLOYER_FOLDERNAME/readme.md"
-		changed=1
-	fi
-
 	if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.gpg" ]; then
 		git rm -q -f --ignore-unmatch "DEPLOYER/$DEPLOYER_FOLDERNAME/state.gpg"
-		changed=1
 	fi
 
 	if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/state.zip" ]; then
-		if [ 0 == $return_code ]; then
-			echo "Removing the library state zip file"
-			git rm -q --ignore-unmatch -f "LIBRARY/$LIBRARY_FOLDERNAME/state.zip"
-			changed=1
-		fi
+		echo "Removing the library state zip file"
+		git rm -q --ignore-unmatch -f "LIBRARY/$LIBRARY_FOLDERNAME/state.zip"
 	fi
-
 	if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/state.gpg" ]; then
-		if [ 0 == $return_code ]; then
-			echo "Removing the library state gpg file"
-			git rm -q --ignore-unmatch -f "LIBRARY/$LIBRARY_FOLDERNAME/state.gpg"
-			changed=1
-		fi
+		echo "Removing the library state gpg file"
+		git rm -q --ignore-unmatch -f "LIBRARY/$LIBRARY_FOLDERNAME/state.gpg"
 	fi
-
-	if [ -d "LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate" ]; then
-		git rm -q -r --ignore-unmatch "LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate"
-		changed=1
-	fi
-
-	if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/state.zip" ]; then
-		git rm -q -f --ignore-unmatch "LIBRARY/$LIBRARY_FOLDERNAME/state.zip"
-		changed=1
-	fi
-
-	if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/readme.md" ]; then
-		git rm --ignore-unmatch -q "LIBRARY/$LIBRARY_FOLDERNAME/readme.md"
-		changed=1
-	fi
-
-	if [ -d "LIBRARY/$LIBRARY_FOLDERNAME/.terraform" ]; then
-		git rm -q -r --ignore-unmatch "LIBRARY/$LIBRARY_FOLDERNAME/.terraform"
-		changed=1
-	fi
-
-fi
-if [ -f "$deployer_environment_file_name" ]; then
-	rm "$deployer_environment_file_name"
-	git rm -q --ignore-unmatch "$deployer_environment_file_name"
-	changed=1
+	git rm --ignore-unmatch -q "LIBRARY/$LIBRARY_FOLDERNAME/readme.md"
+	git rm -q -r --ignore-unmatch "LIBRARY/$LIBRARY_FOLDERNAME/.terraform"
 fi
 
-if [ -f ".sap_deployment_automation/${CONTROL_PLANE_NAME}.md" ]; then
-	rm ".sap_deployment_automation/${CONTROL_PLANE_NAME}.md"
-	git rm -q --ignore-unmatch ".sap_deployment_automation/${CONTROL_PLANE_NAME}.md"
+if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME" ]; then
+	sed -i /"custom_random_id"/d "DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
+	git add -f "DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
 	changed=1
 fi
 
@@ -422,7 +386,7 @@ if [ 1 == $changed ]; then
 		commit_message="Added updates from Control Plane Deployment for $DEPLOYER_FOLDERNAME $LIBRARY_FOLDERNAME [skip ci]"
 	fi
 
-	if [ $DEBUG = True ]; then
+	if [ "${DEBUG:-false}" = "true" ]; then
 		git status --verbose
 		if git commit -m "$commit_message" || true; then
 			if [ "$PLATFORM" == "devops" ]; then

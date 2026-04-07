@@ -265,12 +265,37 @@ export TF_VAR_tfstate_resource_id
 
 cd "$CONFIG_REPO_PATH/LANDSCAPE/${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE" || exit
 print_banner "$banner_title" "Starting the deployment" "info"
+source "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh"
 
-if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh" --parameter_file "${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.tfvars" \
-	--type sap_landscape --control_plane_name "${CONTROL_PLANE_NAME}" --application_configuration_name "${APPLICATION_CONFIGURATION_NAME}" \
-	"${platform_flag}" --storage_accountname "${terraform_storage_account_name}" --auto-approve; then
+allParameters=(--parameter_file "${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.tfvars")
+allParameters+=(--control_plane_name "${CONTROL_PLANE_NAME}")
+allParameters+=(--application_configuration_name "${APPLICATION_CONFIGURATION_NAME}")
+allParameters+=(--storage_accountname "${terraform_storage_account_name}")
+allParameters+=(--type sap_landscape)
+allParameters+=(--auto-approve)
+if [ "$PLATFORM" == "devops" ]; then
+	allParameters+=(--ado)
+elif [ "$PLATFORM" == "github" ]; then
+	allParameters+=(--github)
+fi
+
+echo "Calling sdaf_installer with: ${allParameters[*]}"
+echo ""
+
+if sdaf_installer "${allParameters[@]}"; then
 	return_code=$?
 	print_banner "$banner_title" "Deployment of $WORKLOAD_ZONE_NAME succeeded" "success"
+
+	resolved_keyvault="${KEYVAULT:-${SDAF_WORKLOAD_ZONE_KEYVAULT_NAME:-${workloadkeyvault:-}}}"
+	if [ -n "$resolved_keyvault" ]; then
+		echo "Key Vault:                  ${resolved_keyvault}"
+
+		if [ "$PLATFORM" == "devops" ]; then
+			echo -e "$green--- Adding variables to the variable group: $VARIABLE_GROUP ---$reset"
+			saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "KEYVAULT" "$resolved_keyvault"
+		fi
+	fi
+
 else
 	return_code=$?
 	print_banner "$banner_title" "Deployment of $WORKLOAD_ZONE_NAME failed" "error"
@@ -281,21 +306,9 @@ else
 		echo "ERROR: Terraform apply failed."
 	fi
 fi
+
 echo "Return code from deployment:         ${return_code}"
 
-if [ -f "${workload_environment_file_name}" ]; then
-	KEYVAULT=$(grep -m1 "^workloadkeyvault=" "${workload_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
-	echo "Key Vault:                  ${KEYVAULT}"
-
-	if [ "$PLATFORM" == "devops" ]; then
-
-		if [ -n "$KEYVAULT" ]; then
-			echo -e "$green--- Adding variables to the variable group: $VARIABLE_GROUP ---$reset"
-			saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "KEYVAULT" "$KEYVAULT"
-		fi
-	fi
-
-fi
 
 set +o errexit
 

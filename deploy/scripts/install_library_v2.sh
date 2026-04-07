@@ -70,6 +70,38 @@ function show_library_help {
     echo "#########################################################################################"
 }
 
+
+############################################################################################
+# This function reads the SDAF environment variables.                                      #
+# Arguments:                                                                               #
+#   None                                                                                   #
+# Returns:                                                                                 #
+#   0 on success, non-zero on failure                                                      #
+# Usage:                     																				                       #
+#   install_library_check_environment_variables                                                #
+# Example:                   																				                       #
+#   install_library_check_environment_variables                                                #
+############################################################################################
+
+function install_library_check_environment_variables() {
+    if [ -v SDAF_CONTROL_PLANE_NAME ]; then
+        CONTROL_PLANE_NAME="$SDAF_CONTROL_PLANE_NAME"
+        TF_VAR_control_plane_name="$CONTROL_PLANE_NAME"
+        TF_VAR_deployer_tfstate_key="${CONTROL_PLANE_NAME}-INFRASTRUCTURE.terraform.tfstate"
+        export TF_VAR_control_plane_name
+        export TF_VAR_deployer_tfstate_key
+    fi
+
+    if [ -v SDAF_APPLICATION_CONFIGURATION_NAME ]; then
+        APPLICATION_CONFIGURATION_NAME="$SDAF_APPLICATION_CONFIGURATION_NAME"
+        TF_VAR_application_configuration_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
+        export TF_VAR_application_configuration_id
+    fi
+
+    return 0
+}
+
+
 ############################################################################################
 # Function to parse all the command line arguments passed to the script.                   #
 # Arguments:                                                                               #
@@ -236,6 +268,8 @@ function install_library() {
     print_banner "$banner_title" "Starting the script: $SCRIPT_NAME" "info"
     detect_platform
 
+    install_library_check_environment_variables
+
     # Parse command line arguments
     if ! install_library_parse_arguments "$@"; then
         print_banner "$banner_title" "Validating parameters failed" "error"
@@ -376,26 +410,26 @@ function install_library() {
                         --backend-config "storage_account_name=$REINSTALL_ACCOUNTNAME" \
                         --backend-config "container_name=tfstate" \
                         --backend-config "key=${key}.terraform.tfstate"; then
-                        print_banner "$banner_title" "Terraform init succeeded" "success"
+                        print_banner "$banner_title" "Terraform init succeeded" "success" "System name $(basename "$param_dirname")"
 
                         terraform -chdir="${terraform_module_directory}" refresh "${allParameters[@]}"
                     else
-                        print_banner "$banner_title" "Terraform init against remote state failed" "error"
+                        print_banner "$banner_title" "Terraform init against remote state failed" "error" "System name $(basename "$param_dirname")"
                         return 10
                     fi
                 else
                     if terraform -chdir="${terraform_module_directory}" init -reconfigure --backend-config "path=${param_dirname}/terraform.tfstate"; then
-                        print_banner "$banner_title" "Terraform init succeeded" "success"
+                        print_banner "$banner_title" "Terraform init succeeded" "success" "System name $(basename "$param_dirname")"
                     else
-                        print_banner "$banner_title" "Terraform init failed" "error"
+                        print_banner "$banner_title" "Terraform init failed" "error" "System name $(basename "$param_dirname")"
                         return 10
                     fi
                 fi
             else
                 if terraform -chdir="${terraform_module_directory}" init -upgrade=true -backend-config "path=${param_dirname}/terraform.tfstate"; then
-                    print_banner "$banner_title" "Terraform init succeeded" "success"
+                    print_banner "$banner_title" "Terraform init succeeded" "success" "System name $(basename "$param_dirname")"
                 else
-                    print_banner "$banner_title" "Terraform init failed" "error"
+                    print_banner "$banner_title" "Terraform init failed" "error" "System name $(basename "$param_dirname")"
                     return 10
                 fi
 
@@ -403,9 +437,9 @@ function install_library() {
 
         else
             if terraform -chdir="${terraform_module_directory}" init -upgrade=true -backend-config "path=${param_dirname}/terraform.tfstate"; then
-                print_banner "$banner_title" "Terraform init succeeded" "success"
+                print_banner "$banner_title" "Terraform init succeeded" "success" "System name $(basename "$param_dirname")"
             else
-                print_banner "$banner_title" "Terraform init failed" "error"
+                print_banner "$banner_title" "Terraform init failed" "error" "System name $(basename "$param_dirname")"
                 return 10
             fi
         fi
@@ -416,6 +450,9 @@ function install_library() {
     allImportParameters=(-var-file "${parameter_file_name}")
     if [ -f terraform.tfvars ]; then
         allImportParameters+=(-var-file terraform.tfvars)
+    fi
+    if [ -n "${deployer_statefile_foldername}" ]; then
+        allImportParameters+=(-var "deployer_statefile_foldername=${deployer_statefile_foldername}")
     fi
 
     install_library_return_value=0
@@ -430,12 +467,12 @@ function install_library() {
 
     echo "Terraform plan return code: $install_library_return_value"
     if [ 0 == "$install_library_return_value" ]; then
-        print_banner "${banner_title}" "Terraform plan succeeded ($install_library_return_value), no changes to apply" "success"
+        print_banner "${banner_title}" "Terraform plan succeeded ($install_library_return_value), no changes to apply" "success" "System name $(basename "$param_dirname")"
         install_library_return_value=0
     elif [ 2 == "$install_library_return_value" ]; then
-        print_banner "${banner_title}" "Terraform plan succeeded ($install_library_return_value), changes to apply" "info"
+        print_banner "${banner_title}" "Terraform plan succeeded ($install_library_return_value), changes to apply" "info" "System name $(basename "$param_dirname")"
       else
-        print_banner "${banner_title}" "Terraform plan failed ($install_library_return_value)" "error"
+        print_banner "${banner_title}" "Terraform plan failed ($install_library_return_value)" "error" "System name $(basename "$param_dirname")"
         if [ -f plan_output.log ]; then
             cat plan_output.log
             rm plan_output.log
@@ -474,10 +511,10 @@ function install_library() {
         fi
 
         if [ "$install_library_return_value" -eq 1 ]; then
-            print_banner "$banner_title" "Terraform apply failed" "error" "Terraform apply return code: $install_library_return_value"
+            print_banner "$banner_title" "Terraform apply failed" "error" "Terraform apply return code: $install_library_return_value" "System name $(basename "$param_dirname")"
         else
             # return code 2 is ok
-            print_banner "${banner_title}" "Terraform apply succeeded ($install_library_return_value)" "info"
+            print_banner "${banner_title}" "Terraform apply succeeded ($install_library_return_value)" "info" "System name $(basename "$param_dirname")"
             install_library_return_value=0
         fi
 
@@ -488,7 +525,7 @@ function install_library() {
                 install_library_return_value=10
 
                 for i in {1..5}; do
-                    print_banner "Terraform apply" "Errors detected in apply output" "warning" "Attempt $i of 5 to import existing resources and re-run apply"
+                    print_banner "Terraform apply" "Errors detected in apply output" "warning" "Attempt $i of 5 to import existing resources."
                     if [ -f apply_output.json ]; then
                         if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "${allImportParameters[*]}" "${allParameters[*]}"; then
                             install_library_return_value=0

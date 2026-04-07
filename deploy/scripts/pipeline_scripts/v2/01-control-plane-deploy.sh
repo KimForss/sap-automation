@@ -103,7 +103,7 @@ if [ "$PLATFORM" == "devops" ]; then
 	export VARIABLE_GROUP_ID
 	TF_VAR_DevOpsInfrastructure_object_id=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "DEVOPS_OBJECT_ID" "${deployer_environment_file_name}" "DevOpsInfrastructureObjectId")
 	if [ -n "$TF_VAR_DevOpsInfrastructure_object_id" ]; then
-		echo "DevOps Infrastructure Object ID:      ${TF_VAR_DevOpsInfrastructure_object_id}"
+		echo "DevOps Infrastructure Object ID:     ${TF_VAR_DevOpsInfrastructure_object_id}"
 		export TF_VAR_DevOpsInfrastructure_object_id
 	else
 		echo "##vso[task.logissue type=warning]DevOps Infrastructure Object ID not found. Please ensure the DEVOPS_OBJECT_ID variable is defined, if managed devops pools are used."
@@ -118,7 +118,6 @@ elif [ "$PLATFORM" == "github" ]; then
 	# Set required environment variables for GitHub
 	export USER=${GITHUB_ACTOR:-githubuser}
 	export DEPLOYER_KEYVAULT=${DEPLOYER_KEYVAULT:-""}
-	platform_flag="--github"
 	TF_VAR_github_server_url=${GITHUB_SERVER_URL}
 	export TF_VAR_github_server_url
 
@@ -130,8 +129,6 @@ elif [ "$PLATFORM" == "github" ]; then
 
 	TF_VAR_devops_platform="github"
 	export TF_VAR_devops_platform
-else
-	platform_flag=""
 fi
 
 banner_title="Deploy Control Plane"
@@ -139,8 +136,6 @@ print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
 
 terraform_storage_account_name=""
 terraform_storage_account_resource_group_name=$LIBRARY_FOLDERNAME
-
-msi_flag=""
 
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
@@ -231,7 +226,6 @@ echo "Subscription ID:                     $TF_VAR_subscription_id"
 
 if [ -n "${DEPLOYER_KEYVAULT}" ]; then
 	echo "Deployer Key Vault:                  ${DEPLOYER_KEYVAULT}"
-	keyvault_parameter=" --keyvault ${DEPLOYER_KEYVAULT} "
 else
 	echo "Deployer Key Vault:                  undefined"
 	exit 2
@@ -246,7 +240,6 @@ if [ -n "$tfstate_resource_id" ]; then
 	terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 5)
 	terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d '/' -f 3)
 	echo "Terraform storage account:           $terraform_storage_account_name"
-	storage_account_parameter=" --terraform_storage_account_name ${terraform_storage_account_name} "
 
 	export terraform_storage_account_name
 	export terraform_storage_account_resource_group_name
@@ -338,9 +331,7 @@ fi
 
 export TF_LOG_PATH="${CONFIG_REPO_PATH}/.sap_deployment_automation/terraform.log"
 
-msi_flag=""
 if [ "${USE_MSI:-false}" == "true" ]; then
-	msi_flag=" --msi "
 	TF_VAR_use_spn=false
 	export TF_VAR_use_spn
 	echo "Deployer using:                      Managed Identity"
@@ -356,31 +347,66 @@ if [ "${DEBUG:-false}" == "true" ]; then
 fi
 echo -e "$green--- Control Plane deployment---$reset_formatting"
 
-# Platform-specific flags
-if [ "$PLATFORM" == "devops" ]; then
-	platform_flag=" --ado"
-elif [ "$PLATFORM" == "github" ]; then
-	platform_flag=" --github"
-else
-	platform_flag=""
-fi
-
-
 print_banner "$banner_title" "Calling deploy_control_plane_v2" "info"
 
 cd "$CONFIG_REPO_PATH" || exit
 start_group "Deploying control plane"
 
-if
-	"${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/deploy_control_plane_v2.sh" \
-		--control_plane_name "$CONTROL_PLANE_NAME" \
-		--auto-approve ${msi_flag} $platform_flag
-then
+source "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/deploy_control_plane_v2.sh"
+
+allParameters=(--control_plane_name "${CONTROL_PLANE_NAME}")
+allParameters+=(--auto-approve)
+allParameters+=(--subscription "$ARM_SUBSCRIPTION_ID")
+if [ "$PLATFORM" == "devops" ]; then
+	allParameters+=(--ado)
+elif [ "$PLATFORM" == "github" ]; then
+	allParameters+=(--github)
+fi
+if [ "${USE_MSI:-false}" == "true" ]; then
+	allParameters+=(--msi)
+fi
+
+if deploy_control_plane "${allParameters[@]}"; then
 	return_code=$?
 	if [ "$PLATFORM" == "devops" ]; then
 		echo "##vso[task.logissue type=warning]Return code from deploy_control_plane_v2 $return_code."
 	fi
 	echo "Return code from deploy_control_plane_v2 $return_code."
+
+	if [ -v SDAF_APPLICATION_CONFIGURATION_NAME	]; then
+		if [ "$PLATFORM" == "devops" ]; then
+			saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_NAME" "$SDAF_APPLICATION_CONFIGURATION_NAME"
+			saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_DEPLOYMENT" "true"
+		fi
+	else
+		if [ "$PLATFORM" == "devops" ]; then
+			saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_DEPLOYMENT" "false"
+		fi
+	fi
+
+	if [ -v SDAF_APPSERVICE_NAME	]; then
+		if [ "$PLATFORM" == "devops" ]; then
+			saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APP_SERVICE_NAME" "$SDAF_APPSERVICE_NAME"
+			saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APP_SERVICE_DEPLOYMENT" "true"
+		fi
+	else
+		if [ "$PLATFORM" == "devops" ]; then
+			saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APP_SERVICE_DEPLOYMENT" "false"
+		fi
+	fi
+
+	if [ -v SDAF_KEYVAULT_NAME	]; then
+		if [ "$PLATFORM" == "devops" ]; then
+			saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "$SDAF_KEYVAULT_NAME"
+		fi
+	fi
+
+	if [ -v SDAF_TERRAFORM_STORAGE_ACCOUNT_NAME	]; then
+		if [ "$PLATFORM" == "devops" ]; then
+			saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME" "$SDAF_TERRAFORM_STORAGE_ACCOUNT_NAME"
+		fi
+	fi
+
 else
 	return_code=$?
 	if [ "$PLATFORM" == "devops" ]; then
@@ -391,69 +417,6 @@ fi
 
 end_group
 
-if [ "$PLATFORM" == "devops" ]; then
-	echo -e "$green--- Adding variables to the variable group: $VARIABLE_GROUP ---$reset"
-	if [ -n "$DEPLOYER_KEYVAULT" ]; then
-		if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "$DEPLOYER_KEYVAULT"; then
-			echo "Saved DEPLOYER_KEYVAULT in variable group."
-		else
-			echo "##vso[task.logissue type=warning]Failed to save DEPLOYER_KEYVAULT in variable group."
-		fi
-	fi
-fi
-
-ARM_CLIENT_ID=$(grep -m1 "^ARM_CLIENT_ID=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
-if [ -n "${ARM_CLIENT_ID}" ]; then
-	if [ "$PLATFORM" == "devops" ]; then
-		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "ARM_CLIENT_ID" "$ARM_CLIENT_ID"
-	fi
-fi
-export ARM_CLIENT_ID
-
-ARM_OBJECT_ID=$(grep -m1 "^ARM_OBJECT_ID=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
-if [ -n "${ARM_OBJECT_ID}" ]; then
-	if [ "$PLATFORM" == "devops" ]; then
-		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "ARM_OBJECT_ID" "$ARM_OBJECT_ID"
-	fi
-fi
-
-export ARM_OBJECT_ID
-
-APPLICATION_CONFIGURATION_NAME=$(grep -m1 "^APPLICATION_CONFIGURATION_NAME" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
-if [ -n "${APPLICATION_CONFIGURATION_NAME}" ]; then
-	export APPLICATION_CONFIGURATION_NAME
-	echo "APPLICATION_CONFIGURATION_NAME:      ${APPLICATION_CONFIGURATION_NAME}"
-	if [ "$PLATFORM" == "devops" ]; then
-		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_NAME" "$APPLICATION_CONFIGURATION_NAME"
-	fi
-fi
-
-APPLICATION_CONFIGURATION_DEPLOYMENT=$(grep -m1 "^APPLICATION_CONFIGURATION_DEPLOYMENT" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
-if [ -n "${APPLICATION_CONFIGURATION_DEPLOYMENT}" ]; then
-	export APPLICATION_CONFIGURATION_DEPLOYMENT
-	echo "APPLICATION_CONFIGURATION_DEPLOYMENT:  ${APPLICATION_CONFIGURATION_DEPLOYMENT}"
-	if [ "$PLATFORM" == "devops" ]; then
-		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_DEPLOYMENT" "$APPLICATION_CONFIGURATION_DEPLOYMENT"
-	fi
-fi
-
-APP_SERVICE_NAME=$(grep -m1 "^APP_SERVICE_NAME" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
-if [ -n "${APP_SERVICE_NAME}" ]; then
-	export APP_SERVICE_NAME
-	echo "APP_SERVICE_NAME:      ${APP_SERVICE_NAME}"
-	if [ "$PLATFORM" == "devops" ]; then
-		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APP_SERVICE_NAME" "$APP_SERVICE_NAME"
-	fi
-fi
-
-APP_SERVICE_DEPLOYMENT=$(grep -m1 "^HAS_WEBAPP" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
-if [ -n "${APP_SERVICE_DEPLOYMENT}" ]; then
-	export APP_SERVICE_DEPLOYMENT
-	echo "APP_SERVICE_DEPLOYMENT:      ${APP_SERVICE_DEPLOYMENT}"
-	if [ "$PLATFORM" == "devops" ]; then
-		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APP_SERVICE_DEPLOYMENT" "$APP_SERVICE_DEPLOYMENT"
-	fi
-fi
 if [ "$PLATFORM" == "devops" ]; then
 	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_ENVIRONMENT" "$ENVIRONMENT"
 	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_LOCATION" "$LOCATION"
@@ -508,16 +471,16 @@ if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate" ]; then
 				git add -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip"
 				rm "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate"
 			elif [ "$PLATFORM" == "github" ]; then
-				rm DEPLOYER/$DEPLOYER_FOLDERNAME/state.gpg >/dev/null 2>&1 || true
+				rm "DEPLOYER/$DEPLOYER_FOLDERNAME/state.gpg" >/dev/null 2>&1 || true
 
 				echo "Encrypting state file"
 				gpg --batch \
-					--output DEPLOYER/$DEPLOYER_FOLDERNAME/state.gpg \
+					--output "DEPLOYER/$DEPLOYER_FOLDERNAME/state.gpg" \
 					--encrypt \
 					--disable-dirmngr --recipient sap-azure-deployer@example.com \
 					--trust-model always \
-					DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate
-				git add -f DEPLOYER/$DEPLOYER_FOLDERNAME/state.gpg
+					"DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate"
+				git add -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.gpg"
 			else
 				pass="localpassword"
 			fi
@@ -539,7 +502,7 @@ if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate" ]; then
 			fi
 		fi
 		if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.gpg" ]; then
-			if [ 0 == $return_code ]; then
+			if [ 0 -eq "$return_code" ]; then
 				echo "Removing the deployer state gpg file"
 				git rm -q --ignore-unmatch -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.gpg"
 				added=1
@@ -553,7 +516,7 @@ if [ -f "${library_tfvars_file_name}" ]; then
 	added=1
 fi
 
-if [ -f DEPLOYER/${DEPLOYER_FOLDERNAME}/readme.md ]; then
+if [ -f "DEPLOYER/${DEPLOYER_FOLDERNAME}/readme.md" ]; then
 	git add -f "DEPLOYER/${DEPLOYER_FOLDERNAME}/readme.md"
 	added=1
 fi
@@ -578,15 +541,15 @@ if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate" ]; then
 				git add -f "LIBRARY/$LIBRARY_FOLDERNAME/state.zip"
 				rm "LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate"
 			elif [ "$PLATFORM" == "github" ]; then
-				rm LIBRARY/$LIBRARY_FOLDERNAME/state.gpg >/dev/null 2>&1 || true
+				rm "LIBRARY/$LIBRARY_FOLDERNAME/state.gpg" >/dev/null 2>&1 || true
 				echo "Encrypting state file"
 				gpg --batch \
-					--output LIBRARY/$LIBRARY_FOLDERNAME/state.gpg \
+					--output "LIBRARY/$LIBRARY_FOLDERNAME/state.gpg" \
 					--encrypt \
 					--disable-dirmngr --recipient sap-azure-deployer@example.com \
 					--trust-model always \
-					LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate
-				git add -f LIBRARY/$LIBRARY_FOLDERNAME/state.gpg
+					"LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate"
+				git add -f "LIBRARY/$LIBRARY_FOLDERNAME/state.gpg"
 			else
 				pass="localpassword"
 			fi
@@ -640,7 +603,7 @@ if [ 1 = $added ]; then
 		commit_message="Added updates from Control Plane Deployment for $DEPLOYER_FOLDERNAME $LIBRARY_FOLDERNAME [skip ci]"
 	fi
 
-	if [ $DEBUG = True ]; then
+	if [ "$DEBUG" == "true" ]; then
 		git status --verbose
 		if git commit -m "$commit_message" || true; then
 			if [ "$PLATFORM" == "devops" ]; then
@@ -723,11 +686,11 @@ end_group
 # Platform-specific summary handling
 if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/${CONTROL_PLANE_NAME}.md" ]; then
 	if [ "$PLATFORM" == "devops" ]; then
-	  cat DEPLOYER/$DEPLOYER_FOLDERNAME/${CONTROL_PLANE_NAME}.md
-	  sudo cp "DEPLOYER/$DEPLOYER_FOLDERNAME/${CONTROL_PLANE_NAME}.md" "$AGENT_TEMPDIRECTORY/${CONTROL_PLANE_NAME}.md"
+	  cat "DEPLOYER/${DEPLOYER_FOLDERNAME}/${CONTROL_PLANE_NAME}.md"
+	  sudo cp "DEPLOYER/${DEPLOYER_FOLDERNAME}/${CONTROL_PLANE_NAME}.md" "$AGENT_TEMPDIRECTORY/${CONTROL_PLANE_NAME}.md"
 		echo "##vso[task.addattachment type=Distributedtask.Core.Summary;name=${CONTROL_PLANE_NAME}.md;]$AGENT_TEMPDIRECTORY/${CONTROL_PLANE_NAME}.md"
 	elif [ "$PLATFORM" == "github" ]; then
-		cat "DEPLOYER/$DEPLOYER_FOLDERNAME/${CONTROL_PLANE_NAME}.md" >>$GITHUB_STEP_SUMMARY
+		cat "DEPLOYER/${DEPLOYER_FOLDERNAME}/${CONTROL_PLANE_NAME}.md" >>$GITHUB_STEP_SUMMARY
 	fi
 fi
 

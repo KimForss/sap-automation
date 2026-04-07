@@ -67,6 +67,53 @@ function source_helper_scripts() {
 	done
 }
 
+
+############################################################################################
+# This function reads the SDAF environment variables.                                      #
+# Arguments:                                                                               #
+#   None                                                                                   #
+# Returns:                                                                                 #
+#   0 on success, non-zero on failure                                                      #
+# Usage:                     																				                       #
+#   remover_check_environment_variables                                                #
+# Example:                   																				                       #
+#   remover_check_environment_variables                                                #
+############################################################################################
+
+function remover_check_environment_variables() {
+    if [ -v SDAF_CONTROL_PLANE_NAME ]; then
+        CONTROL_PLANE_NAME="$SDAF_CONTROL_PLANE_NAME"
+        TF_VAR_control_plane_name="$CONTROL_PLANE_NAME"
+        TF_VAR_deployer_tfstate_key="${CONTROL_PLANE_NAME}-INFRASTRUCTURE.terraform.tfstate"
+        export TF_VAR_control_plane_name
+        export TF_VAR_deployer_tfstate_key
+    fi
+
+    if [ -v SDAF_WORKLOAD_ZONE_NAME ]; then
+        WORKLOAD_ZONE_NAME="$SDAF_WORKLOAD_ZONE_NAME"
+        TF_VAR_workload_zone_name="$WORKLOAD_ZONE_NAME"
+        TF_VAR_landscape_tfstate_key="${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.terraform.tfstate"
+        export TF_VAR_workload_zone_name
+        export TF_VAR_landscape_tfstate_key
+    fi
+
+    if [ -v SDAF_APPLICATION_CONFIGURATION_NAME ]; then
+        APPLICATION_CONFIGURATION_NAME="$SDAF_APPLICATION_CONFIGURATION_NAME"
+        TF_VAR_application_configuration_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
+        export TF_VAR_application_configuration_id
+    fi
+
+    if [ -v SDAF_TERRAFORM_STORAGE_ACCOUNT_NAME ]; then
+        TERRAFORM_STORAGE_ACCOUNT_NAME="$SDAF_TERRAFORM_STORAGE_ACCOUNT_NAME"
+        export TERRAFORM_STORAGE_ACCOUNT_NAME
+		terraform_storage_account_name="$SDAF_TERRAFORM_STORAGE_ACCOUNT_NAME"
+        getAndStoreTerraformStateStorageAccountDetails "${TERRAFORM_STORAGE_ACCOUNT_NAME}" ""
+    fi
+
+    return 0
+}
+
+
 ############################################################################################
 # Function to parse all the command line arguments passed to the script.                   #
 # Arguments:                                                                               #
@@ -335,14 +382,8 @@ function retrieve_parameters() {
 			export APPLICATION_CONFIGURATION_ID
 		fi
 	fi
-	if [ -n "$CONTROL_PLANE_NAME" ]; then
-		DEPLOYER_ENVIRONMENT=$(echo "$CONTROL_PLANE_NAME" | cut -d"-" -f1)
-		DEPLOYER_LOCATION=$(echo "$CONTROL_PLANE_NAME" | cut -d"-" -f2)
-		DEPLOYER_NETWORK=$(echo "$CONTROL_PLANE_NAME" | cut -d"-" -f3)
-		deployer_configuration_file=$(get_configuration_file "$automation_config_directory" "$DEPLOYER_ENVIRONMENT" "$DEPLOYER_LOCATION" "$DEPLOYER_NETWORK")
-		load_config_vars "${deployer_configuration_file}" \
-				tfstate_resource_id DEPLOYER_KEYVAULT REMOTE_STATE_SA REMOTE_STATE_RG keyvault
-		fi
+	
+	getAndStoreTerraformStateStorageAccountDetailsFromDisk "${system_environment_file_name}"
 
 	if [ -v APPLICATION_CONFIGURATION_ID ]; then
 		app_config_name=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d'/' -f9)
@@ -351,33 +392,35 @@ function retrieve_parameters() {
 		if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
 			print_banner "Installer" "Retrieving parameters from Azure App Configuration" "info" "$app_config_name ($app_config_subscription)"
 
-			tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "$CONTROL_PLANE_NAME")
-			TF_VAR_tfstate_resource_id=$tfstate_resource_id
+			if [ -z "${terraform_storage_account_name:-}" ]; then
+				tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "$CONTROL_PLANE_NAME")
+				TF_VAR_tfstate_resource_id=$tfstate_resource_id
+				terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d'/' -f9)
+				terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d'/' -f5)
+				terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d'/' -f3)
+				export TF_VAR_tfstate_resource_id
+				export terraform_storage_account_name
+				export terraform_storage_account_resource_group_name
+				export terraform_storage_account_subscription_id
+			fi
 
 			TF_VAR_deployer_kv_user_arm_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "$CONTROL_PLANE_NAME")
-			TF_VAR_spn_keyvault_id="${TF_VAR_deployer_kv_user_arm_id}"
+			if [ -n "$TF_VAR_deployer_kv_user_arm_id" ]; then
+				TF_VAR_spn_keyvault_id="${TF_VAR_deployer_kv_user_arm_id}"
+				export TF_VAR_spn_keyvault_id
+			fi
+	
 
-			management_subscription_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_SubscriptionId" "${CONTROL_PLANE_NAME}")
-			TF_VAR_management_subscription_id=${management_subscription_id}
+			TF_VAR_management_subscription_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_SubscriptionId" "${CONTROL_PLANE_NAME}")
+			export TF_VAR_management_subscription_id
 
 			keyvault=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultName" "${CONTROL_PLANE_NAME}")
-
-			terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d'/' -f9)
-			terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d'/' -f5)
-			terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d'/' -f3)
-
-			export TF_VAR_management_subscription_id
-			export TF_VAR_spn_keyvault_id
-			export TF_VAR_tfstate_resource_id
 			export keyvault
-			export terraform_storage_account_name
-			export terraform_storage_account_resource_group_name
-			export terraform_storage_account_subscription_id
 		fi
 	else
 		if [ -z "${terraform_storage_account_name:-}" ]; then
 			load_config_vars "${system_environment_file_name}" \
-				tfstate_resource_id keyvault
+				tfstate_resource_id
 
 			if [ -n "$tfstate_resource_id" ]; then
 				TF_VAR_tfstate_resource_id=$tfstate_resource_id
@@ -390,71 +433,10 @@ function retrieve_parameters() {
 				export terraform_storage_account_name
 				export terraform_storage_account_subscription_id
 			fi
-		else
-			tfstate_resource_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$terraform_storage_account_name' | project id, name, subscription" --query data[0].id --output tsv)
-			TF_VAR_tfstate_resource_id=$tfstate_resource_id
-			terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d'/' -f9)
-			terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d'/' -f5)
-			terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d'/' -f3)
-
-			export TF_VAR_tfstate_resource_id
-			export terraform_storage_account_resource_group_name
-			export terraform_storage_account_name
-			export terraform_storage_account_subscription_id
-
-			getAndStoreTerraformStateStorageAccountDetails "${terraform_storage_account_name}" "${system_environment_file_name}"
 		fi
 
 	fi
 
-	if [ ! -v terraform_storage_account_name ]; then
-		if [ -f ".terraform/terraform.tfstate" ]; then
-			remote_backend=$(grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate || true)
-			if [ -n "${remote_backend}" ]; then
-
-				terraform_storage_account_subscription_id=$(grep -m1 "subscription_id" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
-				terraform_storage_account_name=$(grep -m1 "storage_account_name" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
-				terraform_storage_account_resource_group_name=$(grep -m1 "resource_group_name" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
-				tfstate_resource_id=$(az storage account show --name "${terraform_storage_account_name}" --query id --subscription "${terraform_storage_account_subscription_id}" --resource-group "${terraform_storage_account_resource_group_name}" --out tsv)
-				export TF_VAR_tfstate_resource_id
-
-			fi
-		else
-			load_config_vars "${system_environment_file_name}" \
-				tfstate_resource_id DEPLOYER_KEYVAULT keyvault
-
-			TF_VAR_spn_keyvault_id=$(az keyvault show --name "${DEPLOYER_KEYVAULT}" --query id --subscription "${ARM_SUBSCRIPTION_ID}" --out tsv)
-			export TF_VAR_spn_keyvault_id
-
-			export TF_VAR_tfstate_resource_id
-			terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d'/' -f9)
-			terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d'/' -f5)
-			terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d'/' -f3)
-
-			export terraform_storage_account_resource_group_name
-			export terraform_storage_account_name
-			export terraform_storage_account_subscription_id
-
-		fi
-	else
-		if [ ! -v tfstate_resource_id ]; then
-			tfstate_resource_id=$(az storage account show --name "${terraform_storage_account_name}" --query id --out tsv)
-			export tfstate_resource_id
-			TF_VAR_tfstate_resource_id=$tfstate_resource_id
-			export TF_VAR_tfstate_resource_id
-
-			terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d'/' -f9)
-			terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d'/' -f5)
-			terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d'/' -f3)
-
-			export terraform_storage_account_resource_group_name
-			export terraform_storage_account_name
-			export terraform_storage_account_subscription_id
-		fi
-
-	fi
-	
-	getAndStoreTerraformStateStorageAccountDetailsFromDisk "${system_environment_file_name}"
 	if [ "${USE_MSI:-ARM_USE_MSI}" == "true" ]; then
 		unset ARM_CLIENT_SECRET
 		ARM_USE_MSI=true
@@ -485,6 +467,7 @@ function sdaf_remover() {
 	source_helper_scripts "${helper_scripts[@]}"
 	detect_platform
 
+	remover_check_environment_variables
 
 	# Parse command line arguments
 	if ! parse_arguments "$@"; then
@@ -500,6 +483,12 @@ function sdaf_remover() {
 	fi
 
 	parallelism=10
+
+	param_dirname=$(pwd)
+	export TF_DATA_DIR="${param_dirname}/.terraform"
+
+	TF_VAR_subscription_id="$ARM_SUBSCRIPTION_ID"
+	export TF_VAR_subscription_id
 
 	#Provide a way to limit the number of parallel tasks for Terraform
 	if checkforEnvVar "TF_PARALLELLISM"; then
@@ -543,48 +532,7 @@ function sdaf_remover() {
 		export TF_PLUGIN_CACHE_DIR=/opt/terraform/.terraform.d/plugin-cache
 	fi
 
-	param_dirname=$(pwd)
-	export TF_DATA_DIR="${param_dirname}/.terraform"
-
-	if [ -f "${param_dirname}/.terraform/terraform.tfstate" ]; then
-		remote_backend=$(grep "\"type\": \"azurerm\"" "${param_dirname}/.terraform/terraform.tfstate" || true)
-		if [ -n "${remote_backend}" ]; then
-
-			terraform_storage_account_subscription_id=$(grep -m1 "subscription_id" "${param_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
-			terraform_storage_account_name=$(grep -m1 "storage_account_name" "${param_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
-			terraform_storage_account_resource_group_name=$(grep -m1 "resource_group_name" "${param_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
-			tfstate_resource_id=$(az storage account show --name "${terraform_storage_account_name}" --query id --subscription "${terraform_storage_account_subscription_id}" --resource-group "${terraform_storage_account_resource_group_name}" --out tsv)
-			TF_VAR_tfstate_resource_id="$tfstate_resource_id"
-			TF_VAR_management_subscription_id="$terraform_storage_account_subscription_id"
-			export TF_VAR_tfstate_resource_id
-			export TF_VAR_management_subscription_id
-
-		fi
-	else
-		print_banner "$banner_title - $deployment_system" "No existing Terraform state found in the current directory" "info" "System name $(basename "$param_dirname")"
-		return 10;
-	fi
-
-	TF_VAR_subscription_id="$ARM_SUBSCRIPTION_ID"
-	export TF_VAR_subscription_id
-
-	#§init "${CONFIG_DIR}" "${generic_environment_file_name}" "${system_environment_file_name}"
-
 	var_file="${param_dirname}"/"${parameterFilename}"
-
-	useSAS=$(az storage account show --name "${terraform_storage_account_name}" --query allowSharedKeyAccess --subscription "${terraform_storage_account_subscription_id}" --out tsv)
-
-    if [ "$useSAS" = "true" ]; then
-        echo "Storage Account Authentication:      Key"
-        AZURE_STORAGE_AUTH_MODE=key
-        export AZURE_STORAGE_AUTH_MODE
-        export ARM_USE_AZUREAD=false
-    else
-        echo "Storage Account Authentication:      Entra ID"
-        AZURE_STORAGE_AUTH_MODE=login
-        export AZURE_STORAGE_AUTH_MODE
-        export ARM_USE_AZUREAD=true
-    fi
 
 	#setting the user environment variables
 
@@ -620,24 +568,38 @@ function sdaf_remover() {
 
 	var_file="${param_dirname}"/"${parameter_file_name}"
 
-	echo terraform_storage_account_subscription_id="${terraform_storage_account_subscription_id}"
-	echo terraform_storage_account_name="${terraform_storage_account_name}"
-	echo terraform_storage_account_resource_group_name="${terraform_storage_account_resource_group_name}"
+	backendParameters=(--backend-config "subscription_id=${terraform_storage_account_subscription_id}")
+	backendParameters+=(--backend-config "resource_group_name=${terraform_storage_account_resource_group_name}")
+	backendParameters+=(--backend-config "storage_account_name=${terraform_storage_account_name}")
+	backendParameters+=(--backend-config "container_name=tfstate")
+	backendParameters+=(--backend-config "key=${key}.terraform.tfstate")
+
+	TF_VAR_tfstate_resource_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$terraform_storage_account_name' | project id, name, subscription" --query data[0].id --output tsv)
+	export TF_VAR_tfstate_resource_id
+
+    useSAS=$(az storage account show --name "${terraform_storage_account_name}" --query allowSharedKeyAccess --subscription "${terraform_storage_account_subscription_id}" --out tsv)
+
+    if [ "$useSAS" = "true" ]; then
+        echo "Storage Account Authentication:      Key"
+        AZURE_STORAGE_AUTH_MODE=key
+        export AZURE_STORAGE_AUTH_MODE
+        export ARM_USE_AZUREAD=false
+    else
+        echo "Storage Account Authentication:      Entra ID"
+        AZURE_STORAGE_AUTH_MODE=login
+        export AZURE_STORAGE_AUTH_MODE
+        export ARM_USE_AZUREAD=true
+    fi
+
+
 
 	cd "${param_dirname}" || exit
-	az account set --subscription "$ARM_SUBSCRIPTION_ID"
 	if [ -f .terraform/terraform.tfstate ]; then
 
 		echo "Terraform state:                     remote"
 		print_banner "$banner_title - $deployment_system" "The system has already been deployed and the state file is in Azure" "info" "System name $(basename "$param_dirname")"
-		echo "key=${key}.terraform.tfstate"
 
-		if terraform -chdir="${terraform_module_directory}" init -upgrade=true -migrate-state \
-			--backend-config "subscription_id=${terraform_storage_account_subscription_id}" \
-			--backend-config "resource_group_name=${terraform_storage_account_resource_group_name}" \
-			--backend-config "storage_account_name=${terraform_storage_account_name}" \
-			--backend-config "container_name=tfstate" \
-			--backend-config "key=${key}.terraform.tfstate"; then
+		if terraform -chdir="${terraform_module_directory}" init -upgrade=true -migrate-state "${backendParameters[@]}"; then
 			print_banner "$banner_title - $deployment_system" "Terraform init succeeded." "success" "System name $(basename "$param_dirname")"
 			return_value=$?
 		else
@@ -646,12 +608,7 @@ function sdaf_remover() {
 			return $return_value
 		fi
 	else
-		if terraform -chdir="${terraform_module_directory}" init -upgrade=true -force-copy -migrate-state \
-			--backend-config "subscription_id=${terraform_storage_account_subscription_id}" \
-			--backend-config "resource_group_name=${terraform_storage_account_resource_group_name}" \
-			--backend-config "storage_account_name=${terraform_storage_account_name}" \
-			--backend-config "container_name=tfstate" \
-			--backend-config "key=${key}.terraform.tfstate"; then
+		if terraform -chdir="${terraform_module_directory}" init -upgrade=true -migrate-state "${backendParameters[@]}"; then
 			return_value=$?
 			print_banner "$banner_title - $deployment_system" "Terraform init succeeded." "success" "System name $(basename "$param_dirname")"
 		else
@@ -710,14 +667,14 @@ function sdaf_remover() {
 
 		if [ -f delete_output.json ]; then
 			
-			errors_occurred=$(jq 'select(."@level" == "error") | length' "$deleteOutputfile"	)
+			errors_occurred=$(jq 'select(."@level" == "error") | length' delete_output.json	)
 			if [[ -n $errors_occurred ]]; then
 				return_value=10
 
 				print_banner "$banner_title - $deployment_system" "Errors during the destroy phase" "error" "System name $(basename "$param_dirname")"
 
 				return_value=2
-				all_errors=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary, detail: .diagnostic.detail}' destroy_output.json)
+				all_errors=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary, detail: .diagnostic.detail}' delete_output.json)
 				if [[ -n ${all_errors} ]]; then
 					readarray -t errors_strings < <(echo "${all_errors}" | jq -c '.')
 					for errors_string in "${errors_strings[@]}"; do
@@ -761,6 +718,7 @@ function sdaf_remover() {
 			sed -i /REMOTE_STATE_RG/d "${system_environment_file_name}"
 			sed -i /REMOTE_STATE_SA/d "${system_environment_file_name}"
 			sed -i /tfstate_resource_id/d "${system_environment_file_name}"
+			sed -i /STATE_SUBSCRIPTION/d "${system_environment_file_name}"
 		fi
 	fi
 
