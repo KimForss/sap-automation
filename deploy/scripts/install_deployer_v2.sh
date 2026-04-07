@@ -223,6 +223,7 @@ function install_deployer() {
 
     terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/bootstrap/sap_deployer/"
     export TF_DATA_DIR="${param_dirname}"/.terraform
+    cd "${param_dirname}" || exit
 
     this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
     if [ -n "$this_ip" ]; then
@@ -314,20 +315,31 @@ function install_deployer() {
                 return $return_value
             fi
 
+        else
+            print_banner "$banner_title" "State is not using Azure backend, Running terraform init" "info"
+            if terraform -chdir="${terraform_module_directory}" init -upgrade=true -reconfigure -backend-config "path=${param_dirname}/terraform.tfstate"; then
+                return_value=$?
+                print_banner "$banner_title" "Terraform init succeeded." "success" "System name $(basename "$param_dirname")"
+            else
+                return_value=$?
+                print_banner "$banner_title" "Terraform init failed." "error" "System name $(basename "$param_dirname")"
+                unset TF_DATA_DIR
+                return $return_value
+            fi
+            echo "Parameters:                          ${allParameters[*]}"
+            terraform -chdir="${terraform_module_directory}" refresh "${allParameters[@]}"
         fi
     else
         print_banner "$banner_title" "Running terraform init" "info"
         if terraform -chdir="${terraform_module_directory}" init -upgrade=true -reconfigure -backend-config "path=${param_dirname}/terraform.tfstate"; then
             return_value=$?
-            print_banner "$banner_title" "Terraform init succeeded." "success"
+            print_banner "$banner_title" "Terraform init succeeded." "success" "System name $(basename "$param_dirname")"
         else
             return_value=$?
-            print_banner "$banner_title" "Terraform init failed." "error"
+            print_banner "$banner_title" "Terraform init failed." "error" "System name $(basename "$param_dirname")"
             unset TF_DATA_DIR
             return $return_value
         fi
-        echo "Parameters:                          ${allParameters[*]}"
-        terraform -chdir="${terraform_module_directory}" refresh "${allParameters[@]}"
     fi
 
     print_banner "$banner_title" "Running Terraform plan" "info"
@@ -350,13 +362,13 @@ function install_deployer() {
 
     echo "Terraform plan return code: $return_value"
     if [ 0 == "$return_value" ]; then
-        print_banner "${banner_title}" "Terraform plan succeeded ($return_value), no changes to apply" "success"
+        print_banner "${banner_title}" "Terraform plan succeeded ($return_value), no changes to apply" "success" "System name $(basename "$param_dirname")"
         return_value=0
     elif [ 2 == "$return_value" ]; then
-        print_banner "${banner_title}" "Terraform plan succeeded ($return_value), changes to apply" "info"
+        print_banner "${banner_title}" "Terraform plan succeeded ($return_value), changes to apply" "info" "System name $(basename "$param_dirname")"
         return_value=2
     else
-        print_banner "${banner_title}" "Terraform plan failed ($return_value)" "error"
+        print_banner "${banner_title}" "Terraform plan failed ($return_value)" "error" "System name $(basename "$param_dirname")"
         if [ -f plan_output.log ]; then
             cat plan_output.log
             rm plan_output.log
@@ -409,13 +421,13 @@ function install_deployer() {
         fi
 
         if [ "$return_value" -eq 1 ]; then
-            print_banner "$banner_title" "Terraform apply failed" "error" "Terraform apply return code: $return_value"
+            print_banner "$banner_title" "Terraform apply failed" "error" "Terraform apply return code: $return_value" "System name $(basename "$param_dirname")"
         elif [ "$return_value" -eq 2 ]; then
             # return code 2 is ok
-            print_banner "$banner_title" "Terraform apply succeeded" "success" "Terraform apply return code: $return_value"
+            print_banner "$banner_title" "Terraform apply succeeded" "success" "Terraform apply return code: $return_value" "System name $(basename "$param_dirname")"
             return_value=0
         else
-            print_banner "$banner_title" "Terraform apply succeeded" "success" "Terraform apply return code: $return_value"
+            print_banner "$banner_title" "Terraform apply succeeded" "success" "Terraform apply return code: $return_value" "System name $(basename "$param_dirname")"
             return_value=0
         fi
 
@@ -426,7 +438,7 @@ function install_deployer() {
                 return_value=10
 
                 for i in {1..5}; do
-                    print_banner "Terraform apply" "Errors detected in apply output" "warning" "Attempt $i of 5 to import existing resources and re-run apply"
+                    print_banner "Terraform apply" "Errors detected in apply output" "warning" "Attempt $i of 5 to import existing resources."
                     if [ -f apply_output.json ]; then
                         if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "${allImportParameters[*]}" "${allParameters[*]}"; then
                             return_value=0
