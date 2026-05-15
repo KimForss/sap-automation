@@ -1,6 +1,6 @@
 FROM mcr.microsoft.com/azurelinux/base/core:3.0
 
-ARG TF_VERSION=1.14.1
+ARG TF_VERSION=1.15.1
 ARG YQ_VERSION=v4.42.1
 ARG NODE_VERSION=18.19.1
 ARG ANSIBLE_VERSION=2.16.5
@@ -36,7 +36,7 @@ RUN localedef -i en_US -f UTF-8 en_US.UTF-8
 
 # Install development tools and languages
 RUN tdnf install -y \
-  dotnet-sdk-8.0 \
+  dotnet-sdk-9.0 \
   python3 \
   python3-pip \
   python3-virtualenv \
