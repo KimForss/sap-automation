@@ -25,19 +25,26 @@ namespace SDAFWebApp.Controllers
         private FormViewModel<LandscapeModel> landscapeView;
         private readonly IConfiguration _configuration;
         private readonly RestHelper restHelper;
+        private readonly GitHubActionsService _githubActions;
         private readonly ImageDropdown[] imagesOffered;
         private List<SelectListItem> imageOptions;
         private Dictionary<string, Image> imageMapping;
         private readonly string sdafControlPlaneEnvironment;
         private readonly string sdafControlPlaneLocation;
         private readonly string sdafControlPlaneName;
+        private readonly string platform;
 
         public LandscapeController(ITableStorageService<LandscapeEntity> landscapeService, ITableStorageService<AppFile> appFileService, IConfiguration configuration)
         {
             _landscapeService = landscapeService;
             _appFileService = appFileService;
             _configuration = configuration;
-            restHelper = new RestHelper(configuration);
+            platform = configuration["DEVOPS_PLATFORM"] ?? "ADO";
+            restHelper = new RestHelper(configuration, platform);
+            if(platform == "GitHub")
+            {
+                _githubActions = new GitHubActionsService(configuration["GITHUB_TOKEN"], configuration["GITHUB_REPOSITORY"].Split("/")[0], configuration["GITHUB_REPOSITORY"].Split("/")[1]);
+            }
             landscapeView = SetViewData();
             imagesOffered = Helper.GetOfferedImages(_appFileService).Result;
             InitializeImageOptionsAndMapping();
@@ -279,27 +286,46 @@ namespace SDAFWebApp.Controllers
 
                 await restHelper.UpdateRepo(path, content);
 
-                string pipelineId = _configuration["WORKLOADZONE_PIPELINE_ID"];
-                string branch = _configuration["SourceBranch"];
-                parameters.workload_zone = id;
-                PipelineRequestBody requestBody = new()
+                switch (platform)
                 {
-                    resources = new Resources
-                    {
-                        repositories = new Repositories
+                    case "ADO":
+                        { 
+                        string pipelineId = _configuration["WORKLOADZONE_PIPELINE_ID"];
+                        string branch = _configuration["SourceBranch"];
+                        parameters.workload_zone = id;
+                        PipelineRequestBody requestBody = new()
                         {
-                            self = new Self
+                            resources = new Resources
                             {
-                                refName = $"refs/heads/{branch}"
-                            }
+                                repositories = new Repositories
+                                {
+                                    self = new Self
+                                    {
+                                        refName = $"refs/heads/{branch}"
+                                    }
+                                }
+                            },
+                            templateParameters = parameters
+                        };
+
+                        await restHelper.TriggerPipeline(pipelineId, requestBody);
+
+                        TempData["success"] = "Successfully triggered workload zone deployment pipeline for " + id;
+                        break;
                         }
-                    },
-                    templateParameters = parameters
-                };
+                    case "github":
+                    {
+                            // Trigger with inputs
+                            var inputs = new Dictionary<string, object>
+                            {
+                                { "workload_zone", id.Replace("-INFRASTRUCTURE", "") },
+                                { "control_plane_name", sdafControlPlaneName }
+                            };
+                            await restHelper.TriggerGitHubWorkflow("03-deploy-sap-workload-zone.yml", "main", inputs);
+                            break;
+                        }
+                }
 
-                await restHelper.TriggerPipeline(pipelineId, requestBody);
-
-                TempData["success"] = "Successfully triggered workload zone deployment pipeline for " + id;
             }
             catch (Exception e)
             {
