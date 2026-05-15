@@ -30,13 +30,15 @@ namespace SDAFWebApp.Controllers
         private ImageDropdown[] imagesOffered;
         private List<SelectListItem> imageOptions;
         private Dictionary<string, Image> imageMapping;
+        private readonly string platform;
 
         public SystemController(ITableStorageService<SystemEntity> systemService, ITableStorageService<AppFile> appFileService, IConfiguration configuration)
         {
             _systemService = systemService;
             _appFileService = appFileService;
             _configuration = configuration;
-            restHelper = new RestHelper(configuration);
+            platform = configuration["DEVOPS_PLATFORM"] ?? "ADO";
+            restHelper = new RestHelper(configuration, platform);
             systemView = SetViewData();
 
             imagesOffered = Helper.GetOfferedImages(_appFileService).Result;

@@ -769,7 +769,7 @@ variable "app_service_devops_authentication_type"     {
 
 variable "app_service_SKU_name"                       {
                                                         description = "The SKU of the App Service Plan"
-                                                        default     = "S1"
+                                                        default     = "B1"
                                                       }
 
 variable "enable_firewall_for_keyvaults_and_storage" {
