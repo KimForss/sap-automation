@@ -124,7 +124,7 @@ resource "azurerm_windows_web_app" "webapp" {
                                                   format("@Microsoft.KeyVault(SecretUri=https://%s.vault.azure.net/secrets/GH_PAT/)", local.keyvault_names.user_access)
                                                  )
     "DEVOPS_PLATFORM"                         = var.infrastructure.devops.platform
-    "GITHUB_SERVER_URL"                       = var.infrastructure.devops.server_url
+    "GITHUB_SERVER_URL"                     s  = var.infrastructure.devops.server_url
     "GITHUB_API_URL"                          = var.infrastructure.devops.api_url
     "GITHUB_REPOSITORY"                       = var.infrastructure.devops.repository
     "CONTROLPLANE_ENV"                        = var.infrastructure.environment
