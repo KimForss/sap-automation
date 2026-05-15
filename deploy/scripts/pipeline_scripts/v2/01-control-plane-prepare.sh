@@ -383,7 +383,7 @@ if [ "$PLATFORM" == "github" ]; then
 	TF_VAR_github_repository=${GITHUB_REPOSITORY}
 	export TF_VAR_github_repository
 
-	TF_VAR_devops_platform="github"
+	TF_VAR_devops_platform="GITHUB"
 	export TF_VAR_devops_platform
 fi
 
