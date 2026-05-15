@@ -309,8 +309,12 @@ namespace SDAFWebApp.Controllers
 
                 await restHelper.UpdateRepo(path, content);
 
+                switch (platform.ToLower())
+                {
+                    case "ado":
+                        {
 
-                string pipelineId = _configuration["SYSTEM_PIPELINE_ID"];
+                            string pipelineId = _configuration["SYSTEM_PIPELINE_ID"];
                 string branch = _configuration["SourceBranch"];
                 parameters.sap_system = id;
                 PipelineRequestBody requestBody = new()
@@ -331,6 +335,22 @@ namespace SDAFWebApp.Controllers
                 await restHelper.TriggerPipeline(pipelineId, requestBody);
 
                 TempData["success"] = "Successfully triggered system deployment pipeline for " + id;
+                            break;
+                        }
+                    case "github":
+                        {
+                            string key = "-"+system.sid;
+                            // Trigger with inputs
+                            var inputs = new Dictionary<string, object>
+                            {
+                                { "workload_environment", id.Replace(key, "") },
+                                { "system_sid", system.sid }
+                            };
+                            await restHelper.TriggerGitHubWorkflow("04-create-system-environment.yml", "main", inputs);
+                            break;
+                        }
+                }
+
             }
             catch (Exception e)
             {
