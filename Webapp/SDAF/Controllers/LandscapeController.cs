@@ -39,7 +39,7 @@ namespace SDAFWebApp.Controllers
             _landscapeService = landscapeService;
             _appFileService = appFileService;
             _configuration = configuration;
-            platform = configuration["DEVOPS_PLATFORM"] ?? "ADO";
+            platform = configuration["DEVOPS_PLATFORM"] ?? "ado";
             restHelper = new RestHelper(configuration, platform);
             if(platform == "GitHub")
             {
@@ -146,7 +146,8 @@ namespace SDAFWebApp.Controllers
         [HttpGet]
         public async Task<LandscapeModel> GetById(string id, string partitionKey)
         {
-            if (id == null || partitionKey == null) throw new ArgumentNullException();
+            if (id == null) throw new ArgumentNullException(nameof(id), "Parameter 'id' cannot be null.");
+            if (partitionKey == null) throw new ArgumentNullException(nameof(partitionKey), "Parameter 'partitionKey' cannot be null.");
             var landscapeEntity = await _landscapeService.GetByIdAsync(id, partitionKey);
             if (landscapeEntity == null || landscapeEntity.Landscape == null) throw new KeyNotFoundException();
             return JsonConvert.DeserializeObject<LandscapeModel>(landscapeEntity.Landscape);
@@ -286,9 +287,9 @@ namespace SDAFWebApp.Controllers
 
                 await restHelper.UpdateRepo(path, content);
 
-                switch (platform)
+                switch (platform.ToLower())
                 {
-                    case "ADO":
+                    case "ado":
                         { 
                         string pipelineId = _configuration["WORKLOADZONE_PIPELINE_ID"];
                         string branch = _configuration["SourceBranch"];
