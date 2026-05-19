@@ -236,6 +236,7 @@ allParameters=(--deployer_parameter_file "${deployer_tfvars_file_name}")
 allParameters+=(--library_parameter_file "${library_tfvars_file_name}")
 allParameters+=(--keep_agent)
 allParameters+=(--auto-approve)
+allParameters+=(--control_plane_name "${CONTROL_PLANE_NAME}")
 if [ "$PLATFORM" == "devops" ]; then
 	allParameters+=(--ado)
 elif [ "$PLATFORM" == "github" ]; then
