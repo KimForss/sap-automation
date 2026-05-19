@@ -2,7 +2,7 @@ FROM mcr.microsoft.com/azurelinux/base/core:3.0
 
 ARG TF_VERSION=1.15.1
 ARG YQ_VERSION=v4.42.1
-ARG NODE_VERSION=18.19.1
+ARG NODE_VERSION=26.1.0
 ARG ANSIBLE_VERSION=2.16.5
 
 # Install core utilities and system tools
@@ -91,8 +91,13 @@ RUN pip3 install --no-cache-dir \
 COPY SAP-automation-samples /source/SAP-automation-samples
 COPY . /source
 
+# Copy STAF files
+COPY SAP-automation-qa /source/SAP-automation-qa
+COPY . /source
+
 ENV SAP_AUTOMATION_REPO_PATH=/source
 ENV SAMPLE_REPO_PATH=/source/SAP-automation-samples
+ENV QA_REPO_PATH=/source/SAP-automation-qa
 
 RUN useradd -m -s /bin/bash azureadm && \
     usermod -aG sudo azureadm && \
