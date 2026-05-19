@@ -343,10 +343,10 @@ namespace SDAFWebApp.Controllers
                             // Trigger with inputs
                             var inputs = new Dictionary<string, object>
                             {
-                                { "workload_environment", id.Replace(key, "") },
-                                { "system_sid", system.sid }
+                                { "workload_zone", id.Replace(key, "") },
+                                { "sap_system_identifier", system.sid }
                             };
-                            await restHelper.TriggerGitHubWorkflow("04-create-system-environment.yml", "main", inputs);
+                            await restHelper.TriggerGitHubWorkflow("05-sap-system-deployment.yml", "main", inputs);
                             break;
                         }
                 }
