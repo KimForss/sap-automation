@@ -685,6 +685,12 @@ variable "github_app_token"                           {
                                                         description = "If provided, contains token to access github"
                                                         default     = ""
                                                       }
+
+variable "github_pat"                                 {
+                                                        description = "If provided, contains PAT to access GitHub"
+                                                        default     = ""
+                                                      }
+
 variable "github_server_url"                          {
                                                         description = "If provided, contains the Server Url of the GitHub instance"
                                                         default     = "https://github.com"
