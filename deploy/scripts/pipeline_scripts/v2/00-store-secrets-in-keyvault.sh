@@ -183,7 +183,6 @@ if [ "$PLATFORM" == "devops" ]; then
 	allParameters+=(--ado)
 elif [ "$PLATFORM" == "github" ]; then
 	allParameters+=(--github)
-	allParameters+=(--gh_pat "$GH_PAT")
 fi
 if [ "${USE_MSI:-false}" == "true" ]; then
 	allParameters+=(--msi)
