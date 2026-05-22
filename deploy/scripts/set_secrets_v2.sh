@@ -349,7 +349,6 @@ function show_help {
 	echo "#      -c or --spn_id                          SPN application id                       #"
 	echo "#      -p or --spn_secret                      SPN password                             #"
 	echo "#      -t or --tenant_id                       SPN Tenant id                            #"
-	echo "#      -g or --gh_pat                          GitHub Personal Access Token             #"
 	echo "#      -h or --help                            Show help                                #"
 	echo "#                                                                                       #"
 	echo "#   Example:                                                                            #"
@@ -401,7 +400,7 @@ function source_helper_scripts() {
 ############################################################################################
 function parse_arguments() {
 	local input_opts
-	input_opts=$(getopt -n set_secrets_v2 -o v:s:i:p:t:b:n:c:g:hma --longoptions control_plane_name:,prefix:,key_vault:,subscription:,client_id:,client_secret:,client_tenant_id:,application_configuration_name:,keyvault_subscription:,gh_pat:,help,msi,ado,github -- "$@")
+	input_opts=$(getopt -n set_secrets_v2 -o v:s:i:p:t:b:n:c:hma --longoptions control_plane_name:,prefix:,key_vault:,subscription:,client_id:,client_secret:,client_tenant_id:,application_configuration_name:,keyvault_subscription:,help,msi,ado,github -- "$@")
 	is_input_opts_valid=$?
 
 	if [[ "${is_input_opts_valid}" != "0" ]]; then
@@ -449,10 +448,6 @@ function parse_arguments() {
 			;;
 		-k | --keyvault_subscription)
 			STATE_SUBSCRIPTION="$2"
-			shift 2
-			;;
-		-g | --gh_pat)
-			gh_pat="$2"
 			shift 2
 			;;
 		-m | --msi)
@@ -610,16 +605,6 @@ function set_all_secrets() {
 	else
 		print_banner "$banner_title" "Failed to set secret ${secret_name} in keyvault ${keyvault}" "error"
 		return 20
-	fi
-
-	if [ "${PLATFORM:-devops}" == "github" ] && [ -n "${gh_pat:-}" ]; then
-		secret_name="${prefix}"-GH-PAT
-		if setSecretValue "${keyvault}" "${STATE_SUBSCRIPTION}" "${secret_name}" "${gh_pat}" "secret" >/dev/null; then
-			print_banner "$banner_title" "Secret ${secret_name} set in keyvault ${keyvault}" "success"
-		else
-			print_banner "$banner_title" "Failed to set secret ${secret_name} in keyvault ${keyvault}" "error"
-			return 20
-		fi
 	fi
 
 	#turn off output, we do not want to show the details being uploaded to keyvault
