@@ -19,6 +19,7 @@ def main():
     print("  - User Access Administrator: For assigning roles to resources")
     print("  - Contributor: For creating and managing Azure resources")
     print("  - Storage Blob Data Owner: For accessing blob storage data")
+    print("  - Storage Table Data Contributor: For accessing table storage data")
     print("  - Key Vault Administrator: For managing secrets in Key Vault")
     print("  - App Configuration Data Owner: For managing app configuration data")
     print("\nThe script will attempt to assign these roles, but if you don't have sufficient permissions,")
@@ -161,6 +162,7 @@ def main():
                 "Contributor",
                 "User Access Administrator",
                 "Storage Blob Data Owner",
+                "Storage Table Data Contributor",
                 "Key Vault Administrator",
                 "App Configuration Data Owner",
                 "Network Contributor"
