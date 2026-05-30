@@ -70,6 +70,7 @@ namespace SDAFWebApp.Controllers
 
 
             managedIdentityClientId = configuration["OVERRIDE_USE_MI_FIC_ASSERTION_CLIENTID"];
+            ghToken = configuration.GetConnectionString("gh_Token");
 
             jsonSerializerOptions = new JsonSerializerOptions() { IgnoreNullValues = true };
 
