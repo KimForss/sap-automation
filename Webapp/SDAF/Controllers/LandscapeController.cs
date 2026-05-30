@@ -319,7 +319,7 @@ namespace SDAFWebApp.Controllers
                             // Trigger with inputs
                             var inputs = new Dictionary<string, object>
                             {
-                                { "workload_zone", id.Replace("-INFRASTRUCTURE", "") },
+                                { "workload_zone_name", id.Replace("-INFRASTRUCTURE", "") },
                                 { "control_plane_name", sdafControlPlaneName }
                             };
                             await restHelper.TriggerGitHubWorkflow("03-deploy-sap-workload-zone.yml", "main", inputs);
