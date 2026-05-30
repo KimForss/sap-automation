@@ -225,21 +225,20 @@ if [ "$PLATFORM" == "devops" ]; then
     bom_name=$(echo $BOM | cut -d'-' -f1)
 
     end_group
-		if [ 0 != $return_code ]; then
-				echo -e "$bold_red--- Software download failed ---$reset"
-				echo "::error title=Software Download Failed::An error occurred while downloading the software. Please check the logs for details."
-		else
-    {
-        printf "**Software downloaded**\n" >"$output_file"
-        printf "\n\n" >>"$output_file"
-        printf "The software defined in $bom_name has been downloaded successfully.\n" >>"$output_file"
+    if [ 0 != $return_code ]; then
+        echo -e "$bold_red--- Software download failed ---$reset"
+        echo "::error title=Software Download Failed::An error occurred while downloading the software. Please check the logs for details."
+    else
+        {
+            printf "**Software downloaded**\n\n\n" >"$output_file"
+            printf "The software defined in ${bom_name} has been downloaded successfully.\n" >>"$output_file"
 
-        printf "\n\n" >>"$output_file"
-    }
-		fi
+            printf "\n\n" >>"$output_file"
+        }
+    fi
 
     cat "${output_file}" >>"${GITHUB_STEP_SUMMARY}"
     exit $return_code
-
+fi
 echo -e "$green--- Done ---$reset"
 exit 0
