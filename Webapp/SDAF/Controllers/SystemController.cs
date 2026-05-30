@@ -344,20 +344,9 @@ namespace SDAFWebApp.Controllers
                             var inputs = new Dictionary<string, object>
                             {
                                 { "workload_zone_name", parameters.environment },
-                                { "sap_system_identifier", system.sid },
-                                { "bom_override_name", parameters.bom_base_name },
-                                { "base_os_configuration", parameters.base_os_configuration },
-                                { "sap_os_configuration", parameters.sap_os_configuration },
-                                { "bom_processing", parameters.bom_processing },
-                                { "scs_installation", parameters.scs_installation },
-                                { "database_install", parameters.database_install },
-                                { "db_load", parameters.db_load },
-                                { "high_availability_configuration", parameters.high_availability_configuration },
-                                { "pas_installation", parameters.pas_installation },
-                                { "application_server_installation", parameters.application_server_installation },
-                                { "webdispatcher_installation", parameters.webdispatcher_installation }
+                                { "sap_system_identifier", system.sid }
                             };
-                            await restHelper.TriggerGitHubWorkflow("07-configuration-installation.yml", "main", inputs); break;
+                            await restHelper.TriggerGitHubWorkflow("05-sap-system-deployment.yml", "main", inputs); break;
                         }
                 }
 
