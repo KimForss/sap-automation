@@ -1,4 +1,4 @@
-# Copyright (c) Microsoft Corporation.
+z# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
 locals {
@@ -88,7 +88,7 @@ locals {
                                            repository                     = var.github_repository
                                            server_url                     = var.github_server_url
                                            api_url                        = var.github_api_url
-                                           platform                       = var.devops_platform
+                                           platform                       = lower(var.devops_platform)
                                            organization                   = var.organization
                                            branch                         = var.branch
                                          }
