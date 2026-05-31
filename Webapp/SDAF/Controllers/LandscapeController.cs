@@ -51,7 +51,7 @@ namespace SDAFWebApp.Controllers
             sdafControlPlaneEnvironment = configuration["CONTROLPLANE_ENV"];
             sdafControlPlaneLocation = configuration["CONTROLPLANE_LOC"];
             sdafControlPlaneName = configuration["CONTROL_PLANE_NAME"];
-            
+
         }
         private FormViewModel<LandscapeModel> SetViewData()
         {
@@ -272,7 +272,7 @@ namespace SDAFWebApp.Controllers
 
                 string path = $"/LANDSCAPE/{id}/{id}.tfvars";
 
-                
+
                 if (!string.IsNullOrEmpty(landscape.subscription))
                 {
                     landscape.subscription_id = landscape.subscription.Replace("/subscriptions/", "");
@@ -290,7 +290,7 @@ namespace SDAFWebApp.Controllers
                 switch (platform.ToLower())
                 {
                     case "ado":
-                        { 
+                        {
                         string pipelineId = _configuration["WORKLOADZONE_PIPELINE_ID"];
                         string branch = _configuration["SourceBranch"];
                         parameters.workload_zone = id;

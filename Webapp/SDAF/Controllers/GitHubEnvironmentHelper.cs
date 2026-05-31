@@ -35,7 +35,7 @@ namespace SDAFWebApp.Controllers
             var content = await response.Content.ReadAsStringAsync();
             var result = JsonSerializer.Deserialize<GitHubEnvironmentsResponse>(content);
 
-            return result?.Environments ?? [];
+            return result?.Environments ?? new List<GitHubEnvironment>();
         }
 
         public async Task<GitHubEnvironment> GetEnvironmentAsync(string environmentName)
