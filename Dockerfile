@@ -101,5 +101,9 @@ COPY . /source
 ENV SAP_AUTOMATION_REPO_PATH=/source
 WORKDIR /source
 
+# Build and publish the Web app as part of the image build.
+RUN dotnet restore /source/Webapp/SDAF/SDAFWebApp.csproj && \
+        dotnet publish /source/Webapp/SDAF/SDAFWebApp.csproj -c Release -o /source/Webapp/SDAF/publish /p:UseAppHost=false
+
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
   CMD terraform version && ansible --version && az version || exit 1
