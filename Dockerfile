@@ -3,7 +3,7 @@ FROM mcr.microsoft.com/azurelinux/base/core:3.0
 ARG TF_VERSION=1.15.1
 ARG YQ_VERSION=v4.42.1
 ARG NODE_VERSION=26.1.0
-ARG ANSIBLE_VERSION=2.16.5
+ARG ANSIBLE_VERSION=2.16.18
 
 # Install core utilities and system tools
 RUN tdnf install -y \
