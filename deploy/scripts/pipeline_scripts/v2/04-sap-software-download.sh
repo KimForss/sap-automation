@@ -146,6 +146,7 @@ echo "##[endgroup]"
 
 PLATFORM="devops"
 OUTPUT_DIR="${BUILD_REPOSITORY_LOCALPATH}"
+bom_name=$(echo $BOM | cut -d'-' -f1)
 
 output_file="$OUTPUT_DIR/Web Application Configuration.md"
 if [ 0 != $return_code ]; then
@@ -153,9 +154,8 @@ if [ 0 != $return_code ]; then
     echo "::error title=Software Download Failed::An error occurred while downloading the software. Please check the logs for details."
 else
     {
-        printf "**Software downloaded**\n" >"$output_file"
-        printf "\n\n" >>"$output_file"
-        printf "The software defined in $bom_name has been downloaded successfully.\n" >>"$output_file"
+        printf "**Software downloaded**\n\n\n" >"$output_file"
+        printf "The software defined in ${bom_name} has been downloaded successfully.\n" >>"$output_file"
 
         printf "\n\n" >>"$output_file"
     }
