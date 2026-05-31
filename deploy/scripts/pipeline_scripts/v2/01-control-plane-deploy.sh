@@ -117,25 +117,29 @@ if [ "$PLATFORM" == "devops" ]; then
     # Configure DevOps
     configure_devops
 
-    if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
-        echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset_formatting"
-        echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
-        exit 2
-    fi
-    export VARIABLE_GROUP_ID
-    TF_VAR_DevOpsInfrastructure_object_id=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "DEVOPS_OBJECT_ID" "${deployer_environment_file_name}" "DevOpsInfrastructureObjectId")
-    if [ -n "$TF_VAR_DevOpsInfrastructure_object_id" ]; then
-        echo "DevOps Infrastructure Object ID:     ${TF_VAR_DevOpsInfrastructure_object_id}"
-        export TF_VAR_DevOpsInfrastructure_object_id
-    else
-        echo "##vso[task.logissue type=warning]DevOps Infrastructure Object ID not found. Please ensure the DEVOPS_OBJECT_ID variable is defined, if managed devops pools are used."
-    fi
-    elif [ "$PLATFORM" == "github" ]; then
-    # No specific variable group setup for GitHub Actions
-    # Values will be stored in GitHub Environment variables
-    echo "Configuring for GitHub Actions"
-    export VARIABLE_GROUP_ID="${CONTROL_PLANE_NAME}"
-    git config --global --add safe.directory "$CONFIG_REPO_PATH"
+	if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
+		echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset_formatting"
+		echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
+		exit 2
+	fi
+	export VARIABLE_GROUP_ID
+	TF_VAR_DevOpsInfrastructure_object_id=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "DEVOPS_OBJECT_ID" "${deployer_environment_file_name}" "DevOpsInfrastructureObjectId")
+	if [ -n "$TF_VAR_DevOpsInfrastructure_object_id" ]; then
+		echo "DevOps Infrastructure Object ID:     ${TF_VAR_DevOpsInfrastructure_object_id}"
+		export TF_VAR_DevOpsInfrastructure_object_id
+	else
+		echo "##vso[task.logissue type=warning]DevOps Infrastructure Object ID not found. Please ensure the DEVOPS_OBJECT_ID variable is defined, if managed devops pools are used."
+	fi
+	TF_VAR_devops_platform="ADO"
+	export TF_VAR_devops_platform
+
+
+elif [ "$PLATFORM" == "github" ]; then
+	# No specific variable group setup for GitHub Actions
+	# Values will be stored in GitHub Environment variables
+	echo "Configuring for GitHub Actions"
+	export VARIABLE_GROUP_ID="${CONTROL_PLANE_NAME}"
+	git config --global --add safe.directory "$CONFIG_REPO_PATH"
 
     # Set required environment variables for GitHub
     export USER=${GITHUB_ACTOR:-githubuser}
@@ -690,27 +694,32 @@ if [ 0 -eq "$return_code" ]; then
             echo "Variable WEBAPP_ID was not added to the $VARIABLE_GROUP variable group."
         fi
 
-        if [ -n "$WEBAPP_ID" ]; then
-            WEBAPP_URL_BASE=$(echo "$WEBAPP_ID" | cut -d '/' -f 9)
-            if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "WEBAPP_URL_BASE" "$WEBAPP_URL_BASE"; then
-                echo "Variable WEBAPP_URL_BASE was added to the $VARIABLE_GROUP variable group."
-            else
-                echo "##vso[task.logissue type=error]Variable WEBAPP_URL_BASE was not added to the $VARIABLE_GROUP variable group."
-                echo "Variable WEBAPP_URL_BASE was not added to the $VARIABLE_GROUP variable group."
-            fi
-        fi
-        elif [ "$PLATFORM" == "github" ]; then
-        # Set output variables for GitHub Actions
-        echo "Setting output variable for GitHub Actions"
-        set_output_variable "control_plane_name" "$CONTROL_PLANE_NAME"
-        set_output_variable "deployer_keyvault" "$DEPLOYER_KEYVAULT"
-        set_value_with_key "TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME" "${TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME}" "env"
-        if [ -n "$WEBAPP_ID" ]; then
-            set_value_with_key "WEBAPP_ID" "${WEBAPP_ID}" "env"
-            WEBAPP_URL_BASE=$(echo "$WEBAPP_ID" | cut -d '/' -f 9)
-            set_value_with_key "WEBAPP_URL_BASE" "${WEBAPP_URL_BASE}" "env"
-        fi
-    fi
+		if [ -n "$WEBAPP_ID" ]; then
+			WEBAPP_URL_BASE=$(echo "$WEBAPP_ID" | cut -d '/' -f 9)
+			if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "WEBAPP_URL_BASE" "$WEBAPP_URL_BASE"; then
+				echo "Variable WEBAPP_URL_BASE was added to the $VARIABLE_GROUP variable group."
+			else
+				echo "##vso[task.logissue type=error]Variable WEBAPP_URL_BASE was not added to the $VARIABLE_GROUP variable group."
+				echo "Variable WEBAPP_URL_BASE was not added to the $VARIABLE_GROUP variable group."
+			fi
+		fi
+	elif [ "$PLATFORM" == "github" ]; then
+		# Set output variables for GitHub Actions
+		echo "Setting output variable for GitHub Actions"
+		set_output_variable "control_plane_name" "$CONTROL_PLANE_NAME"
+		set_output_variable "deployer_keyvault" "$DEPLOYER_KEYVAULT"
+		set_value_with_key "TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME" "${TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME}" "env"
+		if [ -n "$WEBAPP_ID" ]; then
+			set_value_with_key "WEBAPP_ID" "${WEBAPP_ID}" "env"
+			WEBAPP_URL_BASE=$(echo "$WEBAPP_ID" | cut -d '/' -f 9)
+			set_value_with_key "WEBAPP_URL_BASE" "${WEBAPP_URL_BASE}" "env"
+			set_output_variable "HAS_WEBAPP" "true"
+			set_output_variable "APPSERVICE_NAME" "$WEBAPP_URL_BASE"
+			set_output_variable "WEBAPP_ID" "$WEBAPP_ID"
+		else
+			set_output_variable "HAS_WEBAPP" "false"
+		fi
+	fi
 fi
 end_group
 # Platform-specific summary handling
