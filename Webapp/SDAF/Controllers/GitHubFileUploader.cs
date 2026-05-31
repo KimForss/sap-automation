@@ -1,3 +1,4 @@
+using Azure.ResourceManager.Resources.Models;
 using Octokit;
 using System.Text;
 using System.Threading.Tasks;
@@ -21,6 +22,7 @@ public class GitHubFileUploader
     {
         try
         {
+
             // Try to get the existing file
             var existingFile = await _client.Repository.Content.GetAllContentsByRef(_owner, _repo, path, branch);
 

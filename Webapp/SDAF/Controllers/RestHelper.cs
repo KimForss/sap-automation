@@ -73,7 +73,7 @@ namespace SDAFWebApp.Controllers
 
             jsonSerializerOptions = new JsonSerializerOptions() { IgnoreNullValues = true };
 
-            if (repoType == "ADO")
+            if (repoType.ToLower() == "ado")
             {
                 if (devops_authentication == "PAT")
                 {
@@ -140,7 +140,7 @@ namespace SDAFWebApp.Controllers
         // Add or edit a file in ADO
         public async Task UpdateRepo(string path, string content)
         {
-            if (repoType == "ADO")
+            if (repoType.ToLower() == "ado")
             {
 
                 string getUri = $"{collectionUri}{project}/_apis/git/repositories/{repositoryId}/refs/?filter=heads/{branch}";
@@ -183,6 +183,7 @@ namespace SDAFWebApp.Controllers
             }
             else
             {
+                path = "WORKSPACES" + path;
                 var uploader = new GitHubFileUploader(ghToken, ghOrganization, ghRepository);
                 while(path.StartsWith("/"))
                 {
@@ -318,7 +319,7 @@ namespace SDAFWebApp.Controllers
         // List all variable groups from azure devops
         public async Task<EnvironmentModel[]> GetVariableGroups()
         {
-            if (repoType == "ADO")
+            if (repoType.ToLower() == "ado")
             {
 
                 JsonElement values = await GetVariableGroupsJson();
@@ -345,7 +346,7 @@ namespace SDAFWebApp.Controllers
             }
             else
             {
-                return new EnvironmentModel[0];
+                return [];
             }
         }
 
@@ -356,7 +357,7 @@ namespace SDAFWebApp.Controllers
       [
                 new SelectListItem { Text = "", Value = "" }
             ];
-            switch (repoType)
+            switch (repoType.ToLower())
             {
                 case "github":
                 {
@@ -376,7 +377,7 @@ namespace SDAFWebApp.Controllers
                         }
                         break;
                 }
-                case "ADO":
+                case "ado":
                     {
                         JsonElement values = await GetVariableGroupsJson();
 
