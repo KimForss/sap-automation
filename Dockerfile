@@ -87,18 +87,6 @@ RUN pip3 install --no-cache-dir \
     chmod \
     pyyaml
 
-# Copy BOM files
-COPY SAP-automation-samples /source/SAP-automation-samples
-COPY . /source
-
-# Copy STAF files
-COPY SAP-automation-qa /source/SAP-automation-qa
-COPY . /source
-
-ENV SAP_AUTOMATION_REPO_PATH=/source
-ENV SAMPLE_REPO_PATH=/source/SAP-automation-samples
-ENV QA_REPO_PATH=/source/SAP-automation-qa
-
 RUN useradd -m -s /bin/bash azureadm && \
     usermod -aG sudo azureadm && \
     echo "azureadm ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/azureadm && \
