@@ -120,8 +120,8 @@ resource "azurerm_windows_web_app" "webapp" {
                                                   format("@Microsoft.KeyVault(SecretUri=https://%s.vault.azure.net/secrets/PAT/)", local.keyvault_names.user_access)
                                                  )
     "GITHUB_PAT"                               = var.use_private_endpoint ? (
-                                                  format("@Microsoft.KeyVault(SecretUri=https://%s.privatelink.vaultcore.azure.net/secrets/%sGH_PAT/)", local.keyvault_names.user_access,  upper(format("%s-%s-%s", var.infrastructure.environment, var.naming_new.location_short, var.infrastructure.virtual_network.logical_name)))): (
-                                                  format("@Microsoft.KeyVault(SecretUri=https://%s.vault.azure.net/secrets/%sGH_PAT/)", local.keyvault_names.user_access,  upper(format("%s-%s-%s", var.infrastructure.environment, var.naming_new.location_short, var.infrastructure.virtual_network.logical_name)))
+                                                  format("@Microsoft.KeyVault(SecretUri=https://%s.privatelink.vaultcore.azure.net/secrets/%s-GH-PAT/)", local.keyvault_names.user_access,  upper(format("%s-%s-%s", var.infrastructure.environment, var.naming_new.location_short, var.infrastructure.virtual_network.logical_name)))): (
+                                                  format("@Microsoft.KeyVault(SecretUri=https://%s.vault.azure.net/secrets/%s-GH-PAT/)", local.keyvault_names.user_access,  upper(format("%s-%s-%s", var.infrastructure.environment, var.naming_new.location_short, var.infrastructure.virtual_network.logical_name)))
                                                  )
     "DEVOPS_PLATFORM"                         = var.infrastructure.devops.platform
     "GITHUB_SERVER_URL"                       = var.infrastructure.devops.server_url
