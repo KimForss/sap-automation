@@ -40,6 +40,7 @@ namespace SDAFWebApp.Controllers
             _appFileService = appFileService;
             _configuration = configuration;
             platform = configuration["DEVOPS_PLATFORM"] ?? "ado";
+            platform = configuration["DEVOPS_PLATFORM"] ?? "ado";
             restHelper = new RestHelper(configuration, platform);
             if(platform == "GitHub")
             {

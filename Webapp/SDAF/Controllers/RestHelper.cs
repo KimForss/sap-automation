@@ -344,7 +344,7 @@ namespace SDAFWebApp.Controllers
             }
             else
             {
-                return new EnvironmentModel[0];
+                return [];
             }
         }
 
