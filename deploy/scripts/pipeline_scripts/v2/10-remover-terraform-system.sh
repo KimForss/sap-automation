@@ -323,22 +323,19 @@ else
         printf "**SAP System Infrastructure Removal**\n\n\n" >"$output_file"
         printf "The SAP system infrastructure defined in %s has been removed on %s. The following files have been deleted from the repository:\n\n" "$SAP_SYSTEM_TFVARS_FILENAME" "$now" >>"$output_file"
         if [ -f "sap-parameters.yaml" ]; then
-            printf "- sap-parameters.yaml\n" >>"$output_file"
+            printf "\t sap-parameters.yaml\n" >>"$output_file"
         fi
         if [ -f "${SID}_hosts.yaml" ]; then
-            printf "- ${SID}_hosts.yaml\n" >>"$output_file"
-        fi
-        if [ -f "readme.md" ]; then
-            printf "- readme.md\n" >>"$output_file"
+            printf "\t ${SID}_hosts.yaml\n" >>"$output_file"
         fi
         if [ -f "${SID}_inventory.md" ]; then
-            printf "- ${SID}_inventory.md\n" >>"$output_file"
+            printf "\t ${SID}_inventory.md\n" >>"$output_file"
         fi
         if [ -f "${SID}_virtual_machines.json" ]; then
-            printf "- ${SID}_virtual_machines.json\n" >>"$output_file"
+            printf "\t ${SID}_virtual_machines.json\n" >>"$output_file"
         fi
         if [ -d "logs" ]; then
-            printf "- logs/ (directory)\n" >>"$output_file"
+            printf "\t logs/ (directory)\n" >>"$output_file"
         fi
     }
 
