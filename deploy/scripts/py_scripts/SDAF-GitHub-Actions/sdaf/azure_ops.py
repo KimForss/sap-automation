@@ -99,6 +99,7 @@ def create_user_assigned_identity(identity_name, resource_group, subscription_id
         "Contributor",
         "User Access Administrator",
         "Storage Blob Data Owner",
+        "Storage Table Data Contributor",
         "Key Vault Administrator",
         "App Configuration Data Owner",
         "Network Contributor"
@@ -241,6 +242,7 @@ def create_azure_service_principal(user_data):
             "User Access Administrator",
             "Contributor",
             "Storage Blob Data Owner",
+            "Storage Table Data Contributor",
             "Key Vault Administrator",
             "App Configuration Data Owner",
             "Network Contributor"
@@ -388,6 +390,7 @@ def create_azure_service_principal(user_data):
             "User Access Administrator",
             "Contributor",
             "Storage Blob Data Owner",
+            "Storage Table Data Contributor",
             "Key Vault Administrator",
             "App Configuration Data Owner",
             "Network Contributor"
