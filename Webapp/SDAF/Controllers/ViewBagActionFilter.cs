@@ -30,7 +30,7 @@ namespace SDAFWebApp.Controllers
                 }
                 else
                 {
-                    controller.ViewBag.adoRepoUrl = String.Format("{0}/{1}/tree/main/WORKSPACES", _configuration["GITHUB_SERVER_URL"], _configuration["GITHUB_REPOSITORY"]);
+                    controller.ViewBag.adoRepoUrl = String.Format("{0}/{1}/tree/main/WORKSPACES/", _configuration["GITHUB_SERVER_URL"], _configuration["GITHUB_REPOSITORY"]);
                     controller.ViewBag.adoPipelineUrl = String.Format("{0}/{1}/actions", _configuration["GITHUB_SERVER_URL"], _configuration["GITHUB_REPOSITORY"]);
                 }
             }
