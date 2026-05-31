@@ -215,14 +215,14 @@ if [ "$PLATFORM" == "devops" ]; then
     -e BOM_directory=$SAMPLE_REPO_PATH \
     -e bom_base_name='${BOM}' \
     -e deployer_kv_name=${DEPLOYER_KEYVAULT} \
-    -e check_storage_account=${CHECK_STORAGE_ACCOUNT} \
+    -e check_storage_account=$CHECK_STORAGE_ACCOUNT \
     -e orchestration_ansible_user=root \
     ${EXTRA_PARAMETERS} \
     ${SAP_AUTOMATION_REPO_PATH}/deploy/ansible/playbook_bom_downloader.yaml"
     echo "Executing [$command]"
     eval $command
     return_code=$?
-    bom_name=$(echo $BOM | cut -d'-' -f1)
+    bom_name="${BOM##*-}"
 
     end_group
     if [ 0 != $return_code ]; then
@@ -231,7 +231,7 @@ if [ "$PLATFORM" == "devops" ]; then
     else
         {
             printf "**Software downloaded**\n\n\n" >"$output_file"
-            printf "The software defined in ${bom_name} has been downloaded successfully.\n" >>"$output_file"
+            printf "The software defined in %s has been downloaded successfully.\n" "${bom_name}" >>"$output_file"
 
             printf "\n\n" >>"$output_file"
         }
