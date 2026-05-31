@@ -274,9 +274,10 @@ function updateAndSetDropdowns(dropdown) {
 }
 
 // populate environment dropdown with values from ADO if pipeline deployment
-function getEnvironmentsFromAdo(isPipelineDeployment) {
+function getEnvironments(isPipelineDeployment, platform) {
     var id = "workload";
-    if (isPipelineDeployment) {
+  if (isPipelineDeployment) {
+
         $.ajax({
             type: "GET",
             url: "/Environment/GetEnvironments",

@@ -89,6 +89,8 @@ namespace SDAFWebApp.Controllers
 
         [System.Text.Json.Serialization.JsonPropertyName("deployment_branch_policy")]
         public DeploymentBranchPolicy DeploymentBranchPolicy { get; set; }
+        public string SdafControlPlaneEnvironment { get; internal set; }
+        public string Description { get; internal set; }
     }
 
     public class ProtectionRule

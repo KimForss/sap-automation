@@ -23,6 +23,7 @@ namespace SDAFWebApp.Controllers
             {
                 var controller = context.Controller as Controller;
                 controller.ViewBag.IsPipelineDeployment = _configuration["IS_PIPELINE_DEPLOYMENT"];
+                controller.ViewBag.Platform = _configuration["DEVOPS_PLATFORM"].ToLower();
                 if (_configuration["DEVOPS_PLATFORM"].ToLower() == "ado")
                 {
                     controller.ViewBag.adoRepoUrl = String.Format("{0}_git/{1}?path=/WORKSPACES/", _configuration["CollectionUri"], _configuration["ProjectName"]);
