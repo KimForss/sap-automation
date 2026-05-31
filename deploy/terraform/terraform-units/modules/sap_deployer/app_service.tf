@@ -138,13 +138,13 @@ resource "azurerm_windows_web_app" "webapp" {
     connection_string_names                    = ["sa_tfstate_conn_str"]
   }
 
-  dynamic "auth_settings_v2" {
-    for_each = length(var.app_service.app_registration_id) > 0 ? [1] : []
-    content {
-      auth_enabled                               = true
-      unauthenticated_action                     = "RedirectToLoginPage"
-      default_provider                           = "AzureActiveDirectory"
-      active_directory_v2 {
+  auth_settings_v2 {
+    auth_enabled                               = length(var.app_service.app_registration_id) > 0
+    unauthenticated_action                     = "RedirectToLoginPage"
+    default_provider                           = length(var.app_service.app_registration_id) > 0 ? "AzureActiveDirectory" : null
+    dynamic "active_directory_v2" {
+      for_each = length(var.app_service.app_registration_id) > 0 ? [1] : []
+      content {
         client_id                                = var.app_service.app_registration_id
         tenant_auth_endpoint                     = "https://login.microsoftonline.com/${data.azurerm_client_config.deployer.tenant_id}/v2.0"
         www_authentication_disabled              = false
@@ -154,9 +154,9 @@ resource "azurerm_windows_web_app" "webapp" {
         allowed_groups                           = []
         allowed_identities                       = []
       }
-      login {
-        token_store_enabled = false
-      }
+    }
+    login {
+      token_store_enabled = false
     }
   }
 
