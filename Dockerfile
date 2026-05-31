@@ -87,18 +87,6 @@ RUN pip3 install --no-cache-dir \
     chmod \
     pyyaml
 
-# Copy BOM files
-COPY SAP-automation-samples /source/SAP-automation-samples
-COPY . /source
-
-# Copy STAF files
-COPY SAP-automation-qa /source/SAP-automation-qa
-COPY . /source
-
-ENV SAP_AUTOMATION_REPO_PATH=/source
-ENV SAMPLE_REPO_PATH=/source/SAP-automation-samples
-ENV QA_REPO_PATH=/source/SAP-automation-qa
-
 RUN useradd -m -s /bin/bash azureadm && \
     usermod -aG sudo azureadm && \
     echo "azureadm ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/azureadm && \
@@ -109,6 +97,8 @@ RUN mkdir -p /root/.ssh && chmod 700 /root/.ssh
 RUN echo "Host *\n  StrictHostKeyChecking no\n  UserKnownHostsFile=/dev/null" > /root/.ssh/config && \
     chmod 600 /root/.ssh/config
 
+COPY . /source
+ENV SAP_AUTOMATION_REPO_PATH=/source
 WORKDIR /source
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
