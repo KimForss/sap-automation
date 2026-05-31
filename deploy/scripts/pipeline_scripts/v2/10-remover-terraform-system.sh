@@ -304,146 +304,148 @@ else
 fi
 
 if [ 0 != $return_code ]; then
-    echo "##vso[task.logissue type=error]Return code from remover $return_code."
-else
-    if [ 0 == $return_code ]; then
-        # Pull changes if there are other deployment jobs
-        if [ "$PLATFORM" == "devops" ]; then
-            git pull -q origin "$BUILD_SOURCEBRANCHNAME"
-            git checkout -q "$BUILD_SOURCEBRANCHNAME"
-            elif [ "$PLATFORM" == "github" ]; then
-            git pull -q origin "$GITHUB_REF_NAME"
-        fi
-				output_file="readme.md"
-				now=$(date +"%d of %b %Y at %H:%M:%S")
-						{
-								printf "**SAP System Infrastructure Removal**\n\n\n" >"$output_file"
-								printf "The SAP system infrastructure defined in %s has been removed on %s. The following files have been deleted from the repository:\n\n" "$SAP_SYSTEM_TFVARS_FILENAME" "$now" >>"$output_file"
-								if [ -f "sap-parameters.yaml" ]; then
-										printf "- sap-parameters.yaml\n" >>"$output_file"
-								fi
-								if [ -f "${SID}_hosts.yaml" ]; then
-										printf "- ${SID}_hosts.yaml\n" >>"$output_file"
-								fi
-								if [ -f "readme.md" ]; then
-										printf "- readme.md\n" >>"$output_file"
-								fi
-								if [ -f "${SID}_inventory.md" ]; then
-										printf "- ${SID}_inventory.md\n" >>"$output_file"
-								fi
-								if [ -f "${SID}_virtual_machines.json" ]; then
-										printf "- ${SID}_virtual_machines.json\n" >>"$output_file"
-								fi
-								if [ -d "logs" ]; then
-										printf "- logs/ (directory)\n" >>"$output_file"
-								fi
-						}
-
-
-        # Clean up untracked files and directories, including ignored files, to ensure a clean working directory
-        git clean -d -f -X
-
-        if [ -f ".terraform/terraform.tfstate" ]; then
-            git rm -f --ignore-unmatch -q --ignore-unmatch ".terraform/terraform.tfstate"
-            changed=1
-        fi
-
-        if [ -d ".terraform" ]; then
-            git rm -q -r --ignore-unmatch ".terraform"
-            changed=1
-        fi
-
-        if [ -f "$SAP_SYSTEM_TFVARS_FILENAME" ]; then
-            git add "$SAP_SYSTEM_TFVARS_FILENAME"
-            changed=1
-        fi
-
-        if [ -f "sap-parameters.yaml" ]; then
-            git rm -f --ignore-unmatch -q "sap-parameters.yaml"
-            changed=1
-        fi
-
-        if [ -f "${SID}_hosts.yaml" ]; then
-            git rm -f --ignore-unmatch -q "${SID}_hosts.yaml"
-            changed=1
-        fi
-
-        if [ -f "${SID}.md" ]; then
-            git rm -f --ignore-unmatch -q "${SID}.md"
-            changed=1
-        fi
-
-        if [ -f "readme.md" ]; then
-            git add "readme.md"
-            changed=1
-        fi
-
-        if [ -f "${SID}_inventory.md" ]; then
-            git rm --ignore-unmatch -q "${SID}_inventory.md"
-            changed=1
-        fi
-
-        if [ -f "${SID}_virtual_machines.json" ]; then
-            git rm --ignore-unmatch -q "${SID}_virtual_machines.json"
-            changed=1
-        fi
-
-        if [ -d "logs" ]; then
-            git rm -q -r --ignore-unmatch "logs"
-            changed=1
-        fi
-
-        # Commit changes based on platform
-        if [ 1 == $changed ]; then
-            commit_message="Added updates from SAP System Infrastructure Removal of $SAP_SYSTEM_FOLDERNAME [skip ci]"
-            if [ "$PLATFORM" == "devops" ]; then
-                git config --global user.email "$BUILD_REQUESTEDFOREMAIL"
-                git config --global user.name "$BUILD_REQUESTEDFOR"
-
-                elif [ "$PLATFORM" == "github" ]; then
-                git config --global user.email "github-actions@github.com"
-                git config --global user.name "GitHub Actions"
-            else
-                git config --global user.email "local@example.com"
-                git config --global user.name "Local User"
-            fi
-
-            if [ "$DEBUG" = True ]; then
-                git status --verbose
-                if git commit --message --verbose "$commit_message"; then
-                    if [ "$PLATFORM" == "devops" ]; then
-                        if ! git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BUILD_SOURCEBRANCHNAME" --force-with-lease; then
-                            echo "Failed to push changes to the repository."
-                        fi
-                        elif [ "$PLATFORM" == "github" ]; then
-                        if ! git push --set-upstream origin "$GITHUB_REF_NAME" --force-with-lease; then
-                            echo "Failed to push changes to the repository."
-                        fi
-                    fi
-                fi
-            else
-                if git commit -m "$commit_message"; then
-                    if [ "$PLATFORM" == "devops" ]; then
-                        if ! git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BUILD_SOURCEBRANCHNAME" --force-with-lease; then
-                            echo "Failed to push changes to the repository."
-                        fi
-                        elif [ "$PLATFORM" == "github" ]; then
-                        if ! git push --set-upstream origin "$GITHUB_REF_NAME" --force-with-lease; then
-                            echo "Failed to push changes to the repository."
-                        fi
-                    fi
-                fi
-            fi
-
-            if [ "$PLATFORM" == "github" ]; then
-                cat "${output_file}" >>"${GITHUB_STEP_SUMMARY}"
-            else
-                echo "##vso[task.uploadsummary]${output_file}"
-            fi
-        fi
-
-        print_banner "$banner_title" "Exiting $SCRIPT_NAME" "info"
-
+    if [ "$PLATFORM" == "devops" ]; then
+        echo "##vso[task.logissue type=error]Return code from remover $return_code."
+        elif [ "$PLATFORM" == "github" ]; then
+        echo "::error title=Remover Failed::Return code from remover $return_code."
     fi
+else
+    # Pull changes if there are other deployment jobs
+    if [ "$PLATFORM" == "devops" ]; then
+        git pull -q origin "$BUILD_SOURCEBRANCHNAME"
+        git checkout -q "$BUILD_SOURCEBRANCHNAME"
+        elif [ "$PLATFORM" == "github" ]; then
+        git pull -q origin "$GITHUB_REF_NAME"
+    fi
+    output_file="readme.md"
+    now=$(date +"%d of %b %Y at %H:%M:%S")
+    {
+        printf "**SAP System Infrastructure Removal**\n\n\n" >"$output_file"
+        printf "The SAP system infrastructure defined in %s has been removed on %s. The following files have been deleted from the repository:\n\n" "$SAP_SYSTEM_TFVARS_FILENAME" "$now" >>"$output_file"
+        if [ -f "sap-parameters.yaml" ]; then
+            printf "- sap-parameters.yaml\n" >>"$output_file"
+        fi
+        if [ -f "${SID}_hosts.yaml" ]; then
+            printf "- ${SID}_hosts.yaml\n" >>"$output_file"
+        fi
+        if [ -f "readme.md" ]; then
+            printf "- readme.md\n" >>"$output_file"
+        fi
+        if [ -f "${SID}_inventory.md" ]; then
+            printf "- ${SID}_inventory.md\n" >>"$output_file"
+        fi
+        if [ -f "${SID}_virtual_machines.json" ]; then
+            printf "- ${SID}_virtual_machines.json\n" >>"$output_file"
+        fi
+        if [ -d "logs" ]; then
+            printf "- logs/ (directory)\n" >>"$output_file"
+        fi
+    }
+
+
+    # Clean up untracked files and directories, including ignored files, to ensure a clean working directory
+    git clean -d -f -X
+
+    if [ -f ".terraform/terraform.tfstate" ]; then
+        git rm -f --ignore-unmatch -q --ignore-unmatch ".terraform/terraform.tfstate"
+        changed=1
+    fi
+
+    if [ -d ".terraform" ]; then
+        git rm -q -r --ignore-unmatch ".terraform"
+        changed=1
+    fi
+
+    if [ -f "$SAP_SYSTEM_TFVARS_FILENAME" ]; then
+        git add "$SAP_SYSTEM_TFVARS_FILENAME"
+        changed=1
+    fi
+
+    if [ -f "sap-parameters.yaml" ]; then
+        git rm -f --ignore-unmatch -q "sap-parameters.yaml"
+        changed=1
+    fi
+
+    if [ -f "${SID}_hosts.yaml" ]; then
+        git rm -f --ignore-unmatch -q "${SID}_hosts.yaml"
+        changed=1
+    fi
+
+    if [ -f "${SID}.md" ]; then
+        git rm -f --ignore-unmatch -q "${SID}.md"
+        changed=1
+    fi
+
+    if [ -f "readme.md" ]; then
+        git add "readme.md"
+        changed=1
+    fi
+
+    if [ -f "${SID}_inventory.md" ]; then
+        git rm --ignore-unmatch -q "${SID}_inventory.md"
+        changed=1
+    fi
+
+    if [ -f "${SID}_virtual_machines.json" ]; then
+        git rm --ignore-unmatch -q "${SID}_virtual_machines.json"
+        changed=1
+    fi
+
+    if [ -d "logs" ]; then
+        git rm -q -r --ignore-unmatch "logs"
+        changed=1
+    fi
+
+    # Commit changes based on platform
+    if [ 1 == $changed ]; then
+        commit_message="Added updates from SAP System Infrastructure Removal of $SAP_SYSTEM_FOLDERNAME [skip ci]"
+        if [ "$PLATFORM" == "devops" ]; then
+            git config --global user.email "$BUILD_REQUESTEDFOREMAIL"
+            git config --global user.name "$BUILD_REQUESTEDFOR"
+
+            elif [ "$PLATFORM" == "github" ]; then
+            git config --global user.email "github-actions@github.com"
+            git config --global user.name "GitHub Actions"
+        else
+            git config --global user.email "local@example.com"
+            git config --global user.name "Local User"
+        fi
+
+        if [ "$DEBUG" = True ]; then
+            git status --verbose
+            if git commit --message --verbose "$commit_message"; then
+                if [ "$PLATFORM" == "devops" ]; then
+                    if ! git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BUILD_SOURCEBRANCHNAME" --force-with-lease; then
+                        echo "Failed to push changes to the repository."
+                    fi
+                    elif [ "$PLATFORM" == "github" ]; then
+                    if ! git push --set-upstream origin "$GITHUB_REF_NAME" --force-with-lease; then
+                        echo "Failed to push changes to the repository."
+                    fi
+                fi
+            fi
+        else
+            if git commit -m "$commit_message"; then
+                if [ "$PLATFORM" == "devops" ]; then
+                    if ! git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BUILD_SOURCEBRANCHNAME" --force-with-lease; then
+                        echo "Failed to push changes to the repository."
+                    fi
+                    elif [ "$PLATFORM" == "github" ]; then
+                    if ! git push --set-upstream origin "$GITHUB_REF_NAME" --force-with-lease; then
+                        echo "Failed to push changes to the repository."
+                    fi
+                fi
+            fi
+        fi
+
+        if [ "$PLATFORM" == "github" ]; then
+            cat "${output_file}" >>"${GITHUB_STEP_SUMMARY}"
+        else
+            echo "##vso[task.uploadsummary]${output_file}"
+        fi
+    fi
+
+    print_banner "$banner_title" "Exiting $SCRIPT_NAME" "info"
+
 fi
 exit $return_code
