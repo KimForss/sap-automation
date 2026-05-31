@@ -9,7 +9,7 @@ using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NuGet.Common;
-using NuGet.Common;
+using Octokit.Internal;
 using SDAFWebApp.Models;
 using System;
 using System.Collections.Generic;
@@ -67,6 +67,8 @@ namespace SDAFWebApp.Controllers
             tenantId = configuration["AZURE_TENANT_ID"];
             ghOrganization = configuration["GITHUB_REPOSITORY"].Split("/")[0];
             ghRepository = configuration["GITHUB_REPOSITORY"].Split("/")[1];
+            ghToken = configuration["GITHUB_PAT"];
+
 
             managedIdentityClientId = configuration["OVERRIDE_USE_MI_FIC_ASSERTION_CLIENTID"];
             ghToken = configuration["GITHUB_PAT"];
@@ -112,6 +114,20 @@ namespace SDAFWebApp.Controllers
                 client.DefaultRequestHeaders.Accept.Add(
                     new MediaTypeWithQualityHeaderValue("application/json"));
                 client.DefaultRequestHeaders.Add("User-Agent", "sap-automation");
+            }
+            else if (repoType.ToLower() == "github")
+            {
+                client = new HttpClient();
+
+                client.DefaultRequestHeaders.Accept.Add(
+                    new MediaTypeWithQualityHeaderValue("application/json"));
+
+                client.DefaultRequestHeaders.Add("User-Agent", "sap-automation");
+                client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("SDAF", "1.0"));
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", ghToken);
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
+
+
             }
             else
             {
@@ -185,7 +201,7 @@ namespace SDAFWebApp.Controllers
             {
                 path = "WORKSPACES" + path;
                 var uploader = new GitHubFileUploader(ghToken, ghOrganization, ghRepository);
-                while(path.StartsWith("/"))
+                while (path.StartsWith("/"))
                 {
                     path = path.Substring(1);
                 }
@@ -353,14 +369,11 @@ namespace SDAFWebApp.Controllers
         // Get a list of all variable group names for use in a dropdown
         public async Task<List<SelectListItem>> GetEnvironmentsList()
         {
-            List<SelectListItem> variableGroups =
-      [
-                new SelectListItem { Text = "", Value = "" }
-            ];
+            List<SelectListItem> variableGroups = [ new SelectListItem { Text = "", Value = "" } ];
             switch (repoType.ToLower())
             {
                 case "github":
-                {
+                    {
                         var helper = new GitHubEnvironmentHelper(ghToken, ghOrganization, ghRepository);
                         // FIX: Await the async method and use the result directly
                         var environments = await helper.ListEnvironmentsAsync();
@@ -376,7 +389,7 @@ namespace SDAFWebApp.Controllers
 
                         }
                         break;
-                }
+                    }
                 case "ado":
                     {
                         JsonElement values = await GetVariableGroupsJson();
@@ -563,7 +576,7 @@ namespace SDAFWebApp.Controllers
                     default:
 
                         errorMessage = JsonDocument.Parse(responseBody).RootElement.GetProperty("message").ToString();
-                        if(errorMessage.Contains("Resource protected by organization SAML"))
+                        if (errorMessage.Contains("Resource protected by organization SAML"))
                         {
 
                         }
