@@ -163,7 +163,7 @@ resource "azurerm_key_vault_secret" "app_token" {
   depends_on                           = [
                                            time_sleep.wait_for_keyvault
                                          ]
-  name                                 = "PAT"
+  name                                 = "GH_APP_PAT"
   value                                = var.infrastructure.devops.app_token
   key_vault_id                         = var.key_vault.exists ? (
                                            var.key_vault.id) : (
@@ -186,7 +186,7 @@ resource "azurerm_key_vault_secret" "github_pat" {
   depends_on                           = [
                                            time_sleep.wait_for_keyvault
                                          ]
-  name                                 = format("%s-GH-PAT", upper(var.naming.prefix.DEPLOYER))
+  name                                 = "GH_PAT"
   value                                = var.infrastructure.devops.github_pat
   key_vault_id                         = var.key_vault.exists ? (
                                            var.key_vault.id) : (
