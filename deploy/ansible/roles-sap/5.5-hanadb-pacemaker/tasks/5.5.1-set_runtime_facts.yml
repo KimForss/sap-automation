@@ -163,12 +163,6 @@
         - use_hanasr_angi | default(false)
         - ansible_os_family | upper == 'REDHAT'
       block:
-        - name:                        "5.5.1 HANA Pacemaker - Uninstall resource-agents-sap-hana before installing sap-hana-ha (they conflict)"
-          ansible.builtin.dnf:
-            name:                      "resource-agents-sap-hana"
-            state:                     absent
-          when:                        "'resource-agents-sap-hana' in ansible_facts.packages"
-
         - name:                        "5.5.1 HANA Pacemaker - Install sap-hana-ha package"
           ansible.builtin.dnf:
             name:                      "sap-hana-ha"
