@@ -412,7 +412,7 @@
                                        InstanceNumber={{ db_instance_number }}
                                        PREFER_SITE_TAKEOVER=true
                                        DUPLICATE_PRIMARY_TIMEOUT=7200
-                                       AUTOMATED_REGISTER=false
+                                       AUTOMATED_REGISTER=true
                                        op stop timeout=3600
                                        op monitor interval=59 role=Promoted timeout=700
                                        op monitor interval=61 role=Unpromoted timeout=700
@@ -438,7 +438,6 @@
       register:                        sap_hana_filesystem
       failed_when:                     sap_hana_filesystem.rc > 1
 
-    # Order constraint
     - name:                            "5.5.4.1 HANA Cluster configuration - REDHAT ANGI - Configure order constraint"
       ansible.builtin.shell: >
                                        pcs constraint order
@@ -448,7 +447,6 @@
       register:                        constraint
       failed_when:                     constraint.rc > 1
 
-    # VIP and health probe resources
     - name:                            "5.5.4.1 HANA Cluster configuration - REDHAT ANGI - Create netcat resource for Load Balancer health probe"
       ansible.builtin.shell:           pcs resource create rsc_nc_{{ db_sid | upper }}_HDB{{ db_instance_number }} azure-lb port=625{{ db_instance_number }}
       register:                        netcat
@@ -467,16 +465,14 @@
       register:                        vip_g
       failed_when:                     vip_g.rc > 1
 
-    # VIP colocation with score=2000
     - name:                            "5.5.4.1 HANA Cluster configuration - REDHAT ANGI - Configure VIP colocation constraint"
       ansible.builtin.shell: >
                                        pcs constraint colocation add
                                        g_ip_{{ db_sid | upper }}_HDB{{ db_instance_number }}
-                                       with promoted cln_SAPHanaController_{{ db_sid | upper }}_HDB{{ db_instance_number }} 2000
+                                       with promoted cln_SAPHanaController_{{ db_sid | upper }}_HDB{{ db_instance_number }} 4000
       register:                        constraint
       failed_when:                     constraint.rc > 1
 
-    # Two-node cluster properties
     - name:                            "5.5.4.1 HANA Cluster configuration - REDHAT ANGI - Set cluster properties for two node clusters"
       when:
                                        - database_high_availability
@@ -488,17 +484,11 @@
           register:                    update_priority
           failed_when:                 update_priority.rc > 1
 
-        - name:                        "5.5.4.1 HANA Cluster configuration - REDHAT ANGI - Set SAPHanaController defaults 'priority' to 10"
-          ansible.builtin.shell:       pcs resource update rsc_SAPHanaController_{{ db_sid | upper }}_HDB{{ db_instance_number }} meta priority=10
-          register:                    update_priority_saphana
-          failed_when:                 update_priority_saphana.rc > 1
-
         - name:                        "5.5.4.1 HANA Cluster configuration - REDHAT ANGI - Set 'priority-fencing-delay'"
           ansible.builtin.shell:       pcs property set priority-fencing-delay=15s
           register:                    constraint
           failed_when:                 constraint.rc > 1
 
-    # ANF constraints for ANGI
     - name:                            "5.5.4.1 HANA Cluster configuration - REDHAT ANGI - Configure cluster constraints for SAP HANA and ANF"
       when:
                                        - database_high_availability
@@ -588,7 +578,7 @@
         - name:                        "5.5.4.1 HANA Cluster configuration - REDHAT ANGI - Configure secondary VIP location constraint (PROMOTED)"
           ansible.builtin.shell: >
                                        pcs constraint location g_secip_{{ db_sid | upper }}_HDB{{ db_instance_number }}
-                                       rule score=2000
+                                       rule score=4000
                                        master-rsc_SAPHanaController_{{ db_sid | upper }}_HDB{{ db_instance_number }} eq 150
                                        and hana_{{ db_sid | lower }}_clone_state eq PROMOTED
           register:                    sec_constraint
