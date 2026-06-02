@@ -72,8 +72,6 @@
   tasks:
 
     - name:                            "Database load playbook - Start HANA on master before DB load"
-      become:                          true
-      become_user:                     root
       when:
         - platform == 'HANA'
         - ansible_os_family != "Windows"
