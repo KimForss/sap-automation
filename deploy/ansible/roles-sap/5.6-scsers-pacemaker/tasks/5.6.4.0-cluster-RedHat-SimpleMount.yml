@@ -123,8 +123,6 @@
     - inventory_hostname == primary_instance_name
     - not scs_installed.stat.exists
 
-# [1] Create a virtual IP resource and health-probe for the ERS instance
-
 - name:                                "5.6.4.0 SCS/ERS Pacemaker - REDHAT - SimpleMount - ERS - Check if installation succeeded before"
   ansible.builtin.stat:
     path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_ers.txt"
@@ -164,8 +162,6 @@
     - inventory_hostname == secondary_instance_name
     - not ers_installed.stat.exists
 
-# [2] Install SAP NetWeaver ERS
-
 - name:                                "5.6.4.0 SCS/ERS Pacemaker - REDHAT - SimpleMount - Install ERS on Secondary host"
   throttle:                            1
   block:
@@ -179,10 +175,10 @@
     - name:                            "5.6.4.0 SCS/ERS Pacemaker - REDHAT - SimpleMount - ERS - Wait until ERS VIP group has come online"
       ansible.builtin.shell: >-
                                        set -o pipefail;
-                                       pcs resource status | grep g-{{ sap_sid | upper }}_ERS
+                                       pcs resource status | grep vip_{{ sap_sid | upper }}_ERS
       register:                        ers_vip_group_status
       until:                           ers_vip_group_status.stdout is search('Started')
-      retries:                         10
+      retries:                         15
       delay:                           30
       changed_when:                    false
       when:                            ansible_distribution_major_version in ["9", "10"]
