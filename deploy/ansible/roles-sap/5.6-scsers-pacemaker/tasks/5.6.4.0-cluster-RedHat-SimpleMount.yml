@@ -87,7 +87,7 @@
     - name:                            "5.6.4.0 SCS/ERS Pacemaker - REDHAT - SimpleMount - Check if NFS mount for instance directory is available before proceeding"
       ansible.builtin.shell: >-
                                        set -o pipefail;
-                                       df -kHT | grep '/usr/sap/{{ sap_sid | upper }}/{{ instance_type | upper }}{{ scs_instance_number }}'
+                                       df -kHT | grep '/usr/sap/{{ sap_sid | upper }}'
       register:                        nfs_instdir_mounted
       failed_when:                     nfs_instdir_mounted.rc >= 1
       changed_when:                    false
@@ -223,7 +223,7 @@
     - name:                            "5.6.4.0 SCS/ERS Pacemaker - REDHAT - SimpleMount - ERS - Check if NFS mount for instance directory is available before proceeding"
       ansible.builtin.shell: >-
                                        set -o pipefail;
-                                       df -kHT | grep '/usr/sap/{{ sap_sid | upper }}/ERS{{ ers_instance_number }}'
+                                       df -kHT | grep '/usr/sap/{{ sap_sid | upper }}'
       register:                        nfs_instdir_mounted
       failed_when:                     nfs_instdir_mounted.rc >= 1
       changed_when:                    false
