@@ -68,11 +68,12 @@
     - name:                            "5.6.4.0 SCS/ERS Pacemaker - REDHAT - SimpleMount - Put Secondary host on standby"
       ansible.builtin.shell:           pcs node standby {{ secondary_instance_name }}
 
-    - name:                            "5.6.4.0 SCS/ERS Pacemaker - REDHAT - SimpleMount - Check if NFS mount /usr/sap/{{ sap_sid | upper }}/SYS is available before proceeding"
+    - name:                            "5.6.4.0 SCS/ERS Pacemaker - REDHAT - SimpleMount - Check if NFS mount /usr/sap/{{ sap_sid | upper }} is available before proceeding"
       ansible.builtin.shell: >-
                                        set -o pipefail;
-                                       df -kHT | grep '/usr/sap/{{ sap_sid | upper }}/SYS'
+                                       df -kHT | grep '/usr/sap/{{ sap_sid | upper }}'
       register:                        nfs_sys_mounted
+      failed_when:                     false
       changed_when:                    false
 
     - name:                            "5.6.4.0 SCS/ERS Pacemaker - REDHAT - SimpleMount - Attempt to mount SYS directory"
@@ -203,11 +204,12 @@
         var:                           cluster_status_debug
         verbosity:                     2
 
-    - name:                            "5.6.4.0 SCS/ERS Pacemaker - REDHAT - SimpleMount - ERS - Check if NFS mount /usr/sap/{{ sap_sid | upper }}/SYS is available before proceeding"
+    - name:                            "5.6.4.0 SCS/ERS Pacemaker - REDHAT - SimpleMount - ERS - Check if NFS mount /usr/sap/{{ sap_sid | upper }} is available before proceeding"
       ansible.builtin.shell: >-
                                        set -o pipefail;
-                                       df -kHT | grep '/usr/sap/{{ sap_sid | upper }}/SYS'
+                                       df -kHT | grep '/usr/sap/{{ sap_sid | upper }}'
       register:                        nfs_sys_mounted
+      failed_when:                     false
       changed_when:                    false
 
     - name:                            "5.6 SCSERS - REDHAT - SimpleMount - ERS - Attempt to mount SYS directory"
