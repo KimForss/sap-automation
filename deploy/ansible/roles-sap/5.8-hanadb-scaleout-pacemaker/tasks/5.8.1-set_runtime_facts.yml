@@ -221,6 +221,22 @@
                                        - use_hanasr_angi | default(false)
                                        - saphanaSR_angi_version == "0.0.0"
       block:
+        # TODO: remove these two removal tasks once db_install playbook (1.18-scaleout-pacemaker)
+        # is fixed to skip resource-agents-sap-hana-scaleout when use_hanasr_angi is true
+        - name:                        "5.8 HANA Pacemaker Scale-out - Remove conflicting resource-agents-sap-hana-scaleout [RHEL ANGI]"
+          ansible.builtin.dnf:
+            name:                      resource-agents-sap-hana-scaleout
+            state:                     absent
+          when:
+                                       - ansible_facts.packages['resource-agents-sap-hana-scaleout'] is defined
+
+        - name:                        "5.8 HANA Pacemaker Scale-out - Remove conflicting resource-agents-sap-hana [RHEL ANGI]"
+          ansible.builtin.dnf:
+            name:                      resource-agents-sap-hana
+            state:                     absent
+          when:
+                                       - ansible_facts.packages['resource-agents-sap-hana'] is defined
+
         - name:                        "5.8 HANA Pacemaker Scale-out - Install sap-hana-ha"
           ansible.builtin.dnf:
             name:                      sap-hana-ha
