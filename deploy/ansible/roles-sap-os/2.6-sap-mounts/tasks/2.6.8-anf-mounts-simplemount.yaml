@@ -318,7 +318,7 @@
     src:                               "{{ item.src }}"
     path:                              "{{ item.path }}"
     fstype:                            "{{ item.type }}"
-    opts:                              'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp'
+    opts:                              'nfsvers=4.1,sec=sys,hard'
     state:                             mounted
   loop:
     - { type: 'nfs4',  src: '{{ sap_mnt }}/sapmnt{{ sap_sid | upper }}',    path: '/sapmnt/{{ sap_sid | upper }}'      }
@@ -333,7 +333,7 @@
     src:                               "{{ item.src }}"
     path:                              "{{ item.path }}"
     fstype:                            "{{ item.type }}"
-    opts:                              'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp'
+    opts:                              'nfsvers=4.1,sec=sys,hard'
     state:                             mounted
   loop:
     - { type: 'nfs4',  src: '{{ sap_mnt }}/usrsap{{ sap_sid | upper }}', path: '/usr/sap/{{ sap_sid | upper }}' }
