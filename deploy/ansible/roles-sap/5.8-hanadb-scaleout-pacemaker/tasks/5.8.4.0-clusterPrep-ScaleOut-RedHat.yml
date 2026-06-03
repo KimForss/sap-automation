@@ -184,11 +184,9 @@
 
     - name:                            "5.8 HANA Pacemaker Scale-out - Wait for /hana/shared to become available on all participating nodes"
       block:
-        - name:                        Wait for /hana/shared to be mounted
+        - name:                        "5.8 HANA Pacemaker Scale-out - Sleep to allow Pacemaker to mount /hana/shared"
           ansible.builtin.wait_for:
-            path:                      /hana/shared
-            state:                     present
-            timeout:                   300
+            timeout:                   60
 
         - name:                        "5.8 HANA Pacemaker Scale-out - Check if /hana/shared is mounted"
           ansible.builtin.shell: >
