@@ -248,9 +248,9 @@
       failed_when:                      res_stickiness.rc > 0
       changed_when:                     false
 
-    - name:                             "5.8 HANA Pacemaker Scale-out - Set migration threshold value to 5000"
+    - name:                             "5.8 HANA Pacemaker Scale-out - Set migration threshold value to 50"
       ansible.builtin.shell: >
-                                        pcs resource defaults update migration-threshold=5000
+                                        pcs resource defaults update migration-threshold=50
       register:                         mig_threshold
       failed_when:                      mig_threshold.rc > 0
       changed_when:                     false

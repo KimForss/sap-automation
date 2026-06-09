@@ -347,7 +347,7 @@
 
     # Resource defaults
     - name:                            "5.8 HANA Pacemaker Scale-out - ANGI - Set resource defaults"
-      ansible.builtin.shell:           pcs resource defaults update resource-stickiness=1000 migration-threshold=5000
+      ansible.builtin.shell:           pcs resource defaults update resource-stickiness=1000 migration-threshold=50
       register:                        resource_defaults
       failed_when:                     resource_defaults.rc > 1
 
@@ -375,7 +375,7 @@
                                        InstanceNumber={{ db_instance_number }}
                                        PREFER_SITE_TAKEOVER=true
                                        DUPLICATE_PRIMARY_TIMEOUT=7200
-                                       AUTOMATED_REGISTER=false
+                                       AUTOMATED_REGISTER=true
                                        op stop timeout=3600
                                        op monitor interval=59 role=Promoted timeout=700
                                        op monitor interval=61 role=Unpromoted timeout=700
@@ -449,12 +449,12 @@
       register:                        vip_g
       failed_when:                     vip_g.rc > 1
 
-    # VIP colocation with score=2000
+    # VIP colocation with score=4000
     - name:                            "5.8 HANA Pacemaker Scale-out - ANGI - Configure VIP colocation constraint"
       ansible.builtin.shell: >
                                        pcs constraint colocation add
                                        g_ip_{{ db_sid | upper }}_HDB{{ db_instance_number }}
-                                       with promoted cln_SAPHanaController_{{ db_sid | upper }}_HDB{{ db_instance_number }} 2000
+                                       with promoted cln_SAPHanaController_{{ db_sid | upper }}_HDB{{ db_instance_number }} 4000
       register:                        constraint
       failed_when:                     constraint.rc > 1
 
