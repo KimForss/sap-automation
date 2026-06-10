@@ -1,16 +1,25 @@
-name: 'Terraform'
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |     This workflow validates the Terraform Syntax      |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
 
+name: 'Validate Terraform'
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - "main"
+    tags:
+      - "v*.*.*.*"
   pull_request:
-
+    branches:
+      - "release/*"
 permissions:
   contents: read
 
 jobs:
   terraform:
-    name: 'Terraform'
+    name: 'Terraform Validation'
     runs-on: ubuntu-latest
     environment: test
 
