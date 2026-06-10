@@ -1,0 +1,45 @@
+name: 'Terraform'
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  terraform:
+    name: 'Terraform'
+    runs-on: ubuntu-latest
+    environment: production
+
+    # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+    - name:                                     Checkout repository
+      uses:                                     actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      with:
+        fetch-depth:                            0
+        token:                                  ${{ secrets.GITHUB_TOKEN }}
+
+    - name:                                     Configure Git Safe Directory
+      run:                                      |
+        git config --global --add safe.directory "$GITHUB_WORKSPACE"
+        git config --global --add safe.directory "/__w/${{ github.event.repository.name }}/${{ github.event.repository.name }}"
+
+
+    # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v1
+
+    # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
+    - name: Terraform Init sap_deployer_bootstrap
+      run: terraform -chdir="deploy\terraform\bootstrap\sap_deployer" init -backend=false
+
+    # Checks that all Terraform configuration files adhere to a canonical format
+    - name: Terraform Validate
+      run: terraform -chdir="deploy\terraform\bootstrap\sap_deployer" init
