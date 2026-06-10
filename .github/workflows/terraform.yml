@@ -12,7 +12,7 @@ jobs:
   terraform:
     name: 'Terraform'
     runs-on: ubuntu-latest
-    environment: production
+    environment: test
 
     # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
     defaults:
@@ -34,12 +34,54 @@ jobs:
 
     # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
     - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v1
+      uses: hashicorp/setup-terraform@v2
 
-    # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
-    - name: Terraform Init sap_deployer_bootstrap
-      run: terraform -chdir="/home/runner/work/sap-automation/sap-automation/deploy/terraform/bootstrap/sap_deployer" init -backend=false
+    # Initialize a new Terraform working directory by creating initial files.
+    - name: Terraform Init SAP Deployer (bootstrap)
+      run: terraform -chdir="deploy/terraform/bootstrap/sap_deployer" init -backend=false
 
-    # Checks that all Terraform configuration files adhere to a canonical format
-    - name: Terraform Validate
-      run: terraform -chdir="deploy/terraform/bootstrap/sap_deployer" init
+    # Checks that all Terraform configuration files validate
+    - name: Terraform Validate SAP Deployer (bootstrap)
+      run: terraform -chdir="deploy/terraform/bootstrap/sap_deployer" validate
+
+
+    # Initialize a new Terraform working directory by creating initial files.
+    - name: Terraform Init SAP Library (bootstrap)
+      run: terraform -chdir="deploy/terraform/bootstrap/sap_library" init -backend=false
+
+    # Checks that all Terraform configuration files validate
+    - name: Terraform Validate SAP Library (bootstrap)
+      run: terraform -chdir="deploy/terraform/bootstrap/sap_library" validate
+
+    # Initialize a new Terraform working directory by creating initial files.
+    - name: Terraform Init SAP Deployer (run)
+      run: terraform -chdir="deploy/terraform/run/sap_deployer" init -backend=false
+
+    # Checks that all Terraform configuration files validate
+    - name: Terraform Validate SAP Deployer (run)
+      run: terraform -chdir="deploy/terraform/run/sap_deployer" validate
+
+
+    # Initialize a new Terraform working directory by creating initial files.
+    - name: Terraform Init SAP Library (run)
+      run: terraform -chdir="deploy/terraform/run/sap_library" init -backend=false
+
+    # Checks that all Terraform configuration files validate
+    - name: Terraform Validate SAP Library (run)
+      run: terraform -chdir="deploy/terraform/run/sap_library" validate
+
+    # Initialize a new Terraform working directory by creating initial files.
+    - name: Terraform Init SAP Workload Zone
+      run: terraform -chdir="deploy/terraform/run/sap_landscape" init -backend=false
+
+    # Checks that all Terraform configuration files validate
+    - name: Terraform Validate SAP Workload Zone
+      run: terraform -chdir="deploy/terraform/run/sap_landscape" validate
+
+    # Initialize a new Terraform working directory by creating initial files.
+    - name: Terraform Init SAP System
+      run: terraform -chdir="deploy/terraform/run/sap_system" init -backend=false
+
+    # Checks that all Terraform configuration files validate
+    - name: Terraform Validate SAP System
+      run: terraform -chdir="deploy/terraform/run/sap_system" validate
