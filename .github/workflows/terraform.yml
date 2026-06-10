@@ -38,8 +38,8 @@ jobs:
 
     # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
     - name: Terraform Init sap_deployer_bootstrap
-      run: terraform -chdir="deploy\terraform\bootstrap\sap_deployer" init -backend=false
+      run: terraform -chdir="/home/runner/work/sap-automation/sap-automation/deploy/terraform/bootstrap/sap_deployer" init -backend=false
 
     # Checks that all Terraform configuration files adhere to a canonical format
     - name: Terraform Validate
-      run: terraform -chdir="deploy\terraform\bootstrap\sap_deployer" init
+      run: terraform -chdir="deploy/terraform/bootstrap/sap_deployer" init
