@@ -177,7 +177,8 @@
       when:
                                        - web_installation is defined | default(false)
                                        - web_installation.rc == 0
-      ansible.builtin.mount:
+      ansible.posix.mount:
+        src:                           "{{ usr_sap_install_mountpoint }}/{{ bom_base_name }}"
         path:                          "{{ target_media_location }}"
         state:                         unmounted
 
@@ -201,7 +202,8 @@
     msg:                               "Web Dispatcher already installed, skipping installation"
 
 - name:                                "5.4 SAP Web Dispatcher Install - Unmount /install"
-  ansible.builtin.mount:
+  ansible.posix.mount:
+    src:                               "{{ usr_sap_install_mountpoint }}/{{ bom_base_name }}"
     path:                              "{{ target_media_location }}"
     state:                             unmounted
 

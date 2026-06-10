@@ -200,28 +200,3 @@ resource "azurerm_windows_web_app" "webapp" {
                                              }
 
 }
-
-
-# Set up Vnet integration for webapp and storage account interaction
-resource "azurerm_app_service_virtual_network_swift_connection" "webapp_vnet_connection" {
-  count          = var.app_service.use ? 1 : 0
-  app_service_id = azurerm_windows_web_app.webapp[0].id
-  subnet_id      = var.infrastructure.virtual_network.management.subnet_webapp.exists ? data.azurerm_subnet.webapp[0].id : azurerm_subnet.webapp[0].id
-}
-
-
-# resource "azurerm_role_assignment" "app_service_contributor" {
-#   provider             = azurerm.main
-#   count                = var.app_service.use && var.deployer.add_system_assigned_identity ? var.deployer_vm_count : 0
-#   scope                = azurerm_windows_web_app.webapp[0].id
-#   role_definition_name = "Website Contributor"
-#   principal_id         = azurerm_linux_virtual_machine.deployer[count.index].identity[0].principal_id
-# }
-
-# resource "azurerm_role_assignment" "app_service_contributor_msi" {
-#   provider             = azurerm.main
-#   count                = var.app_service.use ? 1 : 0
-#   scope                = azurerm_windows_web_app.webapp[0].id
-#   role_definition_name = "Website Contributor"
-#   principal_id         = azurerm_user_assigned_identity.deployer.principal_id
-# }

@@ -196,7 +196,8 @@
             msg:                       "HANA Installation succeeded"
 
         - name:                        "4.0.0 SAP HANA - Installation -  Unmount /install"
-          ansible.builtin.mount:
+          ansible.posix.mount:
+            src:                       "{{ usr_sap_install_mountpoint }}/{{ bom_base_name }}"
             path:                      "{{ target_media_location }}"
             state:                     unmounted
 
@@ -263,7 +264,8 @@
         msg:                           "HANA is already installed"
 
     - name:                            "4.0.0 SAP HANA - Installation -  Unmount /install"
-      ansible.builtin.mount:
+      ansible.posix.mount:
+        src:                           "{{ usr_sap_install_mountpoint }}/{{ bom_base_name }}"
         path:                          "{{ target_media_location }}"
         state:                         unmounted
 

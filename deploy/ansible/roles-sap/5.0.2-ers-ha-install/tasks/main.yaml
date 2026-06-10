@@ -219,7 +219,8 @@
       when:                            ers_installation.rc == 0
 
     - name:                            "5.0.2. CS Install High availability installation - ERS - Unmount /install"
-      ansible.builtin.mount:
+      ansible.posix.mount:
+        src:                           "{{ usr_sap_install_mountpoint }}/{{ bom_base_name }}"
         path:                          "{{ target_media_location }}"
         state:                         unmounted
       when:                            ers_installation.rc == 0
@@ -247,7 +248,8 @@
         ers_already_installed:         true
 
     - name:                            "5.0.2. CS Install High availability installation - ERS - Unmount /install"
-      ansible.builtin.mount:
+      ansible.posix.mount:
+        src:                           "{{ usr_sap_install_mountpoint }}/{{ bom_base_name }}"
         path:                          "{{ target_media_location }}"
         state:                         unmounted
 

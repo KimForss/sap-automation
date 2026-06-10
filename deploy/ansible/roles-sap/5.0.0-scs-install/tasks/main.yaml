@@ -234,8 +234,9 @@
         msg:                           "SCS Installation succeeded"
       when:                            scs_installation.rc == 0
 
-    - name:                            "5.0.0 SAP Central Services Installation - Unmount /install
-      ansible.builtin.mount:
+    - name:                            "5.0.0 SAP Central Services Installation - Unmount /install"
+      ansible.posix.mount:
+        src:                           "{{ usr_sap_install_mountpoint }}/{{ bom_base_name }}"
         path:                          "{{ target_media_location }}"
         state:                         unmounted
       when:                            scs_installation.rc == 0
@@ -269,8 +270,9 @@
     - scs_installed.stat.exists
   block:
 
-    - name:                            "5.0.0 SAP Central Services Installation - Unmount /install
-      ansible.builtin.mount:
+    - name:                            "5.0.0 SAP Central Services Installation - Unmount /install"
+      ansible.posix.mount:
+        src:                           "{{ usr_sap_install_mountpoint }}/{{ bom_base_name }}"
         path:                          "{{ target_media_location }}"
         state:                         unmounted
 
