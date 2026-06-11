@@ -396,7 +396,6 @@
         pas_already_installed:         true
 
     - name:                            "5.2 Primary Application Server Installation - Unmount /install"
-      when:                            pas_installation.rc == 0
       ansible.posix.mount:
         src:                           "{{ usr_sap_install_mountpoint }}/{{ bom_base_name }}"
         path:                          "{{ target_media_location }}"
