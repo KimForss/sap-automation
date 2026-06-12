@@ -160,7 +160,9 @@
         export PATH
 
 - name:                                "4.1.2 Oracle ASM Database Installation - Persist environment variables to the C shell profile for grid"
-  when:                                grid_user_name != oracle_user_name
+  when:
+    - grid_user_name != oracle_user_name
+    - platform == 'ORACLE-ASM'
   become:                              true
   become_user:                         "{{ grid_user_name }}"
   ansible.builtin.blockinfile:
