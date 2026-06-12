@@ -11,7 +11,8 @@
 
 ### 3. Terraform and Infrastructure Changes
 - Terraform version references updated from 1.15.1 to 1.15.5
-- Remove the NFS sapmnt network perimete3r association for Windows systems, as it is not required for Windows deployments.
+- Remove the NFS sapmnt network perimeter association for Windows systems, as it is not required for Windows deployments.
+- Fix the additional IP for HA IPs for Windows deployments
 
 
 ## Notes
