@@ -13,4 +13,8 @@
 - Terraform version references updated from 1.15.1 to 1.15.5
 
 
+### 4. Miscellaneous fixes
+- Don't create a user profile for 'grid' user for non ORACLE ASM deployments
+
+
 ## Notes
