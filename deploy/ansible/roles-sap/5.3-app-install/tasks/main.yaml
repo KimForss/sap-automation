@@ -233,6 +233,7 @@
         src:                           "{{ (usr_sap_install_mountpoint ~ '/' ~ bom_base_name) if (usr_sap_install_mountpoint is defined and (usr_sap_install_mountpoint | length > 0)) else (usr_sap_install_mount_point | default(omit)) }}"
         path:                          "{{ target_media_location }}"
         state:                         unmounted
+      failed_when:                     false
 
     - name:                            "5.3 Additional Application Server Installation - Cleanup ini file {{ ansible_hostname }}"
       ansible.builtin.file:
