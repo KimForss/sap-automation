@@ -33,7 +33,7 @@
                                        EXIT;
                                        EOF
   register:                            datafile_count
-  environment:                         "{{ oracle_env }}"
+  environment:                         "{{ oracle_standby_env }}"
   args:
     chdir:                             "/etc/sap_deployment_automation/dataguard_scripts/"
   changed_when:                        false
@@ -119,7 +119,7 @@
                                        NOFILENAMECHECK;
                                        EXIT;
                                        EOF
-      environment:                     "{{ oracle_env }}"
+      environment:                     "{{ oracle_standby_env }}"
       args:
         chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
       register:                        rman_duplicate
@@ -202,7 +202,7 @@
                                        NOFILENAMECHECK;
                                        EXIT;
                                        EOF
-      environment:                     "{{ oracle_env }}"
+      environment:                     "{{ oracle_standby_env }}"
       args:
         chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
       register:                        rman_duplicate
@@ -245,7 +245,7 @@
   register:                            db_status
   changed_when:                        false
   failed_when:                         "'PHYSICAL STANDBY:MOUNTED' not in db_status.stdout and 'PHYSICAL STANDBY:READ ONLY' not in db_status.stdout"
-  environment:                         "{{ oracle_env }}"
+  environment:                         "{{ oracle_standby_env }}"
   args:
     chdir:                             "/etc/sap_deployment_automation/dataguard_scripts/"
 
@@ -269,7 +269,7 @@
                                        EXIT;
                                        EOF
   register:                            pfile_location
-  environment:                         "{{ oracle_env }}"
+  environment:                         "{{ oracle_standby_env }}"
   args:
     chdir:                             "/etc/sap_deployment_automation/dataguard_scripts/"
 
@@ -304,7 +304,7 @@
                                        ALTER DATABASE ARCHIVELOG;
                                        exit
                                        EOF
-  environment:                         "{{ oracle_env }}"
+  environment:                         "{{ oracle_standby_env }}"
   args:
     chdir:                             "/etc/sap_deployment_automation/dataguard_scripts/"
   register:                            archive_log_secondary

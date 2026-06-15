@@ -68,6 +68,19 @@
     - { state: 'directory', mode: '0755', recurse: false, path: "/etc/sap_deployment_automation/{{ sap_sid | upper }}" }
     - { state: 'directory', mode: '0755', recurse: true,  path: "{{ tmp_directory }}/{{ db_sid | upper }}/{{ ora_version }}" }
 
+
+- name:                                "4.1.2 Oracle ASM database software Installation - Create directories as oracle user"
+  ansible.builtin.file:
+    path:                              "{{ item.path }}"
+    state:                             directory
+    mode:                              "{{ item.mode }}"
+    owner:                             "{{ oracle_user_name }}"
+    group:                             oinstall
+    recurse:                           "{{ item.recurse }}"
+  loop:
+    - { state: 'directory', mode: '0775', recurse: false, path: "/oracle/{{ db_sid | upper }}" }
+
+
 - name:                                "4.1.2 Oracle ASM database software Installation - Find Patch ID for Database Release Update"
   become:                              true
   become_user:                         root
@@ -139,7 +152,9 @@
     mode:                              '0755'
 
 - name:                                "4.1.2 Oracle ASM database software Installation - Persist environment variables to the Bash profile for grid"
-  when:                                grid_user_name != oracle_user_name
+  when:
+    - grid_user_name != oracle_user_name
+    - platform == 'ORACLE-ASM'
   become:                              true
   become_user:                         "{{ grid_user_name }}"
   ansible.builtin.blockinfile:
@@ -157,7 +172,9 @@
         export PATH
 
 - name:                                "4.1.2 Oracle ASM database software Installation - Persist environment variables to the C shell profile for grid"
-  when:                                grid_user_name != oracle_user_name
+  when:
+    - grid_user_name != oracle_user_name
+    - platform == 'ORACLE-ASM'
   become:                              true
   become_user:                         "{{ grid_user_name }}"
   ansible.builtin.blockinfile:

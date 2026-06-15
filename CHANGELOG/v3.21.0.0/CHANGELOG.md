@@ -14,5 +14,8 @@
 - Removed the NFS sapmnt network perimeter association for Windows systems, as it is not required for Windows deployments
 - Fixed the additional IP for HA IPs for Windows deployments
 
+### 4. Miscellaneous fixes
+- Do not create a user profile for the 'grid' user on non-ORACLE-ASM deployments
+
 
 ## Notes
