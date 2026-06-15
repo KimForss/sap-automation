@@ -26,6 +26,9 @@
     - node_tier == 'scs'
 
 - name:                                "2.3 SAP Exports: - Enable Folder Sharing"
+  become:                              true
+  become_method:                       ansible.builtin.runas
+  become_user:                         '{{ sap_sid }}adm@{{ domain_name }}'
   ansible.windows.win_share:
     name:                              SAP
     description:                       Share Installation Files Accross Servers

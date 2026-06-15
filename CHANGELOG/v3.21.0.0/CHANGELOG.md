@@ -16,6 +16,7 @@
 
 ### 4. Miscellaneous fixes
 - Do not create a user profile for the 'grid' user on non-ORACLE-ASM deployments
+- Fixed the user name for Windows deployments when using managed devops pools
 
 
 ## Notes
