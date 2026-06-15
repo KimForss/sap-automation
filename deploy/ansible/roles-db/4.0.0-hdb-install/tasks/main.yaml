@@ -195,6 +195,12 @@
           ansible.builtin.debug:
             msg:                       "HANA Installation succeeded"
 
+        - name:                        "4.0.0 SAP HANA - Installation -  Unmount /install"
+          ansible.posix.mount:
+            src:                       "{{ usr_sap_install_mountpoint }}/{{ bom_base_name }}"
+            path:                      "{{ target_media_location }}"
+            state:                     unmounted
+
         - name:                        "4.0.0 SAP HANA - Installation - HANA Install: flag"
           ansible.builtin.file:
             path:                      "/etc/sap_deployment_automation/{{ db_sid | upper }}/sap_deployment_hdb.txt"
@@ -256,6 +262,12 @@
     - name:                            "4.0.0 SAP HANA - Installation - HANA Install status"
       ansible.builtin.debug:
         msg:                           "HANA is already installed"
+
+    - name:                            "4.0.0 SAP HANA - Installation -  Unmount /install"
+      ansible.posix.mount:
+        src:                           "{{ usr_sap_install_mountpoint }}/{{ bom_base_name }}"
+        path:                          "{{ target_media_location }}"
+        state:                         unmounted
 
     - name:                            "4.0.0 SAP HANA - Installation - return value"
       ansible.builtin.set_fact:
