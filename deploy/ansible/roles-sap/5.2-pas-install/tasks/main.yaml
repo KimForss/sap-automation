@@ -336,7 +336,7 @@
     - name:                            "5.2 Primary Application Server Installation - Unmount /install"
       when:                            pas_installation.rc == 0
       ansible.posix.mount:
-        src:                           "{{ usr_sap_install_mountpoint }}/{{ bom_base_name }}"
+        src:                           "{{ (usr_sap_install_mountpoint ~ '/' ~ bom_base_name) if (usr_sap_install_mountpoint is defined and (usr_sap_install_mountpoint | length > 0)) else (usr_sap_install_mount_point | default(omit)) }}"
         path:                          "{{ target_media_location }}"
         state:                         unmounted
 
@@ -397,7 +397,7 @@
 
     - name:                            "5.2 Primary Application Server Installation - Unmount /install"
       ansible.posix.mount:
-        src:                           "{{ usr_sap_install_mountpoint }}/{{ bom_base_name }}"
+        src:                           "{{ (usr_sap_install_mountpoint ~ '/' ~ bom_base_name) if (usr_sap_install_mountpoint is defined and (usr_sap_install_mountpoint | length > 0)) else (usr_sap_install_mount_point | default(omit)) }}"
         path:                          "{{ target_media_location }}"
         state:                         unmounted
 
