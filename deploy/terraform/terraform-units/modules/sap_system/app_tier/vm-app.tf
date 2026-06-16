@@ -472,7 +472,7 @@ resource "azurerm_virtual_machine_extension" "configure_ansible_app" {
   type_handler_version                 = "1.10"
   settings                             = jsonencode(
                                            {
-                                              "fileUris": [var.infrastructure.ansible_configuration_script],
+                                              "fileUris": [var.application_tier.ansible_configuration_script],
                                               "commandToExecute": "powershell.exe -ExecutionPolicy Unrestricted -File configure_ansible.ps1 -Verbose"
                                            }
                                          )

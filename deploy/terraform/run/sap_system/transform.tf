@@ -26,7 +26,7 @@ locals {
                                             application_configuration_id       = var.application_configuration_id
                                             use_application_configuration      = length(var.application_configuration_id) > 0 ? true : false
                                             workload_zone_name                 = local.workload_zone_name
-                                            ansible_configuration_script       = try(data.azurerm_app_configuration_key.ansible_configuration_script[0].value, "")
+
                                          }
 
 
@@ -153,6 +153,7 @@ locals {
                                                                                  )
 
                                            disk_controller_type_database_tier   = var.disk_controller_type_database_tier
+                                           ansible_configuration_script         = try(data.azurerm_app_configuration_key.ansible_configuration_script[0].value, "")
                                          }
 
   db_os                             = {
@@ -286,6 +287,7 @@ locals {
                                         user_assigned_identity_id       = var.user_assigned_identity_id
                                         disk_controller_type_app_tier   = var.disk_controller_type_app_tier
                                         use_AFS_for_sapmnt              = var.NFS_provider == "AFS" && !var.ANF_sapmnt
+                                        ansible_configuration_script    = try(data.azurerm_app_configuration_key.ansible_configuration_script[0].value, "")
                                       }
 
   app_tags                          = var.application_server_tags
