@@ -129,35 +129,14 @@
       become_user:                     "{{ oracle_user_name }}"
       become:                          true
       ansible.builtin.shell: |
-                                       sqlplus -S / as sysdba <<EOF
-                                       STARTUP NOMOUNT;
+                                       sqlplus -S / as sysdba <<'EOF'
+                                       WHENEVER SQLERROR EXIT SQL.SQLCODE
+                                       STARTUP;
                                        EXIT;
                                        EOF
-
-      register:                        db_started
-      changed_when:                    false
-      failed_when:                     false
       environment:                     "{{ oracle_env }}"
       args:
-        chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
-
-    - name:                            "4.1.3 Oracle Data Guard - Mount Primary instance"
-      become_user:                     "{{ oracle_user_name }}"
-      become:                          true
-      ansible.builtin.shell: |
-                                       sqlplus -S / as sysdba <<EOF
-                                       ALTER DATABASE MOUNT;
-                                       ALTER DATABASE OPEN;
-                                       EXIT;
-                                       EOF
-
-      register:                        db_mounted
-      changed_when:                    false
-      failed_when:                     false
-      environment:                     "{{ oracle_env }}"
-      args:
-        chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
-
+        chdir: "/etc/sap_deployment_automation/dataguard_scripts/"
 
 - name:                                "4.1.3 Oracle Data Guard - Verify Status on Primary"
   become_user:                         "{{ oracle_user_name }}"
@@ -176,16 +155,16 @@
     chdir:                             "/etc/sap_deployment_automation/dataguard_scripts/"
   environment:                         "{{ oracle_env }}"
 
-- name:                                "4.1.3 Oracle Data Guard - Show status on Primary"
-  ansible.builtin.debug:
-    msg:
-     - "Primary mounted status: {{ (dg_status.stdout is search('PRIMARY:MOUNTED')) | bool }}"
-     - "Primary open status: {{ (dg_status.stdout is search('PRIMARY:READ WRITE')) | bool }}"
-
 - name:                                "4.1.3 Oracle Data Guard - Get status from Primary"
   ansible.builtin.set_fact:
     primary_open:                      "{{ (dg_status.stdout is search('PRIMARY:READ WRITE')) | bool }}"
     primary_mounted:                   "{{ (dg_status.stdout is search('PRIMARY:MOUNTED')) | bool }}"
+
+- name:                                "4.1.3 Oracle Data Guard - Show status on Primary"
+  ansible.builtin.debug:
+    msg:
+     - "Primary mounted status: {{ primary_mounted }}"
+     - "Primary open status: {{ primary_open }}"
 
 - name:                                "4.1.3 Oracle Data Guard - Open Primary"
   when:
@@ -195,6 +174,7 @@
   become:                              true
   ansible.builtin.shell: |
                                        sqlplus -S / as sysdba <<EOF
+                                       WHENEVER SQLERROR EXIT SQL.SQLCODE
                                        ALTER DATABASE OPEN;
                                        EXIT;
                                        EOF
@@ -214,6 +194,7 @@
 
                                        printenv
                                        sqlplus -S / as sysdba <<EOF
+                                       WHENEVER SQLERROR EXIT SQL.SQLCODE
                                        SET PAGESIZE 0 FEEDBACK OFF HEADING OFF;
                                        SELECT database_role || ':' || open_mode FROM v\$database;
                                        EXIT;
