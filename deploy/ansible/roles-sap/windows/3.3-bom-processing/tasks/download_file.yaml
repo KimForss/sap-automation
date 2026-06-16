@@ -26,7 +26,7 @@
 
 - name:                                Remove downloaded file from Ansible host
   ansible.builtin.file:
-    src:                               "{{ result.dest }}"
+    path:                              "{{ result.dest }}"
     state:                             absent
   delegate_to:                         localhost
 
