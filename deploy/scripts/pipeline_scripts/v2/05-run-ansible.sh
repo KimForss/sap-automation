@@ -214,7 +214,7 @@ if [ -f "${filename}" ]; then
 								-e 'kv_name=$VAULT_NAME'                                   \
 								-e 'download_directory=$AGENT_TEMPDIRECTORY'               \
 								-e '_workspace_directory=$curdir' $EXTRA_PARAMS            \
-							  -e orchestration_ansible_user=$user_name:-$USER}           \
+							  -e orchestration_ansible_user=${USER:-$user_name}          \
 								-e ansible_user=$user_name                                 \
 								-e ansible_python_interpreter=/usr/bin/python3             \
     						-e ansible_ssh_pass='${ANSIBLE_PASSWORD}' -e @$SAP_PARAMS  \
@@ -232,7 +232,7 @@ command="ansible-playbook -i '$INVENTORY'                                  \
 								-e 'kv_name=$VAULT_NAME'                                   \
 								-e 'download_directory=$AGENT_TEMPDIRECTORY'               \
 								-e '_workspace_directory=$curdir' $EXTRA_PARAMS            \
-								-e orchestration_ansible_user=$user_name:-$USER}           \
+								-e orchestration_ansible_user=${user_name:-$USER}          \
 								-e ansible_user=$user_name                                 \
 								-e ansible_python_interpreter=/usr/bin/python3             \
     						-e ansible_ssh_pass='${ANSIBLE_PASSWORD}' -e @$SAP_PARAMS  \
@@ -267,7 +267,7 @@ if [ -f "${filename}" ]; then
 								-e 'kv_name=$VAULT_NAME'                                   \
 								-e 'download_directory=$AGENT_TEMPDIRECTORY'               \
 								-e '_workspace_directory=$curdir' $EXTRA_PARAMS            \
-								-e orchestration_ansible_user=$user_name:-$USER}           \
+								-e orchestration_ansible_user=${user_name:-$USER}          \
 								-e ansible_user=$user_name                                 \
 								-e ansible_python_interpreter=/usr/bin/python3             \
     						-e ansible_ssh_pass='${ANSIBLE_PASSWORD}' -e @$SAP_PARAMS  \
