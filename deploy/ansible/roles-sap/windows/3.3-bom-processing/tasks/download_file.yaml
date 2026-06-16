@@ -9,7 +9,6 @@
                                        {% if sapbits_sas_token is defined %}?{{ sapbits_sas_token }}{% endif %}"
     dest:                              "/tmp/{% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}"
     mode:                              "{% if item.permissions is undefined %}0644{% else %}{{ item.permissions }}{% endif %}"
-    tmp_dest:                          "{{ target_media_location }}/tmp"
     checksum:                          "{% if item.checksum is defined %}{% if item.checksum | trim | length > 1 %}sha256:{{ item.checksum | upper }}{% endif %}{% endif %}"
     validate_certs:                    false
   delegate_to:                         localhost
