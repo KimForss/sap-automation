@@ -75,3 +75,7 @@ output "sa_connection_string"                    {
                                                    value       = module.sap_library.sa_connection_string
                                                  }
 
+output "configure_ansible_script_url"            {
+                                                   description = "URL of configure_ansible.ps1 mirrored in SAPBits blob storage"
+                                                   value       = module.sap_library.configure_ansible_script_url
+                                                 }

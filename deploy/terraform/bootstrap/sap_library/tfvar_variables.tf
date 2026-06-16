@@ -448,3 +448,16 @@ variable "application_configuration_id"          {
                                                     }
 
                                                  }
+
+variable "configure_ansible_source_uri"   {
+                                            description = "Public source URI for the configure_ansible.ps1 script mirrored into SAPBits"
+                                            type        = string
+                                            default     = "https://raw.githubusercontent.com/Azure/sap-automation/main/deploy/scripts/configure_ansible.ps1"
+                                          }
+
+variable "configure_ansible_blob_name"    {
+                                            description = "Blob name for the mirrored configure_ansible.ps1 script in SAPBits"
+                                            type        = string
+                                            default     = "scripts/configure_ansible.ps1"
+                                          }
+

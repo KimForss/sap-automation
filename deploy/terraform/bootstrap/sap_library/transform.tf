@@ -37,6 +37,10 @@ locals {
                                                                                                " "),
                                                                                              " ")))
                                            management_network_id          = var.management_network_id
+                                           configure_ansible_source_uri   = var.configure_ansible_source_uri
+                                           configure_ansible_blob_name    = var.configure_ansible_blob_name
+
+
                                          }
   key_vault                            = {
                                            id = coalesce(var.spn_keyvault_id, try(data.terraform_remote_state.deployer[0].outputs.deployer_kv_user_arm_id,"") )

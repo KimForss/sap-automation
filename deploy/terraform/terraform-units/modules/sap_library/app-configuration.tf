@@ -236,6 +236,41 @@ resource "azurerm_private_dns_zone_virtual_network_link" "appconfig_agent" {
   tags                                 = var.infrastructure.tags
 }
 
+resource "azurerm_app_configuration_key" "AnsibleConfigurationScript" {
+  provider                             = azurerm.deployer
+  depends_on                           = [
+                                           azurerm_private_dns_zone_virtual_network_link.vnet_mgmt_appconfig,
+                                           azurerm_private_dns_zone_virtual_network_link.appconfig_agent,
+                                           azurerm_private_dns_zone_virtual_network_link.appconfig_additional
+                                         ]
+  count                                = local.application_configuration_deployed ? 1 : 0
+  configuration_store_id               = data.azurerm_app_configuration.app_config[0].id
+  key                                  = format("%s_AnsibleConfigurationScript", var.deployer.control_plane_name)
+  label                                = var.deployer.control_plane_name
+  value                                = format("%s%s/%s",
+                                                                    var.storage_account_sapbits.exists ? (
+                                                                      data.azurerm_storage_account.storage_sapbits[0].primary_blob_endpoint) : (
+                                                                      azurerm_storage_account.storage_sapbits[0].primary_blob_endpoint
+                                                                    ),
+                                                                    var.storage_account_sapbits.sapbits_blob_container.name,
+                                                                    azurerm_storage_blob.configure_ansible_script.name
+                                                                  )
+  content_type                         = "text/plain"
+  type                                 = "kv"
+  tags                                 = merge(var.infrastructure.tags, {
+                                           "source" = "SAPLibrary"
+                                         }  )
+  lifecycle {
+              ignore_changes = [
+                configuration_store_id,
+                etag,
+                id
+              ]
+            }
+}
+
+
+
 locals {
   application_configuration_deployed   = length(var.deployer.application_configuration_id ) > 0
   parsed_id                            = local.application_configuration_deployed ? provider::azurerm::parse_resource_id(coalesce(var.deployer.application_configuration_id, try(var.deployer_tfstate.application_configuration_id, ""))) : null

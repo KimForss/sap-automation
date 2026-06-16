@@ -479,3 +479,22 @@ resource "azurerm_management_lock" "storage_tfstate" {
   }
 }
 
+resource "azurerm_storage_blob" "configure_ansible_script" {
+  provider                             = azurerm.main
+  depends_on                           = [
+                                           azurerm_storage_container.storagecontainer_sapbits,
+                                           data.azurerm_storage_container.storagecontainer_sapbits
+                                         ]
+  name                                 = var.deployer.configure_ansible_blob_name
+  storage_account_name                 = var.storage_account_sapbits.exists ? (
+                                           data.azurerm_storage_account.storage_sapbits[0].name) : (
+                                           azurerm_storage_account.storage_sapbits[0].name
+                                         )
+  storage_container_name               = var.storage_account_sapbits.sapbits_blob_container.is_existing ? (
+                                           data.azurerm_storage_container.storagecontainer_sapbits[0].name) : (
+                                           azurerm_storage_container.storagecontainer_sapbits[0].name
+                                         )
+  type                                 = "Block"
+  source_uri                           = var.deployer.configure_ansible_source_uri
+  content_type                         = "text/x-powershell"
+}
