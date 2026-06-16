@@ -22,7 +22,7 @@
 - name:                                Copy the file to the target location
   ansible.windows.win_copy:
     src:                               "{{ result.dest }}"
-    dest:                              "{{ target_media_location_windows }}\{% if item.path is undefined %}downloads{% else %}{{ item.path }}{% endif %}\{% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}"
+    dest:                              '{{ target_media_location_windows }}\{{ item.path | default("downloads") }}\{{ item.filename | default(item.archive) }}'
     remote_src:                        true
 
 - name:                                Remove downloaded file from Ansible host
