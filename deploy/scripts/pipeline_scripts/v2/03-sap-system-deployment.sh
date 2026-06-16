@@ -124,6 +124,8 @@ fi
 if [ ! -v APPLICATION_CONFIGURATION_ID ]; then
 	APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
 	export APPLICATION_CONFIGURATION_ID
+	TF_VAR_application_configuration_id="$APPLICATION_CONFIGURATION_ID"
+	export TF_VAR_application_configuration_id
 fi
 
 APPLICATION_CONFIGURATION_SUBSCRIPTION_ID=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d '/' -f 3)
@@ -230,7 +232,7 @@ if [ -z "$key_vault" ]; then
 	if [ "$PLATFORM" == "devops" ]; then
 		echo "##vso[task.logissue type=error]Key vault name (${CONTROL_PLANE_NAME}_KeyVaultName) was not found in the application configuration ( '$APPLICATION_CONFIGURATION_NAME' nor was it defined in ${workload_environment_file_name})."
 	elif [ "$PLATFORM" == "github" ]; then
-		echo "##vso[task.logissue type=error]Key vault name (${CONTROL_PLANE_NAME}_KeyVaultName) was not found in the application configuration ( '$APPLICATION_CONFIGURATION_NAME' nor was it defined in ${workload_environment_file_name})."
+		echo "::error title=Key Vault Not Found::Key vault name (${CONTROL_PLANE_NAME}_KeyVaultName) was not found in the application configuration ( '$APPLICATION_CONFIGURATION_NAME' nor was it defined in ${workload_environment_file_name})."
 	fi
 fi
 
@@ -238,7 +240,7 @@ if [ -z "$tfstate_resource_id" ]; then
 	if [ "$PLATFORM" == "devops" ]; then
 		echo "##vso[task.logissue type=error]Terraform state storage account resource id ('${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId') was not found in the application configuration ( '$APPLICATION_CONFIGURATION_NAME' nor was it defined in ${workload_environment_file_name})."
 	elif [ "$PLATFORM" == "github" ]; then
-		echo "##vso[task.logissue type=error]Terraform state storage account resource id ('${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId') was not found in the application configuration ( '$APPLICATION_CONFIGURATION_NAME' nor was it defined in ${workload_environment_file_name})."
+		echo "::error title=Terraform State Storage Account Not Found::Terraform state storage account resource id ('${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId') was not found in the application configuration ( '$APPLICATION_CONFIGURATION_NAME' nor was it defined in ${workload_environment_file_name})."
 	fi
 	exit 2
 fi
@@ -303,6 +305,8 @@ else
 	echo -e "$bold_red--- Deployment failed ---$reset_formatting"
 	if [ "$PLATFORM" == "devops" ]; then
 		echo "##vso[task.logissue type=error]Deployment failed."
+	elif [ "$PLATFORM" == "github" ]; then
+		echo "::error title=Deployment Failed::Deployment of $SAP_SYSTEM_FOLDERNAME failed."
 	else
 		echo "ERROR: Deployment failed."
 	fi
@@ -311,6 +315,8 @@ echo "Return code from deployment:         ${return_code}"
 if [ 0 != $return_code ]; then
 	if [ "$PLATFORM" == "devops" ]; then
 		echo "##vso[task.logissue type=error]Return code from installer $return_code."
+	elif [ "$PLATFORM" == "github" ]; then
+		echo "::error title=Installer Return Code::Return code from installer $return_code."
 	fi
 fi
 
@@ -398,15 +404,15 @@ if [ 1 -eq $added ]; then
 		if git commit --message --verbose "$commit_message"; then
 			if [ "$PLATFORM" == "devops" ]; then
 				if ! git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BUILD_SOURCEBRANCHNAME" --force-with-lease; then
-					echo "Failed to push changes to the repository."
+					echo "##vso[task.logissue type=error]Failed to push changes to the repository."
 				else
-					echo "Pushed changes to the repository."
+					echo "##vso[task.logissue type=notice]Pushed changes to the repository."
 				fi
 			elif [ "$PLATFORM" == "github" ]; then
 				if ! git push --set-upstream origin "$GITHUB_REF_NAME" --force-with-lease; then
-					echo "Failed to push changes to the repository."
+					echo "::error title=Git Push::Failed to push changes to the repository."
 				else
-					echo "Pushed changes to the repository."
+					echo "::notice title=Git Push::Pushed changes to the repository."
 				fi
 			fi
 		fi
@@ -414,14 +420,13 @@ if [ 1 -eq $added ]; then
 		if git commit -m "$commit_message"; then
 			if [ "$PLATFORM" == "devops" ]; then
 				if ! git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BUILD_SOURCEBRANCHNAME" --force-with-lease; then
-					echo "Failed to push changes to the repository."
+					echo "##vso[task.logissue type=error]Failed to push changes to the repository."
 				else
-					echo
 					echo "Pushed changes to the repository."
 				fi
 			elif [ "$PLATFORM" == "github" ]; then
 				if ! git push --set-upstream origin "$GITHUB_REF_NAME" --force-with-lease; then
-					echo "Failed to push changes to the repository."
+					echo "::error title=Git Push::Failed to push changes to the repository."
 				else
 					echo "Pushed changes to the repository."
 				fi

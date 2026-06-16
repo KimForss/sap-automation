@@ -185,6 +185,8 @@ fi
 if [ ! -v APPLICATION_CONFIGURATION_ID ]; then
 	APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
 	export APPLICATION_CONFIGURATION_ID
+	TF_VAR_application_configuration_id="$APPLICATION_CONFIGURATION_ID"
+	export TF_VAR_application_configuration_id
 fi
 
 APPLICATION_CONFIGURATION_SUBSCRIPTION_ID=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d '/' -f 3)
@@ -203,6 +205,8 @@ if [ "$ENVIRONMENT" != "$ENVIRONMENT_IN_FILENAME" ]; then
 	print_banner "$banner_title" "Environment mismatch" "error" "The environment setting in the tfvars file is not a part of the ${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.tfvars file name" "Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
 	if [ "$PLATFORM" == "devops" ]; then
 		echo "##vso[task.logissue type=error]The environment setting in ${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.tfvars '$ENVIRONMENT' does not match the ${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.tfvars file name '$ENVIRONMENT_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
+	elif [ "$PLATFORM" == "github" ]; then
+		echo "::error title=Environment Mismatch::The environment setting in ${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.tfvars '$ENVIRONMENT' does not match the ${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.tfvars file name '$ENVIRONMENT_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
 	fi
 	exit 2
 fi
@@ -211,6 +215,8 @@ if [ "$LOCATION" != "$LOCATION_IN_FILENAME" ]; then
 	print_banner "$banner_title" "Location mismatch" "error" "The 'location' setting in the tfvars file is not represented in the ${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.tfvars file name" "Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
 	if [ "$PLATFORM" == "devops" ]; then
 		echo "##vso[task.logissue type=error]The location setting in ${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.tfvars '$LOCATION' does not match the ${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.tfvars file name '$LOCATION_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
+	elif [ "$PLATFORM" == "github" ]; then
+		echo "::error title=Location Mismatch::The location setting in ${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.tfvars '$LOCATION' does not match the ${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.tfvars file name '$LOCATION_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
 	fi
 	exit 2
 fi
@@ -219,6 +225,8 @@ if [ "$NETWORK" != "$NETWORK_IN_FILENAME" ]; then
 	print_banner "$banner_title" "Naming mismatch" "error" "The 'network_logical_name' setting in the tfvars file is not a part of the $WORKLOAD_ZONE_TFVARS_FILENAME file name" "Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
 	if [ "$PLATFORM" == "devops" ]; then
 		echo "##vso[task.logissue type=error]The network_logical_name setting in $WORKLOAD_ZONE_TFVARS_FILENAME '$NETWORK' does not match the $WORKLOAD_ZONE_TFVARS_FILENAME file name '$NETWORK_IN_FILENAME-. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
+	elif [ "$PLATFORM" == "github" ]; then
+		echo "::error title=Network Mismatch::The network_logical_name setting in ${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.tfvars '$NETWORK' does not match the ${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.tfvars file name '$NETWORK_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
 	fi
 	exit 2
 fi
@@ -234,7 +242,7 @@ else
 	if [ "$PLATFORM" == "devops" ]; then
 		echo "##vso[task.logissue type=warning]Variable APPLICATION_CONFIGURATION_ID was not defined."
 	elif [ "$PLATFORM" == "github" ]; then
-		echo "Variable APPLICATION_CONFIGURATION_ID was not defined."
+		echo "::error title=APPLICATION_CONFIGURATION_ID::Variable APPLICATION_CONFIGURATION_ID was not defined."
 	fi
 	load_config_vars "${workload_environment_file_name}" "tfstate_resource_id"
 	load_config_vars "${deployer_environment_file_name}" "subscription"
@@ -247,7 +255,7 @@ if [ -z "$tfstate_resource_id" ]; then
 	if [ "$PLATFORM" == "devops" ]; then
 		echo "##vso[task.logissue type=error]Terraform state storage account resource id ('${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId') was not found in the application configuration ( '$application_configuration_name' nor was it defined in ${workload_environment_file_name})."
 	elif [ "$PLATFORM" == "github" ]; then
-		echo "Terraform state storage account resource id ('${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId') was not found in the application configuration ( '$application_configuration_name' nor was it defined in ${workload_environment_file_name})."
+		echo "::error title=Terraform State Storage Account::Terraform state storage account resource id ('${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId') was not found in the application configuration ( '$application_configuration_name' nor was it defined in ${workload_environment_file_name})."
 	fi
 	exit 2
 fi
@@ -302,6 +310,8 @@ else
 
 	if [ "$PLATFORM" == "devops" ]; then
 		echo "##vso[task.logissue type=error]Terraform apply failed."
+	elif [ "$PLATFORM" == "github" ]; then
+		echo "::error title=Terraform Apply::Terraform apply failed."
 	else
 		echo "ERROR: Terraform apply failed."
 	fi
@@ -365,11 +375,11 @@ if [ 1 = $added ]; then
 		if git commit -m "$commit_message"; then
 			if [ "$PLATFORM" == "devops" ]; then
 				if ! git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BUILD_SOURCEBRANCHNAME" --force-with-lease; then
-					echo "Failed to push changes to the repository."
+					echo "##vso[task.logissue type=error]Failed to push changes to the repository."
 				fi
 			elif [ "$PLATFORM" == "github" ]; then
 				if ! git push --set-upstream origin "$GITHUB_REF_NAME" --force-with-lease; then
-					echo "Failed to push changes to the repository."
+					echo "::error title=Git Push::Failed to push changes to the repository."
 				fi
 			fi
 		fi
@@ -377,11 +387,11 @@ if [ 1 = $added ]; then
 		if git commit -m "$commit_message"; then
 			if [ "$PLATFORM" == "devops" ]; then
 				if ! git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BUILD_SOURCEBRANCHNAME" --force-with-lease; then
-					echo "Failed to push changes to the repository."
+					echo "##vso[task.logissue type=error]Failed to push changes to the repository."
 				fi
 			elif [ "$PLATFORM" == "github" ]; then
 				if ! git push --set-upstream origin "$GITHUB_REF_NAME" --force-with-lease; then
-					echo "Failed to push changes to the repository."
+					echo "::error title=Git Push::Failed to push changes to the repository."
 				fi
 			fi
 		fi
