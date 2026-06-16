@@ -290,7 +290,7 @@
             - name:                    "Operating system configuration playbook - Check if required DNS entries match"
               ansible.builtin.assert:
                 that:                   "dns_in_AD == scs_lb_ip"
-                fail_msg:               "The DNS entry for the SCS cluster is not correct in Active Directory"
+                fail_msg:               "The DNS entry for the SCS cluster {{ sap_sid | lower }}scs{{ scs_instance_number }}cl1 ({{ scs_lb_ip }}) is not correct in Active Directory (Found: {{ dns_in_AD }}). Please fix the DNS entry before proceeding."
               when:
                 - dns_in_AD is defined
 
