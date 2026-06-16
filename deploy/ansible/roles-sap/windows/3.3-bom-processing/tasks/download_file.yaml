@@ -1,0 +1,36 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+---
+
+- name:                                "3.3 BoM Processing: - Download Files {{ distribution_id }}"
+  ansible.builtin.get_url:
+    url:                               "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/archives/{{ item.archive | string | trim }}\
+                                       {% if sapbits_sas_token is defined %}?{{ sapbits_sas_token }}{% endif %}"
+    dest:                              "{{ target_media_location }}/{% if item.path is defined %}{{ item.path }}{% else %}downloads{% endif %}/\
+                                       {% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}"
+    mode:                              "{% if item.permissions is undefined %}0644{% else %}{{ item.permissions }}{% endif %}"
+    tmp_dest:                          "{{ target_media_location }}/tmp"
+    checksum:                          "{% if item.checksum is defined %}{% if item.checksum | trim | length > 1 %}sha256:{{ item.checksum | upper }}{% endif %}{% endif %}"
+    validate_certs:                    false
+  delegate_to:                         localhost
+  become:                              "{{ bom_processing_become }}"
+  register:                            result
+  until:                               result is succeeded
+  retries:                             2
+  delay:                               5
+
+
+- name:                                Copy the file to the target location
+  ansible.windows.win_copy:
+    src:                               '{{ result.dest }}'
+    dest:                              '{{ target_media_location_windows }}\{% if item.path is undefined %}downloads{% else %}{{ item.path }}{% endif %}\{% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}'
+    remote_src:                        true
+
+- name:                                Remove extract directory
+  ansible.builtin.file:
+    src:                               '{{ result.dest }}'
+    state:                             absent
+  delegate_to:                         localhost
+
+...
