@@ -366,7 +366,8 @@ else
 		if [ "$PLATFORM" == "github" ]; then
 				cat "${output_file}" >>"${GITHUB_STEP_SUMMARY}"
 		else
-				echo "##vso[task.uploadsummary]${output_file}"
+				sudo cp "${output_file}" "$AGENT_TEMPDIRECTORY/readme.md"
+				echo "##vso[task.addattachment type=Distributedtask.Core.Summary;name=${SID}.md;]$AGENT_TEMPDIRECTORY/readme.md"
 		fi
 
 		echo -e "$green--- Deleting variables ---$reset_formatting"
