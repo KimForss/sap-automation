@@ -508,7 +508,7 @@ resource "azurerm_virtual_machine_extension" "configure_ansible" {
                                          )
   protected_settings                   = jsonencode(
                                           {
-                                            managedIdentity = {clientId = var.database.user_assigned_identity_id }
+                                            managedIdentity = {clientId = data.azurerm_client_config.current.client_id }
                                           }
                                          )
   tags                                 = var.tags
