@@ -125,7 +125,7 @@
         state:                         absent
       failed_when:                     false
 
-    - name:                            "4.1.3 Oracle Data Guard - Restart Primary instance"
+    - name:                            "4.1.3 Oracle Data Guard - Start Primary instance"
       become_user:                     "{{ oracle_user_name }}"
       become:                          true
       ansible.builtin.shell: |
@@ -176,11 +176,16 @@
     chdir:                             "/etc/sap_deployment_automation/dataguard_scripts/"
   environment:                         "{{ oracle_env }}"
 
-- name:                                "4.1.3 Oracle Data Guard - Set status on Primary"
+- name:                                "4.1.3 Oracle Data Guard - Show status on Primary"
+  ansible.builtin.debug:
+    msg:
+     - "Primary mounted status: {{ (dg_status.stdout is search('PRIMARY:MOUNTED')) | bool }}"
+     - "Primary open status: {{ (dg_status.stdout is search('PRIMARY:READ WRITE')) | bool }}"
+
+- name:                                "4.1.3 Oracle Data Guard - Get status from Primary"
   ansible.builtin.set_fact:
     primary_open:                      "{{ (dg_status.stdout is search('PRIMARY:READ WRITE')) | bool }}"
     primary_mounted:                   "{{ (dg_status.stdout is search('PRIMARY:MOUNTED')) | bool }}"
-
 
 - name:                                "4.1.3 Oracle Data Guard - Open Primary"
   when:
@@ -200,7 +205,6 @@
   environment:                         "{{ oracle_env }}"
   args:
     chdir:                             "/etc/sap_deployment_automation/dataguard_scripts/"
-
 
 - name:                                "4.1.3 Oracle Data Guard - Verify Data Guard configuration on Primary"
   when:                                not primary_open
@@ -227,7 +231,7 @@
   ansible.builtin.set_fact:
     primary_open:                      "{{ ((dg_status.stdout | default('UNKNOWN')) is search('PRIMARY:READ WRITE')) | bool }}"
 
-- name:                                "4.1.3 Oracle Data Guard - Mount Primary instance"
+- name:                                "4.1.3 Oracle Data Guard - Open Primary instance"
   when:
     - not primary_open
   become_user:                         "{{ oracle_user_name }}"
