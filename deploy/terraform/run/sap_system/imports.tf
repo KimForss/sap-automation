@@ -174,5 +174,3 @@ data "azurerm_app_configuration_key" "ansible_configuration_script" {
   label                  = local.control_plane_name_resolved
 }
 
-
-"%
