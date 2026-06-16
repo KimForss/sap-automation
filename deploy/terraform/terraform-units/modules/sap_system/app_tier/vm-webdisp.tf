@@ -468,7 +468,7 @@ resource "azurerm_virtual_machine_extension" "configure_ansible_web" {
   name                                 = "configure_ansible"
   publisher                            = "Microsoft.Compute"
   type                                 = "CustomScriptExtension"
-  type_handler_version                 = "1.9"
+  type_handler_version                 = "1.10"
   settings                             = jsonencode(
                                            {
                                               "fileUris": ["https://raw.githubusercontent.com/Azure/sap-automation/main/deploy/scripts/configure_ansible.ps1"],
@@ -643,7 +643,7 @@ resource "azurerm_virtual_machine_extension" "monitoring_extension_web_win" {
 
 resource "azurerm_virtual_machine_extension" "monitoring_defender_web_lnx" {
   provider                             = azurerm.main
-  count                                = var.infrastructure.deploy_defender_extension  && upper(var.application_tier.scs_os.os_type) == "LINUX" ? (
+  count                                = var.infrastructure.deploy_defender_extension  && upper(var.application_tier.web_os.os_type) == "LINUX" ? (
                                            local.webdispatcher_count) : (
                                            0                                           )
   virtual_machine_id                   = azurerm_linux_virtual_machine.web[count.index].id
