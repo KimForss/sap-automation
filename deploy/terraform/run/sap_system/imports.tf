@@ -166,3 +166,13 @@ data "azurerm_app_configuration_key" "workload_credentials_vault" {
   key                    = format("%s_KeyVaultResourceId", local.workload_zone_name_resolved)
   label                  = local.workload_zone_name_resolved
 }
+
+data "azurerm_app_configuration_key" "ansible_configuration_script" {
+  count                  = local.infrastructure.use_application_configuration ? 1 : 0
+  configuration_store_id = local.infrastructure.application_configuration_id
+  key                    = format("%s_AnsibleConfigurationScript", local.control_plane_name_resolved)
+  label                  = local.control_plane_name_resolved
+}
+
+
+"%

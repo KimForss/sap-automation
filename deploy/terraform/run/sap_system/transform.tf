@@ -26,6 +26,7 @@ locals {
                                             application_configuration_id       = var.application_configuration_id
                                             use_application_configuration      = length(var.application_configuration_id) > 0 ? true : false
                                             workload_zone_name                 = local.workload_zone_name
+                                            ansible_configuration_script       = try(data.azurerm_app_configuration_key.ansible_configuration_script[0].value, "")
                                          }
 
 
