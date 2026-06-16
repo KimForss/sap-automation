@@ -253,9 +253,3 @@ output "subscription_id_used"          {
                                          value       = length(var.subscription_id) > 0 ? var.subscription_id : data.azurerm_key_vault_secret.subscription_id[0].value
                                          sensitive   = true
                                        }
-
-
-output "ansible_configuration_script" {
-                                         description = "The Ansible configuration script used in the deployment"
-                                         value       = try(data.azurerm_app_configuration_key.ansible_configuration_script[0].value, "")
-                                       }

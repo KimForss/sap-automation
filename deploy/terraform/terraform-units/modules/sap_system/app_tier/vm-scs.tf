@@ -517,17 +517,12 @@ resource "azurerm_virtual_machine_extension" "configure_ansible_scs" {
   name                                 = "configure_ansible"
   publisher                            = "Microsoft.Compute"
   type                                 = "CustomScriptExtension"
-  type_handler_version                 = "1.10"
+  type_handler_version                 = "1.9"
   settings                             = jsonencode(
                                            {
-                                              "fileUris": [var.application_tier.ansible_configuration_script],
+                                              "fileUris": ["https://raw.githubusercontent.com/Azure/sap-automation/main/deploy/scripts/configure_ansible.ps1"],
                                               "commandToExecute": "powershell.exe -ExecutionPolicy Unrestricted -File configure_ansible.ps1 -Verbose"
                                            }
-                                         )
-  protected_settings                   = jsonencode(
-                                          {
-                                            managedIdentity = {clientId = data.azurerm_client_config.current.client_id }
-                                          }
                                          )
   tags                                 = var.tags
 }
