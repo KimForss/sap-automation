@@ -308,6 +308,21 @@ function install_deployer() {
                     fi
                 fi
 
+                moduleID="module.sap_deployer.azurerm_app_configuration_key.web_application_resource_id"
+                if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
+                    if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
+                        echo "Setting 'web_application_resource_id' removed from state"
+                    fi
+                fi
+
+                moduleID="module.sap_deployer.azurerm_app_configuration_key.web_application_identity_id"
+                if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
+                    if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
+                        echo "Setting 'web_application_identity_id' removed from state"
+                    fi
+                fi
+
+
             else
                 return_value=$?
                 print_banner "$banner_title" "Terraform init failed. State not migrated." "error"
