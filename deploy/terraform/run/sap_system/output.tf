@@ -257,5 +257,5 @@ output "subscription_id_used"          {
 
 output "ansible_configuration_script" {
                                          description = "The Ansible configuration script used in the deployment"
-                                         value       = var.application_tier.ansible_configuration_script
+                                         value       = try(data.azurerm_app_configuration_key.ansible_configuration_script[0].value, "")
                                        }
