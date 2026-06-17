@@ -47,17 +47,23 @@
     group:                             root
     mode:                              '0700'
 
+- name:                                "4.0.3 - SAP HANA Scale-out: Set SSH key type based on OS version"
+  ansible.builtin.set_fact:
+    ssh_key_type:                      "{{ 'ed25519' if (ansible_distribution_major_version | int >= 16 and ansible_os_family | upper == 'SUSE') else 'rsa' }}"
+    ssh_key_file:                      "{{ '/root/.ssh/id_ed25519' if (ansible_distribution_major_version | int >= 16 and ansible_os_family | upper == 'SUSE') else '/root/.ssh/id_rsa' }}"
+
 - name:                                "4.0.3 - SAP HANA Scale-out: Check if SSH key already exists"
   become:                              true
   become_user:                         root
   ansible.builtin.stat:
-    path:                              /root/.ssh/id_rsa
+    path:                              "{{ ssh_key_file }}"
   register:                            ssh_key_exists
 
-- name:                                "4.0.3 - SAP HANA Scale-out: Generate SSH key pair on primary instance"
+- name:                                "4.0.3 - SAP HANA Scale-out: Generate SSH key pair on primary instance (RSA)"
   when:
                                        - ansible_hostname == primary_instance_name
                                        - not ssh_key_exists.stat.exists
+                                       - ssh_key_type == 'rsa'
   become:                              true
   become_user:                         root
   ansible.builtin.command:
@@ -65,12 +71,24 @@
     creates:                           /root/.ssh/id_rsa
   register:                            ssh_key_generation
 
+- name:                                "4.0.3 - SAP HANA Scale-out: Generate SSH key pair on primary instance (ed25519)"
+  when:
+                                       - ansible_hostname == primary_instance_name
+                                       - not ssh_key_exists.stat.exists
+                                       - ssh_key_type == 'ed25519'
+  become:                              true
+  become_user:                         root
+  ansible.builtin.command:
+    cmd:                               ssh-keygen -t ed25519 -f /root/.ssh/id_ed25519 -N '' -C "{{ ansible_hostname }}-hana-so-cluster"
+    creates:                           /root/.ssh/id_ed25519
+  register:                            ssh_key_generation
+
 - name:                                "4.0.3 - SAP HANA Scale-out: Read public key from primary instance"
   when:                                ansible_hostname == primary_instance_name
   become:                              true
   become_user:                         root
   ansible.builtin.slurp:
-    src:                               /root/.ssh/id_rsa.pub
+    src:                               "{{ ssh_key_file }}.pub"
   register:                            hana_public_key
 
 
@@ -79,7 +97,7 @@
   become:                              true
   become_user:                         root
   ansible.builtin.slurp:
-    src:                               /root/.ssh/id_rsa
+    src:                               "{{ ssh_key_file }}"
   register:                            hana_private_key
 
 - name:                                "4.0.3 - SAP HANA Scale-out: Set key facts for distribution"
@@ -100,7 +118,7 @@
                                        - inventory_hostname in all_hana_hosts
   ansible.builtin.copy:
     content:                           "{{ cluster_private_key }}"
-    dest:                              /root/.ssh/id_rsa
+    dest:                              "{{ ssh_key_file }}"
     owner:                             root
     group:                             root
     mode:                              '0600'
@@ -115,7 +133,7 @@
                                        - inventory_hostname in all_hana_hosts
   ansible.builtin.copy:
     content:                           "{{ cluster_public_key }}"
-    dest:                              /root/.ssh/id_rsa.pub
+    dest:                              "{{ ssh_key_file }}.pub"
     owner:                             root
     group:                             root
     mode:                              '0644'

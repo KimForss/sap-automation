@@ -149,6 +149,17 @@
   ansible.builtin.user:
     name:                              hacluster
     password:                          "{{ password_ha_db_cluster | password_hash('sha512', 65534 | random(seed=None) | string) }}"
+- name:                                "1.18.2.0 Generic Pacemaker - Set Corosync v3 params for SLES 16+"
+  when:
+                                       - ansible_distribution_major_version | int >= 16
+  ansible.builtin.set_fact:
+    corosync_crypto_config:            |-
+      crypto_model:        nss
+      crypto_hash:         sha256
+      crypto_cipher:       aes256
+    corosync_interface_config:         ""
+    corosync_transport:                knet
+
 - name:                                "1.18.2.0 Generic Pacemaker - Ensure cluster configuration contains correct details"
   ansible.builtin.template:
     src:                               corosync.conf.j2

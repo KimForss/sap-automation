@@ -170,6 +170,7 @@
 - name:                                           "1.17 Generic Pacemaker - Configure SSH Keys for inter-node communication as root for SUSE"
   when:
                                                   - ansible_os_family | upper == "SUSE"
+                                                  - ansible_distribution_major_version | int < 16
   block:
     - name:                                       "1.17 Generic Pacemaker - Ensure there are SSH keys for the root user to communicate between nodes"
       ansible.builtin.shell:                      ssh-keygen -b 4096 -t rsa -f /root/.ssh/id_rsa -q -N ""
@@ -189,6 +190,42 @@
     - name:                                       "1.17 Generic Pacemaker - Set SSH fact"
       ansible.builtin.set_fact:
         cluster_public_ssh_key:                   "{{ cluster_public_ssh_key.stdout }}"
+
+    - name:                                       "1.17 Generic Pacemaker - Add public key to authorized_keys for root user"
+      ansible.posix.authorized_key:
+        user:                                     root
+        key:                                      "{{ cluster_public_ssh_key }}"
+        state:                                    present
+
+- name:                                           "1.17 Generic Pacemaker - Configure SSH Keys (ed25519) for inter-node communication as root for SUSE 16+"
+  when:
+                                                  - ansible_os_family | upper == "SUSE"
+                                                  - ansible_distribution_major_version | int >= 16
+  block:
+    - name:                                       "1.17 Generic Pacemaker - Ensure there are ed25519 SSH keys for the root user"
+      ansible.builtin.shell:                      ssh-keygen -t ed25519 -f /root/.ssh/id_ed25519 -q -N ""
+      args:
+        creates:                                  /root/.ssh/id_ed25519
+
+    - name:                                       "1.17 Generic Pacemaker - Ensure there is a public key for the root user ed25519 SSH key"
+      ansible.builtin.shell:                      ssh-keygen -f /root/.ssh/id_ed25519 -y > /root/.ssh/id_ed25519.pub
+      args:
+        creates:                                  /root/.ssh/id_ed25519.pub
+
+    - name:                                       "1.17 Generic Pacemaker - Ensure the Public SSH keys are available for exchanging SSH key trust between nodes"
+      ansible.builtin.command:                    cat /root/.ssh/id_ed25519.pub
+      register:                                   cluster_public_ssh_key
+      changed_when:                               false
+
+    - name:                                       "1.17 Generic Pacemaker - Set SSH fact"
+      ansible.builtin.set_fact:
+        cluster_public_ssh_key:                   "{{ cluster_public_ssh_key.stdout }}"
+
+    - name:                                       "1.17 Generic Pacemaker - Add public key to authorized_keys for root user"
+      ansible.posix.authorized_key:
+        user:                                     root
+        key:                                      "{{ cluster_public_ssh_key }}"
+        state:                                    present
 
 
 - name:                                           "1.17 Generic Pacemaker - Wait for ssh key facts to be present"

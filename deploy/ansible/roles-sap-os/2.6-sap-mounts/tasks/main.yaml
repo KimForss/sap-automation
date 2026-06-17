@@ -325,6 +325,13 @@
     - node_tier != 'oracle-multi-sid'
     - sap_mnt is undefined
 
+- name:                                "2.6 SAP Mounts - Force simple mount for SLES 16+"
+  when:
+    - ansible_os_family | upper == "SUSE"
+    - ansible_distribution_major_version | int >= 16
+  ansible.builtin.set_fact:
+    use_simple_mount:                  true
+
 # Import this task only if the any of the AFS mountpoints are defined
 - name:                                "2.6 SAP Mounts - Import AFS tasks"
   ansible.builtin.import_tasks:        2.6.0-afs-mounts.yaml

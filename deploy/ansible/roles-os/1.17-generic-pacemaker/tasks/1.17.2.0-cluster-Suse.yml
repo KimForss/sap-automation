@@ -148,6 +148,17 @@
     name:                              hacluster
     password:                          "{{ password_ha_db_cluster | password_hash('sha512', 65534 | random(seed=None) | string) }}"
 
+- name:                                "1.17 Generic Pacemaker - Set Corosync v3 params for SLES 16+"
+  when:
+                                       - ansible_distribution_major_version | int >= 16
+  ansible.builtin.set_fact:
+    corosync_crypto_config:            |-
+      crypto_model:        nss
+      crypto_hash:         sha256
+      crypto_cipher:       aes256
+    corosync_interface_config:         ""
+    corosync_transport:                knet
+
 - name:                                "1.17 Generic Pacemaker - Ensure cluster configuration contains correct details"
   ansible.builtin.template:
     src:                               corosync.conf.j2
@@ -230,7 +241,7 @@
       failed_when:                     crm_configure_result.rc > 1
       when:
         - use_msi_for_clusters
-        - distribution_full_id in ["sles_sap12.5", "sles_sap15.1","sles_sap15.2", "sles_sap15.3", "sles_sap15.4", "sles_sap15.5", "sles_sap15.6", "sles_sap15.7"]
+        - distribution_full_id in ["sles_sap12.5", "sles_sap15.1","sles_sap15.2", "sles_sap15.3", "sles_sap15.4", "sles_sap15.5", "sles_sap15.6", "sles_sap15.7", "sles_sap16.0"]
 
 
     - name:                            "1.17 Generic Pacemaker - Stonith Timeout Property"
