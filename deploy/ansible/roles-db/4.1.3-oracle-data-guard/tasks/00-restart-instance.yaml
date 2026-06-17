@@ -111,7 +111,7 @@
       become:                          true
       become_user:                     root
       ansible.builtin.file:
-        path:                          "/oracle/{{ db_sid | upper }}/{{ ora_version }}/dbs/ls{{ current_sid }}"
+        path:                          "/oracle/{{ db_sid | upper }}/{{ ora_version }}/dbs/lk{{ current_sid }}"
         state:                         absent
       failed_when:                     false
 
