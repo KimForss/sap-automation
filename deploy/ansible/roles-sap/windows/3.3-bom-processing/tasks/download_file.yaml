@@ -29,5 +29,6 @@
     path:                              "{{ result.dest }}"
     state:                             absent
   delegate_to:                         localhost
+  become:                              "{{ bom_processing_become }}"
 
 ...
