@@ -51,6 +51,8 @@
     regexp:                            "^#?\\s*CLOUD_NETCONFIG_MANAGE="
     line:                              "CLOUD_NETCONFIG_MANAGE='no'"
   when:
+                                       - ansible_distribution_major_version | int < 16
+                                       - ansible_facts.packages['cloud-netconfig-azure'] is defined
                                        - ansible_facts.packages['cloud-netconfig-azure']
                                        - ansible_facts.packages['cloud-netconfig-azure'][0].version is version('1.3', '<')
 
