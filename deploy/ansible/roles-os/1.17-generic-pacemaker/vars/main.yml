@@ -133,5 +133,5 @@ package_versions:
   # SUSE Linux 16 ships Pacemaker 3 and Corosync 3; fence agents are packaged separately
   sles_sap16.0:
     - {name: "pacemaker",               version: "3.0.0",   compare_operator: ">=", version_type: "loose"}
-    - {name: "resource-agents-cloud",   version: "4.10.0",  compare_operator: ">=", version_type: "loose"}
+    - {name: "resource-agents",         version: "4.10.0",  compare_operator: ">=", version_type: "loose"}
     - {name: "fence-agents-azure-arm",  version: "4.10.0",  compare_operator: ">=", version_type: "loose"}

@@ -665,8 +665,7 @@ packages:
     - { tier: 'os',     package: 'unzip',                                        node_tier: 'db2',            state: 'present' }
     - { tier: 'db2',    package: 'acl',                                          node_tier: 'db2',            state: 'present' }
     # --------------------------- End - Packages required for DB2 -------------------------------------------8
-    - { tier: 'sapos',  package: 'nfs-utils',                                    node_tier: 'all',            state: 'present' }
-    - { tier: 'sapos',  package: 'nfs4-acl-tools',                               node_tier: 'all',            state: 'present' }
+    - { tier: 'sapos',  package: 'nfs-client',                                   node_tier: 'all',            state: 'present' }
     - { tier: 'sapos',  package: 'saptune',                                      node_tier: 'all',            state: 'present' }
     - { tier: 'sapos',  package: 'libgcc_s1',                                    node_tier: 'all',            state: 'present' }
     - { tier: 'sapos',  package: 'libstdc++6',                                   node_tier: 'all',            state: 'present' }
@@ -677,7 +676,7 @@ packages:
     - { tier: 'ha',     package: 'acl',                                          node_tier: 'hana',           state: 'present' }
     - { tier: 'ha',     package: 'socat',                                        node_tier: 'all' ,           state: 'present' }
     - { tier: 'ha',     package: 'corosync',                                     node_tier: 'hana',           state: 'present' }
-    - { tier: 'ha',     package: 'resource-agents-cloud',                        node_tier: 'all',            state: 'present' }
+    - { tier: 'ha',     package: 'resource-agents',                              node_tier: 'all',            state: 'present' }
     - { tier: 'ha',     package: 'fence-agents-azure-arm',                       node_tier: 'hana',           state: 'present' }
     - { tier: 'ha',     package: 'azure-cli',                                    node_tier: 'hana',           state: 'present' }
     - { tier: 'ha',     package: 'azure-cli',                                    node_tier: 'scs',            state: 'present' }
@@ -700,9 +699,6 @@ packages:
     - { tier: 'ha',     package: 'fence-agents-azure-arm',                       node_tier: 'scs',            state: 'present' }
     - { tier: 'ha',     package: 'fence-agents-azure-arm',                       node_tier: 'ers',            state: 'present' }
     - { tier: 'ha',     package: 'fence-agents-azure-arm',                       node_tier: 'hana',           state: 'present' }
-    - { tier: 'ha',     package: 'resource-agents-cloud',                        node_tier: 'scs',            state: 'present' }
-    - { tier: 'ha',     package: 'resource-agents-cloud',                        node_tier: 'ers',            state: 'present' }
-    - { tier: 'ha',     package: 'resource-agents-cloud',                        node_tier: 'hana',           state: 'present' }
   # Adding packages for Oracle linux 8.4 to start with, copied the list from RHEL.
   # Adding additional Oracle linux packages as per SAP Note 2069760 - Oracle Linux 7.x SAP Installation and
   # Upgrade. Need to add the groupinstall command.
