@@ -130,6 +130,20 @@
     PsDscRunAsCredential_password:     "{{ domain_service_password }}"
   when:
     - ansible_hostname == primary_node
+    - distribution_id == "microsoft windows server 2022 datacenter10"
+
+
+- name:                                "WinCluster-Create: Create quorum resource"
+  become:                              true
+  become_method:                       ansible.builtin.runas
+  become_user:                         '{{ sap_sid }}adm@{{ domain_name }}'
+  ansible.windows.win_powershell:
+    script: |
+                                       Set-ClusterQuorum -CloudWitness -AccountName {{ witness_storage_account_name }} -UseManagedIdentity -Cluster {{ cluster_name }}
+  when:
+    - ansible_hostname == primary_node
+    - distribution_id != "microsoft windows server 2022 datacenter10"
+
 
 - name:                                "WinCluster-Create: Add shared disk resource to cluster (only execute on scs node)"
   become:                              true
