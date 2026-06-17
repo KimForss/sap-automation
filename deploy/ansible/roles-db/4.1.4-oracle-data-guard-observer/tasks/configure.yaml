@@ -263,7 +263,7 @@
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell: |
-                                       $ORACLE_HOME/OPatch/opatch apply -silent
+                                       $ORACLE_HOME/OPatch/opatch napply -silent
   register:                            orainstaller_results
   failed_when:                         orainstaller_results.rc >= 2              # installer returns rc=1 (exited with warning) by default when run is silent mode as the oratab file is created only after running the root.sh
   environment:                         "{{ oracle_env }}"
