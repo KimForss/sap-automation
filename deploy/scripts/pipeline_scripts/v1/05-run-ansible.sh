@@ -130,6 +130,11 @@ else
 	sudo chmod 600 "$SSH_KEY_NAME"
 fi
 
+if [ ! -s "$SSH_KEY_NAME" ]; then
+	echo "##[error]SSH key file '$SSH_KEY_NAME' is missing or empty. Verify that secret '$SSH_KEY_NAME' exists in Key Vault '$key_vault_name' and that the service principal has access."
+	exit 1
+fi
+
 password_secret=$(az keyvault secret show --name "$PASSWORD_KEY_NAME" --vault-name "$key_vault_name" --subscription "$key_vault_subscription" --query value --output tsv)
 user_name=$(az keyvault secret show --name "$USERNAME_KEY_NAME" --vault-name "$key_vault_name" --subscription "$key_vault_subscription" --query value -o tsv)
 
