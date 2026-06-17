@@ -48,7 +48,6 @@
           --output tsv
       changed_when:                    false
       register:                        kv_secret_show_wincluster_witness_key_value
-      no_log:                          false
 
     - name:                            "0.2 Key Vault - WinCluster: - Extract witness storage account key"
       ansible.builtin.set_fact:
@@ -68,13 +67,11 @@
           --output tsv
       changed_when:                    false
       register:                        kv_secret_show_wincluster_witness_name
-      no_log:                          true
 
     - name:                            "0.2 Key Vault - WinCluster: - Extract witness storage account"
       ansible.builtin.set_fact:
         witness_storage_account_name:  "{{ kv_secret_show_wincluster_witness_name.stdout }}"
         cacheable:                     true
-      no_log:                          true
 
   when:
     - platform | upper == "SQLSERVER"
