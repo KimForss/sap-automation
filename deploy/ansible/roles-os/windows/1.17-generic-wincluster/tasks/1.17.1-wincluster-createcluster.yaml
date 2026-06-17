@@ -133,7 +133,7 @@
     - distribution_id == "microsoft windows server 2022 datacenter10"
 
 
-- name:                                "WinCluster-Create: Create quorum resource"
+- name:                                "WinCluster-Create: Create quorum resource using Managed Identity"
   become:                              true
   become_method:                       ansible.builtin.runas
   become_user:                         '{{ sap_sid }}adm@{{ domain_name }}'
