@@ -507,7 +507,7 @@ resource "azurerm_key_vault_secret" "sid_ppk" {
                                         }
   lifecycle {
     ignore_changes = [ expiration_date]
-  } 
+  }
 }
 
 data "azurerm_key_vault_secret" "sid_ppk" {
@@ -547,7 +547,7 @@ resource "azurerm_key_vault_secret" "sid_pk" {
                                           delete = "5m"
                                         }
 }
-  
+
 data "azurerm_key_vault_secret" "sid_pk" {
   provider                             = azurerm.main
   depends_on                           = [
@@ -727,6 +727,53 @@ resource "azurerm_key_vault_secret" "witness_access_key" {
                                           delete = "5m"
                                         }
 }
+
+//Witness name
+resource "azurerm_key_vault_secret" "witness_name" {
+  provider                             = azurerm.main
+  depends_on                           = [
+                                           time_sleep.wait_for_role_assignment,
+                                           azurerm_private_endpoint.kv_user,
+                                           azurerm_private_dns_zone_virtual_network_link.vault
+                                         ]
+  count                                = 1
+  content_type                         = "secret"
+  name                                 = replace(
+                                          format("%s%s%s",
+                                            length(local.prefix) > 0 ? (
+                                              local.prefix) : (
+                                              var.infrastructure.environment
+                                            ),
+                                            var.naming.separator,
+                                            local.resource_suffixes.witness_name
+                                          ),
+                                          "/[^A-Za-z0-9-]/",
+                                          ""
+                                        )
+  value                                = length(var.witness_storage_account.id) > 0 ? (
+                                           data.azurerm_storage_account.witness_storage[0].name) : (
+                                           azurerm_storage_account.witness_storage[0].name
+                                         )
+  key_vault_id                         = var.key_vault.user.exists ? (
+                                           data.azurerm_key_vault.kv_user[0].id) : (
+                                           azurerm_key_vault.kv_user[0].id
+                                         )
+  expiration_date                       = var.key_vault.set_secret_expiry ? (
+                                           time_offset.secret_expiry_date.rfc3339) : (
+                                           null
+                                         )
+
+  lifecycle {
+    ignore_changes = [ expiration_date]
+  }
+
+  timeouts                              {
+                                          read   = "1m"
+                                          create = "5m"
+                                          delete = "5m"
+                                        }
+}
+
 
 resource "azurerm_key_vault_secret" "subscription" {
   provider                             = azurerm.deployer
