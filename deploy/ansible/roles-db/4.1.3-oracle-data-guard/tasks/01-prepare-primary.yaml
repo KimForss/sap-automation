@@ -353,4 +353,6 @@
     timeout:                           10
   loop:                                 "{{ ansible_play_hosts_all }}"
   when:                                item != inventory_hostname
+  failed_when:                         false
+  register:                            connectivity_check
 ...
