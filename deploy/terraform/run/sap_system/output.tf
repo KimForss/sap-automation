@@ -253,3 +253,9 @@ output "subscription_id_used"          {
                                          value       = length(var.subscription_id) > 0 ? var.subscription_id : data.azurerm_key_vault_secret.subscription_id[0].value
                                          sensitive   = true
                                        }
+
+
+output "database_shared_disks" {
+                                         description = "Shared disks for anydb cluster"
+                                         value       = module.anydb_node.database_shared_disks
+                                       }
