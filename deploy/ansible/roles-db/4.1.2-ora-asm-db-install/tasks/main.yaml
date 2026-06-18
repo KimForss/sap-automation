@@ -107,11 +107,6 @@
     ApplyRU:                           "{{ patch_grid_path }}"
     OracleImage:                       "{{ target_media_location }}/oraserver/LINUX_X86_64/db_home/LINUX.X64_193000_db_home.zip"
 
-- name:                                "4.1.2 Oracle ASM database software Installation - Set SID"
-  ansible.builtin.set_fact:
-    this_sid:                          "{% if ora_primary == ansible_hostname %}{{ db_sid | upper }}{% else %}{{ db_sid | upper }}_STDBY{% endif %}"
-
-
 - name:                                "4.1.2 Oracle ASM database software Installation - OPatch ID"
   ansible.builtin.debug:
     msg:
@@ -129,11 +124,11 @@
     block: |
         # User Specific environment
         export ORACLE_HOME=/oracle/{{ db_sid | upper }}/{{ ora_version }}
-        export ORACLE_SID={{ this_sid }}
+        export ORACLE_SID={{ db_sid | upper }}
         export ORACLE_BASE=/oracle
         export LD_LIBRARY_PATH=$ORACLE_HOME/lib
         export TNS_ADMIN=$ORACLE_HOME/network/admin
-        export DB_SID={{ this_sid }}
+        export DB_SID={{ db_sid | upper }}
         PATH="$PATH:$ORACLE_HOME/bin"
         export PATH
 
@@ -148,11 +143,11 @@
     block: |
         # User Specific environment
         setenv  ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
-        setenv  ORACLE_SID  {{ this_sid }}
+        setenv  ORACLE_SID  {{ db_sid | upper }}
         setenv  ORACLE_BASE /oracle
         setenv  LD_LIBRARY_PATH $ORACLE_HOME/lib
         setenv  TNS_ADMIN $ORACLE_HOME/network/admin
-        setenv  DB_SID {{ this_sid }}
+        setenv  DB_SID {{ db_sid | upper }}
         set path = ($path $ORACLE_HOME/bin)
     mode:                              '0755'
 
