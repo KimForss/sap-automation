@@ -15,26 +15,17 @@
   args:
     chdir:                             "/etc/sap_deployment_automation/dataguard_scripts/"
 
-- name:                                "4.1.3 Oracle Data Guard - Post deployment on Secondary - Set the SGA and PGA Sizes for RAM < 4TB"
+- name:                                "4.1.3 Oracle Data Guard - Post deployment on Secondary - Set Memory Variables"
   ansible.builtin.set_fact:
-    main_mem1:                         "{{ ansible_memory_mb.real.total }}"
+    pga_temp_l4tb_dis:                 "{{ ((ansible_memory_mb.real.total * 0.80 ) * 0.2) | round | int }}"
+    main_memory:                       "{{ ansible_memory_mb.real.total }}"
     ora_sga:                           "{{ (ansible_memory_mb.real.total * 0.60) | round | int }}"
-    ora_pga:                           "{{ [(pga_temp_l4tb_std | int), 4194304] | min }}"
-
-  when:
-    - ansible_memory_mb.real.total < 4194304
-- name:                                "4.1.3 Oracle Data Guard - Post deployment on Secondary - Set the SGA and PGA Sizes for RAM < 4TB Single Node Deployments"
-  ansible.builtin.set_fact:
-    main_mem1:                         "{{ ansible_memory_mb.real.total }}"
-    ora_sga:                           "{{ (ansible_memory_mb.real.total * 0.75) | round | int }}"
-    ora_pga:                           "{{ [(pga_temp_l4tb_std | int), 4194304] | min }}"
-  when:
-    - ansible_memory_mb.real.total < 4194304
+    ora_pga:                           "{{ [(pga_temp_l4tb_dis | int), 4194304] | min }}"
 
 - name:                                "4.1.3 Oracle Data Guard - Post deployment on Secondary - Show Main Memory"
   ansible.builtin.debug:
     msg:
-      - "Total memory:         {{ main_mem1 }}"
+      - "Total memory:         {{ main_memory }}"
       - "sga_max_size:         {{ ora_sga }}"
       - "pga_aggregate_target: {{ ora_pga }}"
 
