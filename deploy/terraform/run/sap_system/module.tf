@@ -327,7 +327,7 @@ module "output_files" {
   configuration_settings                        = var.configuration_settings
   database                                      = local.database
   database_shared_disks                         = concat(
-                                                    module.hdb_node.database_shared_disks) : (
+                                                    module.hdb_node.database_shared_disks,
                                                     module.anydb_node.database_shared_disks
                                                   )
   is_use_fence_kdump                            = var.use_fence_kdump
