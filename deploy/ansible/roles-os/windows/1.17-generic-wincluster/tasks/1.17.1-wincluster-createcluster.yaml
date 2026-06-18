@@ -116,21 +116,6 @@
     ansible_winrm_transport:              credssp
     ansible_winrm_server_cert_validation: ignore
 
-- name:                                "WinCluster-Create: Create quorum resource"
-  become:                              true
-  become_method:                       ansible.builtin.runas
-  become_user:                         '{{ sap_sid }}adm@{{ domain_name }}'
-  ansible.windows.win_dsc:
-    resource_name:                     ClusterQuorum
-    Type:                              "NodeAndDiskMajority" #NodeAndCloudMajority"
-    IsSingleInstance:                  "Yes"
-    Resource:                          'Witness Cluster Disk' #"{{ witness_storage_account_name }}"
-    #StorageAccountAccessKey:           "{{ witness_storage_account_key }}"
-    PsDscRunAsCredential_username:     "{{ domain_service_account }}@{{ domain_name }}"
-    PsDscRunAsCredential_password:     "{{ domain_service_password }}"
-  when:
-    - ansible_hostname == primary_node
-
 
 - name:                                "WinCluster-Create: Add shared disk resource to cluster (only execute on scs node)"
   become:                              true
@@ -219,5 +204,21 @@
         - clu_shared_disk_number is defined
         - clu_shared_disk_number | type_debug != 'NoneType'
         - clu_shared_disk_number | trim | length >= 1
+
+- name:                                "WinCluster-Create: Create quorum resource"
+  become:                              true
+  become_method:                       ansible.builtin.runas
+  become_user:                         '{{ sap_sid }}adm@{{ domain_name }}'
+  ansible.windows.win_dsc:
+    resource_name:                     ClusterQuorum
+    Type:                              "NodeAndDiskMajority" #NodeAndCloudMajority"
+    IsSingleInstance:                  "Yes"
+    Resource:                          'Witness Cluster Disk' #"{{ witness_storage_account_name }}"
+    #StorageAccountAccessKey:           "{{ witness_storage_account_key }}"
+    PsDscRunAsCredential_username:     "{{ domain_service_account }}@{{ domain_name }}"
+    PsDscRunAsCredential_password:     "{{ domain_service_password }}"
+  when:
+    - ansible_hostname == primary_node
+
 
 ...
