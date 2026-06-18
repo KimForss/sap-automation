@@ -122,15 +122,15 @@
   become_method:                       ansible.builtin.runas
   become_user:                         '{{ sap_sid }}adm@{{ domain_name }}'
   when:
-    - scs_high_availability
-    - "'scs' in supported_tiers"
+    - ( scs_high_availability and "'scs' in supported_tiers" ) or (
+        database_high_availability and "'sqlserver' in supported_tiers" )
     - ansible_hostname == primary_node
   block:
     # We expect to see only one disk added, so get the first disk number.
     - name:                            "WinCluster-Create: Get shared disk resource"
       ansible.windows.win_powershell:
         script: |
-                                       Get-Disk | Where-Object PartitionStyle -eq 'RAW' | Select-Object -ExpandProperty Number -First 1
+                                       Get-Disk | Where-Object PartitionStyle -eq 'RAW' | Where-Object { $_.Location -notmatch 'LUN 0$' } | Select-Object -ExpandProperty Number -First 1
       register:                        shared_disk
 
     - name:                            "WinCluster-Create: Print the shared disk output"
@@ -211,10 +211,10 @@
   become_user:                         '{{ sap_sid }}adm@{{ domain_name }}'
   ansible.windows.win_dsc:
     resource_name:                     ClusterQuorum
-    Type:                              "NodeAndDiskMajority" #NodeAndCloudMajority"
+    Type:                              "NodeAndDiskMajority" # NodeAndCloudMajority"
     IsSingleInstance:                  "Yes"
-    Resource:                          'Witness Cluster Disk' #"{{ witness_storage_account_name }}"
-    #StorageAccountAccessKey:           "{{ witness_storage_account_key }}"
+    Resource:                          'Witness Cluster Disk' # "{{ witness_storage_account_name }}"
+    # StorageAccountAccessKey:           "{{ witness_storage_account_key }}"
     PsDscRunAsCredential_username:     "{{ domain_service_account }}@{{ domain_name }}"
     PsDscRunAsCredential_password:     "{{ domain_service_password }}"
   when:
