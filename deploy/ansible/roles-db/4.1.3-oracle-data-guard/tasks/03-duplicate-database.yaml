@@ -2,42 +2,46 @@
 
 # In dg_duplicate/tasks/main.yml
 
-- name:                                "4.1.3 Oracle Data Guard - Duplicate - Check if standby already restored"
+- name:                                "4.1.3 Oracle Data Guard - Duplicate - ASM"
   when:                                node_tier == "oracle-asm"
   become_user:                         "{{ oracle_user_name }}"
   become:                              true
-  ansible.builtin.shell: |
+  block:
+
+    - name:                            "4.1.3 Oracle Data Guard - Duplicate - Check if standby already restored"
+      ansible.builtin.shell: |
                                        export ORACLE_SID={{ db_sid | upper }}_STDBY
                                        sqlplus -S sys/'{{ main_password }}'@{{ db_sid | upper }}_STDBY as sysdba <<EOF
                                        SET PAGESIZE 0 FEEDBACK OFF
                                        SELECT COUNT(*) FROM v\$datafile WHERE name LIKE '+DATA/{{ db_sid | upper }}_STDBY%';
                                        EXIT;
                                        EOF
-  register:                            datafile_count
-  environment:                         "{{ oracle_standby_env }}"
-  args:
-    chdir:                             "/etc/sap_deployment_automation/dataguard_scripts/"
-  changed_when:                        false
-  failed_when:                         false
+      register:                        datafile_count
+      environment:                     "{{ oracle_standby_env }}"
+      args:
+        chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
+      changed_when:                    false
+      failed_when:                     false
 
-- name:                                "4.1.3 Oracle Data Guard - Duplicate - Check if standby already restored"
+- name:                                "4.1.3 Oracle Data Guard - Duplicate - ASM"
   when:                                node_tier == "oracle"
   become_user:                         "{{ oracle_user_name }}"
-
   become:                              true
-  ansible.builtin.shell: |
-                                       export ORACLE_SID={{ db_sid | upper }}_STDBY
-                                       sqlplus -S sys/'{{ main_password }}'@{{ db_sid | upper }}_STDBY as sysdba <<EOF
-                                       SET PAGESIZE 0 FEEDBACK OFF
-                                       SELECT COUNT(*) FROM v\$datafile;
-                                       EXIT;
-                                       EOF
-  register:                            datafile_count
-  environment:                         "{{ oracle_standby_env }}"
-  args:
-    chdir:                             "/etc/sap_deployment_automation/dataguard_scripts/"
-  changed_when:                        false
-  failed_when:                         false
+  block:
+    - name:                            "4.1.3 Oracle Data Guard - Duplicate - Check if standby already restored"
+      ansible.builtin.shell: |
+                                        export ORACLE_SID={{ db_sid | upper }}_STDBY
+                                        sqlplus -S sys/'{{ main_password }}'@{{ db_sid | upper }}_STDBY as sysdba <<EOF
+                                        SET PAGESIZE 0 FEEDBACK OFF
+                                        SELECT COUNT(*) FROM v\$datafile;
+                                        EXIT;
+                                        EOF
+      register:                         datafile_count
+      environment:                      "{{ oracle_standby_env }}"
+      args:
+        chdir:                          "/etc/sap_deployment_automation/dataguard_scripts/"
+      changed_when:                     false
+      failed_when:                      false
 
 - name:                                "4.1.3 Oracle Data Guard - Duplicate - Determine if RMAN duplicate is required"
   ansible.builtin.set_fact:
@@ -60,43 +64,42 @@
         current_sid:                   "{{ db_sid | upper }}_STDBY"
         use_pfile_on_startup:           true
 
+- name:                                "4.1.3 Oracle Data Guard - Run TNSPING to check connectivity to primary database"
+  become_user:                         "{{ oracle_user_name }}"
+  become:                              true
+  ansible.builtin.shell: |
+                                       tnsping {{ db_sid | upper }}
+  environment:                         "{{ oracle_env }}"
+  args:
+    chdir:                             "/etc/sap_deployment_automation/dataguard_scripts/"
+  register:                            tnsping_result
+  failed_when:                         false
+
+- name:                                "4.1.3 Oracle Data Guard - tnsping result"
+  ansible.builtin.debug:
+    msg:
+      - "TNSPING result (primary): {{ tnsping_result.stdout | default('UNKNOWN') }}"
+
+- name:                                "4.1.3 Oracle Data Guard - Run TNSPING to check connectivity to secondary database"
+  become_user:                         "{{ oracle_user_name }}"
+  become:                              true
+  ansible.builtin.shell: |
+                                       tnsping {{ db_sid | upper }}_STDBY
+  environment:                         "{{ oracle_standby_env }}"
+  args:
+    chdir:                             "/etc/sap_deployment_automation/dataguard_scripts/"
+  register:                            tnsping_secondary_result
+  failed_when:                         false
+
+- name:                                "4.1.3 Oracle Data Guard - tnsping result"
+  ansible.builtin.debug:
+    msg:
+      - "TNSPING result (secondary): {{ tnsping_secondary_result.stdout | default('UNKNOWN') }}"
+
 - name:                                "4.1.3 Oracle Data Guard - Configure Data Guard"
   when:
     - rman_duplication_required
   block:
-
-    - name:                            "4.1.3 Oracle Data Guard - Run TNSPING to check connectivity to primary database"
-      become_user:                     "{{ oracle_user_name }}"
-      become:                          true
-      ansible.builtin.shell: |
-                                       tnsping {{ db_sid | upper }}
-      environment:                     "{{ oracle_env }}"
-      args:
-        chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
-      register:                        tnsping_result
-      failed_when:                     false
-
-    - name:                            "4.1.3 Oracle Data Guard - tnsping result"
-      ansible.builtin.debug:
-        msg:
-          - "TNSPING result: {{ tnsping_result.stdout | default('UNKNOWN') }}"
-
-    - name:                            "4.1.3 Oracle Data Guard - Run TNSPING to check connectivity to secondary database"
-      become_user:                     "{{ oracle_user_name }}"
-      become:                          true
-      ansible.builtin.shell: |
-                                       tnsping {{ db_sid | upper }}_STDBY
-      environment:                     "{{ oracle_env }}"
-      args:
-        chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
-      register:                        tnsping_secondary_result
-      failed_when:                     false
-
-    - name:                            "4.1.3 Oracle Data Guard - tnsping result"
-      ansible.builtin.debug:
-        msg:
-          - "TNSPING result: {{ tnsping_secondary_result.stdout | default('UNKNOWN') }}"
-
 
     - name:                            "4.1.3 Oracle Data Guard - information"
       ansible.builtin.debug:
@@ -125,7 +128,7 @@
                                        NOFILENAMECHECK;
                                        EXIT;
                                        EOF
-      environment:                     "{{ oracle_env }}"
+      environment:                     "{{ oracle_standby_env }}"
       args:
         chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
       register:                        rman_duplicate
@@ -153,7 +156,7 @@
                                        NOFILENAMECHECK;
                                        EXIT;
                                        EOF
-      environment:                     "{{ oracle_env }}"
+      environment:                     "{{ oracle_standby_env }}"
       args:
         chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
       register:                        rman_duplicate
@@ -209,7 +212,7 @@
                                        NOFILENAMECHECK;
                                        EXIT;
                                        EOF
-      environment:                     "{{ oracle_env }}"
+      environment:                     "{{ oracle_standby_env }}"
       args:
         chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
       register:                        rman_duplicate
@@ -237,7 +240,7 @@
                                        NOFILENAMECHECK;
                                        EXIT;
                                        EOF
-      environment:                     "{{ oracle_env }}"
+      environment:                     "{{ oracle_standby_env }}"
       args:
         chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
       register:                        rman_duplicate
