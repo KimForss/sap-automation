@@ -18,7 +18,7 @@
 # by default the cluster is created with nostorage option
 # https://github.com/dsccommunity/FailoverClusterDsc/blob/main/source/DSCResources/DSC_Cluster/DSC_Cluster.psm1#L204
 
-- name:                                "WinCluster-Create: Calculating the domain value from {{ domain_name }}"
+- name:                                "1.17.1 Windows Clustering - Calculating the domain value from {{ domain_name }}"
   ansible.builtin.set_fact:
     domain:                            "{{ domain_name | split('.') | first }}"
     cacheable:                         true
@@ -28,7 +28,7 @@
     - domain_name | trim | length > 1
     - domain is not defined
 
-- name:                                "WinCluster-Create: Print the variables for {{ cluster_name }}"
+- name:                                "1.17.1 Windows Clustering - Print the variables for {{ cluster_name }}"
   ansible.builtin.debug:
     msg:
       - "ClusterName is {{ cluster_name }}"
@@ -41,7 +41,7 @@
     - domain | type_debug != 'NoneType'
     - domain | trim | length > 1
 
-- name:                                "WinCluster-Create: Create windows cluster on the first node"
+- name:                                "1.17.1 Windows Clustering - Create windows cluster on the first node"
   when:
     - ansible_hostname == primary_node
   become:                              true
@@ -58,33 +58,33 @@
     ansible_winrm_server_cert_validation: ignore
   register: cluster_creation
 
-- name:                                "WinCluster-Create: Give DNS time to update info"
+- name:                                "1.17.1 Windows Clustering - Give DNS time to update info"
   when:
     - cluster_creation is changed
   ansible.builtin.debug:
     msg:
       - "Give DNS time 120 seconds to update"
 
-- name:                                "WinCluster-Create: Give DNS time to update"
+- name:                                "1.17.1 Windows Clustering - Give DNS time to update"
   when:
     - ansible_hostname == primary_node
     - cluster_creation is changed
   ansible.builtin.pause:
     seconds:                           120
 
-- name:                                "WinCluster-Create: Tasks for secondary nodes"
+- name:                                "1.17.1 Windows Clustering - Tasks for secondary nodes"
   become:                              true
   become_method:                       ansible.builtin.runas
   become_user:                         '{{ sap_sid }}adm@{{ domain_name }}'
   block:
-    - name:                            "WinCluster-Create: Wait for cluster to be created"
+    - name:                            "1.17.1 Windows Clustering - Wait for cluster to be created"
       ansible.windows.win_dsc:
         resource_name:                  WaitForCluster
         Name:                           "{{ cluster_name }}"
         RetryIntervalSec:               10
         RetryCount:                     60
 
-    - name:                            "WinCluster-Create: Create windows cluster on the second node"
+    - name:                            "1.17.1 Windows Clustering - Create windows cluster on the second node"
       ansible.windows.win_dsc:
         resource_name:                 Cluster
         StaticIPAddress:               "{{ cluster_ip_address }}"
@@ -92,18 +92,18 @@
         PsDscRunAsCredential_username: "{{ domain_service_account }}@{{ domain_name }}"
         PsDscRunAsCredential_password: "{{ domain_service_password }}"
   rescue:
-    - name:                            "[Rescue] - WinCluster-Create: Wait for system to become reachable"
+    - name:                            "[Rescue] - 1.17.1 Windows Clustering - Wait for system to become reachable"
       ansible.builtin.pause:
         seconds:                       120
 
-    - name:                            "[Rescue] - WinCluster-Create: Wait for cluster to be created"
+    - name:                            "[Rescue] - 1.17.1 Windows Clustering - Wait for cluster to be created"
       ansible.windows.win_dsc:
         resource_name:                  WaitForCluster
         Name:                           "{{ cluster_name }}"
         RetryIntervalSec:               10
         RetryCount:                     60
 
-    - name:                            "[Rescue] - WinCluster-Create: Create windows cluster on the second node"
+    - name:                            "[Rescue] - 1.17.1 Windows Clustering - Create windows cluster on the second node"
       ansible.windows.win_dsc:
         resource_name:                 Cluster
         StaticIPAddress:               "{{ cluster_ip_address }}"
@@ -117,7 +117,7 @@
     ansible_winrm_server_cert_validation: ignore
 
 
-- name:                                "WinCluster-Create: Add shared disk resource to cluster (only execute on scs node)"
+- name:                                "1.17.1 Windows Clustering - Add shared disk resource to cluster (only execute on scs node)"
   become:                              true
   become_method:                       ansible.builtin.runas
   become_user:                         '{{ sap_sid }}adm@{{ domain_name }}'
@@ -127,17 +127,17 @@
     - ansible_hostname == primary_node
   block:
     # We expect to see only one disk added, so get the first disk number.
-    - name:                            "WinCluster-Create: Get shared disk resource"
+    - name:                            "1.17.1 Windows Clustering - Get shared disk resource"
       ansible.windows.win_powershell:
         script: |
                                        Get-Disk | Where-Object PartitionStyle -eq 'RAW' | Where-Object { $_.Location -notmatch 'LUN 0$' } | Select-Object -ExpandProperty Number -First 1
       register:                        shared_disk
 
-    - name:                            "WinCluster-Create: Print the shared disk output"
+    - name:                            "1.17.1 Windows Clustering - Print the shared disk output"
       ansible.builtin.debug:
         msg:                          "Shared disk output is {{ shared_disk }}"
 
-    - name:                            "WinCluster-Create: Set Shared disk number fact"
+    - name:                            "1.17.1 Windows Clustering - Set Shared disk number fact"
       ansible.builtin.set_fact:
         shared_disk_number:            "{{ shared_disk.output[0] }}"
         cacheable:                     true
@@ -146,20 +146,20 @@
         - shared_disk.output[0] | type_debug != 'NoneType'
         - shared_disk.output[0] | trim | length >= 1
 
-    - name:                            "WinCluster-Create: Print the shared disk number"
+    - name:                            "1.17.1 Windows Clustering - Print the shared disk number"
       ansible.builtin.debug:
         msg:                          "Shared disk number is {{ shared_disk_number }}"
       when:
         - shared_disk_number is defined
 
 
-    - name:                            "WinCluster-Create: Create disk label"
+    - name:                            "1.17.1 Windows Clustering - Create disk label"
       ansible.builtin.set_fact:
         disk_label:                    "{{ sap_sid | upper }}SharedDisk"
         cacheable:                     true
 
     # PartitionStyle defaults to GPT, so not passing it along
-    - name:                            "WinCluster-Create: Format the shared Disk"
+    - name:                            "1.17.1 Windows Clustering - Format the shared Disk"
       ansible.windows.win_dsc:
         resource_name:                 Disk
         DiskId:                        "{{ shared_disk_number }}"
@@ -172,13 +172,13 @@
     # Get the disk number using cluster cmdlets
     # Note: If the disk is already in the cluster. we need to be careful
     # Todo: make this a bit more robust.
-    - name:                           "WinCluster-Create: Get clustered shared disk resource"
+    - name:                           "1.17.1 Windows Clustering - Get clustered shared disk resource"
       ansible.windows.win_powershell:
         script: |
                                        Get-ClusterAvailableDisk -All -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Number -First 1
       register:                        clu_shared_disk_details
 
-    - name:                            "WinCluster-Create: Set Shared disk number fact"
+    - name:                            "1.17.1 Windows Clustering - Set Shared disk number fact"
       ansible.builtin.set_fact:
         clu_shared_disk_number:         "{{ clu_shared_disk_details.output[0] }}"
         cacheable:                      true
@@ -187,12 +187,12 @@
         - clu_shared_disk_details.output[0] | type_debug != 'NoneType'
         - clu_shared_disk_details.output[0] | trim | length >= 1
 
-    - name:                            "WinCluster-Create: print cluster shared disk number"
+    - name:                            "1.17.1 Windows Clustering - Print cluster shared disk number"
       ansible.builtin.debug:
         msg:                           "Cluster Shared disk number is {{ clu_shared_disk_number }}"
       when: clu_shared_disk_number is defined
 
-    - name:                            "WinCluster-Create: Initialize shared disk resource"
+    - name:                            "1.17.1 Windows Clustering - Initialize shared disk resource"
       ansible.windows.win_dsc:
         resource_name:                 ClusterDisk
         Number:                        "{{ clu_shared_disk_number }}"
@@ -205,7 +205,7 @@
         - clu_shared_disk_number | type_debug != 'NoneType'
         - clu_shared_disk_number | trim | length >= 1
 
-- name:                                "WinCluster-Create: Create quorum resource"
+- name:                                "1.17.1 Windows Clustering - Create quorum resource"
   become:                              true
   become_method:                       ansible.builtin.runas
   become_user:                         '{{ sap_sid }}adm@{{ domain_name }}'

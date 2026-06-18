@@ -18,7 +18,7 @@
 # by default the cluster is created with nostorage option
 # https://github.com/dsccommunity/FailoverClusterDsc/blob/main/source/DSCResources/DSC_Cluster/DSC_Cluster.psm1#L204
 
-- name:                                "WinCluster-Create: Calculating the domain value from {{ domain_name }}"
+- name:                                "1.17.2 Windows Clustering - Post configuration - Calculating the domain value from {{ domain_name }}"
   ansible.builtin.set_fact:
     domain:                            "{{ domain_name | split('.') | first }}"
     cacheable:                         true
@@ -28,7 +28,7 @@
     - domain_name | trim | length > 1
     - domain is not defined
 
-- name:                                "WinCluster-Create: Print the variables from {{ domain_name }}"
+- name:                                "1.17.2 Windows Clustering - Post configuration - Print the variables from {{ domain_name }}"
   ansible.builtin.debug:
     msg:
       - "ClusterName is {{ cluster_name }}"
@@ -46,7 +46,7 @@
 # 2. Update firewall rules to allow probe port
 # 3. Update ascs instance profile to accommodate ha installation.
 
-- name:                                "WinCluster-PostConfig: Update Cluster Properties"
+- name:                                "1.17.2 Windows Clustering - Post configuration - Update Cluster Properties"
   become:                              true
   become_method:                       ansible.builtin.runas
   become_user:                         '{{ sap_sid }}adm@{{ domain_name }}'
@@ -60,7 +60,7 @@
   when:
     - ansible_hostname == primary_node
 
-- name:                                "WinCluster-PostConfig: Update RouteHistoryLength"
+- name:                                "1.17.2 Windows Clustering - Post configuration - Update RouteHistoryLength"
   become:                              true
   become_method:                       ansible.builtin.runas
   become_user:                         '{{ sap_sid }}adm@{{ domain_name }}'
@@ -69,7 +69,7 @@
   when:
     - ansible_hostname == primary_node
 
-- name:                                "WinCluster-PostConfig: Copy probe port setup script"
+- name:                                "1.17.2 Windows Clustering - Post configuration - Copy probe port setup script"
   become:                              true
   become_method:                       ansible.builtin.runas
   become_user:                         '{{ sap_sid }}adm@{{ domain_name }}'
@@ -80,7 +80,7 @@
   when:
     - ansible_hostname == primary_node
 
-- name:                                "WinCluster-PostConfig: Execute probe port setup script"
+- name:                                "1.17.2 Windows Clustering - Execute probe port setup script"
   become:                              true
   become_method:                       ansible.builtin.runas
   become_user:                         '{{ sap_sid }}adm@{{ domain_name }}'
@@ -90,7 +90,7 @@
 
 # TODO: Do similar call for ERS when we do ENSA2
 
-- name:                                "WinCluster-PostConfig: ENSA1 - Set param to keep connections between SAP WP and the enq server from closing"
+- name:                                "1.17.2 Windows Clustering - Post configuration - ENSA1 - Set param to keep connections between SAP WP and the enq server from closing"
   become:                              true
   become_method:                       ansible.builtin.runas
   become_user:                         '{{ sap_sid }}adm@{{ domain_name }}'

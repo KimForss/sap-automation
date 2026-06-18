@@ -13,21 +13,21 @@
 # +------------------------------------4--------------------------------------*/
 
 # some modules are added in case we come here directly
-- name:                                "WinCluster-PreReq: Calculate clustername for SCS/ERS cluster"
+- name:                                "1.17.0 Windows Clustering - Calculate clustername for SCS/ERS cluster"
   ansible.builtin.set_fact:
     cluster_name:                      "{{ sap_sid | lower }}scs{{ scs_instance_number }}cl"
     cacheable:                         true
   when:
     - node_tier | lower in ['scs','ers']
 
-- name:                                "WinCluster-PreReq: Calculate clustername for DB cluster"
+- name:                                "1.17.0 Windows Clustering - Calculate clustername for DB cluster"
   ansible.builtin.set_fact:
     cluster_name:                      "{{ sap_sid | lower }}{{ db_sid | lower }}db{{ db_instance_number }}cl"
     cacheable:                         true
   when:
     - node_tier | lower == 'sqlserver'
 
-- name:                                "WinCluster-PreReq: Ensure DSC modules are installed"
+- name:                                "1.17.0 Windows Clustering - Ensure DSC modules are installed"
   community.windows.win_psmodule:
     name:                              "{{ item }}"
     state:                             present
@@ -38,7 +38,7 @@
     - ServerManager
     - StorageDsc
 
-- name:                                "WinCluster-PreReq: Add the windows cluster features"
+- name:                                "1.17.0 Windows Clustering - Add the windows cluster features"
   ansible.windows.win_feature:
     name:                              "{{ item }}"
     state:                             present
@@ -51,7 +51,7 @@
     - RSAT-Clustering-CmdInterface
   register: cluster_features
 
-- name:                                "WinCluster-PreReq: Ensure Registry Services is Running"
+- name:                                "1.17.0 Windows Clustering - Ensure Registry Services is Running"
   ansible.windows.win_dsc:
     resource_name:                     Service
     Name:                              "{{ item }}"
@@ -61,7 +61,7 @@
     - TermService
     - RemoteRegistry
 
-- name:                                "WinCluster-PreReq: add registry key to set keepalive interval"
+- name:                                "1.17.0 Windows Clustering - Add registry key to set keepalive interval"
   ansible.windows.win_regedit:
     path:                              HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters
     name:                              KeepAliveTime
@@ -69,7 +69,7 @@
     type:                              dword
     state:                             present
 
-- name:                                "WinCluster-PreReq: add registry key to set keepalive interval"
+- name:                                "1.17.0 Windows Clustering - Add registry key to set keepalive interval"
   ansible.windows.win_regedit:
     path:                              HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters
     name:                              KeepAliveInterval
@@ -77,13 +77,13 @@
     type:                              dword
     state:                             present
 
-- name:                                "Inspect cluster features"
+- name:                                "1.17.0 Windows Clustering - Inspect cluster features"
   ansible.builtin.debug:
     msg:                               "{{ cluster_features }}"
     verbosity:                         2
 
 
-- name:                                "WinCluster-PreReq: Reboot '{{ ansible_hostname }}' if needed"
+- name:                                "1.17.0 Windows Clustering - Reboot '{{ ansible_hostname }}' if needed"
   ansible.windows.win_reboot:
     post_reboot_delay: 60
   when: (cluster_features.results | selectattr('reboot_required', 'equalto', true)) | list | count > 0

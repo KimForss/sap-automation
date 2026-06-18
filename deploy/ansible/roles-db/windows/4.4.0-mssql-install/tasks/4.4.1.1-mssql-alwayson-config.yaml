@@ -208,7 +208,7 @@
       delay:                           20
 
     # restart SQL Server service
-    - name:                            "ReStart SQL Server service on {{ ansible_hostname }}"
+    - name:                            "Restart SQL Server service on {{ ansible_hostname }}"
       ansible.windows.win_service:
         name:                          MSSQLSERVER
         state:                         restarted
