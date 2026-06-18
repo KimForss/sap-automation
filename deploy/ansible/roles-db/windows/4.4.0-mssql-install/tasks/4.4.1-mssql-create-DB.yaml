@@ -11,23 +11,23 @@
 #   win_psmodule:
 #     name: SqlServer
 #     state: present
-- name:                                 "WIN-SQL: Ensure Run Flag Directory is Existing"
+- name:                                 "4.4.1 MSSQL Create DB - Ensure Run Flag Directory is Existing"
   ansible.windows.win_file:
     path:                               '{{ sap_deployment_automation }}\{{ sap_sid | upper }}'
     state:                              directory
 
-- name:                                 "WIN-SQL: Check if DB is already existing"
+- name:                                 "4.4.1 MSSQL Create DB - Check if DB is already existing"
   ansible.windows.win_stat:
     path:                               '{{ sap_deployment_automation }}\{{ sid_to_be_deployed.sid | upper }}\sap_deployment_sqldb_create.txt'
   register:                             db_creation
 
-- name:                                 "WIN-SQL: DB status"
+- name:                                 "4.4.1 MSSQL Create DB - DB status"
   ansible.builtin.debug:
-    msg:                                "WIN-SQL: DB is already existing"
+    msg:                                "4.4.1 MSSQL Create DB - DB is already existing"
   when:
     - db_creation.stat.exists
 
-- name:                                 "WIN-SQL: Create a new DB on {{ ansible_hostname }}"
+- name:                                 "4.4.1 MSSQL Create DB - Create a new DB on {{ ansible_hostname }}"
   ansible.windows.win_shell: |
                                         $sql = @'
                                         CREATE DATABASE [{{ db_sid }}]
@@ -57,7 +57,7 @@
 
 # - name:                                 "WIN-SQL: DB Creation || Flag File"
 #   block:
-- name:                                "WIN-SQL: DB Creation || Flag File"
+- name:                                "4.4.1 MSSQL Create DB - DB Creation || Flag File"
   ansible.windows.win_file:
     path:                              '{{ sap_deployment_automation }}\{{ sap_sid | upper }}\sap_deployment_sqldb_create.txt'
     state:                             touch

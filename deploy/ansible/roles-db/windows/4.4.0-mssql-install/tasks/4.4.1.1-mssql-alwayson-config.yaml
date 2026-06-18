@@ -4,7 +4,7 @@
 ---
 # +------------------------------------4--------------------------------------*/
 
-- name:                                "WIN: Calculating the domain value from {{ domain_name }}"
+- name:                                "4.4.1.1 MSSQL Always-On Configuration - Calculating the domain value from {{ domain_name }}"
   ansible.builtin.set_fact:
     domain:                            "{{ domain_name | split('.') | first }}"
     cacheable:                         true
@@ -14,7 +14,7 @@
     - domain_name | trim | length > 1
     - domain is not defined
 
-- name:                                "WIN: validating the domain is defined {{ domain }}"
+- name:                                "4.4.1.1 MSSQL Always-On Configuration - validating the domain is defined {{ domain }}"
   ansible.builtin.debug:
     msg:
       - "Domain:                       {{ domain_name }}"
@@ -33,14 +33,14 @@
       - "Domain service account password is not defined"
     quiet:                            true
 
-- name:                                'WIN: Calculating the domain\service account names'
+- name:                                '4.4.1.1 MSSQL Always-On Configuration - Calculating the domain\service account names'
   ansible.builtin.set_fact:
     domain_sqlsvc_account:            '{% if win_sql_svc_account != "NT SERVICE\MSSQLSERVER" %}{{ win_sql_svc_account }}@{{ domain_name }}{% else %}{{ win_sql_svc_account }}{% endif %}'
     domain_sqlagent_account:          '{% if win_sql_svc_account != "NT SERVICE\SQLSERVERAGENT" %}{{ win_sqlagent_svc_account }}@{{ domain_name }}{% else %}{{ win_sqlagent_svc_account }}{% endif %}'
   when:
     - domain is defined
 
-- name:                                "HADR: Define SQL Server AG name"
+- name:                                "4.4.1.1 MSSQL Always-On Configuration - Define SQL Server AG name"
   ansible.builtin.set_fact:
     mssql_ag_name:                    "SDAF-{{ sap_sid | upper }}AG"
     mssql_ag_listener_name:           "SDAF{{ sap_sid | upper }}AG"
@@ -49,11 +49,11 @@
     mssql_log_backup_name:            "SDAF-{{ sap_sid | upper }}-LOG.bak"
     sid_for_disks:                    "{% if not db_sid %}{{ sap_sid | upper }}{% else %}{{ db_sid | upper }}{% endif %}"
 
-- name:                                "HADR: Tasks on primary node"
+- name:                                "4.4.1.1 MSSQL Always-On Configuration - Tasks on primary node"
   when:
     - ansible_hostname == mssql_primary_node
   block:
-    - name:                            "Enable SQL Server Always On Service"
+    - name:                            "4.4.1.1 MSSQL Always-On Configuration - Enable SQL Server Always On Service"
       ansible.windows.win_dsc:
         resource_name:                 SqlAlwaysOnService
         Ensure:                        Present
@@ -67,7 +67,7 @@
       retries:                         6
       delay:                           20
 
-    - name:                            "Set SQL Server Always On Endpoint Permission"
+    - name:                            "4.4.1.1 MSSQL Always-On Configuration - Set SQL Server Always On Endpoint Permission"
       ansible.windows.win_dsc:
         resource_name:                 SqlEndpointPermission
         Ensure:                        Present
@@ -82,13 +82,13 @@
 
 
     # restart SQL Server service
-    - name:                            "Restart SQL Server service on {{ ansible_hostname }}"
+    - name:                            "4.4.1.1 MSSQL Always-On Configuration - Restart SQL Server service on {{ ansible_hostname }}"
       ansible.windows.win_service:
         name:                          MSSQLSERVER
         state:                         restarted
         force_dependent_services:      true
 
-    - name:                            "Create AG for SQL Server"
+    - name:                            "4.4.1.1 MSSQL Always-On Configuration - Create AG for SQL Server"
       ansible.windows.win_dsc:
         resource_name:                 SqlAG
         Ensure:                        Present
@@ -112,19 +112,19 @@
 
     # The assumption is that the system has only one network adapter
     # and the load balancer is in the same subnet as the db machine.
-    - name:                            "calculate subnet prefix"
+    - name:                            "4.4.1.1 MSSQL Always-On Configuration - Calculate subnet prefix"
       ansible.builtin.set_fact:
         db_subnet_prefix:              "{{ sap_cluster_ip_address.split('/')[1] }}"
 
-    - name:                            "calculate LB IP with subnet prefix"
+    - name:                            "4.4.1.1 MSSQL Always-On Configuration - Calculate LB IP with subnet prefix"
       ansible.builtin.set_fact:
         database_loadbalancer_ipv4:    "{{ database_loadbalancer_ip }}/{{ db_subnet_prefix }}"
 
-    - name:                            "calculate subnet mask"
+    - name:                            "4.4.1.1 MSSQL Always-On Configuration - Calculate subnet mask"
       ansible.builtin.set_fact:
         db_subnet_mask:                "{{ database_loadbalancer_ipv4 | ansible.utils.ipaddr('host/prefix') | ansible.utils.ipaddr('netmask') }}"
 
-    - name:                            "print subnet mask"
+    - name:                            "4.4.1.1 MSSQL Always-On Configuration - Print subnet mask"
       ansible.builtin.debug:
         msg:
           - "Subnet prefix: {{ db_subnet_prefix }}"
@@ -133,13 +133,13 @@
           - "Subnet mask: {{ db_subnet_mask }}"
 
     # restart SQL Server service
-    - name:                            "Restart SQL Server service on {{ ansible_hostname }}"
+    - name:                            "4.4.1.1 MSSQL Always-On Configuration - Restart SQL Server service on {{ ansible_hostname }}"
       ansible.windows.win_service:
         name:                          MSSQLSERVER
         state:                         restarted
         force_dependent_services:      true
 
-    - name:                            "Create AG Listener for SQL Server"
+    - name:                            "4.4.1.1 MSSQL Always-On Configuration - Create AG Listener for SQL Server"
       ansible.windows.win_dsc:
         resource_name:                 SqlAGListener
         Ensure:                        Present
@@ -153,7 +153,7 @@
         PsDscRunAsCredential_password: "{{ domain_service_password }}"
       register:                        sql_ag_listener_creation
 
-    - name:                            "Copy probe port setup script"
+    - name:                            "4.4.1.1 MSSQL Always-On Configuration - Copy probe port setup script"
       become:                          true
       become_method:                   ansible.builtin.runas
       ansible.windows.win_template:
@@ -161,39 +161,39 @@
         dest:                          "{{ sap_deployment_automation }}\\Set-AzLBHealthProbeSQL.ps1"
         force:                         true
 
-    - name:                            "Execute probe port setup script"
+    - name:                            "4.4.1.1 MSSQL Always-On Configuration - Execute probe port setup script"
       become:                          true
       become_method:                   ansible.builtin.runas
       ansible.windows.win_shell:       "{{ sap_deployment_automation }}\\Set-AzLBHealthProbeSQL.ps1 -verbose"
 
 
-- name:                                "HADR: Tasks on secondary node"
+- name:                                "4.4.1.1 MSSQL Always-On Configuration - HADR: Tasks on secondary node"
   when:
     - ansible_hostname == mssql_secondary_node
   block:
 
-    - name:                            "SQL Disks"
+    - name:                            "4.4.1.1 MSSQL Always-On Configuration - SQL Disks"
       ansible.builtin.set_fact:
         vm_data_disks: '{{ sql_disk_list[0] | list }}'
         vm_log_disks:  '{{ sql_disk_list[1] | list }}'
       vars:
         sql_disk_list: '{{ lookup("template", "sql_disks.j2") }}'
 
-    - name:                            "create the directory for SQL Server data files"
+    - name:                            "4.4.1.1 MSSQL Always-On Configuration - Create the directory for SQL Server data files"
       ansible.windows.win_file:
         path:                          '{{ item.1 }}'
         state:                         directory
       with_indexed_items:
         - '{{ vm_data_disks }}'
 
-    - name:                            "create the directory for SQL Server log files"
+    - name:                            "4.4.1.1 MSSQL Always-On Configuration - Create the directory for SQL Server log files"
       ansible.windows.win_file:
         path:                          '{{ item.1 }}'
         state:                         directory
       with_indexed_items:
         - '{{ vm_log_disks }}'
 
-    - name:                            "Enable SQL Server Always On Service"
+    - name:                            "4.4.1.1 MSSQL Always-On Configuration - Enable SQL Server Always On Service"
       ansible.windows.win_dsc:
         resource_name:                 SqlAlwaysOnService
         Ensure:                        Present
@@ -208,13 +208,13 @@
       delay:                           20
 
     # restart SQL Server service
-    - name:                            "Restart SQL Server service on {{ ansible_hostname }}"
+    - name:                            "4.4.1.1 MSSQL Always-On Configuration - Restart SQL Server service on {{ ansible_hostname }}"
       ansible.windows.win_service:
         name:                          MSSQLSERVER
         state:                         restarted
         force_dependent_services:      true
 
-    - name:                            "Set SQL Server Always On Endpoint Permission"
+    - name:                            "4.4.1.1 MSSQL Always-On Configuration - Set SQL Server Always On Endpoint Permission"
       ansible.windows.win_dsc:
         resource_name:                 SqlEndpointPermission
         Ensure:                        Present
@@ -227,7 +227,7 @@
         PsDscRunAsCredential_password: "{{ domain_service_password }}"
       register:                        sql_always_on_endpoint_permission
 
-    - name:                            "Wait for AvailabilityGroup to be available on secondary node"
+    - name:                            "4.4.1.1 MSSQL Always-On Configuration - Wait for AvailabilityGroup to be available on secondary node"
       ansible.windows.win_dsc:
         resource_name:                 SqlWaitForAG
         Name:                          "{{ mssql_ag_name }}"
@@ -239,7 +239,7 @@
         PsDscRunAsCredential_password: "{{ domain_service_password }}"
       register:                        sql_wait_for_ag
 
-    - name:                            "Add replica to AG: {{ mssql_ag_name }}"
+    - name:                            "4.4.1.1 MSSQL Always-On Configuration - Add replica to AG: {{ mssql_ag_name }}"
       ansible.windows.win_dsc:
         resource_name:                 SqlAGReplica
         Ensure:                        Present
@@ -259,11 +259,11 @@
         PsDscRunAsCredential_password: "{{ domain_service_password }}"
       register:                        sql_ag_replica_creation
 
-- name:                                "Add database to SQL AG - {{ mssql_primary_node }}"
+- name:                                "4.4.1.1 MSSQL Always-On Configuration - Add database to SQL AG - {{ mssql_primary_node }}"
   when:
     - ansible_hostname == mssql_primary_node
   block:
-    - name:                            "Wait for configuration on mssql_secondary_node to finish"
+    - name:                            "4.4.1.1 MSSQL Always-On Configuration - Wait for configuration on mssql_secondary_node to finish"
       ansible.builtin.set_fact:
         is_sql_secondary_configured:   "{{ hostvars[mssql_secondary_node].sql_ag_replica_creation is defined }}"
       retries:                         30
@@ -286,18 +286,18 @@
       when:
         - is_sql_secondary_configured
 
-- name:                                "Add database to SQL AG - {{ mssql_secondary_node }}"
+- name:                                "4.4.1.1 MSSQL Always-On Configuration - Add database to SQL AG - {{ mssql_secondary_node }}"
   when:
     - ansible_hostname == mssql_secondary_node
   block:
-    - name:                            "Wait for configuration on {{ mssql_primary_node }} to finish"
+    - name:                            "4.4.1.1 MSSQL Always-On Configuration -   Wait for configuration on {{ mssql_primary_node }} to finish"
       ansible.builtin.set_fact:
         is_db_added_to_ag_primary:     "{{ hostvars[mssql_primary_node].sql_ag_db_creation is defined }}"
       retries:                         30
       delay:                           60
       until:                           is_db_added_to_ag_primary
 
-    - name:                            "Add DB {{ db_sid | upper }} to AG: {{ mssql_ag_name }}"
+    - name:                            "4.4.1.1 MSSQL Always-On Configuration - Add DB {{ db_sid | upper }} to AG: {{ mssql_ag_name }}"
       ansible.windows.win_dsc:
         resource_name:                 SqlAGDatabase
         Ensure:                        Present
@@ -313,15 +313,15 @@
       when:
         - is_db_added_to_ag_primary
 
-- name:                                "Set environment variables required for SAP"
+- name:                                "4.4.1.1 MSSQL Always-On Configuration - Set environment variables required for SAP"
   become:                              true
   become_method:                       ansible.builtin.runas
   block:
-    - name:                            "Calculate the SCS Virtual Instance hostname"
+    - name:                            "4.4.1.1 MSSQL Always-On Configuration - Calculate the SCS Virtual Instance hostname"
       ansible.builtin.set_fact:
         scs_virtual_hostname:          "{{ custom_scs_virtual_hostname | default(sap_sid | lower ~ 'scs' ~ scs_instance_number ~ 'cl1', true) }}"
 
-    - name:                            "Set environment variables required for AlwaysON required by SAP"
+    - name:                            "4.4.1.1 MSSQL Always-On Configuration - Set environment variables required for AlwaysON required by SAP"
       ansible.windows.win_environment:
         name:                          "{{ item.varname }}"
         value:                         "{{ item.value }}"
@@ -336,7 +336,7 @@
         ansible_become_user:           '{{ sap_sid }}adm@{{ domain_name }}'
         ansible_become_password:       '{{ domain_user_password }}'
 
-    - name:                            "Update path variables required on the machines"
+    - name:                            "4.4.1.1 MSSQL Always-On Configuration - Update path variables required on the machines"
       ansible.windows.win_path:
         elements:                      '{{ item.value }}'
         state:                         present
@@ -348,7 +348,7 @@
         ansible_become_user:           '{{ sap_sid }}adm@{{ domain_name }}'
         ansible_become_password:       '{{ domain_user_password }}'
 
-    - name:                            "Update DEFAULT.PFL - make changes for HA"
+    - name:                            "4.4.1.1 MSSQL Always-On Configuration - Update DEFAULT.PFL - make changes for HA"
       community.windows.win_lineinfile:
         backup:                        true
         path:                          '\\{{ scs_virtual_hostname }}\sapmnt\{{ sap_sid | upper }}\SYS\profile\DEFAULT.PFL'

@@ -11,7 +11,7 @@
 
 ---
 # Install the DSC modules
-- name:                                "WIN-SQL: Ensure DSC modules are installed"
+- name:                                "4.4.0 MSSQL Prerequisites - Ensure DSC modules are installed"
   community.windows.win_psmodule:
     name:                              "{{ item }}"
     state:                             present
@@ -25,7 +25,7 @@
     - StorageDsc
 
 
-- name:                                "WIN: Calculating the domain value from {{ domain_name }}"
+- name:                                "4.4.0 MSSQL Prerequisites - Calculating the domain value from {{ domain_name }}"
   ansible.builtin.set_fact:
     domain:                            "{{ domain_name | split('.') | first }}"
     cacheable:                         true
@@ -57,7 +57,7 @@
 #    #Identity:                               '"contoso\TestUser1", "contoso\TestUser2"'
 
 # Should add , {{ domain\sidadm }}" as well
-- name:                                "WIN-SQL: Assign Local Security Policies"
+- name:                                "4.4.0 MSSQL Prerequisites - Assign Local Security Policies"
   ansible.windows.win_dsc:
     resource_name:                     UserRightsAssignment
     Policy:                            "{{ item }}"
@@ -70,67 +70,67 @@
     - Log_on_as_a_service
     - Perform_volume_maintenance_tasks
     - Replace_a_process_level_token
-  notify:                              "WIN-SQL: Restart SQL Server VM"
+  notify:                              "4.4.0 MSSQL - Restart SQL Server VM"
 
 # Disable UAC for admin accounts (https://launchpad.support.sap.com/#/notes/2729848)
 # Need to investigate this further. The two options which fit our needs are:
 # NeverNotifyAndDisableAll - Disable UAC for all users
 # NeverNotify              - Disable UAC for all users except for the admin accounts
-# - name:                                     "WIN-SQL: Disable UAC for admin accounts"
+# - name:                                     "4.4.0 MSSQL Prerequisites - Disable UAC for admin accounts"
 #   win_dsc:
 #     resource_name:                          UserAccountControl
 #     IsSingleInstance:                       "Yes"
 #     NotificationLevel:                      "NeverNotify"
 
 # Disable Guest account
-# - name:                                     "WIN-SQL: Disable Guest account"
+# - name:                                     "4.4.0 MSSQL Prerequisites - Disable Guest account"
 #   win_dsc:
 #     resource_name:                          User
 #     Ensure:                                 "Absent"
 #     UserName:                               "Guest"
-- name:                                "WIN-SQL: Disable Guest account"
+- name:                                "4.4.0 MSSQL Prerequisites - Disable Guest account"
   ansible.windows.win_user:
     name:                              Guest
     account_disabled:                  true
     # state:                                  absent
 
 # Reference: https://docs.microsoft.com/en-us/sql/sql-server/install/hardware-and-software-requirements-for-installing-sql-server-ver15?view=sql-server-ver15
-- name:                                "WIN-SQL: Ensure .NET Framework 4.5 Core is present"
+- name:                                "4.4.0 MSSQL Prerequisites - Ensure .NET Framework 4.5 Core is present"
   ansible.windows.win_feature:
     name:                              NET-Framework-45-Core
     state:                             present
     include_sub_features:              true
 
 # If we want to support older versions then we can add the following:
-# - name:                                "WIN-SQL: Additional .NET Framework components"
+# - name:                                "4.4.0 MSSQL Prerequisites - Additional .NET Framework components"
 # - block:
-#   - name:                              "WIN-SQL: Ensure .NET Framework Core is present"
+#   - name:                              "4.4.0 MSSQL Prerequisites - Ensure .NET Framework Core is present"
 #     win_feature:
 #       name:                            NET-Framework-Core
 #       state:                           present
 #       include_sub_features:            True
 #
-#  - name:                              "WIN-SQL: Ensure .NET Framework features are present"
+#  - name:                              "4.4.0 MSSQL Prerequisites - Ensure .NET Framework features are present"
 #    win_feature:
 #      name:                            NET-Framework-Features
 #      state:                           present
 #  mssql_version_name<- this needs to get set in the ansible_input_api file
 #  when:                                mssql_version_name <= '2014'
 
-# - name:                                     "WIN-SQL: Validate if a reboot is required"
+# - name:                                     "4.4.0 MSSQL Prerequisites - Validate if a reboot is required"
 #   debug:
 #     msg:                                    "Pending reboot detected"
 #   changed_when:                             true
 #   when:                                     ansible_reboot_pending
-#   notify:                                   "WIN-SQL: Restart SQL Server VM"
+#   notify:                                   "4.4.0 MSSQL Prerequisites - Restart SQL Server VM"
 
-- name:                                "WIN-SQL:progress"
+- name:                                "4.4.0 MSSQL Prerequisites - progress"
   ansible.builtin.debug:
     msg:                               "Starting Windows Update. Please wait"
 
 
 # set a check that the customer can select if it can be done or not. [make it an option]
-- name:                                "WIN-SQL: Ensure Installing the latest windows patches"
+- name:                                "4.4.0 MSSQL Prerequisites - Ensure Installing the latest windows patches"
   ansible.windows.win_updates:
     category_names:
       - SecurityUpdates
@@ -139,16 +139,16 @@
     reject_list:                       "{{ win_updates_reject_list }}"
     accept_list:                       "{{ win_updates_accept_list }}"
   register:                            win_updates
-  notify:                              "WIN-SQL: Restart SQL Server VM"
+  notify:                              "4.4.0 MSSQL - Restart SQL Server VM"
 
-- name:                                "WIN-SQL: Reboot if required"
+- name:                                "4.4.0 MSSQL Prerequisites - Reboot if required"
   ansible.windows.win_reboot:
     reboot_timeout:                    600
     post_reboot_delay:                 120
     test_command:                      'exit (Get-Service -Name Netlogon).Status -ne "Running"'
   when:                                win_updates.reboot_required
 
-- name:                                "Force all notified handlers to run now"
+- name:                                "4.4.0 MSSQL Prerequisites - Force all notified handlers to run now"
   ansible.builtin.meta:                flush_handlers
 
 # - name:                                     "WIN-SQL: Add inbound Firewall rule for SAP ports"

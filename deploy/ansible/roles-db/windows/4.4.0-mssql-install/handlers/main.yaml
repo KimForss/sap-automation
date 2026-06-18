@@ -3,7 +3,7 @@
 
 ---
 
-- name:                                "WIN-SQL: Restart SQL Server VM"
+- name:                                "4.4.0 MSSQL - Restart SQL Server VM"
   ansible.windows.win_reboot:
     reboot_timeout:                    600
     post_reboot_delay:                 120

@@ -3,7 +3,7 @@
 
 ---
 # +------------------------------------4--------------------------------------*/
-- name:                                "WIN-SQL: Ensure DSC modules are installed"
+- name:                                "4.4.1.0 MSSQL Always-On Prerequisites - Ensure DSC modules are installed"
   community.windows.win_psmodule:
     name:                              "{{ item }}"
     state:                             present
@@ -14,7 +14,7 @@
 
 # This is needed to override the default SQLPS module that comes with the
 # SqlServer installation as a backward compatibility component
-- name:                                "WIN-SQL: Ensure SqlServer module is installed"
+- name:                                "4.4.1.0 MSSQL Always-On Prerequisites - Ensure SqlServer module is installed"
   community.windows.win_psmodule:
     name:                              "{{ item }}"
     state:                             present
@@ -22,7 +22,7 @@
   loop:
     - SqlServer
 
-- name:                                "WIN: Calculating the domain value from {{ domain_name }}"
+- name:                                "4.4.1.0 MSSQL Always-On Prerequisites - Calculating the domain value from {{ domain_name }}"
   ansible.builtin.set_fact:
     domain:                            "{{ domain_name | split('.') | first }}"
     cacheable:                         true
@@ -32,7 +32,7 @@
     - domain_name | trim | length > 1
     - domain is not defined
 
-- name:                                'WIN: Calculating the domain\service account names'
+- name:                                "4.4.1.0 MSSQL Always-On Prerequisites - Calculating the domain\service account names"
   ansible.builtin.set_fact:
     domain_sqlsvc_account:            '{{ win_sql_svc_account }}@{{ domain_name }}'
     domain_sqlagent_account:          '{{ win_sqlagent_svc_account }}@{{ domain_name }}'
@@ -40,7 +40,7 @@
     - domain is defined
 
 
-- name:                                "WIN: Information {{ domain }}"
+- name:                                "4.4.1.0 MSSQL Always-On Prerequisites - Information {{ domain }}"
   ansible.builtin.debug:
     msg:
       - "Domain:                       {{ domain_name }}"
@@ -48,7 +48,7 @@
       - "hostname:                     {{ ansible_hostname }}"
     verbosity:                         2
 
-- name:                                "Assert domain user name and other details are available"
+- name:                                "4.4.1.0 MSSQL Always-On Prerequisites - Assert domain user name and other details are available"
   ansible.builtin.assert:
     that:
       - domain_name is defined
@@ -60,7 +60,7 @@
       - "Domain service account password is not defined"
     quiet:                            true
 
-- name:                                "Grant required privileges to the SQL Server account"
+- name:                                "4.4.1.0 MSSQL Always-On Prerequisites - Grant required privileges to the SQL Server account"
   ansible.windows.win_dsc:
     resource_name:                     UserRightsAssignment
     Policy:                            "{{ item }}"
@@ -75,7 +75,7 @@
     - Bypass_traverse_checking
     - Lock_pages_in_memory
 
-- name:                                "Grant required privileges to the SQL Server agent account"
+- name:                                "4.4.1.0 MSSQL Always-On Prerequisites - Grant required privileges to the SQL Server agent account"
   ansible.windows.win_dsc:
     resource_name:                     UserRightsAssignment
     Policy:                            "{{ item }}"
@@ -86,14 +86,14 @@
     - Modify_an_object_label
     - Adjust_memory_quotas_for_a_process
 
-- name:                                "Add SPNs for SQL Server"
+- name:                                "4.4.1.0 MSSQL Always-On Prerequisites - Add SPNs for SQL Server"
   ansible.windows.win_shell: |
     'setspn -A MSSQLSvc/{{ mssql_primary_node }}.{{ domain_name }} {{ domain | upper  }}\{{ win_sql_svc_account }}'
     'setspn -A MSSQLSvc/{{ mssql_primary_node }}.{{ domain_name }}:1433 {{ domain | upper  }}\{{ win_sql_svc_account }}'
     'setspn -A MSSQLSvc/{{ mssql_secondary_node }}.{{ domain_name }} {{ domain | upper  }}\{{ win_sql_svc_account }}'
     'setspn -A MSSQLSvc/{{ mssql_secondary_node }}.{{ domain_name }}:1433 {{ domain | upper  }}\{{ win_sql_svc_account }}'
 
-- name:                                "Convert SQL Server service from running with local account to domain account"
+- name:                                "4.4.1.0 MSSQL Always-On Prerequisites - Convert SQL Server service from running with local account to domain account"
   ansible.windows.win_service:
     name:                              MSSQLSERVER
     state:                             stopped
@@ -102,12 +102,12 @@
     force_dependent_services:          true
   register:                            sql_svc_stopped
 
-- name:                                "Show results"
+- name:                                "4.4.1.0 MSSQL Always-On Prerequisites - Show results"
   ansible.builtin.debug:
     msg:                               "{{ sql_svc_stopped }}"
     verbosity:                         2
 
-- name:                                "Convert SQL Server agent service from running with local account to domain account"
+- name:                                "4.4.1.0 MSSQL Always-On Prerequisites - Convert SQL Server agent service from running with local account to domain account"
   ansible.windows.win_service:
     name:                              SQLSERVERAGENT
     state:                             stopped
@@ -115,23 +115,23 @@
     password:                          '{{ win_sqlagent_svc_password }}'
   register:                            sql_agent_svc_stopped
 
-- name:                                "Show results (Agent)"
+- name:                                "4.4.1.0 MSSQL Always-On Prerequisites - Show results (Agent)"
   ansible.builtin.debug:
     msg:                               "{{ sql_agent_svc_stopped }}"
     verbosity:                         2
 
-- name:                                "Start SQL Server agent service"
+- name:                                "4.4.1.0 MSSQL Always-On Prerequisites - Start SQL Server agent service"
   ansible.windows.win_service:
     name:                              SQLSERVERAGENT
     state:                             started
 
-- name:                                "Start SQL Server service "
+- name:                                "4.4.1.0 MSSQL Always-On Prerequisites - Start SQL Server service"
   ansible.windows.win_service:
     name:                              MSSQLSERVER
     state:                             started
     force_dependent_services:          true
 
-- name:                                "Add required users to SQL Server"
+- name:                                "4.4.1.0 MSSQL Always-On Prerequisites - Add required users to SQL Server"
   ansible.windows.win_dsc:
     resource_name:                     SqlLogin
     Ensure:                            Present
@@ -148,7 +148,7 @@
     - '{{ domain | upper  }}\{{ domain_service_account }}'
   register:                           sql_login
 
-- name:                                "Add required users to server role in SQL Server"
+- name:                                "4.4.1.0 MSSQL Always-On Prerequisites - Add required users to server role in SQL Server"
   ansible.windows.win_dsc:
     resource_name:                     SqlRole
     Ensure:                            Present
@@ -164,7 +164,7 @@
   register:                           sql_role_addition
 
 # maybe split to two tasks, and assign lesser perms to cluster service account
-- name:                                "Give permissions on the SQL Server to cluster service account"
+- name:                                "4.4.1.0 MSSQL Always-On Prerequisites - Give permissions on the SQL Server to cluster service account"
   ansible.windows.win_dsc:
     resource_name:                     SqlPermission
     ServerName:                        "{{ ansible_hostname }}"
@@ -186,7 +186,7 @@
     - '{{ domain | upper  }}\{{ domain_service_account }}'
   register:                           sql_server_permission
 
-- name:                                "Create SQL Server Availability Group Endpoint"
+- name:                                "4.4.1.0 MSSQL Always-On Prerequisites - Create SQL Server Availability Group Endpoint"
   ansible.windows.win_dsc:
     resource_name:                     SqlEndpoint
     Ensure:                            Present

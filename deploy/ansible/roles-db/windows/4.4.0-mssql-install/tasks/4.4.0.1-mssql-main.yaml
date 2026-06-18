@@ -14,41 +14,41 @@
 # Data file in a different disk
 
 
-- name:                                "WIN-SQL: Create run flag directory"
+- name:                                "4.4.0.1 MSSQL - Create run flag directory"
   ansible.windows.win_file:
     path:                              '{{ sap_deployment_automation }}\{{ sap_sid | upper }}'
     state:                             directory
 
-- name:                                "WIN-SQL: check if SQL Server service is started"
+- name:                                "4.4.0.1 MSSQL - Check if SQL Server service is started"
   ansible.windows.win_service_info:
     name:                              MSSQLServer
   register:                            sql_service
 
-- name:                                "WIN-SQL: SQL4SAP Install || Flag File"
+- name:                                "4.4.0.1 MSSQL - SQL4SAP Install || Flag File"
   ansible.windows.win_file:
     path:                              '{{ sap_deployment_automation }}\{{ sap_sid | upper }}\sap_deployment_sqldb.txt'
     state:                             touch
   when:                                sql_service.exists
 
-# - name:                                     "WIN-SQL: Install reset"
+# - name:                                     "4.4.0.1 MSSQL - Install reset"
 #   ansible.windows.win_file:
 #     path:                                   '{{ target_media_location }}\sap_deployment_automation\{{ sap_sid | upper }}\sap_deployment_sqldb.txt'
 #     state:                                  absent
 #   when: reinstall
 
-- name:                                "WIN-SQL: check if installed"
+- name:                                "4.4.0.1 MSSQL - Check if installed"
   ansible.windows.win_stat:
     path:                              '{{ sap_deployment_automation }}\{{ sap_sid | upper }}\sap_deployment_sqldb.txt'
   register:                            sql_installed
 
 # +------------------------------------4--------------------------------------*/
-- name:                                "WIN-SQL: check if SQL4SAP is installed"
+- name:                                "4.4.0.1 MSSQL - Check if SQL4SAP is installed"
   block:
-    - name:                            "WIN-SQL: Install status"
+    - name:                            "4.4.0.1 MSSQL - Install status"
       ansible.builtin.debug:
-        msg:                           "WIN-SQL: is already installed"
+        msg:                           "4.4.0.1 MSSQL - is already installed"
 
-    - name:                            "WIN-SQL:: - return value"
+    - name:                            "4.4.0.1 MSSQL - return value"
       ansible.builtin.set_fact:
         sql4sap_already_installed:     true
 
@@ -56,13 +56,13 @@
     - sql_installed.stat.exists
 
 
-- name:                                     "WIN-SQL: Install from Microsoft bits"
+- name:                                     "4.4.0.1 MSSQL - Install from Microsoft bits"
   block:
-    - name:                                 "WIN-SQL: Progress"
+    - name:                                 "4.4.0.1 MSSQL - Progress"
       ansible.builtin.debug:
         msg:                                "Start SQL4SAP Installation"
 
-    - name:                                 "WIN-SQL: Install SQL4SAP on {{ ansible_hostname }}"
+    - name:                                 "4.4.0.1 MSSQL - Install SQL4SAP on {{ ansible_hostname }}"
       ansible.windows.win_shell: |
                                             {{ download_directory_windows }}\{{ mssserver_version }}\SQL4SAP.bat -d
       args:
@@ -75,7 +75,7 @@
       register:                             sql_install_output
       failed_when:                          sql_install_output.rc != 0
 
-    - name:                                 "WIN-SQL: Installation results"
+    - name:                                 "4.4.0.1 MSSQL - Installation results"
       ansible.builtin.debug:
         msg:                                "SQL4SAP Installation succeeded"
       changed_when:                         true
@@ -84,37 +84,37 @@
         - sql_install_output.rc == 0
         - sql_install_output.stdout | length > 0
         - sql_install_output.stdout is search("Execution successful")
-      notify:                               "WIN-SQL: Restart SQL Server VM"
+      notify:                               "4.4.0 MSSQL - Restart SQL Server VM"
 
     - name:                                 "Force all notified handlers to run now"
       ansible.builtin.meta:                 flush_handlers
 
-    - name:                                 "WIN-SQL: Installation results"
+    - name:                                 "4.4.0.1 MSSQL - Installation results"
       ansible.builtin.debug:
-        msg:                                "WIN-SQL: A reboot is pending. We will restart the machine, so please start SQL4SAP installation again."
+        msg:                                "4.4.0.1 MSSQL - A reboot is pending. We will restart the machine, so please start SQL4SAP installation again."
       changed_when:                         true
       when:
         - sql_install_output.rc is defined
         - sql_install_output.rc == 0
         - sql_install_output.stdout | length > 0
         - sql_install_output.stdout is search("A reboot is pending.")
-      notify:                               "WIN-SQL: Restart SQL Server VM"
+      notify:                               "4.4.0 MSSQL - Restart SQL Server VM"
 
     - name:                                 "Force all notified handlers to run now"
       ansible.builtin.meta:                 flush_handlers
 
-    - name:                                 "WIN-SQL: Installation results"
+    - name:                                 "4.4.0.1 MSSQL - Installation results"
       ansible.builtin.debug:
         msg:
-          - "SQL4SAP Installation failed, another installation might be already exist"
-          - "SQL4SAP output: {{ sql_install_output }}"
+          - "4.4.0.1 MSSQL - Installation failed, another installation might be already exist"
+          - "4.4.0.1 MSSQL - output: {{ sql_install_output }}"
       when:
         - sql_install_output.rc is defined
         - sql_install_output.rc == 0
         - sql_install_output.stdout | length > 0
         - sql_install_output.stdout is search("Error during execution")
 
-    - name:                                 "WIN-SQL: SQL4SAP Install || Flag File"
+    - name:                                 "4.4.0.1 MSSQL - SQL4SAP Install || Flag File"
       ansible.windows.win_file:
         path:                               '{{ sap_deployment_automation }}\{{ sap_sid | upper }}\sap_deployment_sqldb.txt'
         state:                              touch
@@ -126,10 +126,10 @@
     - not sql_installed.stat.exists
     - use_sql_for_SAP
 
-- name:                                     "WIN-SQL: Install from Microsoft "
+- name:                                     "4.4.0.1 MSSQL - Install from Microsoft "
   block:
 
-    - name:                                 "WIN-SQL: Install SQL4SAP on {{ ansible_hostname }}"
+    - name:                                 "4.4.0.1 MSSQL - Install SQL4SAP on {{ ansible_hostname }}"
       ansible.windows.win_shell: |
                                             {{ download_directory_windows }}\{{ mssserver_version }}\SQL4SAP.bat -d
       args:
@@ -142,46 +142,46 @@
       register:                             sql_install_output
       failed_when:                          sql_install_output.rc != 0
 
-    - name:                                 "WIN-SQL: Installation results"
+    - name:                                 "4.4.0.1 MSSQL - Installation results"
       ansible.builtin.debug:
-        msg:                                "SQL4SAP Installation succeeded"
+        msg:                                "4.4.0.1 MSSQL - Installation succeeded"
       changed_when:                         true
       when:
         - sql_install_output.rc is defined
         - sql_install_output.rc == 0
         - sql_install_output.stdout | length > 0
         - sql_install_output.stdout is search("Execution successful")
-      notify:                               "WIN-SQL: Restart SQL Server VM"
+      notify:                               "4.4.0 MSSQL - Restart SQL Server VM"
 
     - name:                                 "Force all notified handlers to run now"
       ansible.builtin.meta:                                 flush_handlers
 
-    - name:                                 "WIN-SQL: Installation results"
+    - name:                                 "4.4.0.1 MSSQL - Installation results"
       ansible.builtin.debug:
-        msg:                                "WIN-SQL: A reboot is pending. We will restart the machine, so please start SQL4SAP installation again."
+        msg:                                "4.4.0.1 MSSQL - A reboot is pending. We will restart the machine, so please start SQL4SAP installation again."
       changed_when:                         true
       when:
         - sql_install_output.rc is defined
         - sql_install_output.rc == 0
         - sql_install_output.stdout | length > 0
         - sql_install_output.stdout is search("A reboot is pending.")
-      notify:                               "WIN-SQL: Restart SQL Server VM"
+      notify:                               "4.4.0 MSSQL - Restart SQL Server VM"
 
-    - name:                                 "Force all notified handlers to run now"
+    - name:                                 "4.4.0.1 MSSQL - Force all notified handlers to run now"
       ansible.builtin.meta:                 flush_handlers
 
-    - name:                                 "WIN-SQL: Installation results"
+    - name:                                 "4.4.0.1 MSSQL - Installation results"
       ansible.builtin.debug:
         msg:
-          - "SQL4SAP Installation failed, another installation might be already exist"
-          - "SQL4SAP output: {{ sql_install_output }}"
+          - "4.4.0.1 MSSQL - Installation failed, another installation might be already exist"
+          - "4.4.0.1 MSSQL - Output: {{ sql_install_output }}"
       when:
         - sql_install_output.rc is defined
         - sql_install_output.rc == 0
         - sql_install_output.stdout | length > 0
         - sql_install_output.stdout is search("Error during execution")
 
-    - name:                                 "WIN-SQL: SQL4SAP Install || Flag File"
+    - name:                                 "4.4.0.1 MSSQL - SQL4SAP Install || Flag File"
       ansible.windows.win_file:
         path:                               '{{ sap_deployment_automation }}\{{ sap_sid | upper }}\sap_deployment_sqldb.txt'
         state:                              touch
