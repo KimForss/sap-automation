@@ -96,33 +96,6 @@
     msg:
       - "TNSPING result (secondary): {{ tnsping_secondary_result.stdout | default('UNKNOWN') }}"
 
-
-- name:                                "4.1.3 Oracle Data Guard - Set the SGA and PGA Sizes for RAM < 4TB"
-  ansible.builtin.set_fact:
-    main_mem1:                         "{{ ansible_memory_mb.real.total }}"
-    ora_sga:                           "{{ (ansible_memory_mb.real.total * 0.60) | round | int }}"
-    ora_pga:                           "{{ [(pga_temp_l4tb_std | int), 4194304] | min }}"
-
-  when:
-    - ansible_memory_mb.real.total < 4194304
-    - "'pas' not in supported_tiers"
-- name:                                "4.1.3 Oracle Data Guard - Set the SGA and PGA Sizes for RAM < 4TB Single Node Deployments"
-  ansible.builtin.set_fact:
-    main_mem1:                         "{{ ansible_memory_mb.real.total }}"
-    ora_sga:                           "{{ (ansible_memory_mb.real.total * 0.75) | round | int }}"
-    ora_pga:                           "{{ [(pga_temp_l4tb_std | int), 4194304] | min }}"
-  when:
-    - ansible_memory_mb.real.total < 4194304
-    - "'pas' in supported_tiers"
-
-- name:                                "4.1.3 Oracle Data Guard - Show Main Memory"
-  ansible.builtin.debug:
-    msg:
-      - "Total memory:         {{ main_mem1 }}"
-      - "sga_max_size:         {{ ora_sga }}"
-      - "pga_aggregate_target: {{ ora_pga }}"
-
-
 - name:                                "4.1.3 Oracle Data Guard - Configure Data Guard"
   when:
     - rman_duplication_required
@@ -152,9 +125,6 @@
                                          SET LOCAL_LISTENER='(ADDRESS=(PROTOCOL=TCP)(HOST={{ ora_secondary }})(PORT={{ listener_port }}))'
                                          SET DB_RECOVERY_FILE_DEST_SIZE='{{ db_recovery_file_dest_size }}'
                                          SET REMOTE_LOGIN_PASSWORDFILE='EXCLUSIVE'
-                                         SET sga_max_size={{ ora_sga }}M
-                                         SET pga_aggregate_target={{ ora_pga }}M
-                                         SET use_large_pages=only
                                        NOFILENAMECHECK;
                                        EXIT;
                                        EOF
@@ -183,9 +153,6 @@
                                          SET LOCAL_LISTENER='(ADDRESS=(PROTOCOL=TCP)(HOST={{ ora_secondary }})(PORT={{ listener_port }}))'
                                          SET REMOTE_LOGIN_PASSWORDFILE='EXCLUSIVE'
                                          SET DB_RECOVERY_FILE_DEST_SIZE='{{ db_recovery_file_dest_size }}'
-                                         SET sga_max_size={{ ora_sga }}M
-                                         SET pga_aggregate_target={{ ora_pga }}M
-                                         SET use_large_pages=only
                                        NOFILENAMECHECK;
                                        EXIT;
                                        EOF
@@ -242,9 +209,6 @@
                                          SET LOCAL_LISTENER='(ADDRESS=(PROTOCOL=TCP)(HOST={{ ora_secondary }})(PORT={{ listener_port }}))'
                                          SET DB_RECOVERY_FILE_DEST_SIZE='{{ db_recovery_file_dest_size }}'
                                          SET REMOTE_LOGIN_PASSWORDFILE='EXCLUSIVE'
-                                         SET sga_max_size={{ ora_sga }}M
-                                         SET pga_aggregate_target={{ ora_pga }}M
-                                         SET use_large_pages=only
                                        NOFILENAMECHECK;
                                        EXIT;
                                        EOF
@@ -273,9 +237,6 @@
                                          SET LOCAL_LISTENER='(ADDRESS=(PROTOCOL=TCP)(HOST={{ ora_secondary }})(PORT={{ listener_port }}))'
                                          SET REMOTE_LOGIN_PASSWORDFILE='EXCLUSIVE'
                                          SET DB_RECOVERY_FILE_DEST_SIZE='{{ db_recovery_file_dest_size }}'
-                                         SET sga_max_size={{ ora_sga }}M
-                                         SET pga_aggregate_target={{ ora_pga }}M
-                                         SET use_large_pages=only
                                        NOFILENAMECHECK;
                                        EXIT;
                                        EOF
