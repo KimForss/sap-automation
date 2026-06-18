@@ -167,6 +167,28 @@
     dest:                              /etc/corosync/corosync.conf
     mode:                              0600
 
+- name:                                "1.17 Generic Pacemaker - Ensure corosync authkey exists"
+  ansible.builtin.command:             corosync-keygen -l
+  args:
+    creates:                           /etc/corosync/authkey
+  when:                                ansible_hostname == primary_instance_name
+
+- name:                                "1.17 Generic Pacemaker - Read corosync authkey from primary"
+  ansible.builtin.slurp:
+    src:                               /etc/corosync/authkey
+  register:                            corosync_authkey
+  when:                                ansible_hostname == primary_instance_name
+
+- name:                                "1.17 Generic Pacemaker - Distribute corosync authkey to secondary"
+  ansible.builtin.copy:
+    content:                           "{{ hostvars[primary_instance_name].corosync_authkey.content | b64decode }}"
+    dest:                              /etc/corosync/authkey
+    owner:                             root
+    group:                             root
+    mode:                              '0400'
+  when:                                ansible_hostname == secondary_instance_name
+  no_log:                              true
+
 - name:                                "1.17 Generic Pacemaker - Ensure the corosync service is restarted on primary node."
   ansible.builtin.systemd:
     name:                              corosync
