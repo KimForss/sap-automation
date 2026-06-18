@@ -72,7 +72,7 @@
   block:
 
     - name:                            "1.17 Generic Pacemaker - Ensure corosync is configured"
-      ansible.builtin.shell:           "crm cluster init -y -u corosync --interface eth0"
+      ansible.builtin.shell:           "crm cluster init -y --interface eth0"
       register:                        crm_init_result
       failed_when:                     crm_init_result.rc > 1
 
