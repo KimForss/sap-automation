@@ -17,16 +17,6 @@
                                            (ansible_distribution_version is version('15.4', '>='))) | default(false)
                                        }}
 
-# SLES 16 mandates SAPHanaSR-angi; force certification regardless of user input
-- name:                                "04.03 SAPHanaSR-angi pre-checks - Force angi for SLES 16+"
-  when:
-                                       - ansible_os_family | upper == "SUSE"
-                                       - ansible_distribution == 'SLES_SAP'
-                                       - ansible_distribution_major_version | int >= 16
-  ansible.builtin.set_fact:
-    use_hanasr_angi:                   true
-    is_certified_for_hanasr_angi:      true
-
 - name:                                "04.03 SAPHanaSR-angi pre-checks - Display certification status"
   when:
                                        - ansible_os_family | upper == "SUSE"
