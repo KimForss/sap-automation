@@ -138,7 +138,6 @@
     - ansible_os_family | upper == "SUSE"
     - ansible_distribution_major_version | int < 16
 
-# SLES 16+ uses ed25519 keys for improved security
 - name:                                           "1.18.0 Generic Pacemaker - Scale Out - Configure SSH Keys (ed25519) for inter-node communication as root for SUSE 16+"
   block:
     - name:                                       "1.18.0 Generic Pacemaker - Scale Out - Ensure there are ed25519 SSH keys for the root user"

@@ -649,9 +649,6 @@ packages:
     - { tier: 'ha',     package: 'fence-agents-azure-arm',                       node_tier: 'scs',            state: 'present' }
     - { tier: 'ha',     package: 'fence-agents-azure-arm',                       node_tier: 'ers',            state: 'present' }
     - { tier: 'ha',     package: 'fence-agents-azure-arm',                       node_tier: 'hana',           state: 'present' }
-  # SUSE Linux 16 base packages (distribution_id key)
-  # Adapted from sles_sap15: ntp removed, cloud-netconfig-azure removed (wicked gone),
-  # fence-agents and resource-agents-cloud are separate packages
   sles_sap16:
     - { tier: 'os',     package: 'chrony',                                       node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'glibc',                                        node_tier: 'all',            state: 'present' }
