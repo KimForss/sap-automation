@@ -99,7 +99,7 @@ locals {
                                            database_server_count           = var.database_high_availability ? 2 * var.database_server_count : var.database_server_count
                                            database_hana_use_saphanasr_angi =  upper(var.database_platform) == "HANA" ? (
                                                                                  var.database_high_availability ? (
-                                                                                     var.use_sles_saphanasr_angi
+                                                                                     startswith(try(var.database_vm_image.offer, ""), "sles-sap-16") ? true : var.use_sles_saphanasr_angi
                                                                                      ) : (
                                                                                        false
                                                                                      )
@@ -143,7 +143,7 @@ locals {
                                            zones                           = var.database_vm_zones
                                            database_hana_use_saphanasr_angi =  upper(var.database_platform) == "HANA" ? (
                                                                                  var.database_high_availability ? (
-                                                                                     var.use_sles_saphanasr_angi
+                                                                                     startswith(try(var.database_vm_image.offer, ""), "sles-sap-16") ? true : var.use_sles_saphanasr_angi
                                                                                      ) : (
                                                                                        false
                                                                                      )
