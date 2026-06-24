@@ -152,6 +152,14 @@
     - (chrony_conf_entries | count) == 0
     - ansible_distribution_major_version | default('15') | int >= 16
 
+- name:                                "1.7 chrony - Set chrony facts"
+  ansible.builtin.set_fact:
+    chronyd_restart_required: >-
+      {{ (chronyd_restart_required | bool) or (chrony_dropin_removed is changed) }}
+  when:
+    - (chrony_conf_entries | count) == 0
+    - ansible_distribution_major_version | default('15') | int >= 16
+
 # -------------------------------------+---------------------------------------8
 #
 # If using custom settings we will need to comment out any existing

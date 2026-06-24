@@ -338,6 +338,18 @@
             owner:                     root
             group:                     root
 
+        - name:                        "Database Installation Playbook: - HANA Scale-out - Check if base sshd_config uses AllowUsers"
+          become:                      true
+          ansible.builtin.command:
+            argv:
+              - grep
+              - -qE
+              - '^[[:space:]]*AllowUsers[[:space:]]+'
+              - /etc/ssh/sshd_config
+          register:                    sshd_allowusers_in_base
+          changed_when:                false
+          failed_when:                 false
+
         - name:                        "Database Installation Playbook: - HANA Scale-out - Configure SSH for root login"
           become:                      true
           ansible.builtin.copy:
@@ -349,6 +361,9 @@
               PermitRootLogin yes
               PasswordAuthentication yes
               ChallengeResponseAuthentication yes
+              {% if sshd_allowusers_in_base.rc == 0 %}
+              AllowUsers root
+              {% endif %}
 
         - name:                        "Database Installation Playbook: - HANA Scale-out - Debug sshdconfig file"
           ansible.builtin.shell:       "cat /etc/ssh/sshd_config /etc/ssh/sshd_config.d/*.conf 2>/dev/null | grep -v '^#' | grep -v '^$'"
@@ -356,15 +371,6 @@
           changed_when:                false
           failed_when:                 false
           ignore_errors:               true
-
-        - name:                        "Database Installation Playbook: - HANA Scale-out - Append root user to AllowUsers if used"
-          become:                      true
-          ansible.builtin.lineinfile:
-            path:                      "/etc/ssh/sshd_config.d/99-sap-hana-scaleout.conf"
-            line:                      'AllowUsers root'
-            state:                     present
-            create:                    true
-            mode:                      '0600'
 
         - name:                        "Database Installation Playbook: - HANA Scale-out - Restart SSHD on {{ ansible_hostname }}"
           become:                      true
