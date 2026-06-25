@@ -105,7 +105,7 @@ if [ "$PLATFORM" == "devops" ]; then
 		ARM_USE_MSI=true
 		export ARM_USE_MSI
 	fi
-s
+
 	LogonToAzure "${USE_MSI:-true}"
 	return_code=$?
 	if [ 0 != $return_code ]; then
@@ -129,7 +129,18 @@ if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfigur
 
 fi
 
-if [ ! -v APPLICATION_CONFIGURATION_ID ]; then
+if [ -z "$key_vault" ]; then
+	if [ -v KEYVAULT ]; then
+		key_vault=$KEYVAULT
+	else
+		echo "##vso[task.logissue type=error]Key Vault name is not defined."
+		exit 2
+	fi
+	key_vault_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$key_vault' | project id, name, subscription" --query data[0].id --output tsv)
+	key_vault_subscription_id=$(echo "$key_vault_id" | cut -d'/' -f3)
+	az account set --subscription "$key_vault_subscription_id" --output none --only-show-errors
+
+fi
 
 
 echo "SID:                                 ${SID}"
