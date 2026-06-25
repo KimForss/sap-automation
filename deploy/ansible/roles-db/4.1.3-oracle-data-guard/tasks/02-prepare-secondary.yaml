@@ -14,6 +14,14 @@
   when:                                not spfile_stat.stat.exists
   block:
 
+    - name:                            "4.1.3 Oracle Data Guard - Ensure the files are owned by oracle user and group to avoid installation failure due to permission issues"
+      ansible.builtin.file:
+        name:                          "/oracle/{{ db_sid | upper }}/{{ ora_version }}/dbs"
+        owner:                         "{{ oracle_user_name }}"
+        group:                         oinstall
+        mode:                          0640
+        recurse:                       true
+
     - name:                            "4.1.3 Oracle Data Guard - Preparation: Create folders"
       when:                            node_tier == "oracle"
       become:                          true
