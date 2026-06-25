@@ -262,6 +262,17 @@
       when:
         - platform in ["ORACLE", "ORACLE-ASM"]
 
+    - name:                            "5.1 Database Load  - Ensure the files are owned by oracle user and group to avoid installation failure due to permission issues"
+      ansible.builtin.file:
+        name:                          "/oracle/{{ db_sid | upper }}/{{ ora_version }}/dbs"
+        owner:                         "{{ oracle_user_name }}"
+        group:                         oinstall
+        mode:                          0640
+        recursive:                     true
+      when:
+        - platform in ["ORACLE", "ORACLE-ASM"]
+
+
     - name:                            "4.1.2 Oracle ASM Database Installation "
       when:
         - platform in ["ORACLE-ASM"]
@@ -295,9 +306,9 @@
                                        EOF
           register:                    asm_mount_results
           failed_when:                 false
-          environment:                 "{{ grid_env }}"
+          environment:                 "{{ oracle_env }}"
 
-        - name:                        "4.1.2 Oracle ASM Database Installation - Pre-Create Cleanup: Dismount all ASM diskgroups to evict stale client registrations"
+        - name:                        "4.1.2 Oracle ASM Database Installation - Pre-Create Cleanup: Dismount all ASM disk groups to evict stale client registrations"
           become_user:                 "{{ grid_user_name }}"
           become:                      true
           ansible.builtin.shell: |
@@ -315,7 +326,7 @@
           ansible.builtin.pause:
             seconds:                   10
 
-        - name:                        "4.1.2 Oracle ASM Database Installation - Pre-Create Cleanup: Mount all ASM diskgroups after stale client eviction"
+        - name:                        "4.1.2 Oracle ASM Database Installation - Pre-Create Cleanup: Mount all ASM disk groups after stale client eviction"
           become_user:                 "{{ grid_user_name }}"
           become:                      true
           ansible.builtin.shell: |
@@ -364,12 +375,12 @@
           become:                      true
           ansible.builtin.shell: |
                                         sqlplus -S / as sysdba <<EOF
-                                        SHUTDOWN ABORT;
+                                        SHUTDOWN IMMEDIATE;
                                         EXIT;
                                         EOF
           register:                    asm_shutdown_results
           failed_when:                 false
-          environment:                 "{{ grid_env }}"
+          environment:                 "{{ oracle_env }}"
         # Import this task only if the tier is ora.
     - name:                            "5.1 Database Load  - Import Oracle specific tasks"
       ansible.builtin.import_tasks:    oracle.yaml
