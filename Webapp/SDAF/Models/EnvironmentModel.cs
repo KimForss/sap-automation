@@ -26,20 +26,25 @@ namespace SDAFWebApp.Models
         public Variable ARM_CLIENT_SECRET { get; set; }
         public Variable ARM_SUBSCRIPTION_ID { get; set; }
         public Variable ARM_TENANT_ID { get; set; }
+
+        public Variable ARM_USE_MSI { get; set; }
+
         public Variable sap_fqdn { get; set; }
         public Variable POOL { get; set; }
 
-        public Variable Use_MSI { get; set; }
-        public Variable Terraform_Remote_Storage_Account_Name { get; set; }
+        public Variable USE_MSI { get; set; }
+        public Variable TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME { get; set; }
 
-        public Variable Terraform_Remote_Storage_Subscription { get; set; }
+        public Variable TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION { get; set; }
 
-        public Variable Deployer_State_FileName { get; set; }
+        public Variable DEPLOYER_STATE_FILENAME { get; set; }
 
-        public Variable Deployer_Key_Vault { get; set; }
+        public Variable DEPLOYER_KEYVAULT { get; set; }
+        public Variable KEYVAULT { get; set; }
 
         public Variable IsControlPlane { get; set; }
 
+        public Variable CONTROL_PLANE_NAME { get; set; }
 
     }
 
