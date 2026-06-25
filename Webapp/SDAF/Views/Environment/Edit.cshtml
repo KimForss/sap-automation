@@ -138,42 +138,42 @@
         </div>
         <div class="ms-TextField">
             <div class="left-input">
-                @Html.LabelFor(m => m.variables.Deployer_Key_Vault, new { @class = $"ms-Label" })
+                @Html.LabelFor(m => m.variables.DEPLOYER_KEYVAULT, new { @class = $"ms-Label" })
                 <p>Enter the name of the Control Plane keyvault.</p>
             </div>
             <div class="right-input">
-                @Html.TextBoxFor(m => m.variables.Deployer_Key_Vault.value, new { @class = "ms-TextField-field" })
-                @Html.ValidationMessageFor(m => m.variables.Deployer_Key_Vault)
+                @Html.TextBoxFor(m => m.variables.DEPLOYER_KEYVAULT.value, new { @class = "ms-TextField-field" })
+                @Html.ValidationMessageFor(m => m.variables.DEPLOYER_KEYVAULT)
             </div>
         </div>
         <div class="ms-TextField">
             <div class="left-input">
-                @Html.LabelFor(m => m.variables.Deployer_State_FileName, new { @class = $"ms-Label" })
-                <p>Enter the name of the state file for the Deployer.</p>
+                @Html.LabelFor(m => m.variables.KEYVAULT, new { @class = $"ms-Label" })
+                <p>Enter the name of the keyvault for the workload zone.</p>
             </div>
             <div class="right-input">
-                @Html.TextBoxFor(m => m.variables.Deployer_State_FileName.value, new { @class = "ms-TextField-field" })
-                @Html.ValidationMessageFor(m => m.variables.Deployer_State_FileName)
+                @Html.TextBoxFor(m => m.variables.KEYVAULT.value, new { @class = "ms-TextField-field" })
+                @Html.ValidationMessageFor(m => m.variables.KEYVAULT)
             </div>
         </div>
         <div class="ms-TextField">
             <div class="left-input">
-                @Html.LabelFor(m => m.variables.Terraform_Remote_Storage_Account_Name, new { @class = $"ms-Label" })
+                @Html.LabelFor(m => m.variables.TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME, new { @class = $"ms-Label" })
                 <p>Enter the name of the storage account containing the Terraform state files.</p>
             </div>
             <div class="right-input">
-                @Html.TextBoxFor(m => m.variables.Terraform_Remote_Storage_Account_Name.value, new { @class = "ms-TextField-field" })
-                @Html.ValidationMessageFor(m => m.variables.Terraform_Remote_Storage_Account_Name)
+                @Html.TextBoxFor(m => m.variables.TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME.value, new { @class = "ms-TextField-field" })
+                @Html.ValidationMessageFor(m => m.variables.TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME)
             </div>
         </div>
         <div class="ms-TextField">
             <div class="left-input">
-                @Html.LabelFor(m => m.variables.Terraform_Remote_Storage_Subscription, new { @class = $"ms-Label" })
+                @Html.LabelFor(m => m.variables.TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION, new { @class = $"ms-Label" })
                 <p>Enter the Id of the subscription containing the storage account containing the Terraform state files.</p>
             </div>
             <div class="right-input">
-                @Html.TextBoxFor(m => m.variables.Terraform_Remote_Storage_Subscription.value, new { @class = "ms-TextField-field" })
-                @Html.ValidationMessageFor(m => m.variables.Terraform_Remote_Storage_Subscription)
+                @Html.TextBoxFor(m => m.variables.TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION.value, new { @class = "ms-TextField-field" })
+                @Html.ValidationMessageFor(m => m.variables.TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION)
             </div>
         </div>
         @Html.HiddenFor(m => m.name)
