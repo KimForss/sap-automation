@@ -268,7 +268,7 @@
         owner:                         "{{ oracle_user_name }}"
         group:                         oinstall
         mode:                          0640
-        recursive:                     true
+        recurse:                       true
       when:
         - platform in ["ORACLE", "ORACLE-ASM"]
 
