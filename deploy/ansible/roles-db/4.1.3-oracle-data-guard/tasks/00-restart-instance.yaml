@@ -190,7 +190,7 @@
   args:
     chdir:                            "/etc/sap_deployment_automation/dataguard_scripts/"
 
-- name:                                "4.1.3 Oracle Data Guard - Start Instance - Verify standby instance running"
+- name:                                "4.1.3 Oracle Data Guard - Start Instance - Verify instance is running"
   become_user:                         "{{ oracle_user_name }}"
   become:                              true
   ansible.builtin.shell: |
@@ -204,9 +204,9 @@
   become_user:                         "{% if node_tier == 'oracle-asm' %}{{ grid_user_name }}{% else %}{{ oracle_user_name }}{% endif %}"
   become:                              true
   ansible.builtin.shell: |
-                                       export ORACLE_SID={{ current_sid }}
+                                       export ORACLE_SID={{ '+ASM' if node_tier == 'oracle-asm' else current_sid }}
                                        /oracle/{{ db_path }}/{{ ora_version }}/bin/lsnrctl reload
-  environment:                         "{{ grid_env }}"
+  environment:                         "{% if node_tier == 'oracle-asm' %}{{ grid_env }}{% else %}{{ oracle_env }}{% endif %}"
   register:                            listener_reload_results
   failed_when:
                                       - listener_reload_results.rc not in [0, 1]
@@ -215,9 +215,9 @@
   become_user:                         "{% if node_tier == 'oracle-asm' %}{{ grid_user_name }}{% else %}{{ oracle_user_name }}{% endif %}"
   become:                              true
   ansible.builtin.shell: |
-                                       export ORACLE_SID={{ current_sid }}
+                                       export ORACLE_SID={{ '+ASM' if node_tier == 'oracle-asm' else current_sid }}
                                        /oracle/{{ db_path }}/{{ ora_version }}/bin/lsnrctl start
-  environment:                         "{{ grid_env }}"
+  environment:                         "{% if node_tier == 'oracle-asm' %}{{ grid_env }}{% else %}{{ oracle_env }}{% endif %}"
   args:
     chdir:                             "/oracle/{{ db_path }}/{{ ora_version }}/bin"
   register:                            listener_start_results
@@ -233,9 +233,9 @@
   become_user:                         "{% if node_tier == 'oracle-asm' %}{{ grid_user_name }}{% else %}{{ oracle_user_name }}{% endif %}"
   become:                              true
   ansible.builtin.shell: |
-                                       export ORACLE_SID={{ current_sid }}
+                                       export ORACLE_SID={{ '+ASM' if node_tier == 'oracle-asm' else current_sid }}
                                        /oracle/{{ db_path }}/{{ ora_version }}/bin/lsnrctl status
-  environment:                         "{{ grid_env }}"
+  environment:                         "{% if node_tier == 'oracle-asm' %}{{ grid_env }}{% else %}{{ oracle_env }}{% endif %}"
   args:
     chdir:                             "/oracle/{{ db_path }}/{{ ora_version }}/bin"
   register:                            listener_status
