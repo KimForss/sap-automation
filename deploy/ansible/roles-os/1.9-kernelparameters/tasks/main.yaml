@@ -112,6 +112,8 @@
 # Huge pages for Oracle Database VMs
 # SAP Note 1672954 : Usage of hugepages on a Linux system that runs an Oracle database.
 - name:                                "1.9 Kernel parameters - Oracle Specific Parameters"
+  when:
+    - node_tier in ["oracle","oracle-asm","oracle-multi-sid"]
   block:
     - name:                            "1.9 Kernel parameters - Calculate the Huge Pages when RAM < 4TB"
       ansible.builtin.set_fact:
@@ -154,9 +156,10 @@
                 @sapsys    soft    nproc    unlimited
                 @dba       hard    nproc    unlimited
                 @dba       soft    nproc    unlimited
-
-  when:
-    - node_tier in ["oracle","oracle-asm","oracle-multi-sid"]
+                oracle     soft   nofile    unlimited
+                oracle     hard   nofile    unlimited
+                oracle     soft   nproc     unlimited
+                oracle     hard   nproc     unlimited
 
 - name:                                "1.9 Kernel parameters - Set limits for DB2"
   ansible.builtin.blockinfile:
