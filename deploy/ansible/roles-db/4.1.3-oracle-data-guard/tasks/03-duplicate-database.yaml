@@ -131,6 +131,7 @@
       environment:
         ORACLE_HOME:                   "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
         ORACLE_SID:                    ""
+        PATH:                          "/oracle/{{ db_sid | upper }}/{{ ora_version }}/bin:{{ ansible_env.PATH }}"
       args:
         chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
       register:                        rman_duplicate
@@ -217,6 +218,7 @@
       environment:
         ORACLE_HOME:                   "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
         ORACLE_SID:                    ""
+        PATH:                          "/oracle/{{ db_sid | upper }}/{{ ora_version }}/bin:{{ ansible_env.PATH }}"
       args:
         chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
       register:                        rman_duplicate
