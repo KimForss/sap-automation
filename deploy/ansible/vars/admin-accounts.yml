@@ -358,7 +358,7 @@ admin_users:
     groups:       ["oper", "sapsys", "sapinst", "asmdba", "dba", "asmadmin", "asmoper"]
     sudoers_role: "admin_no_password"
     password:     "{{ main_password }}"
-    shell:        /bin/csh
+    shell:        /bin/bash
     state:        present
     tier:         ora
     node_tier:    oracle
@@ -371,7 +371,7 @@ admin_users:
     groups:       ["oper","sapsys","sapinst","asmdba","dba","asmadmin","asmoper"]
     sudoers_role: "admin_no_password"
     password:     "{{ main_password }}"
-    shell:        /bin/csh
+    shell:        /bin/bash
     state:        present
     tier:         ora
     node_tier:    observer
@@ -400,7 +400,7 @@ admin_users:
     groups:       ["oper","sapsys","sapinst","asmdba","dba","asmadmin","asmoper"]
     sudoers_role: "admin_no_password"
     password:     "{{ main_password }}"
-    shell:        /bin/csh
+    shell:        /bin/bash
     state:        present
     tier:         ora
     node_tier:    oracle-multi-sid
@@ -428,7 +428,7 @@ admin_users:
     groups:       ["oper", "sapsys", "sapinst", "asmdba", "dba", "asmadmin", "asmoper"]
     sudoers_role: "admin_no_password"
     password:     "{{ main_password }}"
-    shell:        /bin/csh
+    shell:        /bin/bash
     state:        present
     tier:         ora
     node_tier:    oracle-asm
@@ -441,7 +441,7 @@ admin_users:
     groups:       ["oper", "sapsys", "sapinst", "asmdba", "dba", "asmadmin", "asmoper"]
     sudoers_role: "admin_no_password"
     password:     "{{ main_password }}"
-    shell:        /bin/csh
+    shell:        /bin/bash
     state:        present
     tier:         ora
     node_tier:    oracle-asm
@@ -470,7 +470,7 @@ admin_users:
     groups:       ["oper", "sapsys", "sapinst", "asmdba", "dba", "asmadmin", "asmoper"]
     sudoers_role: "admin_no_password"
     password:     "{{ main_password }}"
-    shell:        /bin/csh
+    shell:        /bin/bash
     state:        present
     tier:         ora
     node_tier:    observer
