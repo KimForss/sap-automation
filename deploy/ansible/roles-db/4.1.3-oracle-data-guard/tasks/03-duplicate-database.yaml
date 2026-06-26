@@ -116,7 +116,7 @@
                                        DUPLICATE TARGET DATABASE FOR STANDBY FROM ACTIVE DATABASE DORECOVER
                                        SPFILE
                                          SET DB_UNIQUE_NAME='{{ db_sid | upper }}_STDBY'
-                                         SET CONTROL_FILES='+DATA','+RECO','+ARCH'
+                                         SET CONTROL_FILES='+DATA','+RECO'
                                          SET FAL_SERVER='{{ db_sid | upper }}'
                                          SET FAL_CLIENT='{{ db_sid | upper }}_STDBY'
                                          SET STANDBY_FILE_MANAGEMENT='AUTO'
@@ -128,7 +128,9 @@
                                        NOFILENAMECHECK;
                                        EXIT;
                                        EOF
-      environment:                     "{{ oracle_standby_env }}"
+      environment:
+        ORACLE_HOME:                   "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
+        ORACLE_SID:                    ""
       args:
         chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
       register:                        rman_duplicate
@@ -200,7 +202,7 @@
                                        DUPLICATE TARGET DATABASE FOR STANDBY FROM ACTIVE DATABASE DORECOVER
                                        SPFILE
                                          SET DB_UNIQUE_NAME='{{ db_sid | upper }}_STDBY'
-                                         SET CONTROL_FILES='+DATA','+RECO','+ARCH'
+                                         SET CONTROL_FILES='+DATA','+RECO'
                                          SET FAL_SERVER='{{ db_sid | upper }}'
                                          SET FAL_CLIENT='{{ db_sid | upper }}_STDBY'
                                          SET STANDBY_FILE_MANAGEMENT='AUTO'
@@ -212,7 +214,9 @@
                                        NOFILENAMECHECK;
                                        EXIT;
                                        EOF
-      environment:                     "{{ oracle_standby_env }}"
+      environment:
+        ORACLE_HOME:                   "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
+        ORACLE_SID:                    ""
       args:
         chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
       register:                        rman_duplicate
