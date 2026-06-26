@@ -130,5 +130,5 @@
   when:                                item != inventory_hostname
   failed_when:                         false
   register:                            connectivity_check
-...
 
+...

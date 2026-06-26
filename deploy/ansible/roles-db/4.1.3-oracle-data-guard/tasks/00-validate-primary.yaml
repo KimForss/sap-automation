@@ -182,4 +182,3 @@
       - "Primary mounted status:       {{ primary_mounted or primary_open }}"
       - "Primary open status:          {{ primary_open }}"
       - "Primary instance open_mode:   {{ dg_status.stdout }}"
-
