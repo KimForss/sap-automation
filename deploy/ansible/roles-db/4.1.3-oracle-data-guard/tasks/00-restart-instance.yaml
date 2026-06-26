@@ -180,13 +180,17 @@
   become_user:                         "{{ oracle_user_name }}"
   become:                              true
   ansible.builtin.shell: |
-                                       export ORACLE_SID={{ current_sid }}
+
                                        sqlplus -S / as sysdba <<EOF
+                                       ALTER SYSTEM SET local_listener='(ADDRESS=(PROTOCOL=TCP)(HOST={{ ansible_hostname }})(PORT={{ listener_port }}))' SCOPE=MEMORY;
                                        ALTER SYSTEM REGISTER;
                                        EXIT;
                                        EOF
   register:                            startup_result
-  environment:                         "{{ oracle_env }}"
+  environment:
+    ORACLE_HOME:                       "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
+    ORACLE_SID:                        "{{ current_sid }}"
+    PATH:                              "/oracle/{{ db_sid | upper }}/{{ ora_version }}/bin:{{ ansible_env.PATH }}"
   args:
     chdir:                            "/etc/sap_deployment_automation/dataguard_scripts/"
 
