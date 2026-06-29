@@ -499,7 +499,7 @@ resource "azurerm_virtual_machine_extension" "configure_ansible" {
   virtual_machine_id                   = azurerm_windows_virtual_machine.dbserver[count.index].id
   publisher                            = "Microsoft.Compute"
   type                                 = "CustomScriptExtension"
-  type_handler_version                 = "1.9"
+  type_handler_version                 = "1.10"
   settings                             = jsonencode(
                                            {
                                               "fileUris": ["https://raw.githubusercontent.com/Azure/sap-automation/main/deploy/scripts/configure_ansible.ps1"],
