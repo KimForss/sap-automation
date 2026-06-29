@@ -76,7 +76,7 @@ hana_components:                       "all"
 
 instance_type:                         "ASCS"
 
-dbload_retry_count:                    120
+dbload_retry_count:                    240
 
 single_server:                         false
 
