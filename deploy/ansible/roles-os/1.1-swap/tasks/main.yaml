@@ -345,14 +345,14 @@
     # as the swap configuration may not be fully applied until systemd is running.
     # This was added in response to an issue where subsequent tasks were failing due to systemd not being in a
     # running state after the reboot.
-    - name: "1.1 Swap - Wait for systemd to be in a running state after reboot"
-      ansible.builtin.command: systemctl is-system-running
-      register: systemd_status
-      until: systemd_status.stdout == "running"
-      retries: 30
-      delay: 10
-      failed_when: systemd_status.rc > 1
-      changed_when: false
+    - name:                            "1.1 Swap - Wait for systemd to be in a running state after reboot"
+      ansible.builtin.command:         systemctl is-system-running
+      register:                        systemd_status
+      until:                           systemd_status.stdout == "running"
+      retries:                         30
+      delay:                           10
+      failed_when:                     systemd_status.rc > 1
+      changed_when:                    false
       tags:
         - skip_ansible_lint
 
