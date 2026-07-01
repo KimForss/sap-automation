@@ -104,15 +104,3 @@ output "sa_connection_string"                    {
                                                      try(azurerm_storage_account.storage_tfstate[0].primary_connection_string, "")
                                                    )
                                                  }
-
-output "configure_ansible_script_url"            {
-                                                   description = "URL of configure_ansible.ps1 mirrored in SAPBits blob storage"
-                                                   value       = format("%s%s/%s",
-                                                                    var.storage_account_sapbits.exists ? (
-                                                                      data.azurerm_storage_account.storage_sapbits[0].primary_blob_endpoint) : (
-                                                                      azurerm_storage_account.storage_sapbits[0].primary_blob_endpoint
-                                                                    ),
-                                                                    var.storage_account_sapbits.sapbits_blob_container.name,
-                                                                    azurerm_storage_blob.configure_ansible_script.name
-                                                                  )
-                                                 }

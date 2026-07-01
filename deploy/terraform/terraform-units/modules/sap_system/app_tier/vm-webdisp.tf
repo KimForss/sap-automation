@@ -468,7 +468,7 @@ resource "azurerm_virtual_machine_extension" "configure_ansible_web" {
   name                                 = "configure_ansible"
   publisher                            = "Microsoft.Compute"
   type                                 = "CustomScriptExtension"
-  type_handler_version                 = "1.10"
+  type_handler_version                 = "1.9"
   settings                             = jsonencode(
                                            {
                                               "fileUris": ["https://raw.githubusercontent.com/Azure/sap-automation/main/deploy/scripts/configure_ansible.ps1"],
