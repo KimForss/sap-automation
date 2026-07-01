@@ -395,7 +395,7 @@
         TMPDIR:                        "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
         SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"
       register:                        dbload_results
-      async:                           7200
+      async:                           "{{ (dbload_retry_count | default(240) | int) * 60 }}"
       poll:                            0
 
     - name:                            "5.1 Database Load  - Wait for asynchronous job to end"
