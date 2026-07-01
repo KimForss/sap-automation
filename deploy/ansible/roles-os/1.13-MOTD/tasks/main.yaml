@@ -85,6 +85,16 @@
     group:                             root
   become:                              true
 
+- name:                                "1.13 MOTD - Ensure sshd_config includes drop-in directory"
+  ansible.builtin.lineinfile:
+    path:                              /etc/ssh/sshd_config
+    regexp:                            '^\s*#?\s*Include\s+/etc/ssh/sshd_config\.d/\*\.conf\s*$'
+    line:                              Include /etc/ssh/sshd_config.d/*.conf
+    insertbefore:                      BOF
+  become:                              true
+  notify:
+    - "1.13 MOTD - Restart sshd service"
+
 - name:                                "1.13 MOTD - Update PrintMotd and Banner via drop-in"
   ansible.builtin.copy:
     dest:                              /etc/ssh/sshd_config.d/99-sap-motd.conf
