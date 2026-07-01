@@ -112,6 +112,9 @@
 - name:                                "3.3 BoM Processing: - Download files from BOM"
   ansible.builtin.include_tasks:       "download_file.yaml"
   loop:                                "{{ bom.materials.media | flatten(levels=1) }}"
+  when:
+    - item.download is undefined or item.download
+    - item.archive is defined
 
 #   05) Extract files - SAPCAR
 - name:                                "3.3 BoM Processing: - Extract File, SAPCAR"
