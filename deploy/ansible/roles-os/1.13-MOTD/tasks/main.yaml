@@ -85,7 +85,14 @@
     group:                             root
   become:                              true
 
+- name:                                "1.13 MOTD - Ensure /etc/ssh/sshd_config exists"
+  ansible.builtin.stat:
+    path:                              /etc/ssh/sshd_config
+  register:                            sshd_config_stat
+  become:                              true
+
 - name:                                "1.13 MOTD - Ensure sshd_config includes drop-in directory"
+  when:                                sshd_config_stat.stat.exists
   ansible.builtin.lineinfile:
     path:                              /etc/ssh/sshd_config
     regexp:                            '^\s*#?\s*Include\s+/etc/ssh/sshd_config\.d/\*\.conf\s*$'
