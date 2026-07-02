@@ -227,8 +227,6 @@ packages:
     - { tier: 'os',     package: 'NetworkManager-cloud-setup',                   node_tier: 'all',            state: 'present' }
     - { tier: 'iscsi',  package: 'targetcli',                                    node_tier: 'iscsi',          state: 'present' }
     - { tier: 'ha',     package: 'NetworkManager-cloud-setup',                   node_tier: 'all',            state: 'absent'  }
-    # SAP Note 3449186: compat-sap-c++-13 required for HANA SPS08+ on RHEL 8.10
-    - { tier: 'sapos',  package: 'compat-sap-c++-13',                            node_tier: 'hana',           state: 'present' }
   redhat9:
     # - { tier: 'os',     package: 'unar',                                         node_tier: 'scs',            state: 'present' }
     - { tier: 'iscsi',  package: 'targetcli',                                    node_tier: 'iscsi',          state: 'present' }
