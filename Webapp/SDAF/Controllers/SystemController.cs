@@ -16,6 +16,7 @@ using System.IO;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using Azure.Identity;
 
 namespace SDAFWebApp.Controllers
 {
@@ -557,7 +558,7 @@ namespace SDAFWebApp.Controllers
                                 },
                                 templateParameters = new Dictionary<string, object>
                             {
-                                { "workload_zone", "N/A" },
+                                { "workload_zone", system.workload_zone },
                                 { "cleanup_sap", true },
                                 { "cleanup_zone", false },
                                 { "sap_system", id }
@@ -576,7 +577,7 @@ namespace SDAFWebApp.Controllers
                             // Trigger with inputs
                             var inputs = new Dictionary<string, object>
                             {
-                                { "workload_zone_name", "N/A" },
+                                { "workload_zone_name", system.workload_zone },
                                 { "cleanup_sap", true },
                                 { "cleanup_workload_zone", false },
                                 { "sap_system_identifier", id }
