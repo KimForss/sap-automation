@@ -48,7 +48,7 @@ namespace SDAFWebApp.Controllers
             _systemService = systemService;
             _appFileService = appFileService;
             _configuration = configuration;
-            _logger = logger;
+
             platform = configuration["DEVOPS_PLATFORM"] ?? "ado";
             restHelper = new RestHelper(configuration, platform);
             systemView = SetViewData();
@@ -197,7 +197,7 @@ namespace SDAFWebApp.Controllers
             LogDebug($"GetImage called. Name={name}");
             if (name != null && imageMapping.ContainsKey(name))
             {
-                return Json(image);
+                return Json(imageMapping[name]);
             }
             else
             {
