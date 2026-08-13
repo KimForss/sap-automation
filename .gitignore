@@ -40,6 +40,12 @@ Webapp/.vs/ProjectEvaluation
 Webapp/SDAF/Properties/ServiceDependencies
 Webapp/.npmrc
 
+Webapp/SDAF/PLAN
+
+
+# HVE Core
+.copilot-tracking/
+
 # Ignore OS files         - MKD 20221221
 **/.DS_Store
 

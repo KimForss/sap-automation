@@ -33,8 +33,16 @@ namespace SDAFWebApp.Controllers
         private List<SelectListItem> imageOptions;
         private Dictionary<string, Image> imageMapping;
         private readonly string platform;
+        private readonly string pipelineId;
+        private readonly string branch;
 
-        public SystemController(ITableStorageService<SystemEntity> systemService, ITableStorageService<AppFile> appFileService, IConfiguration configuration, ILogger<SystemController> logger)
+        private static void LogDebug(string message)
+        {
+            System.Diagnostics.Debug.WriteLine($"[SystemController] {message}");
+        }
+
+
+        public SystemController(ITableStorageService<SystemEntity> systemService, ITableStorageService<AppFile> appFileService, IConfiguration configuration)
         {
             _systemService = systemService;
             _appFileService = appFileService;
@@ -45,7 +53,14 @@ namespace SDAFWebApp.Controllers
             systemView = SetViewData();
 
             imagesOffered = Helper.GetOfferedImages(_appFileService).Result;
+            pipelineId = configuration["SYSTEM_PIPELINE_ID"];
+            branch = configuration["SourceBranch"];
+
             InitializeImageOptionsAndMapping();
+
+            LogDebug($"Platform: {platform}");
+            LogDebug($"PipelineId: {pipelineId}");
+            LogDebug($"Branch: {branch}");
 
         }
         private FormViewModel<SystemModel> SetViewData()
@@ -71,6 +86,7 @@ namespace SDAFWebApp.Controllers
         [ActionName("Index")]
         public async Task<IActionResult> Index()
         {
+            LogDebug("Index called");
             SapObjectIndexModel<SystemModel> systemIndex = new();
 
             try
@@ -96,6 +112,7 @@ namespace SDAFWebApp.Controllers
         [HttpGet]
         public async Task<SystemModel> GetById(string id, string partitionKey)
         {
+            LogDebug($"GetById called. Id={id}, PartitionKey={partitionKey}");
             if (id == null || partitionKey == null) throw new ArgumentNullException();
             var systemEntity = await _systemService.GetByIdAsync(id, partitionKey);
             if (systemEntity == null || systemEntity.System == null) throw new KeyNotFoundException();
@@ -136,6 +153,7 @@ namespace SDAFWebApp.Controllers
         [HttpGet]
         public async Task<SystemModel> GetDefault()
         {
+            LogDebug("GetDefault called");
             SystemEntity defaultSystem = await _systemService.GetDefault();
             if (defaultSystem == null || defaultSystem.System == null) return null;
             return JsonConvert.DeserializeObject<SystemModel>(defaultSystem.System);
@@ -144,6 +162,7 @@ namespace SDAFWebApp.Controllers
         [HttpGet]
         public async Task<ActionResult> GetDefaultJson()
         {
+            LogDebug("GetDefaultJson called");
             SystemEntity systemEntity = await _systemService.GetDefault();
             if (systemEntity == null) return NotFound();
             return Json(systemEntity.System);
@@ -151,6 +170,7 @@ namespace SDAFWebApp.Controllers
 
         public void InitializeImageOptionsAndMapping()
         {
+            LogDebug("InitializeImageOptionsAndMapping called");
             imageMapping = [];
             imageOptions =
             [
@@ -173,7 +193,8 @@ namespace SDAFWebApp.Controllers
         [HttpGet]
         public ActionResult GetImage(string name)
         {
-            if (name != null && imageMapping.TryGetValue(name, out Image image))
+            LogDebug($"GetImage called. Name={name}");
+            if (name != null && imageMapping.ContainsKey(name))
             {
                 return Json(image);
             }
@@ -186,6 +207,7 @@ namespace SDAFWebApp.Controllers
         [ActionName("Create")]
         public IActionResult Create()
         {
+            LogDebug("Create (GET) called");
             ViewBag.ValidImageOptions = (imagesOffered.Length != 0);
             ViewBag.ImageOptions = imageOptions;
             return View(systemView);
@@ -196,6 +218,7 @@ namespace SDAFWebApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateAsync(SystemModel system)
         {
+            LogDebug($"Create (POST) called. Id={system?.Id}");
             if (ModelState.IsValid)
             {
                 try
@@ -231,6 +254,7 @@ namespace SDAFWebApp.Controllers
         [ActionName("Deploy")]
         public async Task<IActionResult> DeployAsync(string id, string partitionKey)
         {
+            LogDebug($"Deploy (GET) called. Id={id}, PartitionKey={partitionKey}");
             try
             {
                 SystemModel system = await GetById(id, partitionKey);
@@ -254,6 +278,7 @@ namespace SDAFWebApp.Controllers
         [ActionName("Deploy")]
         public async Task<RedirectToActionResult> DeployConfirmedAsync(string id, string partitionKey, Templateparameters parameters)
         {
+            LogDebug($"Deploy (POST) called. Id={id}, PartitionKey={partitionKey}");
             try
             {
                 SystemModel system = await GetById(id, partitionKey);
@@ -318,8 +343,6 @@ namespace SDAFWebApp.Controllers
                     case "ado":
                         {
 
-                            string pipelineId = _configuration["SYSTEM_PIPELINE_ID"];
-                            string branch = _configuration["SourceBranch"];
                             parameters.sap_system = id;
                             PipelineRequestBody requestBody = new()
                             {
@@ -353,6 +376,7 @@ namespace SDAFWebApp.Controllers
                             TempData["success"] = "Successfully triggered system deployment action for " + id;
                             break;
 
+
                         }
                 }
 
@@ -368,6 +392,7 @@ namespace SDAFWebApp.Controllers
         [ActionName("Install")]
         public async Task<IActionResult> InstallAsync(string id, string partitionKey)
         {
+            LogDebug($"Install (GET) called. Id={id}, PartitionKey={partitionKey}");
             try
             {
                 SystemModel system = await GetById(id, partitionKey);
@@ -391,6 +416,7 @@ namespace SDAFWebApp.Controllers
         [ActionName("Install")]
         public async Task<IActionResult> InstallConfirmedAsync(string id, string partitionKey, Templateparameters parameters)
         {
+            LogDebug($"Install (POST) called. Id={id}, PartitionKey={partitionKey}");
             try
             {
                 SystemModel system = await GetById(id, partitionKey);
@@ -455,9 +481,126 @@ namespace SDAFWebApp.Controllers
             return RedirectToAction("Index");
         }
 
+        [ActionName("Remove")]
+        public async Task<IActionResult> RemoveAsync(string id, string partitionKey)
+        {
+            LogDebug($"Remove (GET) called. Id={id}, PartitionKey={partitionKey}");
+            try
+            {
+                SystemModel system = await GetById(id, partitionKey);
+                systemView.SapObject = system;
+
+                List<SelectListItem> environments = restHelper.GetEnvironmentsList().Result;
+                ViewBag.Environments = environments;
+
+
+                return View(systemView);
+            }
+            catch (Exception e)
+            {
+                TempData["error"] = e.Message;
+                return RedirectToAction("Index");
+            }
+        }
+
+        [HttpPost]
+        [ActionName("Remove")]
+        public async Task<RedirectToActionResult> RemoveConfirmedAsync(
+            string id,
+            string partitionKey,
+            [Bind("cleanup_sap,sap_system,cleanup_zone,workload_zone,use_deployer")] RemovalTemplateParameters parameters)
+        {
+            LogDebug($"Remove (POST) called. Id={id}, PartitionKey={partitionKey}");
+            try
+            {
+                SystemModel system = await GetById(id, partitionKey);
+
+                string path = $"/LANDSCAPE/{id}/{id}.tfvars";
+                parameters.cleanup_zone = true;
+                parameters.cleanup_sap = false;
+
+
+                if (!string.IsNullOrEmpty(system.subscription))
+                {
+                    system.subscription_id = system.subscription.Replace("/subscriptions/", "");
+                }
+
+                if (string.IsNullOrEmpty(system.environment) && !string.IsNullOrEmpty(system.workload_zone))
+                {
+                    system.environment = system.workload_zone.Split('-')[0];
+                }
+
+
+                switch (platform.ToLower())
+                {
+                    case "ado":
+                        {
+                            string pipelineId = _configuration["REMOVAL_PIPELINE_ID"];
+                            string branch = _configuration["SourceBranch"];
+
+                            parameters.workload_zone = id.Replace("-INFRASTRUCTURE", "");
+                            parameters.sap_system = id;
+                            parameters.cleanup_sap = true;
+                            parameters.cleanup_zone = false;
+
+                            PipelineRequestBody requestBody = new()
+                            {
+                                resources = new Resources
+                                {
+                                    repositories = new Repositories
+                                    {
+                                        self = new Self
+                                        {
+                                            refName = $"refs/heads/{branch}"
+                                        }
+                                    }
+                                },
+                                templateParameters = new Dictionary<string, object>
+                            {
+                                { "workload_zone", "N/A" },
+                                { "cleanup_sap", true },
+                                { "cleanup_zone", false },
+                                { "sap_system", id }
+                            }
+                            };
+
+                            LogDebug($"Calling removal pipeline {pipelineId} for {id}");
+
+                            await restHelper.TriggerPipeline(pipelineId, requestBody);
+
+                            TempData["success"] = "Successfully triggered workload zone removal pipeline for " + id;
+                            break;
+                        }
+                    case "github":
+                        {
+                            // Trigger with inputs
+                            var inputs = new Dictionary<string, object>
+                            {
+                                { "workload_zone_name", "N/A" },
+                                { "cleanup_sap", true },
+                                { "cleanup_workload_zone", false },
+                                { "sap_system_identifier", id }
+
+                            };
+                            await restHelper.TriggerGitHubWorkflow("10-remover-terraform.yml", "main", inputs);
+                            TempData["success"] = "Successfully system removal action for " + id;
+                            break;
+                        }
+                }
+
+            }
+            catch (Exception e)
+            {
+                TempData["error"] = "Error removing workload zone " + id + ": " + e.Message;
+            }
+            return RedirectToAction("Index");
+        }
+
+
         [ActionName("Delete")]
         public async Task<IActionResult> DeleteAsync(string id, string partitionKey)
         {
+            LogDebug($"Delete (GET) called. Id={id}, PartitionKey={partitionKey}");
             if (id == null)
             {
                 return BadRequest();
@@ -478,6 +621,7 @@ namespace SDAFWebApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmedAsync(string id, string partitionKey)
         {
+            LogDebug($"Delete (POST) called. Id={id}, PartitionKey={partitionKey}");
             await _systemService.DeleteAsync(id, partitionKey);
             TempData["success"] = "Successfully deleted system " + id;
             return RedirectToAction("Index");
@@ -486,6 +630,7 @@ namespace SDAFWebApp.Controllers
         [ActionName("Edit")]
         public async Task<IActionResult> EditAsync(string id, string partitionKey)
         {
+            LogDebug($"Edit (GET) called. Id={id}, PartitionKey={partitionKey}");
             try
             {
                 SystemModel system = await GetById(id, partitionKey);
@@ -523,6 +668,7 @@ namespace SDAFWebApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditAsync(SystemModel system)
         {
+            LogDebug($"Edit (POST) called. Id={system?.Id}");
             if (ModelState.IsValid)
             {
                 try
@@ -572,7 +718,7 @@ namespace SDAFWebApp.Controllers
                         };
 
                         await _systemService.CreateTFVarsAsync(file);
-                        return RedirectToAction("Edit", "System", new { @id = system.Id, @partitionKey = system.environment });  //RedirectToAction("Index");
+                        return RedirectToAction("Edit", "System", new { @id = system.Id, @partitionKey = system.Id });  //RedirectToAction("Index");
 
 
                     }
@@ -627,7 +773,7 @@ namespace SDAFWebApp.Controllers
                         };
 
                         await _systemService.CreateTFVarsAsync(file);
-                        return RedirectToAction("Edit", "System", new { @id = system.Id, @partitionKey = system.environment });  //RedirectToAction("Index");
+                        return RedirectToAction("Edit", "System", new { @id = system.Id, @partitionKey = system.Id });  //RedirectToAction("Index");
                     }
                 }
                 // Intentional top-level catch: surfaces the error to the user/caller rather than crashing the request.
@@ -650,6 +796,7 @@ namespace SDAFWebApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SubmitNewAsync(SystemModel system)
         {
+            LogDebug($"SubmitNew (POST) called. Id={system?.Id}");
             if (ModelState.IsValid)
             {
                 try
@@ -697,6 +844,7 @@ namespace SDAFWebApp.Controllers
         [ActionName("Details")]
         public async Task<IActionResult> DetailsAsync(string id, string partitionKey)
         {
+            LogDebug($"Details called. Id={id}, PartitionKey={partitionKey}");
             try
             {
                 SystemModel system = await GetById(id, partitionKey);
@@ -714,6 +862,7 @@ namespace SDAFWebApp.Controllers
         [ActionName("Download")]
         public ActionResult DownloadFile(string id, string partitionKey)
         {
+            LogDebug($"Download called. Id={id}, PartitionKey={partitionKey}");
             try
             {
                 SystemModel system = GetById(id, partitionKey).Result;
@@ -739,6 +888,7 @@ namespace SDAFWebApp.Controllers
         [ActionName("MakeDefault")]
         public async Task<IActionResult> MakeDefault(string id, string partitionKey)
         {
+            LogDebug($"MakeDefault called. Id={id}, PartitionKey={partitionKey}");
             try
             {
                 // Unset the existing default
@@ -760,6 +910,7 @@ namespace SDAFWebApp.Controllers
 
         public async Task UnsetDefault(string id)
         {
+            LogDebug($"UnsetDefault called. Id={id}");
             try
             {
                 SystemModel existingDefault = await GetDefault();
