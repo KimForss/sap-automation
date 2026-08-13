@@ -20,12 +20,6 @@
 - Delegate software download to controller for Windows deployments to facilitate storage accounts without access keys
 - Get the correct HANA components from the BoM
 
-### 4. Miscellaneous fixes
-- Do not create a user profile for the 'grid' user on non-ORACLE-ASM deployments
-- Oracle HA configuration updates for non-ASM deployments
-- Delegate software download to controller for Windows deployments to facilitate storage accounts without access keys
-- Get the correct HANA components from the BoM
-
 ### 5. ANGI (SAP HANA SR) cross-platform support and validation:
 - Added a new parameter use_saphanasr_angi to enable SAP HANA SR ANGI for both SLES and RHEL
 - Enhanced ANGI pre-checks and validation to support RHEL
