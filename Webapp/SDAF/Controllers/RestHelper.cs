@@ -13,7 +13,6 @@ using Octokit;
 using SDAFWebApp.Models;
 using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
@@ -67,7 +66,6 @@ namespace SDAFWebApp.Controllers
             string ghOrgAndRepository = configuration["GITHUB_REPOSITORY"];
 
             managedIdentityClientId = configuration["OVERRIDE_USE_MI_FIC_ASSERTION_CLIENTID"];
-            ghToken = configuration.GetConnectionString("gh_Token");
 
             jsonSerializerOptions = new JsonSerializerOptions() { IgnoreNullValues = true };
 
@@ -585,6 +583,10 @@ namespace SDAFWebApp.Controllers
                     default:
 
                         errorMessage = JsonDocument.Parse(responseBody).RootElement.GetProperty("message").ToString();
+                        if (errorMessage.Contains("Resource protected by organization SAML"))
+                        {
+
+                        }
                         break;
                 }
                 throw new HttpRequestException(errorMessage);
