@@ -28,8 +28,16 @@ namespace SDAFWebApp
             services.Configure<DatabaseSettings>(
                 Configuration.GetSection(nameof(DatabaseSettings)));
 
+            services.Configure<RepositoryPersistenceSettings>(
+                Configuration.GetSection(RepositoryPersistenceSettings.SectionName));
+
             services.AddSingleton<IDatabaseSettings>(sp =>
                 sp.GetRequiredService<IOptions<DatabaseSettings>>().Value);
+
+            services.AddSingleton(sp =>
+                sp.GetRequiredService<IOptions<RepositoryPersistenceSettings>>().Value);
+
+            services.AddSingleton<IRepositoryPathConvention, RepositoryPathConvention>();
 
             services.AddSingleton<TableStorageService>();
 
