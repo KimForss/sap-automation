@@ -8,10 +8,12 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using NuGet.Common;
 using Octokit;
 using SDAFWebApp.Models;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
@@ -65,6 +67,7 @@ namespace SDAFWebApp.Controllers
             string ghOrgAndRepository = configuration["GITHUB_REPOSITORY"];
 
             managedIdentityClientId = configuration["OVERRIDE_USE_MI_FIC_ASSERTION_CLIENTID"];
+            ghToken = configuration.GetConnectionString("gh_Token");
 
             jsonSerializerOptions = new JsonSerializerOptions() { IgnoreNullValues = true };
 
