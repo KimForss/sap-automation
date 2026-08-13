@@ -352,7 +352,7 @@ namespace SDAFWebApp.Controllers
                             await restHelper.TriggerGitHubWorkflow("05-sap-system-deployment.yml", "main", inputs);
                             TempData["success"] = "Successfully triggered system deployment action for " + id;
                             break;
-                            
+
                         }
                 }
 

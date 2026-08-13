@@ -121,7 +121,9 @@ def add_environment_secrets(github_client, repo_full_name, environment_name, sec
             logger.info("Continuing with other secrets...")
 
 
-def add_environment_variables(github_client, repo_full_name, environment_name, variables):
+def add_environment_variables(
+    github_client, repo_full_name, environment_name, variables
+):
     """
     Add variables to a specific environment in the repository.
 
@@ -201,7 +203,10 @@ def trigger_github_workflow(user_data, workflow_id):
         )
 
         # Try to construct ID from components
-        if all(user_data.get(k) for k in ["identity_name", "subscription_id", "resource_group"]):
+        if all(
+            user_data.get(k)
+            for k in ["identity_name", "subscription_id", "resource_group"]
+        ):
             constructed_id = (
                 f"/subscriptions/{user_data['subscription_id']}/"
                 f"resourceGroups/{user_data['resource_group']}/"

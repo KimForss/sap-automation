@@ -119,7 +119,7 @@ namespace SDAFWebApp.Controllers
                 else
                 {
                     throw new ArgumentNullException("GitHub repository must be provided for GitHub operations.");
-                 
+
                 }
 
                 client = new HttpClient();

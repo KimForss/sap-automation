@@ -191,6 +191,7 @@ class AzureKeyVaultHelper:
         :param secret_name: The secret name (optionally with version, e.g., secret_name/version).
         :return: The secret value.
         """
+        redacted_name = secret_name[:4] + "***" if len(secret_name) > 4 else "***"
         try:
             display.v(
                 f"Fetching secret from {self.vault_url} using {type(self.credential).__name__}"
