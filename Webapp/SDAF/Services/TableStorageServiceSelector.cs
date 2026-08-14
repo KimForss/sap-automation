@@ -334,9 +334,10 @@ namespace SDAFWebApp.Services
 
         private async Task<List<T>> GetAllWithFallbackAsync()
         {
+            List<T> repositoryResult;
             try
             {
-                return await _repositoryService.GetAllAsync();
+                repositoryResult = await _repositoryService.GetAllAsync();
             }
             catch (Exception ex)
             {
@@ -353,13 +354,40 @@ namespace SDAFWebApp.Services
                         new AggregateException(ex, fallbackEx));
                 }
             }
+
+            // The repository-backed implementations treat a "not found" root/partition
+            // directory as an empty result rather than throwing, so an empty repository
+            // result does not necessarily mean the exception-based fallback above ran.
+            // Explicitly fall back to storage in that case so entities that only exist
+            // in legacy Table Storage (not yet migrated to the repository) are still returned.
+            if (repositoryResult == null || repositoryResult.Count == 0)
+            {
+                try
+                {
+                    var storageResult = await _storageService.GetAllAsync();
+                    if (storageResult != null && storageResult.Count > 0)
+                    {
+                        _logger?.LogInformation(
+                            "Repository returned no {EntityType} entities; using storage fallback which returned {Count}.",
+                            typeof(T).Name, storageResult.Count);
+                        return storageResult;
+                    }
+                }
+                catch (Exception fallbackEx)
+                {
+                    _logger?.LogWarning(fallbackEx, "Storage fallback also returned no results for empty GetAll {EntityType}.", typeof(T).Name);
+                }
+            }
+
+            return repositoryResult ?? new List<T>();
         }
 
         private async Task<List<T>> GetAllWithFallbackAsync(string partitionKey)
         {
+            List<T> repositoryResult;
             try
             {
-                return await _repositoryService.GetAllAsync(partitionKey);
+                repositoryResult = await _repositoryService.GetAllAsync(partitionKey);
             }
             catch (Exception ex)
             {
@@ -376,13 +404,37 @@ namespace SDAFWebApp.Services
                         new AggregateException(ex, fallbackEx));
                 }
             }
+
+            // See comment in the parameterless overload: an empty repository result
+            // can mean "not yet migrated", so explicitly try storage too.
+            if (repositoryResult == null || repositoryResult.Count == 0)
+            {
+                try
+                {
+                    var storageResult = await _storageService.GetAllAsync(partitionKey);
+                    if (storageResult != null && storageResult.Count > 0)
+                    {
+                        _logger?.LogInformation(
+                            "Repository returned no {EntityType} entities for partition {PartitionKey}; using storage fallback which returned {Count}.",
+                            typeof(T).Name, partitionKey, storageResult.Count);
+                        return storageResult;
+                    }
+                }
+                catch (Exception fallbackEx)
+                {
+                    _logger?.LogWarning(fallbackEx, "Storage fallback also returned no results for empty GetAll partition {PartitionKey} {EntityType}.", partitionKey, typeof(T).Name);
+                }
+            }
+
+            return repositoryResult ?? new List<T>();
         }
 
         private async Task<T> GetByIdWithFallbackAsync(string rowKey, string partitionKey)
         {
+            T repositoryResult;
             try
             {
-                return await _repositoryService.GetByIdAsync(rowKey, partitionKey);
+                repositoryResult = await _repositoryService.GetByIdAsync(rowKey, partitionKey);
             }
             catch (Exception ex)
             {
@@ -399,6 +451,32 @@ namespace SDAFWebApp.Services
                         new AggregateException(ex, fallbackEx));
                 }
             }
+
+            // The repository-backed GetByIdAsync implementations for Landscape/System
+            // return null on "not found" rather than throwing, so a null result does not
+            // necessarily mean the exception-based fallback above ran. Explicitly try
+            // storage in that case so entities that only exist in legacy Table Storage
+            // (not yet migrated to the repository) can still be found.
+            if (repositoryResult == null)
+            {
+                try
+                {
+                    var storageResult = await _storageService.GetByIdAsync(rowKey, partitionKey);
+                    if (storageResult != null)
+                    {
+                        _logger?.LogInformation(
+                            "Repository returned no {EntityType} for {RowKey}/{PartitionKey}; found it via storage fallback.",
+                            typeof(T).Name, rowKey, partitionKey);
+                        return storageResult;
+                    }
+                }
+                catch (Exception fallbackEx)
+                {
+                    _logger?.LogWarning(fallbackEx, "Storage fallback also failed to find {EntityType} {RowKey}/{PartitionKey}.", typeof(T).Name, rowKey, partitionKey);
+                }
+            }
+
+            return repositoryResult;
         }
 
         private async Task<T> GetDefaultWithFallbackAsync()

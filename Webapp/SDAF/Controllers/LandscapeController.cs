@@ -186,8 +186,8 @@ namespace SDAFWebApp.Controllers
         public async Task<ActionResult> GetByIdJson(string id)
         {
             LogDebug($"GetByIdJson called. Id={id}");
-            string environment = id[..id.IndexOf('-')];
-            LandscapeEntity landscape = await _landscapeService.GetByIdAsync(id, environment);
+            // PartitionKey is the landscape's full Id (see LandscapeEntity), not the environment prefix.
+            LandscapeEntity landscape = await _landscapeService.GetByIdAsync(id, id);
             if (landscape == null || landscape.Landscape == null) return NotFound();
             return Json(landscape.Landscape);
         }
