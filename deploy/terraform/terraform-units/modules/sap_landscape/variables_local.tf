@@ -58,7 +58,7 @@ locals {
                                                           var.naming.resource_prefixes.vnet_rg,
                                                           local.prefix,
                                                           var.naming.resource_suffixes.vnet_rg,
-                                                          var.naming.resource_prefixes.ams_instance
+                                                          var.naming.resource_suffixes.ams_instance
                                                         )
                                                       )
   ams_laws_arm_id                                 = length(var.infrastructure.ams_instance.ams_laws_id) > 0 ? (
