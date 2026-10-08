@@ -5,8 +5,8 @@
 locals {
 
   resource_group                       = {
-                                            name   = try(var.infrastructure.resource_group.name, var.resourcegroup_name)
-                                            id     = try(var.infrastructure.resource_group.arm_id, var.resourcegroup_arm_id)
+                                            name   = var.resourcegroup_name
+                                            id     = var.infrastructure.resource_group.arm_id
                                          }
   resource_group_defined               = (
                                            length(local.resource_group.name) +
