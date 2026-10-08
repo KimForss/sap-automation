@@ -455,8 +455,6 @@ variable "resource_suffixes" {
     "dev_center"                     = "-devcenter"
     "disk"                           = ""
     "dns_link"                       = "dns-link"
-    "app_subnet"                     = "app-subnet"
-    "app_subnet_nsg"                 = "appSubnet-nsg"
     "endpoint_subnet"                = "endpoint-subnet"
     "endpoint_subnet_nsg"            = "endpointSubnet-nsg"
     "ers_alb_bepool"                 = "ersAlb-bePool"
