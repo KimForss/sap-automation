@@ -342,7 +342,7 @@ variable "app_subnet_nsg_arm_id"                {
 
 variable "endpoint_subnet_name"                 {
                                                   description = "The name of the endpoint subnet"
-                                                  default     = "endpointsubnet"
+                                                  default     = ""
                                                 }
 
 variable "endpoint_subnet_arm_id"               {
@@ -361,7 +361,7 @@ variable "endpoint_subnet_address_prefix"       {
 
 variable "endpoint_subnet_nsg_name"             {
                                                   description = "The name of the endpoint subnet NSG"
-                                                  default     = "endpointsubnet-nsg"
+                                                  default     = ""
                                                 }
 
 variable "endpoint_subnet_nsg_arm_id"           {

@@ -434,9 +434,13 @@ resource "azurerm_private_endpoint" "kv_user" {
                                            azurerm_resource_group.resource_group[0].location
                                          )
 
-  subnet_id                            = var.infrastructure.virtual_networks.sap.subnet_app.exists ? (
-                                           var.infrastructure.virtual_networks.sap.subnet_app.id) : (
-                                           azurerm_subnet.app[0].id
+  subnet_id                            = var.infrastructure.virtual_networks.sap.subnet_endpoint.exists ? (
+                                           var.infrastructure.virtual_networks.sap.subnet_endpoint.id) : (
+                                           var.infrastructure.virtual_networks.sap.subnet_endpoint.defined ?
+                                             (azurerm_subnet.endpoint[0].id) :
+                                               var.infrastructure.virtual_networks.sap.subnet_app.exists ? (
+                                                 var.infrastructure.virtual_networks.sap.subnet_app.id) : (
+                                                 azurerm_subnet.app[0].id)
                                          )
 
   custom_network_interface_name        = format("%s%s%s%s",

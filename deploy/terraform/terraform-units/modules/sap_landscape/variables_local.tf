@@ -46,7 +46,7 @@ locals {
                                                         format("%s%s%s",
                                                           var.naming.resource_prefixes.vnet_rg,
                                                           local.prefix,
-                                                          local.resource_suffixes.vnet_rg
+                                                          var.naming.resource_prefixes.vnet_rg
                                                         )
                                                       )
                                                     )
@@ -57,8 +57,8 @@ locals {
                                                         format("%s%s%s%s",
                                                           var.naming.resource_prefixes.vnet_rg,
                                                           local.prefix,
-                                                          local.resource_suffixes.vnet_rg,
-                                                          local.resource_suffixes.ams_instance
+                                                          var.naming.resource_prefixes.vnet_rg,
+                                                          var.naming.resource_prefixes.ams_instance
                                                         )
                                                       )
   ams_laws_arm_id                                 = length(var.infrastructure.ams_instance.ams_laws_id) > 0 ? (
@@ -71,7 +71,7 @@ locals {
                                                       format("%s%s%s",
                                                         var.naming.resource_prefixes.nat_gateway,
                                                         local.prefix,
-                                                        local.resource_suffixes.nat_gateway
+                                                        var.naming.resource_prefixes.nat_gateway
                                                       )
                                                     )
   nat_gateway_arm_id                              = length(var.infrastructure.nat_gateway.id) > 0 ? (
@@ -88,7 +88,7 @@ locals {
                                                       try(split("/", var.infrastructure.virtual_networks.sap.id)[8], "")) : (
                                                       coalesce(
                                                         var.infrastructure.virtual_networks.sap.name,
-                                                        format("%s%s%s", var.naming.resource_prefixes.vnet, local.prefix, local.resource_suffixes.vnet)
+                                                        format("%s%s%s", var.naming.resource_prefixes.vnet, local.prefix, var.naming.resource_prefixes.vnet)
                                                       )
                                                     )
 
@@ -198,7 +198,7 @@ locals {
                                                             var.infrastructure.environment
                                                           ),
                                                           var.naming.separator,
-                                                          local.resource_suffixes.admin_subnet
+                                                          var.naming.resource_prefixes.admin_subnet
                                                         )
                                                       )
                                                     )
@@ -220,7 +220,7 @@ locals {
                                                           var.infrastructure.environment
                                                         ),
                                                         var.naming.separator,
-                                                        local.resource_suffixes.admin_subnet_nsg
+                                                        var.naming.resource_prefixes.admin_subnet_nsg
                                                       )
                                                     )
                                                   )
@@ -241,7 +241,7 @@ locals {
                                                             var.infrastructure.environment
                                                           ),
                                                           var.naming.separator,
-                                                          local.resource_suffixes.db_subnet
+                                                          var.naming.resource_prefixes.db_subnet
                                                         )
                                                       )
                                                     )
@@ -264,7 +264,7 @@ locals {
                                                             var.infrastructure.environment
                                                           ),
                                                           var.naming.separator,
-                                                          local.resource_suffixes.db_subnet_nsg
+                                                          var.naming.resource_prefixes.db_subnet_nsg
                                                         )
                                                       )
                                                     )
@@ -275,8 +275,8 @@ locals {
   #
   ##############################################################################################
 
-  application_subnet_name                         = var.infrastructure.virtual_networks.sap.subnet_db.exists ? (
-                                                      try(split("/", var.infrastructure.virtual_networks.sap.subnet_db.id)[10], "")) : (
+  application_subnet_name                         = var.infrastructure.virtual_networks.sap.subnet_app.exists ? (
+                                                      try(split("/", var.infrastructure.virtual_networks.sap.subnet_app.id)[10], "")) : (
                                                       length(try(var.infrastructure.virtual_networks.sap.subnet_app.name, "")) > 0 ? (
                                                         var.infrastructure.virtual_networks.sap.subnet_app.name) : (
                                                         format("%s%s%s%s",
@@ -286,7 +286,7 @@ locals {
                                                             var.infrastructure.environment
                                                           ),
                                                           var.naming.separator,
-                                                          local.resource_suffixes.app_subnet
+                                                          var.naming.resource_prefixes.app_subnet
                                                         )
                                                       )
 
@@ -309,7 +309,7 @@ locals {
                                                             var.infrastructure.environment
                                                           ),
                                                           var.naming.separator,
-                                                          local.resource_suffixes.app_subnet_nsg
+                                                          var.naming.resource_prefixes.app_subnet_nsg
                                                         )
                                                       )
                                                     )
@@ -322,8 +322,22 @@ locals {
 
   endpoint_subnet_name                            = var.infrastructure.virtual_networks.sap.subnet_endpoint.exists ? (
                                                       try(split("/", var.infrastructure.virtual_networks.sap.subnet_endpoint.id)[10], "")) : (
-                                                      var.infrastructure.virtual_networks.sap.subnet_endpoint.name
+                                                      length(try(var.infrastructure.virtual_networks.sap.subnet_endpoint.name, "")) > 0 ? (
+                                                        var.infrastructure.virtual_networks.sap.subnet_endpoint.name) : (
+                                                        format("%s%s%s%s",
+                                                          try(var.naming.resource_prefixes.endpoint_subnet, ""),
+                                                          length(local.prefix) > 0 ? (
+                                                            local.prefix) : (
+                                                            var.infrastructure.environment
+                                                          ),
+                                                          var.naming.separator,
+                                                          try(var.naming.resource_prefixes.endpoint_subnet, "endpoint-subnet")
+                                                        )
+                                                      )
+
                                                     )
+
+
 
   ##############################################################################################
   #
@@ -331,9 +345,20 @@ locals {
   #
   ##############################################################################################
 
-  endpoint_subnet_nsg_name                        = var.infrastructure.virtual_networks.sap.subnet_endpoint.nsg.exists ? (
+  endpoint_subnet_nsg_name                        =  var.infrastructure.virtual_networks.sap.subnet_endpoint.nsg.exists ? (
                                                       try(split("/", var.infrastructure.virtual_networks.sap.subnet_endpoint.nsg.id)[8], "")) : (
-                                                      var.infrastructure.virtual_networks.sap.subnet_endpoint.nsg.name
+                                                      length(try(var.infrastructure.virtual_networks.sap.subnet_endpoint.nsg.name, "")) > 0 ? (
+                                                        var.infrastructure.virtual_networks.sap.subnet_endpoint.nsg.name) : (
+                                                        format("%s%s%s%s",
+                                                          try(var.naming.resource_prefixes.endpoint_subnet_nsg, ""),
+                                                          length(local.prefix) > 0 ? (
+                                                            local.prefix) : (
+                                                            var.infrastructure.environment
+                                                          ),
+                                                          var.naming.separator,
+                                                          try(var.naming.resource_prefixes.endpoint_subnet_nsg, "endpointSubnet-nsg")
+                                                        )
+                                                      )
                                                     )
 
   ##############################################################################################
@@ -353,7 +378,7 @@ locals {
                                                             var.infrastructure.environment
                                                           ),
                                                           var.naming.separator,
-                                                          local.resource_suffixes.web_subnet
+                                                          var.naming.resource_prefixes.web_subnet
                                                         )
                                                       )
                                                     )
@@ -375,7 +400,7 @@ locals {
                                                             var.infrastructure.environment
                                                           ),
                                                           var.naming.separator,
-                                                          local.resource_suffixes.web_subnet_nsg
+                                                          var.naming.resource_prefixes.web_subnet_nsg
                                                         )
                                                       )
                                                     )
@@ -397,7 +422,7 @@ locals {
                                                             var.infrastructure.environment
                                                           ),
                                                           var.naming.separator,
-                                                          local.resource_suffixes.storage_subnet
+                                                          var.naming.resource_prefixes.storage_subnet
                                                         )
                                                       )
                                                     )
@@ -419,7 +444,7 @@ locals {
                                                             var.infrastructure.environment
                                                           ),
                                                           var.naming.separator,
-                                                          local.resource_suffixes.storage_subnet_nsg
+                                                          var.naming.resource_prefixes.storage_subnet_nsg
                                                         )
                                                       )
                                                     )
@@ -441,7 +466,7 @@ locals {
                                                             var.infrastructure.environment
                                                           ),
                                                           var.naming.separator,
-                                                          local.resource_suffixes.anf_subnet
+                                                          var.naming.resource_prefixes.anf_subnet
                                                         )
                                                       )
                                                     )
@@ -457,7 +482,7 @@ locals {
                                                             var.infrastructure.environment
                                                           ),
                                                           var.naming.separator,
-                                                          local.resource_suffixes.anf_subnet_nsg
+                                                          var.naming.resource_prefixes.anf_subnet_nsg
                                                         )
                                                       )
                                                     )
@@ -479,7 +504,7 @@ locals {
                                                             var.infrastructure.environment
                                                           ),
                                                           var.naming.separator,
-                                                          local.resource_suffixes.ams_subnet
+                                                          var.naming.resource_prefixes.ams_subnet
                                                         )
                                                       )
                                                     )
@@ -587,7 +612,7 @@ locals {
                                                             var.infrastructure.environment
                                                           ),
                                                           var.naming.separator,
-                                                          local.resource_suffixes.iscsi_subnet
+                                                          var.naming.resource_prefixes.iscsi_subnet
                                                         )
                                                       )
                                                     )
@@ -604,7 +629,7 @@ locals {
                                                             var.infrastructure.environment
                                                           ),
                                                           var.naming.separator,
-                                                        local.resource_suffixes.iscsi_subnet_nsg)
+                                                        var.naming.resource_prefixes.iscsi_subnet_nsg)
                                                       )
                                                     )
 
@@ -675,7 +700,7 @@ locals {
                                                         local.prefix,
                                                         var.naming.separator,
                                                         vm,
-                                                        local.resource_suffixes.vm
+                                                        var.naming.resource_prefixes.vm
                                                       )]
                                                     )
 

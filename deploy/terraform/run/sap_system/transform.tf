@@ -471,13 +471,32 @@ locals {
                                                                      }
                                          }
 
+  subnet_endpoint                     = {
+                                            name                   = var.endpoint_subnet_name
+                                            id                     = var.endpoint_subnet_arm_id
+                                            exists                 = length(var.endpoint_subnet_arm_id) > 0
+                                            prefix                 = var.endpoint_subnet_address_prefix
+                                            defined                = length(var.endpoint_subnet_address_prefix) > 0
+                                            exists_in_workload     = length(try(data.terraform_remote_state.landscape.outputs.endpoint_subnet_id, "")) > 0
+                                            id_in_workload         = try(data.terraform_remote_state.landscape.outputs.endpoint_subnet_id, "")
+                                            nsg                    = {
+                                                                       name               = var.endpoint_subnet_nsg_name
+                                                                       id                 = var.endpoint_subnet_nsg_arm_id
+                                                                       exists             = length(var.endpoint_subnet_nsg_arm_id) > 0
+                                                                       exists_in_workload = length(try(data.terraform_remote_state.landscape.outputs.endpoint_nsg_id, "")) > 0
+                                                                       id_in_workload     = try(data.terraform_remote_state.landscape.outputs.endpoint_nsg_id, "")
+                                                                     }
+                                         }
+
+
   all_subnets                          = merge(local.sap, (
                                            {
-                                             "subnet_admin"   = local.subnet_admin
-                                             "subnet_db"      = local.subnet_db
-                                             "subnet_app"     = local.subnet_app
-                                             "subnet_web"     = local.subnet_web
-                                             "subnet_storage" = local.subnet_storage
+                                             "subnet_admin"    = local.subnet_admin
+                                             "subnet_db"       = local.subnet_db
+                                             "subnet_app"      = local.subnet_app
+                                             "subnet_web"      = local.subnet_web
+                                             "subnet_storage"  = local.subnet_storage
+                                             "subnet_endpoint" = local.subnet_endpoint
                                            }
                                            ))
 
