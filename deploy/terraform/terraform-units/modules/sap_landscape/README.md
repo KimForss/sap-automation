@@ -83,6 +83,7 @@ No modules.
 | [azurerm_network_security_group.anf](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/network_security_group) | resource |
 | [azurerm_network_security_group.app](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/network_security_group) | resource |
 | [azurerm_network_security_group.db](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/network_security_group) | resource |
+| [azurerm_network_security_group.endpoint](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/network_security_group) | resource |
 | [azurerm_network_security_group.iscsi](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/network_security_group) | resource |
 | [azurerm_network_security_group.storage](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/network_security_group) | resource |
 | [azurerm_network_security_group.web](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/network_security_group) | resource |
@@ -144,6 +145,7 @@ No modules.
 | [azurerm_subnet.anf](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/subnet) | resource |
 | [azurerm_subnet.app](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/subnet) | resource |
 | [azurerm_subnet.db](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/subnet) | resource |
+| [azurerm_subnet.endpoint](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/subnet) | resource |
 | [azurerm_subnet.iscsi](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/subnet) | resource |
 | [azurerm_subnet.storage](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/subnet) | resource |
 | [azurerm_subnet.web](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/subnet) | resource |
@@ -154,12 +156,14 @@ No modules.
 | [azurerm_subnet_network_security_group_association.anf](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/subnet_network_security_group_association) | resource |
 | [azurerm_subnet_network_security_group_association.app](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/subnet_network_security_group_association) | resource |
 | [azurerm_subnet_network_security_group_association.db](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/subnet_network_security_group_association) | resource |
+| [azurerm_subnet_network_security_group_association.endpoint](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/subnet_network_security_group_association) | resource |
 | [azurerm_subnet_network_security_group_association.storage](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/subnet_network_security_group_association) | resource |
 | [azurerm_subnet_network_security_group_association.web](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/subnet_network_security_group_association) | resource |
 | [azurerm_subnet_route_table_association.admin](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/subnet_route_table_association) | resource |
 | [azurerm_subnet_route_table_association.ams](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/subnet_route_table_association) | resource |
 | [azurerm_subnet_route_table_association.app](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/subnet_route_table_association) | resource |
 | [azurerm_subnet_route_table_association.db](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/subnet_route_table_association) | resource |
+| [azurerm_subnet_route_table_association.endpoint](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/subnet_route_table_association) | resource |
 | [azurerm_subnet_route_table_association.iscsi](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/subnet_route_table_association) | resource |
 | [azurerm_subnet_route_table_association.web](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/subnet_route_table_association) | resource |
 | [azurerm_virtual_machine_extension.monitoring_defender_iscsi_lnx](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/virtual_machine_extension) | resource |
@@ -225,6 +229,7 @@ No modules.
 | [azurerm_subnet.anf](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/subnet) | data source |
 | [azurerm_subnet.app](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/subnet) | data source |
 | [azurerm_subnet.db](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/subnet) | data source |
+| [azurerm_subnet.endpoint](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/subnet) | data source |
 | [azurerm_subnet.iscsi](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/subnet) | data source |
 | [azurerm_subnet.storage](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/subnet) | data source |
 | [azurerm_subnet.web](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/subnet) | data source |
@@ -297,6 +302,8 @@ No modules.
 | <a name="output_db_subnet_id"></a> [db\_subnet\_id](#output\_db\_subnet\_id) | Azure resource identifier for the db subnet |
 | <a name="output_dns_info_vms"></a> [dns\_info\_vms](#output\_dns\_info\_vms) | DNS info for the Virtual Machines |
 | <a name="output_dns_link_counts"></a> [dns\_link\_counts](#output\_dns\_link\_counts) | Cardinality of Private Link DNS virtual-network links for terraform test diagnostics |
+| <a name="output_endpoint_nsg_id"></a> [endpoint\_nsg\_id](#output\_endpoint\_nsg\_id) | Azure resource identifier for the endpoint subnet network security group |
+| <a name="output_endpoint_subnet_id"></a> [endpoint\_subnet\_id](#output\_endpoint\_subnet\_id) | Azure resource identifier for the endpoint subnet |
 | <a name="output_iSCSI_server_ips"></a> [iSCSI\_server\_ips](#output\_iSCSI\_server\_ips) | IPs for iSCSI devices |
 | <a name="output_iSCSI_server_names"></a> [iSCSI\_server\_names](#output\_iSCSI\_server\_names) | Names for iSCSI devices |
 | <a name="output_iSCSI_servers"></a> [iSCSI\_servers](#output\_iSCSI\_servers) | iSCSI devices |

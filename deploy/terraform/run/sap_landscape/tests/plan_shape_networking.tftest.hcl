@@ -234,6 +234,14 @@ override_data {
 }
 
 override_data {
+  target = module.sap_landscape.data.azurerm_subnet.endpoint
+  values = {
+    id               = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-sap-dev/providers/Microsoft.Network/virtualNetworks/vnet-sap01/subnets/endpointsubnet"
+    address_prefixes = ["10.10.6.0/24"]
+  }
+}
+
+override_data {
   target = module.sap_landscape.data.azurerm_subnet.web
   values = {
     id               = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-sap-dev/providers/Microsoft.Network/virtualNetworks/vnet-sap01/subnets/web"
@@ -302,6 +310,8 @@ variables {
   db_subnet_nsg_arm_id                         = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-sap-dev/providers/Microsoft.Network/networkSecurityGroups/nsg-db"
   app_subnet_arm_id                            = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-sap-dev/providers/Microsoft.Network/virtualNetworks/vnet-sap01/subnets/app"
   app_subnet_nsg_arm_id                        = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-sap-dev/providers/Microsoft.Network/networkSecurityGroups/nsg-app"
+  endpoint_subnet_arm_id                       = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-sap-dev/providers/Microsoft.Network/virtualNetworks/vnet-sap01/subnets/endpointsubnet"
+  endpoint_subnet_nsg_arm_id                   = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-sap-dev/providers/Microsoft.Network/networkSecurityGroups/endpointsubnet-nsg"
   web_subnet_arm_id                            = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-sap-dev/providers/Microsoft.Network/virtualNetworks/vnet-sap01/subnets/web"
   web_subnet_nsg_arm_id                        = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-sap-dev/providers/Microsoft.Network/networkSecurityGroups/nsg-web"
   storage_subnet_arm_id                        = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-sap-dev/providers/Microsoft.Network/virtualNetworks/vnet-sap01/subnets/storage"
@@ -357,6 +367,9 @@ run "greenfield_vnet_creates_network_and_propagates_tags" {
     app_subnet_arm_id             = ""
     app_subnet_nsg_arm_id         = ""
     app_subnet_address_prefix     = "10.10.2.0/24"
+    endpoint_subnet_arm_id         = ""
+    endpoint_subnet_nsg_arm_id     = ""
+    endpoint_subnet_address_prefix = "10.10.6.0/24"
     web_subnet_arm_id             = ""
     web_subnet_nsg_arm_id         = ""
     web_subnet_address_prefix     = "10.10.3.0/24"
@@ -527,6 +540,41 @@ run "brownfield_app_subnet_reuses_existing_resources" {
   assert {
     condition     = module.sap_landscape.network_resource_counts.app_nsg == 0
     error_message = "With app_subnet_nsg_arm_id supplied by the fixture, sap_landscape must not create a new app NSG."
+  }
+}
+
+run "greenfield_endpoint_subnet_creates_resources" {
+  command = plan
+
+  variables {
+    endpoint_subnet_arm_id         = ""
+    endpoint_subnet_address_prefix = "10.10.18.0/24"
+    endpoint_subnet_nsg_arm_id     = ""
+  }
+
+  assert {
+    condition     = module.sap_landscape.network_resource_counts.endpoint_subnet == 1
+    error_message = "Without endpoint_subnet_arm_id and with endpoint_subnet_address_prefix supplied, sap_landscape must create the endpoint subnet."
+  }
+  assert {
+    condition     = module.sap_landscape.network_resource_counts.endpoint_nsg == 1
+    error_message = "The greenfield endpoint subnet must be paired with a module-created NSG."
+  }
+}
+
+run "brownfield_endpoint_subnet_reuses_existing_resources" {
+  command = plan
+  assert {
+    condition     = module.sap_landscape.network_resource_counts.endpoint_subnet == 0
+    error_message = "With endpoint_subnet_arm_id supplied by the fixture, sap_landscape must reuse the existing endpoint subnet instead of creating one."
+  }
+  assert {
+    condition     = module.sap_landscape.network_resource_counts.endpoint_nsg == 0
+    error_message = "With endpoint_subnet_nsg_arm_id supplied by the fixture, sap_landscape must not create a new endpoint NSG."
+  }
+  assert {
+    condition     = output.endpoint_subnet_id == "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-sap-dev/providers/Microsoft.Network/virtualNetworks/vnet-sap01/subnets/endpointsubnet"
+    error_message = "With endpoint_subnet_arm_id supplied, sap_landscape must expose the existing endpoint subnet resource identifier."
   }
 }
 

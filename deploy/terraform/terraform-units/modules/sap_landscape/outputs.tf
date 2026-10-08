@@ -86,6 +86,16 @@ output "app_subnet_id"                          {
                                                                 )
                                                 }
 
+output "endpoint_subnet_id"                     {
+                                                  description = "Azure resource identifier for the endpoint subnet"
+                                                  value       = var.infrastructure.virtual_networks.sap.subnet_endpoint.defined ? (
+                                                                  var.infrastructure.virtual_networks.sap.subnet_endpoint.exists ? (
+                                                                    var.infrastructure.virtual_networks.sap.subnet_endpoint.id) : (
+                                                                    azurerm_subnet.endpoint[0].id)) : (
+                                                                  ""
+                                                                )
+                                                }
+
 output "db_subnet_id"                           {
                                                   description = "Azure resource identifier for the db subnet"
                                                   value       = var.infrastructure.virtual_networks.sap.subnet_db.defined ? (
@@ -122,6 +132,7 @@ output "private_endpoint_network_policies"       {
                                                     admin   = try(azurerm_subnet.admin[0].private_endpoint_network_policies, null)
                                                     app     = try(azurerm_subnet.app[0].private_endpoint_network_policies, null)
                                                     db      = try(azurerm_subnet.db[0].private_endpoint_network_policies, null)
+                                                    endpoint = try(azurerm_subnet.endpoint[0].private_endpoint_network_policies, null)
                                                     storage = try(azurerm_subnet.storage[0].private_endpoint_network_policies, null)
                                                     web     = try(azurerm_subnet.web[0].private_endpoint_network_policies, null)
                                                   }
@@ -163,6 +174,16 @@ output "app_nsg_id"                             {
                                                                   var.infrastructure.virtual_networks.sap.subnet_app.nsg.exists ? (
                                                                     var.infrastructure.virtual_networks.sap.subnet_app.nsg.id) : (
                                                                     azurerm_network_security_group.app[0].id)) : (
+                                                                  ""
+                                                                )
+                                                }
+
+output "endpoint_nsg_id"                        {
+                                                  description = "Azure resource identifier for the endpoint subnet network security group"
+                                                  value       = var.infrastructure.virtual_networks.sap.subnet_endpoint.defined ? (
+                                                                  var.infrastructure.virtual_networks.sap.subnet_endpoint.nsg.exists ? (
+                                                                    var.infrastructure.virtual_networks.sap.subnet_endpoint.nsg.id) : (
+                                                                    azurerm_network_security_group.endpoint[0].id)) : (
                                                                   ""
                                                                 )
                                                 }
@@ -785,6 +806,8 @@ output "network_resource_counts"                    {
                                                        db_nsg                  = length(azurerm_network_security_group.db)
                                                        app_subnet              = length(azurerm_subnet.app)
                                                        app_nsg                 = length(azurerm_network_security_group.app)
+                                                       endpoint_subnet         = length(azurerm_subnet.endpoint)
+                                                       endpoint_nsg            = length(azurerm_network_security_group.endpoint)
                                                        web_subnet              = length(azurerm_subnet.web)
                                                        web_nsg                 = length(azurerm_network_security_group.web)
                                                        storage_subnet          = length(azurerm_subnet.storage)

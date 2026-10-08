@@ -316,6 +316,28 @@ locals {
 
   ##############################################################################################
   #
+  #  Endpoint subnet - Check if locally provided
+  #
+  ##############################################################################################
+
+  endpoint_subnet_name                            = var.infrastructure.virtual_networks.sap.subnet_endpoint.exists ? (
+                                                      try(split("/", var.infrastructure.virtual_networks.sap.subnet_endpoint.id)[10], "")) : (
+                                                      var.infrastructure.virtual_networks.sap.subnet_endpoint.name
+                                                    )
+
+  ##############################################################################################
+  #
+  #  Endpoint subnet NSG - Check if locally provided
+  #
+  ##############################################################################################
+
+  endpoint_subnet_nsg_name                        = var.infrastructure.virtual_networks.sap.subnet_endpoint.nsg.exists ? (
+                                                      try(split("/", var.infrastructure.virtual_networks.sap.subnet_endpoint.nsg.id)[8], "")) : (
+                                                      var.infrastructure.virtual_networks.sap.subnet_endpoint.nsg.name
+                                                    )
+
+  ##############################################################################################
+  #
   #  Web subnet - Check if locally provided
   #
   ##############################################################################################
