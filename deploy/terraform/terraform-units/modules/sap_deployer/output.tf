@@ -136,16 +136,29 @@ output "random_id" {
   value                                = random_id.deployer.hex
 }
 
-output "user_vault_name" {
-  description                          = "Key Vault Name"
-  value                                = var.key_vault.exists ? data.azurerm_key_vault.kv_user[0].name : azurerm_key_vault.kv_user[0].name
-}
+
+output "endpoint_subnet_id"                     {
+                                                  description = "Azure resource identifier for the endpoint subnet"
+                                                  value       = var.infrastructure.virtual_networks.management.subnet_endpoint.defined ? (
+                                                                  var.infrastructure.virtual_networks.management.subnet_endpoint.exists ? (
+                                                                    var.infrastructure.virtual_networks.management.subnet_endpoint.id) : (
+                                                                    azurerm_subnet.endpoint[0].id)) : (
+                                                                  ""
+                                                                )
+                                                }
+
 
 ###############################################################################
 #                                                                             #
 #                                 Key Vault                                   #
 #                                                                             #
 ###############################################################################
+
+output "user_vault_name" {
+  description                          = "Key Vault Name"
+  value                                = var.key_vault.exists ? data.azurerm_key_vault.kv_user[0].name : azurerm_key_vault.kv_user[0].name
+}
+
 
 // output the secret name of private key
 output "ppk_secret_name" {
