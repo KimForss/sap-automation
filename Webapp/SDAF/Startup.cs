@@ -187,8 +187,13 @@ namespace SDAFWebApp
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILogger<Startup> logger)
         {
+            logger.LogInformation(
+                "Easy Auth authentication configured with scheme {AuthenticationScheme}; ApplicationAuthentication:Enabled={AuthenticationEnabled}.",
+                EasyAuthAuthenticationHandler.SchemeName,
+                Configuration.GetValue<bool>($"{ApplicationAuthenticationSettings.SectionName}:Enabled"));
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();

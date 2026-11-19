@@ -36,12 +36,17 @@ namespace SDAFWebApp.Services
         {
             if (!_settings.Enabled)
             {
+                Logger.LogInformation(
+                    "Easy Auth authentication skipped because ApplicationAuthentication:Enabled is false.");
                 return Task.FromResult(AuthenticateResult.NoResult());
             }
 
             if (!Request.Headers.TryGetValue(ClientPrincipalHeader, out var encodedPrincipal) ||
                 string.IsNullOrWhiteSpace(encodedPrincipal))
             {
+                Logger.LogInformation(
+                    "Easy Auth authentication skipped because the {HeaderName} header is missing or empty.",
+                    ClientPrincipalHeader);
                 return Task.FromResult(AuthenticateResult.NoResult());
             }
 
@@ -51,6 +56,7 @@ namespace SDAFWebApp.Services
                 var principal = JsonSerializer.Deserialize<EasyAuthPrincipal>(payload);
                 if (principal?.Claims == null)
                 {
+                    Logger.LogWarning("Easy Auth authentication failed because the client principal is missing claims.");
                     return Task.FromResult(AuthenticateResult.Fail("The Easy Auth principal is missing claims."));
                 }
 
@@ -93,6 +99,8 @@ namespace SDAFWebApp.Services
             }
             catch (Exception exception) when (exception is FormatException or JsonException)
             {
+                Logger.LogWarning(
+                    "Easy Auth authentication failed because the client-principal header is not valid Base64-encoded JSON.");
                 return Task.FromResult(AuthenticateResult.Fail("The Easy Auth principal header is invalid."));
             }
         }
