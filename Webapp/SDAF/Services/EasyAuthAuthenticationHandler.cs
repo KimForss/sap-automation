@@ -60,12 +60,22 @@ namespace SDAFWebApp.Services
                     return Task.FromResult(AuthenticateResult.Fail("The Easy Auth principal is missing claims."));
                 }
 
+                var roleClaimType = string.IsNullOrWhiteSpace(principal.RoleClaimType)
+                    ? ClaimTypes.Role
+                    : principal.RoleClaimType;
                 var claims = new List<Claim>(principal.Claims.Count);
                 foreach (var claim in principal.Claims)
                 {
                     if (!string.IsNullOrWhiteSpace(claim.Type) && claim.Value != null)
                     {
                         claims.Add(new Claim(claim.Type, claim.Value));
+
+                        // Easy Auth can supply either raw Entra roles or mapped .NET role claims.
+                        if ((claim.Type == "roles" || claim.Type == ClaimTypes.Role) &&
+                            claim.Type != roleClaimType)
+                        {
+                            claims.Add(new Claim(roleClaimType, claim.Value));
+                        }
                     }
                 }
 
@@ -73,7 +83,7 @@ namespace SDAFWebApp.Services
                     claims,
                     principal.AuthenticationType ?? SchemeName,
                     principal.NameClaimType ?? ClaimTypes.Name,
-                    principal.RoleClaimType ?? ClaimTypes.Role);
+                    roleClaimType);
 
                 if (Logger.IsEnabled(LogLevel.Information))
                 {

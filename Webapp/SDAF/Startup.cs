@@ -49,9 +49,13 @@ namespace SDAFWebApp
             {
                 if (applicationAuthenticationEnabled)
                 {
-                    options.FallbackPolicy = new AuthorizationPolicyBuilder()
+                    var administratorPolicy = new AuthorizationPolicyBuilder()
                         .RequireAuthenticatedUser()
+                        .RequireRole("SDAF.Administrator")
                         .Build();
+
+                    options.DefaultPolicy = administratorPolicy;
+                    options.FallbackPolicy = administratorPolicy;
                 }
             });
 
@@ -200,7 +204,7 @@ namespace SDAFWebApp
             if (applicationAuthenticationEnabled)
             {
                 logger.LogInformation(
-                    "Application authorization requires authenticated users. Role membership diagnostics check {Role}; this diagnostic does not enforce role-based access.",
+                    "Application authorization requires authenticated users with role {Role}. The default and fallback policies enforce role-based access.",
                     "SDAF.Administrator");
             }
             else
