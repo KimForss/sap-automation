@@ -7,6 +7,7 @@ using Microsoft.Extensions.Options;
 using SDAFWebApp.Models;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Encodings.Web;
@@ -67,6 +68,24 @@ namespace SDAFWebApp.Services
                     principal.AuthenticationType ?? SchemeName,
                     principal.NameClaimType ?? ClaimTypes.Name,
                     principal.RoleClaimType ?? ClaimTypes.Role);
+
+                if (Logger.IsEnabled(LogLevel.Information))
+                {
+                    var roles = identity.FindAll(identity.RoleClaimType)
+                        .Select(claim => claim.Value)
+                        .Distinct(StringComparer.Ordinal)
+                        .ToArray();
+                    var userId = identity.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier")?.Value
+                        ?? identity.FindFirst("oid")?.Value
+                        ?? identity.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                        ?? "unknown";
+
+                    Logger.LogInformation(
+                        "Authenticated user {UserId} has application roles: {Roles} (role claim type: {RoleClaimType}).",
+                        userId,
+                        roles.Length == 0 ? "(none)" : string.Join(", ", roles),
+                        identity.RoleClaimType);
+                }
 
                 return Task.FromResult(
                     AuthenticateResult.Success(
