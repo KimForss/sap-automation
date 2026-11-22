@@ -556,6 +556,14 @@ namespace SDAFWebApp.Controllers
                 }
 
                 string entryValue = line[(equalIndex + 1)..].Trim().TrimEnd(',');
+                JsonElement parsedValue = JsonSerializer.Deserialize<JsonElement>(entryValue);
+                entryValue = JsonSerializer.Serialize(parsedValue.ValueKind switch
+                {
+                    JsonValueKind.String => parsedValue.GetString(),
+                    JsonValueKind.Number or JsonValueKind.True or JsonValueKind.False => parsedValue.GetRawText(),
+                    JsonValueKind.Null => null,
+                    _ => throw new FormatException($"Expected a scalar value for {entryKey} in {key}.")
+                });
                 values.Append("{\"Key\":").Append(entryKey)
                     .Append(",\"Value\":").Append(entryValue).Append("},");
             }
