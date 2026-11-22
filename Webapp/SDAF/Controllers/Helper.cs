@@ -483,6 +483,22 @@ namespace SDAFWebApp.Controllers
                         {
                             value = ReadKeyValueBlock(stringReader, currLine[(equalIndex + 1)..].Trim(), key) + ",";
                         }
+                        else if (key.EndsWith("_zones\"", StringComparison.Ordinal))
+                        {
+                            value = currLine[(equalIndex + 1)..].Trim().TrimEnd(',');
+                            if (value.StartsWith('['))
+                            {
+                                JsonElement[] zones = JsonSerializer.Deserialize<JsonElement[]>(value);
+                                value = JsonSerializer.Serialize(zones.Select(zone => zone.ValueKind switch
+                                {
+                                    JsonValueKind.String => zone.GetString(),
+                                    JsonValueKind.Number when zone.TryGetInt32(out _) => zone.GetRawText(),
+                                    JsonValueKind.Null => null,
+                                    _ => throw new FormatException($"Expected string or integer availability zones in {key}.")
+                                }));
+                            }
+                            value += ",";
+                        }
                         else
                         {
                             value = currLine[(equalIndex + 1)..].Trim();
