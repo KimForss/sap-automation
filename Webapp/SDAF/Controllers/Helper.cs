@@ -474,8 +474,8 @@ namespace SDAFWebApp.Controllers
                             }
                             else
                             {
-                                string fixedValue = value.Replace('[', ' ').Replace(']', ' ').Replace(',', '-');
-                                value = fixedValue.Trim() + ",";
+                                string[] cidrValues = JsonSerializer.Deserialize<string[]>(value);
+                                value = JsonSerializer.Serialize(string.Join("-", cidrValues)) + ",";
                             }
 
                         }
