@@ -129,9 +129,13 @@ namespace SDAFWebApp.Services
                 throw;
             }
 
+            string expectedPath = $"{GetPartitionPath(partitionKey)}/{partitionKey}.tfvars";
             foreach (var item in listResponse.Items)
             {
-                if (!item.IsDirectory && item.Path.EndsWith(".tfvars", StringComparison.OrdinalIgnoreCase))
+                if (!item.IsDirectory && string.Equals(
+                    item.Path?.Replace('\\', '/').Trim('/'),
+                    expectedPath.Replace('\\', '/').Trim('/'),
+                    StringComparison.OrdinalIgnoreCase))
                 {
                     var fileResponse = await _dataAccessProvider.GetFileAsync(item.Path);
                     var entity = DeserializeTfvars(fileResponse.Content, partitionKey);
