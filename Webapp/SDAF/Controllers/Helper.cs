@@ -429,7 +429,7 @@ namespace SDAFWebApp.Controllers
             string jsonFormattedOutput;
             while (true)
             {
-                string currLine = stringReader.ReadLine();
+                string currLine = stringReader.ReadLine()?.Trim();
                 if (currLine == null)
                 {
                     while (jsonString.Length > 0 && (jsonString[^1] == ',' || jsonString[^1] == '\n' || jsonString[^1] == '\r' || char.IsWhiteSpace(jsonString[^1])))
@@ -463,24 +463,7 @@ namespace SDAFWebApp.Controllers
                         string value = null;
                         if (key.EndsWith("tags\""))
                         {
-                            StringBuilder valueBuilder = new();
-                            valueBuilder.Append('[');
-                            currLine = stringReader.ReadLine();
-                            while (!currLine.StartsWith('}'))
-                            {
-                                equalIndex = currLine.IndexOf('=');
-                                var tagKey = currLine[..equalIndex].Trim();
-                                if (!tagKey.StartsWith('"'))
-                                {
-                                    tagKey = "\"" + tagKey + "\"";
-                                }
-                                var tagValue = currLine[(equalIndex + 1)..].Trim();
-                                valueBuilder.Append('{');
-                                valueBuilder.Append("\"Key\":").Append(tagKey).Append(',').Append("\"Value\":").Append(tagValue.Trim(','));
-                                valueBuilder.Append("},");
-                                currLine = stringReader.ReadLine().TrimStart();
-                            }
-                            value = valueBuilder.ToString().Trim(',') + "],";
+                            value = ReadKeyValueBlock(stringReader, currLine[(equalIndex + 1)..].Trim(), key) + ",";
                         }
                         else if (key.ToLower() == "\"network_address_space\"")
                         {
@@ -498,24 +481,7 @@ namespace SDAFWebApp.Controllers
                         }
                         else if (key.EndsWith("configuration_settings\""))
                         {
-                            StringBuilder valueBuilder = new();
-                            valueBuilder.Append('[');
-                            currLine = stringReader.ReadLine();
-                            while (!currLine.StartsWith('}'))
-                            {
-                                equalIndex = currLine.IndexOf('=');
-                                var tagKey = currLine[..equalIndex].Trim();
-                                if (!tagKey.StartsWith('\"'))
-                                {
-                                    tagKey = "\"" + tagKey + "\"";
-                                }
-                                var tagValue = currLine[(equalIndex + 1)..].Trim();
-                                valueBuilder.Append('{');
-                                valueBuilder.Append("\"Key\":").Append(tagKey).Append(',').Append("\"Value\":").Append(tagValue.Trim(','));
-                                valueBuilder.Append("},");
-                                currLine = stringReader.ReadLine();
-                            }
-                            value = valueBuilder.ToString().Trim(',') + "],";
+                            value = ReadKeyValueBlock(stringReader, currLine[(equalIndex + 1)..].Trim(), key) + ",";
                         }
                         else
                         {
@@ -530,6 +496,55 @@ namespace SDAFWebApp.Controllers
                 }
             }
             return jsonFormattedOutput;
+        }
+
+        private static string ReadKeyValueBlock(StringReader reader, string openingValue, string key)
+        {
+            if (openingValue == "{}")
+            {
+                return "[]";
+            }
+
+            string openingRemainder = openingValue.StartsWith('{') ? openingValue[1..].Trim() : null;
+            if (openingRemainder == null ||
+                (openingRemainder.Length > 0 && !openingRemainder.StartsWith('#') && !openingRemainder.StartsWith("//")))
+            {
+                throw new FormatException($"Expected a map block for {key}.");
+            }
+
+            StringBuilder values = new("[");
+            string line;
+            while ((line = reader.ReadLine()) != null)
+            {
+                line = line.Trim();
+                if (line.Length == 0 || line.StartsWith('#') || line.StartsWith("//"))
+                {
+                    continue;
+                }
+
+                if (line.StartsWith('}'))
+                {
+                    return values.ToString().TrimEnd(',') + "]";
+                }
+
+                int equalIndex = line.IndexOf('=');
+                if (equalIndex <= 0)
+                {
+                    throw new FormatException($"Expected a key=value entry in {key}.");
+                }
+
+                string entryKey = line[..equalIndex].Trim();
+                if (!entryKey.StartsWith('"'))
+                {
+                    entryKey = JsonSerializer.Serialize(entryKey);
+                }
+
+                string entryValue = line[(equalIndex + 1)..].Trim().TrimEnd(',');
+                values.Append("{\"Key\":").Append(entryKey)
+                    .Append(",\"Value\":").Append(entryValue).Append("},");
+            }
+
+            throw new FormatException($"Unterminated map block for {key}.");
         }
 
         public static async Task<AppFile> GetImagesFile(
